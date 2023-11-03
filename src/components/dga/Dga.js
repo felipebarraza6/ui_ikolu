@@ -22,6 +22,8 @@ const Dga = () => {
     const rq = await sh
       .get_data_send_dga(state.selected_profile.id)
       .then((r) => {
+        console.log(r.results);
+        var process_list = [];
         let today = new Date();
         let year = today.getFullYear();
         let month = today.getMonth() + 1;
@@ -29,24 +31,24 @@ const Dga = () => {
         let formattedDate = `${year}-${month.toString().padStart(2, "0")}-${day
           .toString()
           .padStart(2, "0")} `;
-        console.log(formattedDate);
-        setData([
-          {
+        r.results.map((e, index) => {
+          process_list.push({
             nivel: r.results[0].nivel
               ? parseFloat(
                   state.selected_profile.d3 - r.results[0].nivel
                 ).toFixed(1)
               : 0,
-            caudal: r.results[0].flow ? r.results[0].flow : 0,
+            caudal: r.results[index].flow ? r.results[0].flow : 0,
             acumulado: r.results[0].total
-              ? numberForMiles.format(r.results[0].total)
+              ? numberForMiles.format(r.results[index].total)
               : 0,
-            fecha: `${r.results[0].date_time_medition.slice(
+            fecha: `${r.results[index].date_time_medition.slice(
               0,
               10
-            )} ${r.results[0].date_time_medition.slice(11, 16)}`,
-          },
-        ]);
+            )} ${r.results[index].date_time_medition.slice(11, 16)}`,
+          });
+        });
+        setData(process_list);
       });
   };
 
