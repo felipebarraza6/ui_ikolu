@@ -1,0 +1,16 @@
+{
+    "configurations": [
+    {
+        "command": "yarn start",
+        "name": "Run yarn start",
+        "request": "launch",
+        "type": "node-terminal"
+    },
+        {
+            "type": "chrome",
+            "name": "http://node_modules/",
+            "request": "launch",
+            "url": "http://node_modules/"
+        }
+    ]
+}
