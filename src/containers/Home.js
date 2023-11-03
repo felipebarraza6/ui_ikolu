@@ -32,9 +32,6 @@ const Home = () => {
             <Col span={window.innerWidth > 900 ? 17 : 24}>
               <Row justify="center">
                 <Col span={24}>
-                  <ListWells />
-                </Col>
-                <Col span={24}>
                   <Card
                     bordered
                     style={{

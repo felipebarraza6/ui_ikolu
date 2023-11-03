@@ -3,6 +3,7 @@ import { Row, Col, Typography, Tooltip, Popconfirm } from "antd";
 import wallpaper from "../../assets/images/walldga.png";
 import { AppContext } from "../../App";
 import { UserOutlined, ArrowLeftOutlined } from "@ant-design/icons";
+import ListWells from "./ListWells";
 
 const { Title } = Typography;
 
@@ -12,7 +13,8 @@ const HeaderNav = () => {
   return (
     <>
       <Row
-        align={"top"}
+        align={"middle"}
+        justify={"space-between"}
         style={{
           backgroundImage: `url(${wallpaper})`,
           minHeight: "100px",
@@ -25,13 +27,27 @@ const HeaderNav = () => {
           backgroundSize: "cover",
         }}
       >
-        <Col style={{ paddingTop: "10px", paddingLeft: "40px" }} span={12}>
-          <Title level={3} style={{ color: "white" }}>
+        <Col
+          span={3}
+          style={{
+            paddingTop: "0px",
+            paddingLeft: "4px",
+          }}
+        >
+          <Title level={5} style={{ color: "white", textAlign: "center" }}>
             {" "}
             {state.user.first_name.toUpperCase()}{" "}
           </Title>
         </Col>
-        <Col style={{ paddingTop: "30px" }} span={1} offset={11}>
+        <Col
+          style={{
+            paddingTop: "0px",
+            paddingLeft: "4px",
+          }}
+        >
+          <ListWells />
+        </Col>
+        <Col style={{ paddingTop: "30px" }} span={1} offset={14}>
           <Popconfirm
             cancelText="Volver"
             okButtonProps

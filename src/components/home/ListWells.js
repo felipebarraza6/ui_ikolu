@@ -12,7 +12,7 @@ const ListWells = () => {
   const { state, dispatch } = useContext(AppContext);
 
   return (
-    <Row style={{ marginTop: "-80px" }} align={"middle"} justify={"start"}>
+    <Row style={{ marginTop: "0px" }} align={"middle"} justify={"start"}>
       <Col>
         <Tag
           color="geekblue-inverse"
