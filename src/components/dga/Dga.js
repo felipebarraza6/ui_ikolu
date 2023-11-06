@@ -116,16 +116,6 @@ const Dga = () => {
               ? state.selected_profile.code_dga_site
               : "CÓDIGO DE OBRA"}
           </Title>
-          <Button
-            style={{
-              borderRadius: "10px",
-              backgroundColor: "#1f3461",
-              color: "white",
-            }}
-            disabled
-          >
-            Ir a mi Dga
-          </Button>
         </center>
       </Col>
     </Row>
