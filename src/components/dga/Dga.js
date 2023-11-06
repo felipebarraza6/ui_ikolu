@@ -9,19 +9,16 @@ const { Title } = Typography;
 const Dga = () => {
   const { state } = useContext(AppContext);
   const [data, setData] = useState([]);
-  console.log(state);
-  const getData = async () => {
-    const rq = await sh
-      .get_data_sh(state.selected_profile.id)
-      .then((x) => console.log(x.results[0]));
-  };
+  const [countElements, setCountElements] = useState(0);
+  const [page, setPage] = useState(1);
 
   const numberForMiles = new Intl.NumberFormat("de-DE");
 
   const getDataSh = async () => {
     const rq = await sh
-      .get_data_send_dga(state.selected_profile.id)
+      .get_data_send_dga(state.selected_profile.id, page)
       .then((r) => {
+        setCountElements(r.count);
         console.log(r.results);
         var process_list = [];
         let today = new Date();
@@ -53,22 +50,28 @@ const Dga = () => {
   };
 
   useEffect(() => {
-    getData();
     getDataSh();
-  }, [state.selected_profile]);
+  }, [state.selected_profile, page]);
 
   return (
     <Row>
       <Col span={24}>
         <Title level={2}>
           DGA <br />
-          <span style={{ fontSize: "20px" }}>Datos enviados a DGA</span>
+          <span style={{ fontSize: "20px" }}>
+            Datos enviados a DGA en las últimas 24 horas:{" "}
+            <strong>({countElements})</strong>
+          </span>
         </Title>
       </Col>
       <Col span={14} style={{ padding: "20px" }}>
         <Table
           style={{ borderRadius: "20px" }}
           bordered
+          pagination={{
+            total: countElements,
+            onChange: (page) => setPage(page),
+          }}
           size="small"
           dataSource={data}
           columns={[

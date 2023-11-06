@@ -62,9 +62,16 @@ const getDataApiShRangeDateGraphic = async (
   return rq.data;
 };
 
-const getDataApiShDgaSend = async (id_profile) => {
+const getDataApiShDgaSend = async (id_profile, page) => {
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const year = yesterday.getFullYear();
+  const month = yesterday.getMonth() + 1;
+  const day = yesterday.getDate();
   const rq = await GET(
-    `interaction_detail_json/?profile_client=${id_profile}&is_send_dga=true`
+    `interaction_detail_json/?profile_client=${id_profile}&is_send_dga=true&date_time_medition__day=${day}&date_time_medition__month=${month}&date_time_medition__year=${year}&page=${page}`
   );
   return rq.data;
 };
