@@ -29,10 +29,12 @@ const SiderLeft = () => {
         style={{ color: "white", marginTop: "-10px", marginBottom: "30px" }}
         level={5}
       >
-        {" "}
-        <Tag color="geekblue-inverse">
-          E. {state.selected_profile.standard.toUpperCase()}{" "}
-        </Tag>
+        {state.selected_profile.standard && (
+          <Tag color="geekblue-inverse">
+            {" "}
+            E. {state.selected_profile.standard.toUpperCase()}
+          </Tag>
+        )}
       </Title>
       <div
         style={{

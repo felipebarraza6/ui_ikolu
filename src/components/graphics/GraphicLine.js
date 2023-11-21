@@ -1,99 +1,157 @@
 import React, { useState, useEffect } from "react";
 import sh from "../../api/sh/endpoints";
-
-import { Line, DualAxes } from "@ant-design/plots";
+import Stats24Hours from "./Stats24ours";
+import { Line } from "@ant-design/plots";
 
 const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    asyncFetch();
-  }, []);
+    if (option === 1) {
+      asyncFetch();
+    } else if (option === 2) {
+    }
+  }, [option, initialDate]);
 
   const asyncFetch = async () => {
-    var listFormated = [];
-    const rq = await sh
-      .get_data_sh_range(id_profile, initialDate, endDate, 1)
+    var date = new Date(initialDate);
+    const rq1 = await sh
+      .get_data_structural(
+        id_profile,
+        date.getFullYear(),
+        date.getMonth() + 1,
+        option === 1 ? date.getDate() : ""
+      )
       .then((res) => {
-        const formatList = res.results.map((element) => {
-          console.log(element);
+        var listFormated = [];
+        res.results.map((element) => {
+          for (const [key, value] of Object.entries(element)) {
+            var date_time = element.date_time_medition.slice(11, 16);
+            const formattedElement = {};
+            if (key === "total") {
+              formattedElement.type = "acumulado (m³)";
+              formattedElement.value = value;
+              formattedElement.date = `${date_time} hrs`;
+              listFormated.push(formattedElement);
+            } else if (key === "nivel") {
+              formattedElement.type = "nivel (m)";
+              formattedElement.value = parseFloat(value).toFixed(1);
+              formattedElement.date = `${date_time} hrs`;
+              listFormated.push(formattedElement);
+            } else if (key === "flow") {
+              formattedElement.type = "caudal (lt/s)";
+              formattedElement.value = parseFloat(value).toFixed(1);
+              formattedElement.date = `${date_time} hrs`;
+              listFormated.push(formattedElement);
+            } else if (key === "total_hora") {
+              formattedElement.type = "acumulado(m³/hora)";
+              formattedElement.value = value;
+              formattedElement.date = `${date_time} hrs`;
+              listFormated.push(formattedElement);
+            }
+          }
+          return element;
         });
-        setData(formatList);
+
+        // Ordenar el array por el campo date
+        listFormated.sort((a, b) => {
+          const timeA = parseInt(a.date.replace(":", ""));
+          const timeB = parseInt(b.date.replace(":", ""));
+          return timeA - timeB;
+        });
+
+        setData(listFormated);
       });
   };
-  const COLOR_PLATE_10 = [
-    "#5B8FF9",
-    "#5AD8A6",
-    "#5D7092",
-    "#F6BD16",
-    "#E8684A",
-    "#6DC8EC",
-    "#9270CA",
-    "#FF9D4D",
-    "#269A99",
-    "#FF99C3",
-  ];
 
+  const asyncFetch2 = async () => {
+    var date = new Date(initialDate);
+    const rq1 = await sh
+      .get_data_structural(
+        id_profile,
+        date.getFullYear(),
+        date.getMonth() + 1,
+        ""
+      )
+      .then((res) => {
+        var listFormated = [];
+        res.results.map((element) => {
+          for (const [key, value] of Object.entries(element)) {
+            var date_time = element.date_time_medition.slice(0, 10);
+            const formattedElement = {};
+            if (key === "total") {
+              formattedElement.type = "acumulado (m³)";
+              formattedElement.value = value;
+              formattedElement.date = `${date_time} hrs`;
+              listFormated.push(formattedElement);
+            } else if (key === "nivel") {
+              formattedElement.type = "nivel (m)";
+              formattedElement.value = value;
+              formattedElement.date = `${date_time} hrs`;
+              listFormated.push(formattedElement);
+            } else if (key === "flow") {
+              formattedElement.type = "caudal (lt/s)";
+              formattedElement.value = value;
+              formattedElement.date = `${date_time} hrs`;
+              listFormated.push(formattedElement);
+            } else if (key === "total_hora") {
+              formattedElement.type = "acumulado(m³/hora)";
+              formattedElement.value = value;
+              formattedElement.date = `${date_time} hrs`;
+              listFormated.push(formattedElement);
+            }
+          }
+          return element;
+        });
+
+        // Ordenar el array por el campo date
+        listFormated.sort((a, b) => {
+          const timeA = parseInt(a.date.replace(":", ""));
+          const timeB = parseInt(b.date.replace(":", ""));
+          return timeA - timeB;
+        });
+
+        setData(listFormated);
+      });
+  };
   const config = {
-    data: [data, data],
-    xField: "date_time_medition",
-    yField: ["total", "nivel", "flow"],
-    geometryOptions: [
-      {
-        geometry: "line",
-        smooth: false,
-        color: "#5B8FF9",
-        label: {
-          formatter: (datum) => {
-            return `${datum.total}个`;
-          },
-        },
-        lineStyle: {
-          lineWidth: 3,
-          lineDash: [5, 5],
+    data,
+    xField: "date",
+
+    xAxis: {
+      title: {
+        text: initialDate,
+        style: {
+          fontSize: 14,
         },
       },
-      {
-        geometry: "line",
-        smooth: false,
-        color: "#5B8FF9",
-        label: {
-          formatter: (datum) => {
-            return `${datum.flow}个`;
-          },
-        },
-        lineStyle: {
-          lineWidth: 3,
-          lineDash: [5, 5],
-        },
+      tickInterval: 1,
+    },
+    yField: "value",
+    yAxis: {
+      tickInterval: 2,
+      minValue: 0,
+      label: {
+        formatter: (v) =>
+          `${v}`.replace(/\d{1,3}(?=(\d{3})+$)/g, (s) => `${s}.`),
       },
-      {
-        geometry: "line",
-        smooth: true,
-        color: "red",
-        lineStyle: {
-          lineWidth: 4,
-          opacity: 0.5,
-        },
-        label: {
-          formatter: (datum) => {
-            return `${datum.nivel}个`;
-          },
-        },
-        point: {
-          shape: "circle",
-          size: 4,
-          style: {
-            opacity: 0.5,
-            stroke: "#5AD8A6",
-            fill: "#fff",
-          },
-        },
-      },
-    ],
+    },
+    seriesField: "type",
+    color: ["#5b8c00", "#002c8c", "#cf1322", "#262626"],
   };
 
-  return <DualAxes {...config} />;
+  return (
+    <>
+      {option === 1 ? (
+        <>
+          <Line {...config} />
+          <Stats24Hours data={data} />
+        </>
+      ) : (
+        <></>
+      )}
+    </>
+  );
 };
 
 export default GraphicLine;
