@@ -4,6 +4,7 @@ import GraphicLine from "./GraphicLine";
 import { AppContext } from "../../App";
 import { ClockCircleOutlined, CalendarOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
+import es_ES from "antd/lib/locale/es_ES";
 
 const { Title } = Typography;
 
@@ -27,11 +28,16 @@ const MyGraphics = () => {
     }
   };
 
+  const disabledDate = (current) => {
+    return current && current > dayjs().subtract(1, "day").endOf("day");
+  };
+
   useEffect(() => {
     if (option === 1) {
       setInitialDate(dayjs().subtract(1, "day").format("YYYY-MM-DD"));
     }
     if (option === 2) {
+      setInitialDate(dayjs().format("YYYY-MM"));
     }
   }, [state.selected_profile, countUpdate, option]);
 
@@ -44,11 +50,15 @@ const MyGraphics = () => {
               <DatePicker
                 style={styles.datePicker}
                 size="small"
+                allowEmpty={true}
                 onSelect={(date) => {
                   onSelectDate(date, "initial");
                 }}
                 defaultValue={option === 1 && dayjs().subtract(1, "day")}
+                showToday={false}
+                disabledDate={disabledDate}
                 placeholder="Selecciona un dia"
+                locale={es_ES}
               />
             )}
             {option === 2 && (
@@ -60,7 +70,9 @@ const MyGraphics = () => {
                     onSelectDate(date, "initial");
                   }}
                   picker="month"
+                  defaultValue={option === 2 && dayjs()}
                   placeholder="Selecciona un mes"
+                  locale={es_ES}
                 />
               </>
             )}
@@ -76,6 +88,15 @@ const MyGraphics = () => {
           icon={<ClockCircleOutlined />}
         >
           Registro 24 horas
+        </Button>
+        <Button
+          type={option === 1 ? "primary" : "default"}
+          onClick={() => handleOption(2)}
+          size="small"
+          style={styles.btnOption}
+          icon={<CalendarOutlined />}
+        >
+          Mensual
         </Button>
       </Col>
       <Col span={24} style={styles.container}>

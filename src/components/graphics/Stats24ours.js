@@ -1,11 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Statistic, Button, Tag, Typography } from "antd";
+import {
+  Row,
+  Col,
+  Statistic,
+  Button,
+  Tag,
+  Typography,
+  Table,
+  Card,
+  Modal,
+} from "antd";
 import wall from "../../assets/images/walldga.png";
-import { InfoCircleFilled, EyeFilled } from "@ant-design/icons";
+import {
+  RiseOutlined,
+  FallOutlined,
+  EyeFilled,
+  TableOutlined,
+} from "@ant-design/icons";
 
 const { Title } = Typography;
 
 const Stats24Hours = ({ data }) => {
+  console.log(data);
   const [total, setTotal] = useState(0);
   const [totalProm, setTotalProm] = useState(0);
   const [maxHours, setMaxHours] = useState(0);
@@ -38,239 +54,346 @@ const Stats24Hours = ({ data }) => {
     const filteredData = data.filter(
       (item) => item.type === "acumulado(m³/hora)"
     );
-    const maxHour = filteredData.reduce((prev, current) => {
-      return prev.value > current.value ? prev : current;
-    });
-    setMaxHours(maxHour);
-    return maxHour.date;
+    if (filteredData.length > 0) {
+      const maxHour = filteredData.reduce((prev, current) => {
+        return prev.value > current.value ? prev : current;
+      });
+      setMaxHours(maxHour);
+      return maxHour.date;
+    }
+    return null;
   };
 
   const getMinHour = () => {
-    console.log(data);
     const filteredData = data.filter(
       (item) => item.type === "acumulado(m³/hora)"
     );
-    const maxHour = filteredData.reduce((prev, current) => {
-      return prev.value < current.value ? prev : current;
-    });
-    setMinHours(maxHour);
-    return maxHour.date;
+    if (filteredData.length > 0) {
+      const minHour = filteredData.reduce((prev, current) => {
+        return prev.value < current.value ? prev : current;
+      });
+      setMinHours(minHour);
+      return minHour.date;
+    }
+    return null;
   };
 
   const flowMinMax = () => {
-    // Recorrer el array data y filtrar por el tipo "caudal (m)"
     const filteredData = data.filter((item) => item.type === "caudal (lt/s)");
-
-    // Encontrar el valor máximo y mínimo
-    const max = filteredData.reduce((prev, current) =>
-      prev.value > current.value ? prev : current
-    );
-    const min = filteredData.reduce((prev, current) =>
-      prev.value < current.value ? prev : current
-    );
-    setFlowMax(max);
-    setFlowMin(min);
+    if (filteredData.length > 0) {
+      const max = filteredData.reduce((prev, current) =>
+        prev.value > current.value ? prev : current
+      );
+      const min = filteredData.reduce((prev, current) =>
+        prev.value < current.value ? prev : current
+      );
+      setFlowMax(max);
+      setFlowMin(min);
+    }
   };
 
   const nivelMinMax = () => {
-    // Recorrer el array data y filtrar por el tipo "caudal (m)"
-    const filteredData = data.filter((item) => item.type === "nivel (m)");
-
-    // Encontrar el valor máximo y mínimo
-    const max = filteredData.reduce((prev, current) =>
-      prev.value > current.value ? prev : current
+    const filteredData = data.filter(
+      (item) => item.type === "nivel freático(m)"
     );
-    const min = filteredData.reduce((prev, current) =>
-      prev.value < current.value ? prev : current
-    );
-    setNivelMax(max);
-    setNivelMin(min);
-    // Imprimir la fecha y el valor máximo o mínimo
+    if (filteredData.length > 0) {
+      const max = filteredData.reduce((prev, current) =>
+        prev.value > current.value ? prev : current
+      );
+      const min = filteredData.reduce((prev, current) =>
+        prev.value < current.value ? prev : current
+      );
+      setNivelMax(max);
+      setNivelMin(min);
+    }
   };
 
   useEffect(() => {
-    if (data.length > 0) {
-      getTotal();
-      getMaxHour();
-      getMinHour();
-      flowMinMax();
-      nivelMinMax();
+    if (data) {
+      if (data.length > 0) {
+        getTotal();
+        getMaxHour();
+        getMinHour();
+        flowMinMax();
+        nivelMinMax();
+      }
     }
   }, [data]);
+
+  const ModalTotal = () => {
+    var totals = [];
+    data.reduce((accumulator, currentValue) => {
+      if (currentValue.type === "acumulado(m³/hora)") {
+        totals.push({ ...currentValue, sum: currentValue.value });
+        return accumulator;
+      }
+      return accumulator;
+    }, 0);
+
+    console.log(totals);
+    Modal.info({
+      icon: <TableOutlined />,
+      title: "Detalle Consumo total (m³)",
+      width: "700px",
+      okText: "Volver",
+      content: (
+        <>
+          <Table
+            style={{ marginTop: "10px", textAlign: "center" }}
+            dataSource={totals}
+            size="small"
+            bordered
+            columns={[
+              { title: "Hora", dataIndex: "date" },
+              {
+                title: "acumulado (m³/hora)",
+                dataIndex: "value",
+                align: "center",
+                render: (value) => `${value} m³`,
+              },
+              {
+                dataIndex: "sum",
+              },
+            ]}
+          />
+        </>
+      ),
+    });
+  };
 
   return (
     <>
       <Row justify={"space-evenly"} align={"top"} style={{ marginTop: "20px" }}>
         <Col>
-          <div
-            style={{
-              background: `url(${wall})`,
-              padding: "25px",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "center center",
-              borderRadius: "20px",
-            }}
-          >
-            <Statistic
-              suffix={<Tag color="#002c8c">m³/hora</Tag>}
-              valueStyle={{
-                color: "white",
-              }}
-              title={
-                <Row>
-                  <Col>
-                    <Tag color="#002c8c">Consumo total (m³)</Tag>
-                  </Col>
-                </Row>
-              }
-              value={total.toLocaleString().replace(/,/g, ".")}
-            />
-          </div>
-        </Col>
-        <Col>
-          <div
-            style={{
-              background: `url(${wall})`,
-              padding: "25px",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "center top",
-              borderRadius: "20px",
-            }}
-          >
-            <Statistic
-              suffix={<Tag color="#262626">m³/hora</Tag>}
-              valueStyle={{ color: "white" }}
-              title={
-                <Row>
-                  <Col>
-                    <Tag color="#262626">Promedio consumo (m³/hora)</Tag>
-                  </Col>
-                </Row>
-              }
-              value={totalProm}
-            />
-          </div>
-        </Col>
-        <Col>
-          <div
-            style={{
-              background: `url(${wall})`,
-              padding: "25px",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "bottom center",
-              borderRadius: "20px",
-              width: "150px",
-            }}
-          >
-            <Row align="middle">
-              <Col span={24} style={{ marginBottom: "10px" }}>
-                <Tag color="#262626">Hora consumo (m³/hora)</Tag>
+          <Card style={styles.cardStats.ind1} size="small">
+            <Row justify={"center"}>
+              <Col>
+                <Tag
+                  color={styles.cardStats.ind1.tag.color}
+                  style={{ fontSize: "16px" }}
+                >
+                  Consumo total (m³)
+                </Tag>
               </Col>
+            </Row>
+            <Row align={"middle"}>
+              <Col
+                span={24}
+                style={{ marginBottom: "34px", marginTop: "40px" }}
+              >
+                <Statistic
+                  suffix={
+                    <Row>
+                      <Col style={{ fontSize: "16px" }}>m³</Col>
+                    </Row>
+                  }
+                  valueStyle={styles.cardStats.ind1.value}
+                  value={total.toLocaleString().replace(/,/g, ".")}
+                />
+              </Col>
+              <Col span={24}>
+                <Button
+                  onClick={ModalTotal}
+                  size="small"
+                  style={styles.cardStats.ind1.btnDetail}
+                  type="primary"
+                  block
+                  icon={<TableOutlined />}
+                >
+                  Ver Detalle
+                </Button>
+              </Col>
+            </Row>
+          </Card>
+        </Col>
+        <Col>
+          <Card style={styles.cardStats.ind2} size="small">
+            <Row justify={"center"}>
+              <Col>
+                <Tag
+                  color={styles.cardStats.ind2.tag.color}
+                  style={{ fontSize: "16px" }}
+                >
+                  Consumo promedio (m³/hora)
+                </Tag>
+              </Col>
+            </Row>
+            <Row align={"middle"}>
+              <Col
+                span={24}
+                style={{ marginBottom: "34px", marginTop: "40px" }}
+              >
+                <Statistic
+                  suffix={
+                    <Row>
+                      <Col style={{ fontSize: "16px" }}>m³</Col>
+                    </Row>
+                  }
+                  valueStyle={styles.cardStats.ind2.value}
+                  value={totalProm}
+                />
+              </Col>
+              <Col span={24}>
+                <Button
+                  size="small"
+                  style={styles.cardStats.ind2.btnDetail}
+                  type="primary"
+                  block
+                  icon={<TableOutlined />}
+                >
+                  Ver Detalle
+                </Button>
+              </Col>
+            </Row>
+          </Card>
+        </Col>
+        <Col>
+          <Card style={styles.cardStats.ind3} size="small">
+            <Row justify={"center"}>
+              <Tag
+                color={styles.cardStats.ind3.tag.color}
+                style={{ marginBottom: "10px", fontSize: "16px" }}
+              >
+                Consumo (m³/hora)
+              </Tag>
+            </Row>
+            <Row align="middle">
               <Col span={10}>
-                <Tag color="green-inverse">Max</Tag>
+                <Tag color="green" icon={<RiseOutlined />}>
+                  Max
+                </Tag>
               </Col>
               <Col span={14}>
-                <Tag color="green-inverse">{maxHours.date}</Tag>
+                <Tag color="green">{maxHours.date}</Tag>
                 <br />
-                <Tag color="green-inverse"> {maxHours.value} m³/hora</Tag>
+                <Tag color="green"> {maxHours.value} m³/hora</Tag>
               </Col>
               <Col
                 span={24}
                 style={{
-                  borderBottom: "2px dashed white",
+                  borderBottom: "2px dashed #262626",
                   marginTop: "5px",
                   marginBottom: "5px",
                 }}
               ></Col>
               <Col span={10}>
-                <Tag color="volcano-inverse">Min</Tag>
+                <Tag color="volcano" icon={<FallOutlined />}>
+                  Min
+                </Tag>
               </Col>
               <Col span={14}>
-                <Tag color="volcano-inverse">{minHours.date}</Tag> <br />{" "}
-                <Tag color="volcano-inverse">{minHours.value} m³/hora</Tag>
+                <Tag color="volcano">{minHours.date}</Tag> <br />{" "}
+                <Tag color="volcano">{minHours.value} m³/hora</Tag>
               </Col>
             </Row>
-          </div>
+            <Button
+              size="small"
+              style={styles.cardStats.ind3.btnDetail}
+              block
+              type="primary"
+              icon={<TableOutlined />}
+            >
+              Ver Detalle
+            </Button>
+          </Card>
         </Col>
         <Col>
-          <div
-            style={{
-              background: `url(${wall})`,
-              padding: "25px",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "center right",
-              borderRadius: "20px",
-              width: "150px",
-            }}
-          >
+          <Card style={styles.cardStats.ind4} size="small">
+            <Row justify={"center"}>
+              <Tag
+                color={styles.cardStats.ind4.tag.color}
+                style={{ marginBottom: "10px", fontSize: "16px" }}
+              >
+                Caudal (lt/s)
+              </Tag>
+            </Row>
             <Row align="middle">
-              <Col span={24} style={{ marginBottom: "10px" }}>
-                <Tag color="#5b8c00">Caudal (lt/s)</Tag>
-              </Col>
               <Col span={10}>
-                <Tag color="green-inverse">Max</Tag>
+                <Tag color="green" icon={<RiseOutlined />}>
+                  Max
+                </Tag>
               </Col>
               <Col span={14}>
-                <Tag color="green-inverse">{flowMax.date}</Tag>
-                <br /> <Tag color="green-inverse">{flowMax.value} lt/s</Tag>
+                <Tag color="green">{flowMax.date}</Tag>
+                <br /> <Tag color="green">{flowMax.value} lt/s</Tag>
               </Col>
               <Col
                 span={24}
                 style={{
-                  borderBottom: "2px dashed white",
+                  borderBottom: "2px dashed black",
                   marginTop: "5px",
                   marginBottom: "5px",
                 }}
               ></Col>
               <Col span={10}>
-                <Tag color="volcano-inverse">Min</Tag>
+                <Tag color="volcano" icon={<FallOutlined />}>
+                  Min
+                </Tag>
               </Col>
               <Col span={14}>
-                <Tag color="volcano-inverse">{flowMin.date}</Tag> <br />{" "}
-                <Tag color="volcano-inverse">{flowMin.value} lt/s</Tag>
+                <Tag color="volcano">{flowMin.date}</Tag> <br />{" "}
+                <Tag color="volcano">{flowMin.value} lt/s</Tag>
               </Col>
             </Row>
-          </div>
+            <Button
+              size="small"
+              style={styles.cardStats.ind4.btnDetail}
+              block
+              type="primary"
+              icon={<TableOutlined />}
+            >
+              Ver Detalle
+            </Button>
+          </Card>
         </Col>
         <Col>
-          <div
-            style={{
-              background: `url(${wall})`,
-              padding: "25px",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "bottom right",
-              borderRadius: "20px",
-              width: "150px",
-            }}
-          >
+          <Card style={styles.cardStats.ind5} size="small">
+            <Row justify={"center"}>
+              <Tag
+                color={styles.cardStats.ind5.tag.color}
+                style={{ marginBottom: "10px", fontSize: "17px" }}
+              >
+                Nivel freático (m)
+              </Tag>
+            </Row>
             <Row align="middle">
-              <Col span={24} style={{ marginBottom: "10px" }}>
-                <Tag color="#cf1322">Nivel (m)</Tag>
-              </Col>
               <Col span={10}>
-                <Tag color="green-inverse">Max</Tag>
+                <Tag color="green" icon={<RiseOutlined />}>
+                  Max
+                </Tag>
               </Col>
               <Col span={14}>
-                <Tag color="green-inverse">{nivelMax.date}</Tag>
-                <br /> <Tag color="green-inverse">{nivelMax.value} m</Tag>
+                <Tag color="green">{nivelMax.date}</Tag>
+                <br /> <Tag color="green">{nivelMax.value} m</Tag>
               </Col>
               <Col
                 span={24}
                 style={{
-                  borderBottom: "2px dashed white",
+                  borderBottom: "2px dashed black",
                   marginTop: "5px",
                   marginBottom: "5px",
                 }}
               ></Col>
               <Col span={10}>
-                <Tag color="volcano-inverse">Min</Tag>
+                <Tag color="volcano" icon={<FallOutlined />}>
+                  Min
+                </Tag>
               </Col>
               <Col span={14}>
-                <Tag color="volcano-inverse">{nivelMin.date}</Tag> <br />{" "}
-                <Tag color="volcano-inverse">{nivelMin.value} m</Tag>
+                <Tag color="volcano">{nivelMin.date}</Tag> <br />{" "}
+                <Tag color="volcano">{nivelMin.value} m</Tag>
               </Col>
             </Row>
-          </div>
+            <Button
+              size="small"
+              style={styles.cardStats.ind5.btnDetail}
+              type="primary"
+              block
+              icon={<TableOutlined />}
+            >
+              Ver Detalle
+            </Button>
+          </Card>
         </Col>
       </Row>
     </>
@@ -278,8 +401,95 @@ const Stats24Hours = ({ data }) => {
 };
 
 const styles = {
+  cardStats: {
+    ind1: {
+      width: "100%",
+      minHeight: "24vh",
+      border: "2px #002c8c solid",
+      borderRadius: "20px",
+      value: {
+        textAlign: "center",
+      },
+      btnDetail: {
+        color: "#fff",
+        marginTop: "10px",
+      },
+      background:
+        "linear-gradient(90deg, rgba(244,244,244,1) 0%, rgba(232,229,229,1) 49%, rgba(255,255,255,1) 100%)",
+      tag: {
+        color: "#002c8c",
+      },
+    },
+    ind2: {
+      width: "100%",
+      minHeight: "24vh",
+      border: "2px #262626 solid",
+      borderRadius: "20px",
+      value: {
+        textAlign: "center",
+      },
+      btnDetail: {
+        color: "#fff",
+        marginTop: "10px",
+      },
+      background:
+        "linear-gradient(90deg, rgba(244,244,244,1) 0%, rgba(232,229,229,1) 49%, rgba(255,255,255,1) 100%)",
+      tag: {
+        color: "#262626",
+      },
+    },
+    ind3: {
+      width: "180px",
+      border: "2px #262626 solid",
+      borderRadius: "20px",
+      value: {
+        paddingLeft: "10px",
+      },
+      btnDetail: {
+        color: "#fff",
+        marginTop: "10px",
+      },
+      background:
+        "linear-gradient(90deg, rgba(244,244,244,1) 0%, rgba(232,229,229,1) 49%, rgba(255,255,255,1) 100%)",
+      tag: {
+        color: "#262626",
+      },
+    },
+    ind4: {
+      width: "180px",
+      border: "2px #5b8c00 solid",
+      borderRadius: "20px",
+      value: {
+        paddingLeft: "10px",
+      },
+      btnDetail: {
+        color: "#fff",
+        marginTop: "10px",
+      },
+      background:
+        "linear-gradient(90deg, rgba(244,244,244,1) 0%, rgba(232,229,229,1) 49%, rgba(255,255,255,1) 100%)",
+      tag: {
+        color: "#5b8c00",
+      },
+    },
+    ind5: {
+      width: "180px",
+      border: "2px #cf1322 solid",
+      borderRadius: "20px",
+      value: {
+        paddingLeft: "10px",
+      },
+      btnDetail: {
+        marginTop: "10px",
+      },
+      background:
+        "linear-gradient(90deg, rgba(244,244,244,1) 0%, rgba(232,229,229,1) 49%, rgba(255,255,255,1) 100%)",
+      tag: {
+        color: "#cf1322",
+      },
+    },
+  },
   divStat: {
-    background: `url(${wall})`,
     backgroundRepeat: "no-repeat",
     padding: "0px 10px 10px 10px",
     backgroundPosition: { op1: "center center" },

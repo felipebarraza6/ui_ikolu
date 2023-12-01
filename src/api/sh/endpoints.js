@@ -77,20 +77,40 @@ const getDataApiShDgaSend = async (id_profile, page) => {
 };
 
 const getDataApiShStructural24h = async (id_profile, year, month, day) => {
+  var totalCount = 0;
+  var listFormat = {};
   const rq1 = await GET(
     `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__day=${day}`
-  );
-  const rq2 = await GET(
-    `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__day=${day}&page=2`
-  );
-  const rq3 = await GET(
-    `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__day=${day}&page=3`
-  );
-  var listFormat = {
-    ...rq1.data,
-    results: [...rq1.data.results, ...rq2.data.results, ...rq3.data.results],
-  };
-  console.log(listFormat);
+  ).then((r) => {
+    console.log(r);
+    totalCount = r.data.count;
+    listFormat = { ...r.data, results: r.data.results };
+    return r;
+  });
+
+  if (totalCount / 10 > 1) {
+    const rq2 = await GET(
+      `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__day=${day}&page=2`
+    ).then((r) => {
+      listFormat = {
+        ...listFormat,
+        results: [...listFormat.results, ...r.data.results],
+      };
+      return r;
+    });
+  }
+  if (totalCount / 10 > 2) {
+    const rq3 = await GET(
+      `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__day=${day}&page=3`
+    ).then((r) => {
+      listFormat = {
+        ...listFormat,
+        results: [...listFormat.results, ...r.data.results],
+      };
+      return r;
+    });
+  }
+
   let total_acumulado = 0;
   for (let i = 0; i < listFormat.results.length - 1; i++) {
     const current = listFormat.results[i];
@@ -100,7 +120,23 @@ const getDataApiShStructural24h = async (id_profile, year, month, day) => {
     current.total_hora = total;
   }
 
-  console.log(listFormat);
+  return listFormat;
+};
+
+const getDataApiShStructuralMonth = async (id_profile, year, month) => {
+  const rq1 = await GET(
+    `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__hour=00&date_time_medition__day__range=01,31`
+  );
+  const rq2 = await GET(
+    `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__hour=00&page=2&date_time_medition__day__range=01,31`
+  );
+  const rq3 = await GET(
+    `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__hour=00&page=3&date_time_medition__day__range=01,31`
+  );
+  var listFormat = {
+    ...rq1.data,
+    results: [...rq1.data.results, ...rq2.data.results, ...rq3.data.results],
+  };
 
   return listFormat;
 };
@@ -116,6 +152,7 @@ const sh = {
   get_data_send_dga: getDataApiShDgaSend,
   get_data_sh_range_graphic: getDataApiShRangeDateGraphic,
   get_data_structural: getDataApiShStructural24h,
+  get_data_structural_month: getDataApiShStructuralMonth,
 };
 
 export default sh;
