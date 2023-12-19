@@ -1,7 +1,7 @@
 import React from "react";
 
 const StatsMonth = () => {
-  return <>Stats</>;
+  return <></>;
 };
 
 export default StatsMonth;

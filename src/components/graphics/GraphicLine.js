@@ -15,7 +15,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
     } else if (option === 2) {
       asyncFetch2();
     }
-  }, [option, initialDate]);
+  }, [option, initialDate, state.selected_profile]);
 
   const asyncFetch = async () => {
     var date = new Date(initialDate);

@@ -3,6 +3,7 @@ import moment from "moment";
 import { Row, Col, Typography, Table, Button, DatePicker } from "antd";
 import { AppContext } from "../../App";
 import dayjs from "dayjs";
+import * as XLSX from "xlsx";
 
 import {
   CloudDownloadOutlined,
@@ -17,11 +18,213 @@ const Reports = () => {
   const { state } = useContext(AppContext);
   const [selectDownload, setSelectDownload] = useState(null);
   const [data, setData] = useState([]);
+  const [historyData, setHistoryData] = useState([]);
   const [initialDate, setInitialDate] = useState("");
   const [finishDate, setFinishDate] = useState("");
+  const [totals, setTotals] = useState([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  console.log(data);
+  /*
+  const downloadDataToExcel = async () => {
+    const pageSize = 10; // Número de elementos por página
+    let currentPage = 1; // Página actual
+    let allData = []; // Array para almacenar todos los datos
+
+    // Función para obtener los datos de una página específica
+    const getDataPage = async (page) => {
+      const rq = await sh.get_data_sh_range(
+        state.selected_profile.id,
+        initialDate,
+        finishDate,
+        page
+      );
+      return rq.results;
+    };
+
+    // Obtener los datos de la primera página
+    let pageData = await getDataPage(currentPage);
+    allData = allData.concat(pageData);
+
+    // Obtener los datos de las páginas restantes
+    while (pageData.length === pageSize) {
+      currentPage++;
+      pageData = await getDataPage(currentPage);
+      allData = allData.concat(pageData);
+    }
+
+    const updatedResults = allData.map((item, index) => {
+      if (index === 0) {
+        return {
+          ...item,
+          total_hora: item.total - allData[index + 1].total,
+        };
+      } else {
+        const previousTotal = allData[index - 1].total;
+        const currentTotal = item.total;
+        const total_hora = previousTotal - currentTotal;
+        return { ...item, total_hora };
+      }
+    });
+
+    // Resto del código...
+
+    const processData = () => {
+      const processedData = updatedResults.reduce((acc, item) => {
+        const currentDate = moment(item.date_time_medition).format(
+          "YYYY-MM-DD HH:mm:ss"
+        );
+        const existingData = acc.find((data) => data.Fecha === currentDate);
+
+        if (existingData) {
+          existingData["Acumulado (m³)/ hora"] += item.total_hora;
+        } else {
+          const newData = {
+            Fecha: currentDate,
+            "Acumulado (m³)": item.total,
+            "Nivel (m)": item.nivel,
+            "Caudal (l/s)": item.flow,
+            "Acumulado (m³)/ hora": moment(item.total_hora).format("YYYY-MM-DD"),
+          };
+          acc.push(newData);
+        }
+
+        const accumulatedData = {
+          Fecha: currentDate,
+          "Acumulado (m³)": item.total,
+          "Nivel (m)": item.nivel,
+          "Caudal (l/s)": item.flow,
+          "Acumulado (m³)/ hora": acc.reduce(
+            (sum, data) => sum + data["Acumulado (m³)/ hora"],
+            0
+          ),
+        };
+        acc.push(accumulatedData);
+
+        return acc;
+      }, []);
+
+    };
+    // Resto del código...
+
+    const getData = async () => {
+      const rq = await sh.get_data_sh_range(
+        state.selected_profile.id,
+        initialDate,
+        finishDate,
+        page
+      );
+      updatedResults = rq.results.map((item, index) => {
+        if (index === 0) {
+          return {
+            ...item,
+            total_hora: item.total - rq.results[index + 1].total,
+          };
+        } else {
+          const previousTotal = rq.results[index - 1].total;
+          const currentTotal = item.total;
+          const total_hora = previousTotal - currentTotal;
+          return { ...item, total_hora };
+        }
+      });
+
+      processData();
+    };
+
+    // Resto del código...
+
+    // Convertir los datos en el formato deseado para el archivo Excel
+    const filteredData = updatedResults.map((item) => ({
+      Fecha: item.date_time_medition,
+      "Acumulado (m³)": item.total,
+      "Nivel (m)": item.nivel,
+      "Caudal (l/s)": item.flow,
+      "Acumulado (m³)/ hora": item.total_hora,
+    }));
+
+    // Crear el archivo Excel y descargarlo
+    const worksheet = XLSX.utils.json_to_sheet(filteredData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Data");
+    XLSX.writeFile(workbook, "data.xlsx");
+  };
+*/
+  // Resto del código...
+
+  // Resto del código...
+
+  const downloadDataToExcel = async () => {
+    const pageSize = 10; // Número de elementos por página
+    let currentPage = 1; // Página actual
+    let allData = []; // Array para almacenar todos los datos
+
+    // Función para obtener los datos de una página específica
+    const getDataPage = async (page) => {
+      const rq = await sh.get_data_sh_range(
+        state.selected_profile.id,
+        initialDate,
+        finishDate,
+        page
+      );
+      return rq.results;
+    };
+
+    // Obtener los datos de la primera página
+    let pageData = await getDataPage(currentPage);
+    allData = allData.concat(pageData);
+
+    // Obtener los datos de las páginas restantes
+    while (pageData.length === pageSize) {
+      currentPage++;
+      pageData = await getDataPage(currentPage);
+      allData = allData.concat(pageData);
+    }
+
+    // Dividir los datos en lotes más pequeños
+    const batchSize = 1000; // Tamaño del lote
+    const batches = Math.ceil(allData.length / batchSize);
+    const processedData = [];
+
+    for (let i = 0; i < batches; i++) {
+      const startIndex = i * batchSize;
+      const endIndex = startIndex + batchSize;
+      const batch = allData.slice(startIndex, endIndex);
+
+      const updatedResults = batch.map((item, index) => {
+        if (index === 0) {
+          return {
+            ...item,
+            total_hora: item.total - batch[index + 1].total,
+          };
+        } else {
+          const previousTotal = batch[index - 1].total;
+          const currentTotal = item.total;
+          const total_hora = previousTotal - currentTotal;
+          return { ...item, total_hora };
+        }
+      });
+
+      processedData.push(...updatedResults);
+    }
+
+    // Convertir los datos en el formato deseado para el archivo Excel
+    const filteredData = processedData.map((item) => ({
+      Fecha: item.date_time_medition,
+      "Acumulado (m³)": item.total,
+      "Nivel (m)": item.nivel,
+      "Caudal (l/s)": item.flow,
+      "Acumulado (m³)/ hora": item.total_hora,
+    }));
+
+    // Crear el archivo Excel y descargarlo
+    const worksheet = XLSX.utils.json_to_sheet(filteredData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Data");
+    XLSX.writeFile(workbook, "data.xlsx");
+
+    console.log(filteredData);
+
+    // Resto del código...
+  };
 
   const getData = async () => {
     const rq = await sh
@@ -33,18 +236,24 @@ const Reports = () => {
       )
       .then((r) => {
         console.log(r);
-        setData(r.results);
+
+        const updatedResults = r.results.map((item, index) => {
+          if (index === 0) {
+            return {
+              ...item,
+              total_hora: item.total - r.results[index + 1].total,
+            };
+          } else {
+            const previousTotal = r.results[index - 1].total;
+            const currentTotal = item.total;
+            const total_hora = previousTotal - currentTotal;
+            return { ...item, total_hora };
+          }
+        });
+
+        setData(updatedResults);
         setTotal(r.count);
       });
-  };
-
-  const postDataDownload = () => {
-    const rq = sh.downloadFile(
-      state.selected_profile.id,
-      initialDate,
-      finishDate,
-      state.selected_profile.title
-    );
   };
 
   const getDataPage = async (page) => {
@@ -57,7 +266,21 @@ const Reports = () => {
       )
       .then((r) => {
         console.log(r);
-        setData(r.results);
+        const updatedResults = r.results.map((item, index) => {
+          if (index === 0) {
+            return {
+              ...item,
+              total_hora: item.total - r.results[index + 1].total,
+            };
+          } else {
+            const previousTotal = r.results[index - 1].total;
+            const currentTotal = item.total;
+            const total_hora = previousTotal - currentTotal;
+            return { ...item, total_hora };
+          }
+        });
+
+        setData(updatedResults);
         setTotal(r.count);
       });
   };
@@ -94,6 +317,7 @@ const Reports = () => {
             { title: "Nivel (m)", dataIndex: "nivel" },
             { title: "Caudal (l/s)", dataIndex: "flow" },
             { title: "Acumulado (m³)", dataIndex: "total" },
+            { title: "Acumulado/hora (m³)", dataIndex: "total_hora" },
           ]}
           dataSource={data}
         />
@@ -152,7 +376,7 @@ const Reports = () => {
               type="primary"
               style={{ width: "100%", textAlign: "left" }}
               block={false}
-              onClick={postDataDownload}
+              onClick={downloadDataToExcel}
             >
               Descargar reporte
             </Button>
