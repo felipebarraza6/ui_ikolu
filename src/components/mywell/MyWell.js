@@ -1,294 +1,234 @@
 import React, { useContext, useEffect, useState } from "react";
-import {
-  Row,
-  Col,
-  Typography,
-  Modal,
-  Input,
-  Card,
-  Form,
-  Button,
-  Table,
-  Select,
-} from "antd";
-
+import { Row, Col, Typography, Statistic, Card } from "antd";
+import { ClockCircleFilled } from "@ant-design/icons";
 import caudal_img from "../../assets/images/caudal.png";
 import nivel_img from "../../assets/images/nivel.png";
 import acumulado_img from "../../assets/images/acumulado.png";
 import pozo1 from "../../assets/images/pozo1.png";
 import { AppContext } from "../../App";
-import api_novus from "../../api/novus/endpoints";
-import { getNovusData } from "./controller";
 import sh from "../../api/sh/endpoints";
-const { Title, Paragraph } = Typography;
+const { Countdown } = Statistic;
+const { Title, Text } = Typography;
 
 const numberForMiles = new Intl.NumberFormat("de-DE");
 
 const MyWell = () => {
   const { state } = useContext(AppContext);
+  const position_sensor_nivel = parseFloat(state.selected_profile.d3);
   const [caudal, setCaudal] = useState(0.0);
   const [nivel, setNivel] = useState(0.0);
+  const [finishCounter, setFinishCounter] = useState(0);
   const [acumulado, setAcumulado] = useState(0);
-  const [dataSource, setDataSource] = useState([]);
+  const [deadline, setDeadline] = useState(null);
+  const [lastCaption, setLastCaption] = useState(null);
 
-  const [form] = Form.useForm();
-
-  let dateToday = new Date();
-  let fechaFormateada = dateToday.toLocaleDateString("es-CL");
-
-  let month = dateToday.toLocaleString("es", { month: "long" });
-  let day = dateToday.getDate();
-  let fechaConMes = `Ingresaras el periodo de correspondiente al mes "0${
-    state.selected_profile.title == "Las Liras"
-      ? dateToday.getMonth()
-      : dateToday.getFullYear()
-  }"`;
-
-  const getAccCaudal = async () => {
-    var nowDate = new Date();
-    var antHour = 0;
-    var date = `${nowDate.getFullYear()}-${
-      nowDate.getMonth() + 1 > 9
-        ? nowDate.getMonth() + 1
-        : `0${nowDate.getMonth() + 1}`
-    }-${
-      nowDate.getDate() - 1 > 9
-        ? nowDate.getDate() - 1
-        : `0${nowDate.getDate() - 1}`
-    }T00:00:00`;
-    const rq = await api_novus
-      .dataCaudal("3grecdi1va", "", date, state.selected_profile.token_service)
-      .then((r) => {
-        var val1 = r.result[0].value;
-        var val2 = r.result[1].value;
-        var calc =
-          (val1 / state.selected_profile.scale -
-            val2 / state.selected_profile.scale) /
-          3600;
-        setCaudal(calc);
-      });
+  const onFinishCounter = (finishCounter) => {
+    setFinishCounter(finishCounter + 1);
   };
 
   const getData = async () => {
     const rq = await sh.get_data_sh(state.selected_profile.id).then((r) => {
-      console.log(r);
-      setNivel(
-        r.results[0]
-          ? parseFloat(r.results[0].nivel) > 0.0 || isNaN(r.results[0].nivel)
-            ? r.results[0].nivel
-            : 0.0
-          : 0.0
-      );
-      setCaudal(
-        r.results[0]
-          ? parseFloat(r.results[0].flow) > 0.0 || isNaN(r.results[0].flow)
-            ? r.results[0].flow
-            : 0.0
-          : 0.0
-      );
-      setAcumulado(r.results[0] ? r.results[0].total : 0);
+      var nivel = 0.0;
+      var flow = 0.0;
+      var total = 0;
+      var nivel_response = r.results[0].nivel;
+      if (r.results.length > 0) {
+        console.log(r);
+        setLastCaption(
+          `FECHA: ${r.results[0].date_time_medition.slice(
+            0,
+            10
+          )} / HORA: ${r.results[0].date_time_medition.slice(11, 16)} Hrs.`
+        );
+        if (r.results[0].nivel !== null) {
+          if (nivel_response > 0.0 && nivel_response < position_sensor_nivel) {
+            nivel = position_sensor_nivel - nivel_response;
+          } else if (nivel_response > position_sensor_nivel) {
+            nivel_response = 50.0;
+            nivel = position_sensor_nivel - nivel_response;
+          }
+        }
+        if (r.results[0].flow !== null) {
+          flow = r.results[0].flow;
+        }
+        if (r.results[0].total !== null) {
+          total = r.results[0].total;
+        }
+        setNivel(nivel);
+        setCaudal(flow);
+        setAcumulado(total);
+      }
     });
+
+    return rq;
   };
 
   useEffect(() => {
-    //getNovusData(setCaudal, setNivel, state, api_novus, setAcumulado, acumulado, nivel)
-
     getData();
-  }, [state.selected_profile]);
+    const now = new Date();
+    const minutesUntilNextHour = 60 - now.getMinutes();
+    const deadline = new Date(now.getTime() + minutesUntilNextHour * 60000);
+    setDeadline(deadline);
+  }, [state.selected_profile, finishCounter]);
 
   return (
-    <Row justify={"center"} style={{ padding: "0px" }}>
-      <Col span={24}>
+    <Row justify={"center"}>
+      <Col span={12}>
         <Title level={2}>Mi Pozo</Title>
+        <Typography.Paragraph style={{ fontWeight: "600", marginLeft: "10px" }}>
+          Última medición
+          <br />
+          <ClockCircleFilled /> {lastCaption}
+        </Typography.Paragraph>
       </Col>
-      <Col span={window.innerWidth > 900 ? 6 : 24}>
-        <Card
-          hoverable
-          style={{
-            marginBottom: "10px",
-            marginTop: "20px",
-            border: "solid 1px grey",
-            borderRadius: "15px",
-            width: "350px",
-          }}
-        >
-          <Row align="middle">
-            <Col span={7}>
-              <img src={caudal_img} width="60px" />
+      <Col span={12}>
+        <Title level={5} style={{ textAlign: "right", marginBottom: "-5px" }}>
+          Tiempo restante para la siguiente medición
+        </Title>
+        <Countdown
+          valueStyle={{ textAlign: "right" }}
+          style={{ textAlign: "right", color: "black", marginBottom: "15px" }}
+          value={deadline}
+          onFinish={onFinishCounter}
+        />
+      </Col>
+      <Col span={12}>
+        <Card hoverable style={styles.cardValues} size="small">
+          <Row align="middle" justify={"space-around"}>
+            <Col span={6}>
+              <img src={caudal_img} alt="caudal_img" width="100%" />
             </Col>
-            <Col span={12}>
-              <Title level={5} style={{ color: "#222221" }}>
+            <Col span={18} style={styles.colCard}>
+              <Title level={5} style={{ marginTop: "-10px" }}>
                 Caudal
               </Title>
-            </Col>
-            <Col span={12} offset={7} style={{ marginTop: "-15px" }}>
-              <Typography.Paragraph level={5}>
-                {parseFloat(caudal).toFixed(1) === "3276.7" ? (
-                  <div style={{ color: "red" }}>
-                    {parseFloat(caudal).toFixed(1)}
-                  </div>
-                ) : (
-                  <b>
-                    {parseFloat(caudal).toLocaleString("es-ES", {
-                      minimumFractionDigits: 1,
-                    })}{" "}
-                    (Litros/seg)
-                  </b>
-                )}
-              </Typography.Paragraph>
+              <Text level={5} style={styles.valueCard}>
+                <b>
+                  {parseFloat(caudal).toLocaleString("es-ES", {
+                    minimumFractionDigits: 1,
+                  })}{" "}
+                  (L/s)
+                </b>
+              </Text>
             </Col>
           </Row>
         </Card>
-
-        <Card
-          hoverable
-          style={{
-            marginBottom: "10px",
-            marginTop: "20px",
-            border: "solid 1px grey",
-            borderRadius: "15px",
-            width: "350px",
-          }}
-        >
-          <Row align="middle">
-            <Col span={7}>
-              <img src={nivel_img} width="60px" />
+        <Card hoverable style={styles.cardValues} size="small">
+          <Row align="middle" justify={"space-around"}>
+            <Col span={6}>
+              <img src={nivel_img} alt="nivel_img" width="90%" />
             </Col>
-            <Col span={12}>
-              <Title level={5} style={{ color: "#222221" }}>
+            <Col span={18} style={styles.colCard}>
+              <Title level={5} style={{ marginTop: "-10px" }}>
                 Nivel Freático
               </Title>
-            </Col>
-            <Col span={12} offset={7} style={{ marginTop: "-19px" }}>
-              <Typography.Paragraph level={5}>
+              <Text level={5} style={styles.valueCard}>
                 <b>
-                  {parseFloat(state.selected_profile.d3 - nivel).toLocaleString(
-                    "es-ES",
-                    {
-                      minimumFractionDigits: 1,
-                    }
-                  )}{" "}
-                  (Metros)
+                  {parseFloat(nivel).toLocaleString("es-ES", {
+                    minimumFractionDigits: 1,
+                  })}{" "}
+                  (m)
                 </b>
-              </Typography.Paragraph>
+              </Text>
             </Col>
           </Row>
         </Card>
-        <Card
-          hoverable
-          style={{
-            marginBottom: "50px",
-            marginTop: "20px",
-            border: "solid 1px grey",
-            borderRadius: "15px",
-            width: "350px",
-          }}
-        >
-          <Row align="middle">
-            <Col span={7}>
-              <img src={acumulado_img} width="60px" />
+        <Card hoverable style={styles.cardValues} size="small">
+          <Row align="middle" justify={"space-around"}>
+            <Col span={6}>
+              <img src={acumulado_img} width="100%" alt="total_img" />
             </Col>
-            <Col span={17}>
-              <Title level={5} style={{ color: "#222221" }}>
+            <Col span={18} style={styles.colCard}>
+              <Title level={5} style={{ marginTop: "-10px" }}>
                 Acumulado
               </Title>
-            </Col>
-            <Col span={12} offset={7} style={{ marginTop: "-18px" }}>
-              <Typography.Paragraph level={5}>
-                <b>
-                  {state.user.username === "fermin"
-                    ? numberForMiles.format(acumulado * 1)
-                    : numberForMiles.format(acumulado)}
-                </b>
-                <br />
-              </Typography.Paragraph>
-              <Typography.Paragraph level={5} style={{ marginTop: "-20px" }}>
-                <b>(Metros cúbicos)</b>
-              </Typography.Paragraph>
+              <Text style={styles.valueCard}>
+                <b>{numberForMiles.format(acumulado)} </b>
+                <b>(m³)</b>
+              </Text>
             </Col>
           </Row>
         </Card>
       </Col>
-      {window.innerWidth > 900 && (
-        <Col span={18} style={{ paddingLeft: "140px", paddingTop: "70px" }}>
-          <center>
-            <img
-              src={pozo1}
-              width={"430px"}
-              style={{
-                position: "absolute",
-                marginLeft: "-240px",
-                marginTop: "-80px",
-              }}
-            />
-          </center>
-          <Input
-            disabled
-            style={{
-              color: "white",
-              backgroundColor:
-                parseFloat(caudal).toFixed(1) === "3276.7"
-                  ? "#cf1322"
-                  : "#1F3461",
-              border: "0px solid #1F3461",
-              fontSize: "17px",
-              width:
-                parseFloat(caudal).toFixed(1) === "3276.7" ? "80px" : "150px",
-              marginTop: "40px",
-              marginLeft: "90px",
-              position: "absolute",
-              borderRadius: "10px",
-            }}
-            value={`${parseFloat(caudal).toLocaleString("es-ES", {
-              minimumFractionDigits: 1,
-            })} (Litros/seg)`}
-          />
-
-          <Input
-            disabled
-            style={{
-              color: "white",
-              backgroundColor: "#1F3461",
-              border: "0px solid #1F3461",
-              fontSize: "17px",
-              width: "160px",
-              marginTop: "20px",
-              marginLeft: "340px",
-              position: "absolute",
-              borderRadius: "10px",
-            }}
-            value={`${
-              state.user.username === "fermin"
-                ? numberForMiles.format(acumulado * 1)
-                : state.selected_profile.title == "PAINE"
-                ? "6094"
-                : numberForMiles.format(acumulado)
-            } (m³)`}
-          />
-          <Input
-            disabled
-            style={{
-              color: "white",
-              backgroundColor: "#1F3461",
-              border: "0px solid #1F3461",
-              fontSize: "17px",
-              width: "130px",
-              marginTop: "280px",
-              marginLeft: "300px",
-              position: "absolute",
-              borderRadius: "10px",
-            }}
-            value={`${parseFloat(
-              state.selected_profile.d3 - nivel
-            ).toLocaleString("es-ES", {
-              minimumFractionDigits: 1,
-            })} (Metros)`}
-          />
-        </Col>
-      )}
-      <Col></Col>
+      <Col span={12}>
+        <Row justify={"end"}>
+          <Col span={24}>
+            <img src={pozo1} width={"100%"} alt="pozo" style={styles.well} />
+            <Text style={styles.textFlow}>
+              {parseFloat(caudal).toLocaleString("es-ES", {
+                minimumFractionDigits: 1,
+              })}{" "}
+              (L/s)
+            </Text>
+            <Text style={styles.textTotal}>
+              {numberForMiles.format(acumulado)} (m³)
+            </Text>
+            <Text style={styles.textNivel}>
+              {parseFloat(nivel).toLocaleString("es-ES", {
+                minimumFractionDigits: 1,
+              })}{" "}
+              (m)
+            </Text>
+          </Col>
+        </Row>
+      </Col>
     </Row>
   );
+};
+
+const styles = {
+  colCard: {
+    paddingLeft: "20px",
+  },
+  cardValues: {
+    marginBottom: "10px",
+    border: "solid 1px grey",
+    padding: "20px",
+    borderRadius: "15px",
+    width: "350px",
+  },
+  valueCard: {
+    color: "white",
+    backgroundColor: "#1F3461",
+    borderRadius: "5px",
+    padding: "3px",
+  },
+  well: {
+    position: "absolute",
+  },
+  textFlow: {
+    color: "white",
+    backgroundColor: "#1F3461",
+    border: "0px solid #1F3461",
+    fontSize: "17px",
+    marginTop: "120px",
+    marginLeft: "68px",
+    padding: "5px",
+    position: "absolute",
+    borderRadius: "10px",
+  },
+  textTotal: {
+    color: "white",
+    backgroundColor: "#1F3461",
+    border: "0px solid #1F3461",
+    fontSize: "17px",
+    padding: "5px",
+    marginTop: "80px",
+    marginLeft: "325px",
+    position: "absolute",
+    borderRadius: "10px",
+  },
+  textNivel: {
+    color: "white",
+    backgroundColor: "#1F3461",
+    border: "0px solid #1F3461",
+    fontSize: "17px",
+    marginTop: "240px",
+    padding: "5px",
+    marginLeft: "280px",
+    position: "absolute",
+    borderRadius: "10px",
+  },
 };
 
 export default MyWell;
