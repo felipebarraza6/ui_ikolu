@@ -4,14 +4,12 @@ import { Link, useLocation } from "react-router-dom";
 import { AppContext } from "../../App";
 import { ArrowRightOutlined } from "@ant-design/icons";
 import logo from "../../assets/images/logozivo.png";
-import minLogo from "../../assets/images/min_logo.png";
+import minLogo from "../../assets/images/logo-blanco.png";
 
 const SiderRight = () => {
   const location = useLocation();
 
   const { state } = useContext(AppContext);
-
-  console.log(state.user.username);
 
   return (
     <Card
@@ -183,7 +181,7 @@ const SiderRight = () => {
       </>
 
       <div style={{ position: "fixed", marginTop: "50px" }}>
-        <img src={minLogo} width={"50px"} style={{ paddingLeft: "70%" }} />
+        <img src={minLogo} width={"130px"} />
       </div>
     </Card>
   );
