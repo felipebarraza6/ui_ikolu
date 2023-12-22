@@ -138,6 +138,14 @@ const getDataApiShStructuralMonth = async (id_profile, year, month) => {
     results: [...rq1.data.results, ...rq2.data.results, ...rq3.data.results],
   };
 
+  for (let i = 0; i < listFormat.results.length - 1; i++) {
+    const current = listFormat.results[i];
+    const next = listFormat.results[i + 1];
+    const total = current.total - next.total;
+
+    current.total_hora = total;
+  }
+
   return listFormat;
 };
 

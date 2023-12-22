@@ -45,9 +45,10 @@ const Home = () => {
             <Row justify="center">
               <Col span={24}>
                 <Card
+                  size={window.innerWidth > 900 ? "default" : "small"}
                   bordered
                   style={{
-                    margin: "15px",
+                    margin: window.innerWidth > 900 && "15px",
                     minHeight: "84vh",
                     boxShadow:
                       "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",

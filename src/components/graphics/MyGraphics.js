@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Typography, Row, Col, Button, DatePicker } from "antd";
+import { Typography, Row, Col, Button, DatePicker, Card } from "antd";
 import GraphicLine from "./GraphicLine";
 import { AppContext } from "../../App";
 import { ClockCircleOutlined, CalendarOutlined } from "@ant-design/icons";
@@ -43,7 +43,7 @@ const MyGraphics = () => {
 
   return (
     <Row justify={"space-between"} align="middle">
-      <Col>
+      <Col xs={8} lg={3} xl={3}>
         {option && (
           <>
             {option === 1 && (
@@ -79,7 +79,7 @@ const MyGraphics = () => {
           </>
         )}
       </Col>
-      <Col>
+      <Col xs={10} lg={3} xl={6}>
         <Button
           type={option === 2 ? "primary" : "default"}
           onClick={() => handleOption(1)}
@@ -116,9 +116,10 @@ const MyGraphics = () => {
 const styles = {
   btnOption: {
     marginRight: "10px",
+    marginTop: window.innerWidth > 900 ? "0px" : "10px",
   },
   datePicker: {
-    width: "250px",
+    width: window.innerWidth > 900 ? "250px" : "100%",
     marginRight: "10px",
   },
   container: {

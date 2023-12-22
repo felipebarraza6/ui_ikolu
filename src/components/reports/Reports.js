@@ -721,34 +721,70 @@ const Reports = () => {
               paddingRight: "10px",
             }}
           >
-            <Table
-              bordered
-              size={"small"}
-              pagination={{
-                total: total,
-                page: page,
-                onChange: (x) => {
-                  setPage(x);
-                  getDataPage(x);
-                },
-              }}
-              columns={[
-                {
-                  title: "Fecha",
-                  dataIndex: "date_time_medition",
-                },
-                {
-                  title: "Hora",
-                  dataIndex: "date_time_medition_hour",
-                },
+            <Tabs type="card">
+              <Tabs.TabPane tab="Datos" key="1" icon={<TableOutlined />}>
+                <Table
+                  bordered
+                  size={"small"}
+                  pagination={{
+                    total: total,
+                    page: page,
+                    onChange: (x) => {
+                      setPage(x);
+                      getDataPage(x);
+                    },
+                  }}
+                  columns={[
+                    {
+                      title: "Fecha",
+                      dataIndex: "date_time_medition",
+                    },
+                    {
+                      title: "Hora",
+                      dataIndex: "date_time_medition_hour",
+                    },
 
-                { title: "(lt/s", dataIndex: "flow" },
-                { title: "m", dataIndex: "nivel" },
-                { title: "m³", dataIndex: "total" },
-                { title: "m³/hora", dataIndex: "total_hora" },
-              ]}
-              dataSource={data}
-            />
+                    { title: "(lt/s)", dataIndex: "flow" },
+                    { title: "m", dataIndex: "nivel" },
+                    { title: "m³", dataIndex: "total" },
+                    { title: "m³/hora", dataIndex: "total_hora" },
+                  ]}
+                  dataSource={data}
+                />
+              </Tabs.TabPane>
+              {total > 0 && (
+                <Tabs.TabPane
+                  tab={
+                    <>
+                      Detalle:{" "}
+                      {moment(finishDate) &&
+                        moment(finishDate).diff(moment(initialDate), "days") +
+                          1}{" "}
+                      día/s ({initialDate.slice(5, 12)} /{" "}
+                      {finishDate.slice(5, 12)})
+                    </>
+                  }
+                  key="2"
+                >
+                  <Table
+                    bordered
+                    size={"small"}
+                    pagination={{ simple: true }}
+                    columns={[
+                      {
+                        title: "Fecha",
+                        dataIndex: "date_time_medition",
+                      },
+                      {
+                        title: "m³/día",
+                        dataIndex: "total_hora",
+                      },
+                    ]}
+                    dataSource={data2}
+                  />
+                </Tabs.TabPane>
+              )}
+            </Tabs>
           </Col>
         </>
       )}

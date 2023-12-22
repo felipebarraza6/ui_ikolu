@@ -214,7 +214,7 @@ const Dga = () => {
               type="primary"
               onClick={() => {
                 window.open(
-                  `https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.code_dga_site}}`,
+                  `https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.code_dga_site}`,
                   "_blank"
                 );
               }}

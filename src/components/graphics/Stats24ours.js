@@ -3,6 +3,7 @@ import {
   Row,
   Col,
   Statistic,
+  Tabs,
   Button,
   Tag,
   Typography,
@@ -407,6 +408,7 @@ const styles = {
       minHeight: "24vh",
       border: "2px #002c8c solid",
       borderRadius: "20px",
+      marginBottom: window.innerWidth < 900 ? "10px" : "0px",
       value: {
         textAlign: "center",
       },
@@ -425,6 +427,7 @@ const styles = {
       minHeight: "24vh",
       border: "2px #262626 solid",
       borderRadius: "20px",
+      marginBottom: window.innerWidth < 900 ? "10px" : "0px",
       value: {
         textAlign: "center",
       },
@@ -442,6 +445,7 @@ const styles = {
       width: "180px",
       border: "2px #262626 solid",
       borderRadius: "20px",
+      marginBottom: window.innerWidth < 900 ? "10px" : "0px",
       value: {
         paddingLeft: "10px",
       },
@@ -458,6 +462,7 @@ const styles = {
     ind4: {
       width: "180px",
       border: "2px #5b8c00 solid",
+      marginBottom: window.innerWidth < 900 ? "10px" : "0px",
       borderRadius: "20px",
       value: {
         paddingLeft: "10px",
@@ -475,6 +480,7 @@ const styles = {
     ind5: {
       width: "180px",
       border: "2px #cf1322 solid",
+      marginBottom: window.innerWidth < 900 ? "10px" : "0px",
       borderRadius: "20px",
       value: {
         paddingLeft: "10px",

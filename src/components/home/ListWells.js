@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { Button } from "antd";
 import { AppContext } from "../../App";
 import { Row, Col, Tag, Badge, Select } from "antd";
@@ -15,14 +15,25 @@ const ListWells = () => {
     <Row style={{ marginTop: "0px" }} align={"middle"} justify={"start"}>
       <Col>
         <Tag
-          color="geekblue-inverse"
-          style={{ marginBottom: "5px", fontSize: "13px" }}
+          color="rgb(31, 52, 97)"
+          style={{
+            marginBottom: "5px",
+            fontSize: "13px",
+            borderColor: "white",
+            padding: "2px",
+            paddingLeft: "5px",
+          }}
         >
-          Selecciona un punto de captación ({state.user.profile_data.length})
+          Puntos de captación ({state.user.profile_data.length})
+          {state.selected_profile.key}
         </Tag>
         <br />
         <Select
-          style={{ width: "300px", zIndex: 10000, color: "black" }}
+          style={{
+            width: window.innerWidth > 900 ? "300px" : "100%",
+            zIndex: 10000,
+            color: "black",
+          }}
           placeholder="Selecciona un punto de captación"
           defaultValue={state.selected_profile.key}
           onSelect={(key) => {
@@ -35,11 +46,13 @@ const ListWells = () => {
             });
           }}
         >
-          {state.profile_client.map((e, index) => (
-            <Select.Option key={index} value={index}>
-              {e.title}
-            </Select.Option>
-          ))}
+          {state.profile_client
+            .sort((a, b) => a.title.localeCompare(b.title))
+            .map((e, index) => (
+              <Select.Option key={index} value={index}>
+                {e.title}
+              </Select.Option>
+            ))}
         </Select>
       </Col>
     </Row>

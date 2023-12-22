@@ -80,8 +80,8 @@ const MyWell = () => {
 
   return (
     <Row justify={window.innerWidth > 900 ? "center" : "start"}>
-      <Col span={12}>
-        <Title level={2}>Mi Pozo</Title>
+      <Col xl={12} lg={12} xs={6}>
+        <Title level={window.innerWidth > 900 ? 2 : 4}>Mi Pozo</Title>
         {window.innerWidth > 900 && (
           <Typography.Paragraph
             style={{ fontWeight: "600", marginLeft: "10px" }}
@@ -92,7 +92,12 @@ const MyWell = () => {
           </Typography.Paragraph>
         )}
       </Col>
-      <Col span={12}>
+      <Col
+        xl={12}
+        lg={12}
+        xs={18}
+        style={{ paddingTop: window.innerWidth > 900 ? "0px" : "10px" }}
+      >
         <Title
           level={5}
           style={{
@@ -133,140 +138,179 @@ const MyWell = () => {
           </Typography.Title>
         )}
       </Col>
-      <Col lg={12} xs={6} xl={12}>
-        <Card hoverable style={styles.cardValues} size="small">
-          <Row justify={window.innerWidth > 900 ? "space-around" : "center"}>
-            <Col xs={24} lg={6} xl={6}>
-              <center>
-                <img
-                  src={caudal_img}
-                  alt="caudal_img"
-                  width={window.innerWidth > 900 ? "100%" : "70%"}
-                  style={{
-                    marginBottom: window.innerWidth > 900 ? "0px" : "5px",
-                  }}
-                />
-              </center>
+      {window.innerWidth < 900 ? (
+        <Col span={24} style={{ marginTop: "10px" }}>
+          <Row justify={"space-evenly"}>
+            <Col span={8}>
+              <Card
+                size="small"
+                style={{ backgroundColor: "#1F3461", color: "white" }}
+              >
+                <b>Caudal</b>
+                <br />
+                {parseFloat(caudal).toLocaleString("es-ES", {
+                  minimumFractionDigits: 1,
+                })}{" "}
+                (L/s)
+              </Card>
             </Col>
-            <Col xs={24} lg={18} xl={18} style={styles.colCard}>
-              {window.innerWidth > 900 && (
-                <Title level={5} style={{ marginTop: "-10px" }}>
-                  Caudal
-                </Title>
-              )}
+            <Col span={8}>
+              <Card
+                size="small"
+                style={{ backgroundColor: "#1F3461", color: "white" }}
+              >
+                <b>Nivel Freático</b>
+                <br />
+                {parseFloat(nivel).toLocaleString("es-ES", {
+                  minimumFractionDigits: 1,
+                })}{" "}
+                (m)
+              </Card>
+            </Col>
+            <Col span={8}>
+              <Card
+                size="small"
+                style={{ backgroundColor: "#1F3461", color: "white" }}
+              >
+                <b>Acumulado</b>
+                <br />
+                {numberForMiles.format(acumulado)} (m³)
+              </Card>
+            </Col>
+          </Row>
+        </Col>
+      ) : (
+        <Col lg={12} xs={6} xl={12}>
+          <Card hoverable style={styles.cardValues} size="small">
+            <Row justify={window.innerWidth > 900 ? "space-around" : "center"}>
+              <Col xs={24} lg={6} xl={6}>
+                <center>
+                  <img
+                    src={caudal_img}
+                    alt="caudal_img"
+                    width={window.innerWidth > 900 ? "100%" : "70%"}
+                    style={{
+                      marginBottom: window.innerWidth > 900 ? "0px" : "5px",
+                    }}
+                  />
+                </center>
+              </Col>
+              <Col xs={24} lg={18} xl={18} style={styles.colCard}>
+                {window.innerWidth > 900 && (
+                  <Title level={5} style={{ marginTop: "-10px" }}>
+                    Caudal
+                  </Title>
+                )}
 
-              {window.innerWidth > 900 ? (
-                <Text style={styles.valueCard}>
-                  <b>
-                    {parseFloat(caudal).toLocaleString("es-ES", {
-                      minimumFractionDigits: 1,
-                    })}{" "}
-                    (L/s)
-                  </b>
-                </Text>
-              ) : (
-                <>
-                  <center>
-                    <Tag color="#1F3461">Caudal</Tag>
-                    <Tag color="#1F3461">
+                {window.innerWidth > 900 ? (
+                  <Text style={styles.valueCard}>
+                    <b>
                       {parseFloat(caudal).toLocaleString("es-ES", {
                         minimumFractionDigits: 1,
                       })}{" "}
                       (L/s)
+                    </b>
+                  </Text>
+                ) : (
+                  <>
+                    <center>
+                      <Tag color="#1F3461">Caudal</Tag>
+                      <Tag color="#1F3461">
+                        {parseFloat(caudal).toLocaleString("es-ES", {
+                          minimumFractionDigits: 1,
+                        })}{" "}
+                        (L/s)
+                      </Tag>
+                    </center>
+                  </>
+                )}
+              </Col>
+            </Row>
+          </Card>
+          <Card hoverable style={styles.cardValues} size="small">
+            <Row justify={window.innerWidth > 900 ? "space-around" : "center"}>
+              <Col xs={24} lg={6} xl={6}>
+                <center>
+                  <img
+                    src={nivel_img}
+                    alt="caudal_img"
+                    width={window.innerWidth > 900 ? "73%" : "50%"}
+                    style={{
+                      marginBottom: window.innerWidth > 900 ? "0px" : "5px",
+                    }}
+                  />
+                </center>
+              </Col>
+              <Col xs={24} lg={18} xl={18} style={styles.colCard}>
+                {window.innerWidth > 900 && (
+                  <Title level={5} style={{ marginTop: "-10px" }}>
+                    Nivel Freático
+                  </Title>
+                )}
+
+                {window.innerWidth > 900 ? (
+                  <Text style={styles.valueCard}>
+                    <b>
+                      {parseFloat(nivel).toLocaleString("es-ES", {
+                        minimumFractionDigits: 1,
+                      })}{" "}
+                      (m)
+                    </b>
+                  </Text>
+                ) : (
+                  <center>
+                    <Tag color="#1F3461">Nivel Freático</Tag>
+                    <Tag color="#1F3461">
+                      {parseFloat(nivel).toLocaleString("es-ES", {
+                        minimumFractionDigits: 1,
+                      })}{" "}
+                      (m)
                     </Tag>
                   </center>
-                </>
-              )}
-            </Col>
-          </Row>
-        </Card>
-        <Card hoverable style={styles.cardValues} size="small">
-          <Row justify={window.innerWidth > 900 ? "space-around" : "center"}>
-            <Col xs={24} lg={6} xl={6}>
-              <center>
-                <img
-                  src={nivel_img}
-                  alt="caudal_img"
-                  width={window.innerWidth > 900 ? "73%" : "50%"}
-                  style={{
-                    marginBottom: window.innerWidth > 900 ? "0px" : "5px",
-                  }}
-                />
-              </center>
-            </Col>
-            <Col xs={24} lg={18} xl={18} style={styles.colCard}>
-              {window.innerWidth > 900 && (
-                <Title level={5} style={{ marginTop: "-10px" }}>
-                  Nivel Freático
-                </Title>
-              )}
-
-              {window.innerWidth > 900 ? (
-                <Text style={styles.valueCard}>
-                  <b>
-                    {parseFloat(nivel).toLocaleString("es-ES", {
-                      minimumFractionDigits: 1,
-                    })}{" "}
-                    (m)
-                  </b>
-                </Text>
-              ) : (
+                )}
+              </Col>
+            </Row>
+          </Card>
+          <Card hoverable style={styles.cardValues} size="small">
+            <Row justify={window.innerWidth > 900 ? "space-around" : "center"}>
+              <Col xs={24} lg={6} xl={6}>
                 <center>
-                  <Tag color="#1F3461">Nivel Freático</Tag>
-                  <Tag color="#1F3461">
-                    {parseFloat(nivel).toLocaleString("es-ES", {
-                      minimumFractionDigits: 1,
-                    })}{" "}
-                    (m)
-                  </Tag>
+                  <img
+                    src={acumulado_img}
+                    alt="caudal_img"
+                    width={window.innerWidth > 900 ? "100%" : "70%"}
+                    style={{
+                      marginBottom: window.innerWidth > 900 ? "0px" : "5px",
+                    }}
+                  />
                 </center>
-              )}
-            </Col>
-          </Row>
-        </Card>
-        <Card hoverable style={styles.cardValues} size="small">
-          <Row justify={window.innerWidth > 900 ? "space-around" : "center"}>
-            <Col xs={24} lg={6} xl={6}>
-              <center>
-                <img
-                  src={acumulado_img}
-                  alt="caudal_img"
-                  width={window.innerWidth > 900 ? "100%" : "70%"}
-                  style={{
-                    marginBottom: window.innerWidth > 900 ? "0px" : "5px",
-                  }}
-                />
-              </center>
-            </Col>
-            <Col xs={24} lg={18} xl={18} style={styles.colCard}>
-              {window.innerWidth > 900 && (
-                <Title level={5} style={{ marginTop: "-10px" }}>
-                  Acumulado
-                </Title>
-              )}
+              </Col>
+              <Col xs={24} lg={18} xl={18} style={styles.colCard}>
+                {window.innerWidth > 900 && (
+                  <Title level={5} style={{ marginTop: "-10px" }}>
+                    Acumulado
+                  </Title>
+                )}
 
-              {window.innerWidth > 900 ? (
-                <Text style={styles.valueCard}>
-                  <b>
-                    {parseFloat(caudal).toLocaleString("es-ES", {
-                      minimumFractionDigits: 1,
-                    })}{" "}
-                    (L/s)
-                  </b>
-                </Text>
-              ) : (
-                <center>
-                  <Tag color="#1F3461">Acumulado</Tag>
-                  <Tag color="#1F3461">
-                    {numberForMiles.format(acumulado)} (m³)
-                  </Tag>
-                </center>
-              )}
-            </Col>
-          </Row>
-        </Card>
-      </Col>
-      <Col xs={18} lg={12} xl={12}>
+                {window.innerWidth > 900 ? (
+                  <Text style={styles.valueCard}>
+                    <b>{numberForMiles.format(acumulado)} (m³)</b>
+                  </Text>
+                ) : (
+                  <center>
+                    <Tag color="#1F3461">Acumulado</Tag>
+                    <Tag color="#1F3461">
+                      {numberForMiles.format(acumulado)} (m³)
+                    </Tag>
+                  </center>
+                )}
+              </Col>
+            </Row>
+          </Card>
+        </Col>
+      )}
+
+      <Col xs={24} lg={12} xl={12}>
         <Row justify={"end"}>
           <Col span={24}>
             <img src={pozo1} width={"100%"} alt="pozo" style={styles.well} />
@@ -313,16 +357,16 @@ const styles = {
   well: {
     position: "absolute",
     marginTop: window.innerWidth > 900 ? "-50px" : "20px",
-    paddingLeft: window.innerWidth < 900 && "10px",
+    paddingLeft: window.innerWidth < 900 && "0px",
   },
   textFlow: {
     color: "white",
     backgroundColor: "#1F3461",
     border: "0px solid #1F3461",
-    fontSize: "17px",
-    marginTop: window.innerWidth > 900 ? "70px" : "32%",
-    marginLeft: "68px",
-    padding: "5px",
+    fontSize: window.innerWidth > 900 ? "17px" : "14px",
+    marginTop: window.innerWidth > 900 ? "70px" : "30%",
+    marginLeft: window.inner > 900 ? "68px" : "12%",
+    padding: window.innerWidth > 900 ? "5px" : "5px",
     position: "absolute",
     borderRadius: "10px",
   },
@@ -330,10 +374,10 @@ const styles = {
     color: "white",
     backgroundColor: "#1F3461",
     border: "0px solid #1F3461",
-    fontSize: "17px",
-    padding: "5px",
+    fontSize: window.innerWidth > 900 ? "17px" : "14px",
+    padding: window.innerWidth > 900 ? "5px" : "5px",
     marginTop: window.innerWidth > 900 ? "40px" : "23%",
-    marginLeft: window.inner > 900 ? "305px" : "71%",
+    marginLeft: window.inner > 900 ? "305px" : "62%",
     position: "absolute",
     borderRadius: "10px",
   },
@@ -341,10 +385,10 @@ const styles = {
     color: "white",
     backgroundColor: "#1F3461",
     border: "0px solid #1F3461",
-    fontSize: "17px",
-    marginTop: window.inner > 900 ? "100px" : "50%",
-    padding: "5px",
-    marginLeft: window.inner > 900 ? "280px" : "62%",
+    fontSize: window.innerWidth > 900 ? "17px" : "14px",
+    marginTop: window.inner > 900 ? "100px" : "55%",
+    padding: window.innerWidth > 900 ? "5px" : "5px",
+    marginLeft: window.inner > 900 ? "280px" : "59%",
     position: "absolute",
     borderRadius: "10px",
   },

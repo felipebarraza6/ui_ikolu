@@ -180,7 +180,7 @@ const SiderRight = () => {
         )}
       </>
 
-      <div style={{ position: "fixed", marginTop: "50px" }}>
+      <div style={{ marginTop: "50px" }}>
         <img src={minLogo} width={"130px"} />
       </div>
     </Card>
