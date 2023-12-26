@@ -51,6 +51,18 @@ const getDataApiShRangeDate = async (
   return rq.data;
 };
 
+const getDataApiShRangeDateAndHour = async (
+  id_profile,
+  initialDate,
+  finishDate,
+  page
+) => {
+  const rq = await GET(
+    `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}&page=${page}&date_time_medition__hour=00`
+  );
+  return rq.data;
+};
+
 const getDataApiShRangeDateGraphic = async (
   id_profile,
   initialDate,
@@ -157,6 +169,7 @@ const sh = {
   downloadFile: downloadFile,
   get_data_sh: getDataApiSh,
   get_data_sh_range: getDataApiShRangeDate,
+  get_data_sh_range_hour: getDataApiShRangeDateAndHour,
   get_data_send_dga: getDataApiShDgaSend,
   get_data_sh_range_graphic: getDataApiShRangeDateGraphic,
   get_data_structural: getDataApiShStructural24h,

@@ -5,6 +5,7 @@ import { Row, Col, Tag, Badge, Select } from "antd";
 import {
   ArrowLeftOutlined,
   ArrowRightOutlined,
+  CheckCircleFilled,
   CheckSquareFilled,
 } from "@ant-design/icons";
 
@@ -25,13 +26,12 @@ const ListWells = () => {
           }}
         >
           Puntos de captación ({state.user.profile_data.length})
-          {state.selected_profile.key}
         </Tag>
         <br />
         <Select
           style={{
             width: window.innerWidth > 900 ? "300px" : "100%",
-            zIndex: 10000,
+            zIndex: 9999,
             color: "black",
           }}
           placeholder="Selecciona un punto de captación"
@@ -50,7 +50,20 @@ const ListWells = () => {
             .sort((a, b) => a.title.localeCompare(b.title))
             .map((e, index) => (
               <Select.Option key={index} value={index}>
-                {e.title}
+                {e.title}{" "}
+                {e.code_dga_site && window.innerWidth > 900 && (
+                  <Tag
+                    color="geekblue-inverse"
+                    style={{
+                      float: "right",
+                      marginTop: "4px",
+                      fontSize: "13px",
+                    }}
+                    icon={e.is_send_dga && <CheckCircleFilled />}
+                  >
+                    {e.code_dga_site}
+                  </Tag>
+                )}
               </Select.Option>
             ))}
         </Select>

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import moment from "moment";
 import "moment/locale/es";
 import {
@@ -8,7 +8,11 @@ import {
   Table,
   Button,
   DatePicker,
+  Tooltip,
+  Alert,
   Card,
+  notification,
+  Tag,
   Form,
   Tabs,
 } from "antd";
@@ -19,8 +23,10 @@ import * as XLSX from "xlsx";
 import {
   TableOutlined,
   FileExcelFilled,
-  CalendarOutlined,
   ClearOutlined,
+  InfoCircleFilled,
+  FallOutlined,
+  RiseOutlined,
 } from "@ant-design/icons";
 import sh from "../../api/sh/endpoints";
 
@@ -31,6 +37,8 @@ const Reports = () => {
   const position_sensor_nivel = parseFloat(state.selected_profile.d3);
   const [data, setData] = useState([]);
   const [data2, setData2] = useState([]);
+  const [loadingTab2, setLoadingTab2] = useState(false);
+  const [loadingTab1, setLoadingTab1] = useState(false);
   const [initialDate, setInitialDate] = useState("");
   const [finishDate, setFinishDate] = useState("");
   const [page, setPage] = useState(1);
@@ -79,9 +87,13 @@ const Reports = () => {
         if (index === 0) {
           return {
             ...item,
-            total_hora: item.total - batch[index + 1].total,
             date_time_medition_hour: item.date_time_medition.slice(11, 16),
             nivel: processNivel(item.nivel),
+            flow: processCaudal(item.flow),
+            total: processAcum(item.total),
+            total_hora: processAcum(
+              item ? item.total - batch[index + 1].total : 0
+            ),
             date_time_medition: item.date_time_medition.slice(0, 10),
           };
         } else {
@@ -90,9 +102,11 @@ const Reports = () => {
           const total_hora = previousTotal - currentTotal;
           return {
             ...item,
-            total_hora,
             date_time_medition_hour: item.date_time_medition.slice(11, 16),
             nivel: processNivel(item.nivel),
+            flow: processCaudal(item.flow),
+            total: processAcum(item.total),
+            total_hora: processAcum(total_hora),
             date_time_medition: item.date_time_medition.slice(0, 10),
           };
         }
@@ -212,9 +226,31 @@ const Reports = () => {
   const processNivel = (nivel_response) => {
     if (nivel_response > 0.0 && nivel_response < position_sensor_nivel) {
       return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
-    } else if (nivel_response > position_sensor_nivel) {
+    } else if (nivel_response > position_sensor_nivel || nivel_response < 0.0) {
       nivel_response = 50.0;
       return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
+    } else {
+      nivel_response = 0.0;
+      return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
+    }
+  };
+
+  const processCaudal = (caudal) => {
+    const flow = parseFloat(caudal).toFixed(1);
+    console.log(flow);
+    if (flow > 0.0) {
+      return flow;
+    } else {
+      return parseFloat(0.0).toFixed(1);
+    }
+  };
+
+  const processAcum = (acum) => {
+    const acumulado = parseInt(acum);
+    if (acumulado > 0) {
+      return acumulado;
+    } else {
+      return 0;
     }
   };
 
@@ -227,14 +263,16 @@ const Reports = () => {
         page
       )
       .then(async (r) => {
+        setLoadingTab1(true);
         const selfGetAll = async () => {
+          setLoadingTab2(true);
           const pageSize = 10; // Número de elementos por página
           let currentPage = 1; // Página actual
           let allData = []; // Array para almacenar todos los datos
 
           // Función para obtener los datos de una página específica
           const getDataPage = async (page) => {
-            const rq = await sh.get_data_sh_range(
+            const rq = await sh.get_data_sh_range_hour(
               state.selected_profile.id,
               initialDate,
               finishDate,
@@ -272,6 +310,7 @@ const Reports = () => {
                     16
                   ),
                   nivel: processNivel(item.nivel),
+                  flow: processCaudal(item.flow),
                   date_time_medition: item.date_time_medition.slice(0, 10),
                 };
               } else {
@@ -297,12 +336,14 @@ const Reports = () => {
 
               if (existingItem) {
                 existingItem.total_hora += item.total_hora;
+                setLoadingTab2(false);
               } else {
                 acc.push({
                   ...item,
                   total_hora: item.total_hora,
                   date: currentDate,
                 });
+                setLoadingTab2(false);
               }
 
               return acc;
@@ -313,22 +354,28 @@ const Reports = () => {
 
         const updatedResults = r.results.map((item, index) => {
           if (index === 0) {
+            setLoadingTab1(false);
             return {
               ...item,
-              total_hora: item.total - r.results[index + 1].total,
               date_time_medition_hour: item.date_time_medition.slice(11, 16),
               nivel: processNivel(item.nivel),
+              total: processAcum(item.total),
+              total_hora: processAcum(item.total - r.results[index + 1].total),
+              flow: processCaudal(item.flow),
               date_time_medition: item.date_time_medition.slice(0, 10),
             };
           } else {
+            setLoadingTab1(false);
             const previousTotal = r.results[index - 1].total;
             const currentTotal = item.total;
             const total_hora = previousTotal - currentTotal;
             return {
               ...item,
-              total_hora,
               date_time_medition_hour: item.date_time_medition.slice(11, 16),
               nivel: processNivel(item.nivel),
+              total: processAcum(item.total),
+              total_hora: processAcum(total_hora),
+              flow: processCaudal(item.flow),
               date_time_medition: item.date_time_medition.slice(0, 10),
             };
           }
@@ -350,14 +397,15 @@ const Reports = () => {
         page
       )
       .then((r) => {
-        console.log(r);
         const updatedResults = r.results.map((item, index) => {
           if (index === 0) {
             return {
               ...item,
-              total_hora: item.total - r.results[index + 1].total,
               date_time_medition_hour: item.date_time_medition.slice(11, 16),
               nivel: processNivel(item.nivel),
+              total: processAcum(item.total),
+              total_hora: processAcum(item.total - r.results[index + 1].total),
+              flow: processCaudal(item.flow),
               date_time_medition: item.date_time_medition.slice(0, 10),
             };
           } else {
@@ -366,9 +414,11 @@ const Reports = () => {
             const total_hora = previousTotal - currentTotal;
             return {
               ...item,
-              total_hora,
               date_time_medition_hour: item.date_time_medition.slice(11, 16),
               nivel: processNivel(item.nivel),
+              total: processAcum(item.total),
+              total_hora: processAcum(total_hora),
+              flow: processCaudal(item.flow),
               date_time_medition: item.date_time_medition.slice(0, 10),
             };
           }
@@ -378,6 +428,19 @@ const Reports = () => {
         setTotal(r.count);
       });
   };
+
+  useEffect(() => {
+    setData([]);
+    setLoadingTab1(false);
+    setData2([]);
+    setLoadingTab2(false);
+    setInitialDate("");
+    setFinishDate("");
+    form.resetFields();
+    setPage(1);
+
+    setTotal(0);
+  }, [state.selected_profile]);
 
   return (
     <Row style={{ padding: "0px", marginTop: "-20px" }} justify={"center"}>
@@ -406,6 +469,7 @@ const Reports = () => {
                   <Table
                     bordered
                     size={"small"}
+                    loading={loadingTab1}
                     pagination={{
                       total: total,
                       simple: true,
@@ -425,7 +489,12 @@ const Reports = () => {
                         dataIndex: "date_time_medition_hour",
                       },
                       { title: "Caudal (lt/s)", dataIndex: "flow" },
-                      { title: "Nivel (m)", dataIndex: "nivel" },
+                      {
+                        title: () => (
+                          <Tooltip title="Nivel Freático (m)">Nivel...</Tooltip>
+                        ),
+                        dataIndex: "nivel",
+                      },
                       { title: "Acumulado (m³)", dataIndex: "total" },
                       { title: "Acumulado/hora (m³)", dataIndex: "total_hora" },
                     ]}
@@ -449,6 +518,7 @@ const Reports = () => {
                     <Table
                       bordered
                       size={"small"}
+                      loading={loadingTab2}
                       pagination={{ simple: true }}
                       columns={[
                         {
@@ -458,6 +528,37 @@ const Reports = () => {
                         {
                           title: "Acumulado/día (m³)",
                           dataIndex: "total_hora",
+                          render: (text, record) => {
+                            const max = data2.reduce((prev, current) =>
+                              prev.total_hora > current.total_hora
+                                ? prev
+                                : current
+                            );
+                            const min = data2.reduce((prev, current) =>
+                              prev.total_hora < current.total_hora
+                                ? prev
+                                : current
+                            );
+                            return record.total_hora === max.total_hora ? (
+                              <Tag
+                                color="blue-inverse"
+                                icon={<RiseOutlined />}
+                                style={{ fontSize: "15px" }}
+                              >
+                                {text}
+                              </Tag>
+                            ) : record.total_hora === min.total_hora ? (
+                              <Tag
+                                color="volcano-inverse"
+                                icon={<FallOutlined />}
+                                style={{ fontSize: "15px" }}
+                              >
+                                {text}
+                              </Tag>
+                            ) : (
+                              text
+                            );
+                          },
                         },
                       ]}
                       dataSource={data2}
@@ -474,6 +575,16 @@ const Reports = () => {
                   Selecciona un rango de tiempo a visualizar
                 </Title>
                 <Form form={form} layout="vertical">
+                  <Col span={24}>
+                    <Alert
+                      type="info"
+                      message="Debes selecciona al menos 2 días para visualizar información."
+                      size="small"
+                      icon={<InfoCircleFilled />}
+                      showIcon
+                      closable
+                    />
+                  </Col>
                   <Col span={24} style={{ paddingTop: "20px" }}>
                     <Form.Item name="initialDate">
                       <DatePicker
@@ -505,7 +616,19 @@ const Reports = () => {
                           current && current.isSame(moment(), "day")
                         }
                         onSelect={(x) => {
-                          setFinishDate(dayjs(x).format("YYYY-MM-DD"));
+                          if (
+                            initialDate &&
+                            dayjs(x).format("YYYY-MM-DD") <= initialDate
+                          ) {
+                            notification.error({
+                              closeIcon: <></>,
+                              message:
+                                "La fecha final no puede ser menor o igual a la fecha inicial",
+                            });
+                            setFinishDate("");
+                          } else {
+                            setFinishDate(dayjs(x).format("YYYY-MM-DD"));
+                          }
                         }}
                       />
                     </Form.Item>
@@ -611,6 +734,12 @@ const Reports = () => {
                       <DatePicker
                         style={{ width: "100%" }}
                         placeholder="Selecciona una fecha inicial"
+                        disabledDate={(current) =>
+                          current && current >= moment().endOf("day")
+                        }
+                        disabledTime={(current) =>
+                          current && current.isSame(moment(), "day")
+                        }
                         onSelect={(x) => {
                           setInitialDate(dayjs(x).format("YYYY-MM-DD"));
                         }}
@@ -623,8 +752,28 @@ const Reports = () => {
                         style={{ width: "100%" }}
                         placeholder="Selecciona una fecha final"
                         defaultValue={initialDate}
+                        disabledDate={(current) =>
+                          current && current >= moment().endOf("day")
+                        }
+                        disabledTime={(current) =>
+                          current && current.isSame(moment(), "day")
+                        }
                         onSelect={(x) => {
-                          setFinishDate(dayjs(x).format("YYYY-MM-DD"));
+                          if (
+                            initialDate &&
+                            dayjs(x).format("YYYY-MM-DD") <= initialDate
+                          ) {
+                            notification.error({
+                              placement: window.innerWidth < 900 && "bottom",
+                              style: { zIndex: 1000000 },
+                              closeIcon: <></>,
+                              message:
+                                "La fecha final no puede ser menor o igual a la fecha inicial",
+                            });
+                            setFinishDate("");
+                          } else {
+                            setFinishDate(dayjs(x).format("YYYY-MM-DD"));
+                          }
                         }}
                       />
                     </Form.Item>
@@ -726,6 +875,7 @@ const Reports = () => {
                 <Table
                   bordered
                   size={"small"}
+                  loading={loadingTab1}
                   pagination={{
                     total: total,
                     page: page,
@@ -768,6 +918,7 @@ const Reports = () => {
                 >
                   <Table
                     bordered
+                    loading={loadingTab2}
                     size={"small"}
                     pagination={{ simple: true }}
                     columns={[
@@ -778,6 +929,37 @@ const Reports = () => {
                       {
                         title: "m³/día",
                         dataIndex: "total_hora",
+                        render: (text, record) => {
+                          const max = data2.reduce((prev, current) =>
+                            prev.total_hora > current.total_hora
+                              ? prev
+                              : current
+                          );
+                          const min = data2.reduce((prev, current) =>
+                            prev.total_hora < current.total_hora
+                              ? prev
+                              : current
+                          );
+                          return record.total_hora === max.total_hora ? (
+                            <Tag
+                              color="blue-inverse"
+                              icon={<RiseOutlined />}
+                              style={{ fontSize: "15px" }}
+                            >
+                              {text}
+                            </Tag>
+                          ) : record.total_hora === min.total_hora ? (
+                            <Tag
+                              color="volcano-inverse"
+                              icon={<FallOutlined />}
+                              style={{ fontSize: "15px" }}
+                            >
+                              {text}
+                            </Tag>
+                          ) : (
+                            text
+                          );
+                        },
                       },
                     ]}
                     dataSource={data2}

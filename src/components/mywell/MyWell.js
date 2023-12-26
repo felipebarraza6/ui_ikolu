@@ -26,12 +26,43 @@ const MyWell = () => {
     setFinishCounter(finishCounter + 1);
   };
 
+  const processNivel = (nivel_response) => {
+    if (nivel_response > 0.0 && nivel_response < position_sensor_nivel) {
+      return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
+    } else if (nivel_response > position_sensor_nivel || nivel_response < 0.0) {
+      nivel_response = 50.0;
+      return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
+    } else {
+      nivel_response = 0.0;
+      return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
+    }
+  };
+
+  const processCaudal = (caudal) => {
+    const flow = parseFloat(caudal).toFixed(1);
+    console.log(flow);
+    if (flow > 0.0) {
+      return flow;
+    } else {
+      return parseFloat(0.0).toFixed(1);
+    }
+  };
+
+  const processAcum = (acum) => {
+    const acumulado = parseInt(acum);
+    if (acumulado > 0) {
+      return acumulado;
+    } else {
+      return 0;
+    }
+  };
+
   const getData = async () => {
     const rq = await sh.get_data_sh(state.selected_profile.id).then((r) => {
       var nivel = 0.0;
       var flow = 0.0;
       var total = 0;
-      var nivel_response = r.results[0].nivel;
+      var nivel_response = r.results.length > 0 ? r.results[0].nivel : 0.0;
       if (r.results.length > 0) {
         window.innerWidth > 900
           ? setLastCaption(
@@ -48,22 +79,21 @@ const MyWell = () => {
             );
 
         if (r.results[0].nivel !== null) {
-          if (nivel_response > 0.0 && nivel_response < position_sensor_nivel) {
-            nivel = position_sensor_nivel - nivel_response;
-          } else if (nivel_response > position_sensor_nivel) {
-            nivel_response = 50.0;
-            nivel = position_sensor_nivel - nivel_response;
-          }
+          flow = processNivel(r.results[0].nivel);
         }
         if (r.results[0].flow !== null) {
-          flow = r.results[0].flow;
+          flow = processCaudal(r.results[0].flow);
         }
         if (r.results[0].total !== null) {
-          total = r.results[0].total;
+          total = processAcum(r.results[0].total);
         }
         setNivel(nivel);
         setCaudal(flow);
         setAcumulado(total);
+      } else {
+        setNivel(0.0);
+        setCaudal(0.0);
+        setAcumulado(0.0);
       }
     });
 

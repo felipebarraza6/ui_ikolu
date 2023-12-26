@@ -2,9 +2,16 @@ import React, { useState, useEffect, useContext } from "react";
 import sh from "../../api/sh/endpoints";
 import Stats24Hours from "./Stats24ours";
 import StatsMonth from "./StatsMonth";
-import { Tabs, Card } from "antd";
+import { Tabs, Card, Row, Col, Table } from "antd";
 import { Line, Area, Column } from "@ant-design/plots";
 import { AppContext } from "../../App";
+import {
+  BarChartOutlined,
+  LineChartOutlined,
+  LineOutlined,
+  TableOutlined,
+} from "@ant-design/icons";
+import LineChart from "@ant-design/plots/es/components/line";
 
 const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
   const [dataFlow, setDataFlow] = useState([]);
@@ -13,6 +20,8 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
   const [data, setData] = useState([]);
   const { state } = useContext(AppContext);
 
+  const position_sensor_nivel = parseFloat(state.selected_profile.d3);
+
   useEffect(() => {
     if (option === 1) {
       asyncFetch();
@@ -20,6 +29,37 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
       asyncFetch2();
     }
   }, [option, initialDate, state.selected_profile]);
+
+  const processNivel = (nivel_response) => {
+    if (nivel_response > 0.0 && nivel_response < position_sensor_nivel) {
+      return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
+    } else if (nivel_response > position_sensor_nivel || nivel_response < 0.0) {
+      nivel_response = 50.0;
+      return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
+    } else {
+      nivel_response = 0.0;
+      return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
+    }
+  };
+
+  const processCaudal = (caudal) => {
+    const flow = parseFloat(caudal).toFixed(1);
+    console.log(flow);
+    if (flow > 0.0) {
+      return flow;
+    } else {
+      return parseFloat(0.0).toFixed(1);
+    }
+  };
+
+  const processAcum = (acum) => {
+    const acumulado = parseInt(acum);
+    if (acumulado > 0) {
+      return acumulado;
+    } else {
+      return 0;
+    }
+  };
 
   const asyncFetch = async () => {
     var date = new Date(initialDate);
@@ -34,10 +74,10 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
         res.results.map((element) => {
           var date_time = element.date_time_medition.slice(11, 16);
           element.date_time_medition = date_time;
-          element.caudal = parseFloat(element.flow);
-          element.acumulado = parseInt(element.total);
-          element.nivel = parseFloat(element.nivel);
-          element.acumulado_hora = parseInt(element.total_hora);
+          element.caudal = processCaudal(element.flow);
+          element.acumulado = processAcum(element.total);
+          element.nivel = processNivel(element.nivel);
+          element.acumulado_hora = processAcum(element.total_hora);
           return element;
         });
         console.log(res.results);
@@ -77,7 +117,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
     },
     xAxis: {
       title: {
-        text: "Hora",
+        text: "Hora (00:00 - 23:00)",
         style: {
           fontSize: 14,
         },
@@ -405,7 +445,15 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
             <>
               <Tabs type="card">
                 <Tabs.TabPane
-                  tab={window.innerWidth > 900 ? "Caudal (lt/s)" : "lt/s"}
+                  tab={
+                    window.innerWidth > 900 ? (
+                      <>
+                        <LineChartOutlined /> Caudal (lt/s)
+                      </>
+                    ) : (
+                      "lt/s"
+                    )
+                  }
                   key="1"
                 >
                   <Card style={{ marginTop: "-20px" }} hoverable>
@@ -414,7 +462,15 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
                 </Tabs.TabPane>
 
                 <Tabs.TabPane
-                  tab={window.innerWidth > 900 ? "Nivel Freático (m)" : "m"}
+                  tab={
+                    window.innerWidth > 900 ? (
+                      <>
+                        <BarChartOutlined /> Nivel Freático (m)
+                      </>
+                    ) : (
+                      "m"
+                    )
+                  }
                   key="2"
                 >
                   <Card style={{ marginTop: "-20px" }} hoverable>
@@ -422,7 +478,15 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
                   </Card>
                 </Tabs.TabPane>
                 <Tabs.TabPane
-                  tab={window.innerWidth > 900 ? "Acumulado (m³)" : "m³"}
+                  tab={
+                    window.innerWidth > 900 ? (
+                      <>
+                        <LineChartOutlined /> Acumulado (m³)
+                      </>
+                    ) : (
+                      "m³"
+                    )
+                  }
                   key="3"
                 >
                   <Card style={{ marginTop: "-20px" }} hoverable>
@@ -431,12 +495,73 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
                 </Tabs.TabPane>
                 <Tabs.TabPane
                   tab={
-                    window.innerWidth > 900 ? "Acumulado (m³/hora)" : "m³/hora"
+                    window.innerWidth > 900 ? (
+                      <>
+                        <BarChartOutlined /> Acumulado (m³/hora)
+                      </>
+                    ) : (
+                      "m³/hora"
+                    )
                   }
                   key="4"
                 >
                   <Card style={{ marginTop: "-20px" }} hoverable>
                     <Column {...configAcumuladoHoraDay} />
+                  </Card>
+                </Tabs.TabPane>
+                <Tabs.TabPane
+                  tab={
+                    window.innerWidth > 900 ? (
+                      <>
+                        <TableOutlined /> Datos
+                      </>
+                    ) : (
+                      "datos"
+                    )
+                  }
+                  key="5"
+                >
+                  <Card style={{ marginTop: "-20px" }} hoverable size="small">
+                    <Table
+                      dataSource={data}
+                      style={{ width: "100%" }}
+                      pagination={{ simple: true }}
+                      size="small"
+                      bordered
+                      columns={[
+                        {
+                          title: window.innerWidth > 900 ? "Hora" : "hh",
+                          dataIndex: "date_time_medition",
+                        },
+                        {
+                          title:
+                            window.innerWidth > 900 ? "Caudal (lt/s)" : "lt/s",
+                          dataIndex: "caudal",
+                        },
+                        {
+                          title:
+                            window.innerWidth > 900
+                              ? "Nivel Freático (m)"
+                              : "m",
+                          dataIndex: "nivel",
+                        },
+                        {
+                          title:
+                            window.innerWidth > 900 ? "Acumulado (m³)" : "m³",
+                          dataIndex: "total",
+                        },
+                        {
+                          title:
+                            window.innerWidth > 900
+                              ? "Acumulado (m³/hora)"
+                              : "m³/h",
+                          dataIndex: "total_hora",
+                          render: (acum) => (
+                            <>{acum === undefined ? 0 : acum}</>
+                          ),
+                        },
+                      ]}
+                    />
                   </Card>
                 </Tabs.TabPane>
               </Tabs>
@@ -447,7 +572,15 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
         <>
           <Tabs type="card">
             <Tabs.TabPane
-              tab={window.innerWidth > 900 ? "Caudal (lt/s)" : "lt/s"}
+              tab={
+                window.innerWidth > 900 ? (
+                  <>
+                    <LineOutlined /> Caudal (lt/s)
+                  </>
+                ) : (
+                  "lt/s"
+                )
+              }
               key="1"
             >
               <Card style={{ marginTop: "-20px" }} hoverable>
