@@ -74,7 +74,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
         res.results.map((element) => {
           var date_time = element.date_time_medition.slice(11, 16);
           element.date_time_medition = date_time;
-          element.caudal = processCaudal(element.flow);
+          element.caudal = parseFloat(element.flow);
           element.acumulado = processAcum(element.total);
           element.nivel = processNivel(element.nivel);
           element.acumulado_hora = processAcum(element.total_hora);
@@ -109,13 +109,14 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
   };
 
   const configCaudalDay = {
-    data: data,
+    data,
     xField: "date_time_medition",
     autoFit: true,
     tooltip: {
       title: (d) => `${d} hrs.`,
     },
     xAxis: {
+      nice: true,
       title: {
         text: "Hora (00:00 - 23:00)",
         style: {
@@ -124,21 +125,17 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
       },
       tickInterval: 1,
     },
-    yField: ["caudal"],
+    yField: "caudal",
     yAxis: {
+      line: { style: { stroke: "#aaa" } },
       title: {
         text: "Caudal (lt/s)",
         style: {
           fontSize: 14,
         },
       },
-      tickInterval: 1,
-      min: Math.min(...data.map((item) => item.caudal)),
-
-      label: {
-        formatter: (v) =>
-          `${v}`.replace(/\d{1,3}(?=(\d{3})+$)/g, (s) => `${s}.`),
-      },
+      min: Math.min(...data.map((item) => item.caudal)) - 1,
+      max: Math.max(...data.map((item) => item.caudal)) + 1,
     },
     point: {
       shapeField: "square",
@@ -148,9 +145,6 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
       tooltip: {
         marker: false,
       },
-    },
-    style: {
-      lineWidth: 4,
     },
   };
 

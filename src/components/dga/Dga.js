@@ -19,11 +19,35 @@ const Dga = () => {
   const numberForMiles = new Intl.NumberFormat("de-DE");
 
   const processNivel = (nivel_response) => {
+    console.log(nivel_response);
+    nivel_response = parseFloat(nivel_response).toFixed(1);
     if (nivel_response > 0.0 && nivel_response < position_sensor_nivel) {
-      return position_sensor_nivel - nivel_response;
-    } else if (nivel_response > position_sensor_nivel) {
+      return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
+    } else if (nivel_response > position_sensor_nivel || nivel_response < 0.0) {
       nivel_response = 50.0;
-      return position_sensor_nivel - nivel_response;
+      return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
+    } else {
+      nivel_response = 0.0;
+      return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
+    }
+  };
+
+  const processCaudal = (caudal) => {
+    const flow = parseFloat(caudal).toFixed(1);
+    console.log(flow);
+    if (flow > 0.0) {
+      return flow;
+    } else {
+      return parseFloat(0.0).toFixed(1);
+    }
+  };
+
+  const processAcum = (acum) => {
+    const acumulado = parseInt(acum);
+    if (acumulado > 0) {
+      return acumulado;
+    } else {
+      return 0;
     }
   };
 
@@ -56,13 +80,13 @@ const Dga = () => {
         r.results.map((e, index) => {
           process_list.push({
             nivel: r.results[0].nivel
-              ? parseFloat(
-                  processNivel(r.results[index].nivel).toFixed(1)
-                ).toFixed(1)
+              ? processNivel(r.results[index].nivel)
               : 0,
-            caudal: r.results[index].flow ? r.results[0].flow : 0,
+            caudal: r.results[index].flow
+              ? processCaudal(r.results[0].flow)
+              : 0,
             acumulado: r.results[0].total
-              ? numberForMiles.format(r.results[index].total)
+              ? processAcum(r.results[index].total)
               : 0,
             fecha: `${r.results[index].date_time_medition.slice(0, 10)}`,
             hora: `${r.results[index].date_time_medition.slice(11, 16)}`,
@@ -112,6 +136,7 @@ const Dga = () => {
             {
               title: window.innerWidth > 900 ? "Acumulado(m³)" : "m³",
               dataIndex: "acumulado",
+              render: (acumulado) => numberForMiles.format(acumulado),
               width: "10%",
             },
           ]}
