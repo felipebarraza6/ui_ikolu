@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Row, Col, Typography, Button, Popconfirm } from "antd";
+import { Row, Col, Typography, Button, Popconfirm, Affix } from "antd";
 import wallpaper from "../../assets/images/wallssr.png";
 import { useLocation, Link } from "react-router-dom";
 import { AppContext } from "../../App";
@@ -15,7 +15,7 @@ const HeaderNav = () => {
   console.log(state);
 
   return (
-    <>
+    <Affix>
       <Row
         align={"middle"}
         justify={window.innerWidth > 900 ? "start" : "space-evenly"}
@@ -146,7 +146,7 @@ const HeaderNav = () => {
           </Col>
         )}
       </Row>
-    </>
+    </Affix>
   );
 };
 

@@ -2,23 +2,24 @@ import React, { useState, useEffect, useContext } from "react";
 import sh from "../../api/sh/endpoints";
 import Stats24Hours from "./Stats24ours";
 import StatsMonth from "./StatsMonth";
-import { Tabs, Card, Row, Col, Table } from "antd";
+import { Tabs, Card, Row, Col, Table, Typography } from "antd";
 import { Line, Area, Column } from "@ant-design/plots";
 import { AppContext } from "../../App";
 import {
   BarChartOutlined,
   LineChartOutlined,
   LineOutlined,
+  AreaChartOutlined,
   TableOutlined,
 } from "@ant-design/icons";
-import LineChart from "@ant-design/plots/es/components/line";
+
+const { Title } = Typography;
 
 const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
-  const [dataFlow, setDataFlow] = useState([]);
-  const [dataNivel, setDataNivel] = useState([]);
-  const [dataAcumulado, setDataAcumulado] = useState([]);
   const [data, setData] = useState([]);
   const { state } = useContext(AppContext);
+
+  const numberForMiles = new Intl.NumberFormat("de-DE");
 
   const position_sensor_nivel = parseFloat(state.selected_profile.d3);
 
@@ -32,23 +33,22 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
 
   const processNivel = (nivel_response) => {
     if (nivel_response > 0.0 && nivel_response < position_sensor_nivel) {
-      return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
+      return parseFloat(position_sensor_nivel - nivel_response);
     } else if (nivel_response > position_sensor_nivel || nivel_response < 0.0) {
       nivel_response = 50.0;
-      return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
+      return parseFloat(position_sensor_nivel - nivel_response);
     } else {
       nivel_response = 0.0;
-      return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
+      return parseFloat(position_sensor_nivel - nivel_response);
     }
   };
 
   const processCaudal = (caudal) => {
-    const flow = parseFloat(caudal).toFixed(1);
-    console.log(flow);
+    const flow = parseFloat(caudal);
     if (flow > 0.0) {
       return flow;
     } else {
-      return parseFloat(0.0).toFixed(1);
+      return parseFloat(0.0);
     }
   };
 
@@ -74,13 +74,12 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
         res.results.map((element) => {
           var date_time = element.date_time_medition.slice(11, 16);
           element.date_time_medition = date_time;
-          element.caudal = parseFloat(element.flow);
+          element.caudal = processCaudal(element.flow);
           element.acumulado = processAcum(element.total);
           element.nivel = processNivel(element.nivel);
           element.acumulado_hora = processAcum(element.total_hora);
           return element;
         });
-        console.log(res.results);
 
         setData(res.results.reverse());
       });
@@ -109,161 +108,188 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
   };
 
   const configCaudalDay = {
-    data,
+    data: data,
     xField: "date_time_medition",
-    autoFit: true,
     tooltip: {
       title: (d) => `${d} hrs.`,
     },
     xAxis: {
-      nice: true,
       title: {
-        text: "Hora (00:00 - 23:00)",
+        text: `Hora (00:00 - 23:001 ${
+          window.innerWidth > 900 && initialDate.slice(2)
+        })`,
         style: {
           fontSize: 14,
         },
       },
-      tickInterval: 1,
     },
     yField: "caudal",
     yAxis: {
-      line: { style: { stroke: "#aaa" } },
       title: {
         text: "Caudal (lt/s)",
-        style: {
-          fontSize: 14,
-        },
       },
-      min: Math.min(...data.map((item) => item.caudal)) - 1,
-      max: Math.max(...data.map((item) => item.caudal)) + 1,
+      reverse: true,
+      min: Math.min(
+        ...data.map((item) => {
+          const caudal = parseFloat(item.caudal);
+          return caudal > 0.0 ? (caudal - 0.5).toFixed(1) : caudal.toFixed(1);
+        })
+      ),
+      max: Math.max(
+        ...data.map((item) => parseFloat(item.caudal + 0.5).toFixed(1))
+      ),
+      label: {
+        formatter: (text) => parseFloat(text).toFixed(1), // Redondear a un decimal
+      },
     },
     point: {
-      shapeField: "square",
-      sizeField: 13,
-    },
-    interaction: {
-      tooltip: {
-        marker: false,
+      size: 4,
+      shape: "point",
+      style: {
+        fill: "white",
+        stroke: "#001d66",
+        lineWidth: 4,
       },
     },
+    smooth: true,
+    color: "#1677ff",
   };
 
   const configNivelDay = {
     data: data,
     xField: "date_time_medition",
-    autoFit: true,
     tooltip: {
       title: (d) => `${d} hrs.`,
     },
     xAxis: {
       title: {
-        text: "Hora",
+        text: `Hora (00:00 - 23:00 / ${initialDate.slice(2)})`,
         style: {
           fontSize: 14,
         },
       },
-      tickInterval: 1,
     },
-    yField: ["nivel"],
+    yField: "nivel",
     yAxis: {
       title: {
-        text: "Nivel (m)",
-        style: {
-          fontSize: 14,
-        },
+        text: "Nivel Freático (m)",
       },
-      tickInterval: 1,
-      min: Math.min(...data.map((item) => item.nivel)),
-
+      reverse: true,
+      min: Math.min(
+        ...data.map((item) => {
+          const nivel = parseFloat(item.nivel);
+          return nivel > 0.0 ? (nivel - 0.5).toFixed(1) : nivel.toFixed(1);
+        })
+      ),
+      max: Math.max(
+        ...data.map((item) => parseFloat(item.nivel + 0.5).toFixed(1))
+      ),
       label: {
-        formatter: (v) =>
-          `${v}`.replace(/\d{1,3}(?=(\d{3})+$)/g, (s) => `${s}.`),
+        formatter: (text) => parseFloat(text).toFixed(1), // Redondear a un decimal
       },
     },
     point: {
-      shapeField: "square",
-      sizeField: 13,
+      size: 4,
+      shape: "point",
+      style: {
+        fill: "white",
+        stroke: "#597ef7",
+        lineWidth: 4,
+      },
     },
-
-    style: {
-      lineWidth: 4,
-      color: "black",
-    },
+    smooth: true,
+    color: "#69b1ff",
   };
   const configAcumuladoDay = {
     data: data,
+    xField: "date_time_medition",
     tooltip: {
       title: (d) => `${d} hrs.`,
     },
-    xField: "date_time_medition",
     xAxis: {
       title: {
-        text: "Hora",
+        text: `Hora (00:00 - 23:00 / ${initialDate.slice(2)})`,
         style: {
           fontSize: 14,
         },
       },
-      tickInterval: 1,
     },
-    yField: ["acumulado"],
+    yField: "acumulado",
     yAxis: {
       title: {
         text: "Acumulado (m³)",
-        style: {
-          fontSize: 14,
-        },
       },
-      tickInterval: Math.pow(
-        10,
-        Math.floor(Math.log10((item) => item.acumulado)) - 1
+      reverse: true,
+      min: Math.min(
+        ...data.map((item) => {
+          const acumulado = processAcum(item.acumulado);
+          return acumulado > 0.0
+            ? processAcum(acumulado - 1)
+            : processAcum(acumulado);
+        })
       ),
-      min: Math.min(...data.map((item) => item.acumulado)),
+      max: Math.max(...data.map((item) => parseInt(item.acumulado + 1))),
+      label: {
+        formatter: (text) => parseInt(text), // Redondear a un decimal
+      },
     },
-
-    style: {
-      lineWidth: 4,
-      color: "black",
+    point: {
+      size: 4,
+      shape: "point",
+      style: {
+        fill: "white",
+        stroke: "#91caff",
+        lineWidth: 4,
+      },
     },
+    smooth: true,
+    color: "#91caff",
   };
 
   const configAcumuladoHoraDay = {
     data: data,
+    xField: "date_time_medition",
     tooltip: {
       title: (d) => `${d} hrs.`,
     },
-    xField: "date_time_medition",
     xAxis: {
       title: {
-        text: "Hora",
+        text: `Hora (00:00 - 23:00 / ${initialDate.slice(2)})`,
         style: {
           fontSize: 14,
         },
       },
-      tickInterval: 1,
     },
-    yField: ["acumulado_hora"],
+    yField: "acumulado_hora",
     yAxis: {
       title: {
         text: "Acumulado (m³/hora)",
-        style: {
-          fontSize: 14,
-        },
       },
-      tickInterval: Math.pow(
-        10,
-        Math.floor(Math.log10((item) => item.acumulado - 10)) - 1
+      reverse: true,
+      min: Math.min(
+        ...data.map((item) => {
+          const acumulado_hora = processAcum(item.acumulado_hora);
+          return acumulado_hora > 0.0
+            ? processAcum(acumulado_hora - 1)
+            : processAcum(acumulado_hora);
+        })
       ),
-      min: Math.min(...data.map((item) => item.acumulado)),
+      max: Math.max(...data.map((item) => parseInt(item.acumulado_hora + 1))),
+      label: {
+        formatter: (text) => parseInt(text), // Redondear a un decimal
+      },
     },
     point: {
-      shapeField: "square",
-      sizeField: 13,
+      size: 4,
+      shape: "point",
+      style: {
+        fill: "white",
+        stroke: "#91caff",
+        lineWidth: 4,
+      },
     },
-
-    style: {
-      lineWidth: 4,
-      color: "black",
-    },
+    smooth: true,
+    color: "#91caff",
   };
 
   const configCaudalMonth = {
@@ -454,7 +480,6 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
                     <Line {...configCaudalDay} />
                   </Card>
                 </Tabs.TabPane>
-
                 <Tabs.TabPane
                   tab={
                     window.innerWidth > 900 ? (
@@ -475,7 +500,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
                   tab={
                     window.innerWidth > 900 ? (
                       <>
-                        <LineChartOutlined /> Acumulado (m³)
+                        <AreaChartOutlined /> Acumulado (m³)
                       </>
                     ) : (
                       "m³"
@@ -500,7 +525,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
                   key="4"
                 >
                   <Card style={{ marginTop: "-20px" }} hoverable>
-                    <Column {...configAcumuladoHoraDay} />
+                    <Area {...configAcumuladoHoraDay} />
                   </Card>
                 </Tabs.TabPane>
                 <Tabs.TabPane
@@ -519,7 +544,12 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
                     <Table
                       dataSource={data}
                       style={{ width: "100%" }}
-                      pagination={{ simple: true }}
+                      pagination={{ simple: true, pageSize: 7 }}
+                      title={() => (
+                        <Title level={5}>
+                          Hora (00:00 - 23:00 / {initialDate.slice(2)})
+                        </Title>
+                      )}
                       size="small"
                       bordered
                       columns={[
@@ -531,6 +561,8 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
                           title:
                             window.innerWidth > 900 ? "Caudal (lt/s)" : "lt/s",
                           dataIndex: "caudal",
+                          render: (caudal) =>
+                            parseFloat(processCaudal(caudal)).toFixed(1),
                         },
                         {
                           title:
@@ -538,11 +570,14 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
                               ? "Nivel Freático (m)"
                               : "m",
                           dataIndex: "nivel",
+                          render: (nivel) =>
+                            parseFloat(processNivel(nivel)).toFixed(1),
                         },
                         {
                           title:
                             window.innerWidth > 900 ? "Acumulado (m³)" : "m³",
                           dataIndex: "total",
+                          render: (acum) => numberForMiles.format(acum),
                         },
                         {
                           title:
@@ -551,7 +586,11 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
                               : "m³/h",
                           dataIndex: "total_hora",
                           render: (acum) => (
-                            <>{acum === undefined ? 0 : acum}</>
+                            <>
+                              {acum === undefined
+                                ? 0
+                                : numberForMiles.format(acum)}
+                            </>
                           ),
                         },
                       ]}
@@ -559,6 +598,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
                   </Card>
                 </Tabs.TabPane>
               </Tabs>
+              {state.selected_profile.module_5 && <Stats24Hours data={data} />}
             </>
           )}
         </>
@@ -607,7 +647,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
               </Card>
             </Tabs.TabPane>
           </Tabs>
-          <StatsMonth />
+          {state.selected_profile.module_5 && <StatsMonth />}
         </>
       )}
     </>

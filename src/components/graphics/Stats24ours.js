@@ -31,15 +31,13 @@ const Stats24Hours = ({ data }) => {
   const [flowMin, setFlowMin] = useState(0);
   const [nivelMax, setNivelMax] = useState(0);
   const [nivelMin, setNivelMin] = useState(0);
+  console.log(data);
 
   const getTotal = () => {
     var count = 0;
     const sum = data.reduce((accumulator, currentValue) => {
-      if (currentValue.type === "acumulado(m³/hora)") {
-        count++;
-        return accumulator + currentValue.value;
-      }
-      return accumulator;
+      count++;
+      return accumulator + currentValue.acumulado_hora;
     }, 0);
 
     setTotal(sum);
@@ -52,60 +50,69 @@ const Stats24Hours = ({ data }) => {
   };
 
   const getMaxHour = () => {
-    const filteredData = data.filter(
-      (item) => item.type === "acumulado(m³/hora)"
-    );
-    if (filteredData.length > 0) {
-      const maxHour = filteredData.reduce((prev, current) => {
-        return prev.value > current.value ? prev : current;
+    if (data.length > 0) {
+      const maxHour = data.reduce((prev, current) => {
+        return prev.total_hora > current.total_hora ? prev : current;
       });
-      setMaxHours(maxHour);
+      setMaxHours({
+        date: maxHour.date_time_medition,
+        value: maxHour.total_hora,
+      });
       return maxHour.date;
     }
     return null;
   };
 
   const getMinHour = () => {
-    const filteredData = data.filter(
-      (item) => item.type === "acumulado(m³/hora)"
-    );
-    if (filteredData.length > 0) {
-      const minHour = filteredData.reduce((prev, current) => {
-        return prev.value < current.value ? prev : current;
+    if (data.length > 0) {
+      const minHour = data.reduce((prev, current) => {
+        return prev.total_hora < current.total_hora ? prev : current;
       });
-      setMinHours(minHour);
+      setMinHours({
+        date: minHour.date_time_medition,
+        value: minHour.total_hora,
+      });
       return minHour.date;
     }
     return null;
   };
 
   const flowMinMax = () => {
-    const filteredData = data.filter((item) => item.type === "caudal (lt/s)");
-    if (filteredData.length > 0) {
-      const max = filteredData.reduce((prev, current) =>
-        prev.value > current.value ? prev : current
+    if (data.length > 0) {
+      const max = data.reduce((prev, current) =>
+        prev.flow > current.flow ? prev : current
       );
-      const min = filteredData.reduce((prev, current) =>
-        prev.value < current.value ? prev : current
+      const min = data.reduce((prev, current) =>
+        prev.value < current.flow ? prev : current
       );
-      setFlowMax(max);
-      setFlowMin(min);
+
+      setFlowMax({
+        date: max.date_time_medition,
+        value: max.total_hora,
+      });
+      setFlowMin({
+        date: min.date_time_medition,
+        value: min.total_hora,
+      });
     }
   };
 
   const nivelMinMax = () => {
-    const filteredData = data.filter(
-      (item) => item.type === "nivel freático(m)"
-    );
-    if (filteredData.length > 0) {
-      const max = filteredData.reduce((prev, current) =>
-        prev.value > current.value ? prev : current
+    if (data.length > 0) {
+      const max = data.reduce((prev, current) =>
+        prev.nivel > current.nivel ? prev : current
       );
-      const min = filteredData.reduce((prev, current) =>
-        prev.value < current.value ? prev : current
+      const min = data.reduce((prev, current) =>
+        prev.nivel < current.nivel ? prev : current
       );
-      setNivelMax(max);
-      setNivelMin(min);
+      setNivelMax({
+        date: max.date_time_medition,
+        value: max.total_hora,
+      });
+      setNivelMin({
+        date: min.date_time_medition,
+        value: min.total_hora,
+      });
     }
   };
 
@@ -121,51 +128,90 @@ const Stats24Hours = ({ data }) => {
     }
   }, [data]);
 
-  const ModalTotal = () => {
-    var totals = [];
-    data.reduce((accumulator, currentValue) => {
-      if (currentValue.type === "acumulado(m³/hora)") {
-        totals.push({ ...currentValue, sum: currentValue.value });
-        return accumulator;
-      }
-      return accumulator;
-    }, 0);
-
-    console.log(totals);
-    Modal.info({
-      icon: <TableOutlined />,
-      title: "Detalle Consumo total (m³)",
-      width: "700px",
-      okText: "Volver",
-      content: (
-        <>
-          <Table
-            style={{ marginTop: "10px", textAlign: "center" }}
-            dataSource={totals}
-            size="small"
-            bordered
-            columns={[
-              { title: "Hora", dataIndex: "date" },
-              {
-                title: "acumulado (m³/hora)",
-                dataIndex: "value",
-                align: "center",
-                render: (value) => `${value} m³`,
-              },
-              {
-                dataIndex: "sum",
-              },
-            ]}
-          />
-        </>
-      ),
-    });
-  };
-
   return (
     <>
       <Row justify={"space-evenly"} align={"top"} style={{ marginTop: "20px" }}>
-        <Col>
+        <Col xs={24} xl={4} lg={4}>
+          <Card style={styles.cardStats.ind4} size="small">
+            <Row justify={"center"}>
+              <Tag
+                color={styles.cardStats.ind4.tag.color}
+                style={{ marginBottom: "10px", fontSize: "16px" }}
+              >
+                Caudal (lt/s)
+              </Tag>
+            </Row>
+            <Row align="middle">
+              <Col span={10}>
+                <Tag color="green" icon={<RiseOutlined />}>
+                  Max
+                </Tag>
+              </Col>
+              <Col span={14}>
+                <Tag color="green">{flowMax.date} hrs</Tag>
+                <br /> <Tag color="green">{flowMax.value} lt/s</Tag>
+              </Col>
+              <Col
+                span={24}
+                style={{
+                  borderBottom: "2px dashed black",
+                  marginTop: "5px",
+                  marginBottom: "5px",
+                }}
+              ></Col>
+              <Col span={10}>
+                <Tag color="volcano" icon={<FallOutlined />}>
+                  Min
+                </Tag>
+              </Col>
+              <Col span={14}>
+                <Tag color="volcano">{flowMin.date} hrs</Tag> <br />{" "}
+                <Tag color="volcano">{flowMin.value} lt/s</Tag>
+              </Col>
+            </Row>
+          </Card>
+        </Col>
+        <Col xs={24} xl={4} lg={4}>
+          <Card style={styles.cardStats.ind5} size="small">
+            <Row justify={"center"}>
+              <Tag
+                color={styles.cardStats.ind5.tag.color}
+                style={{ marginBottom: "10px", fontSize: "17px" }}
+              >
+                Nivel freático (m)
+              </Tag>
+            </Row>
+            <Row align="middle">
+              <Col span={10}>
+                <Tag color="green" icon={<RiseOutlined />}>
+                  Max
+                </Tag>
+              </Col>
+              <Col span={14}>
+                <Tag color="green">{nivelMax.date} hrs</Tag>
+                <br /> <Tag color="green">{nivelMax.value} m</Tag>
+              </Col>
+              <Col
+                span={24}
+                style={{
+                  borderBottom: "2px dashed black",
+                  marginTop: "5px",
+                  marginBottom: "5px",
+                }}
+              ></Col>
+              <Col span={10}>
+                <Tag color="volcano" icon={<FallOutlined />}>
+                  Min
+                </Tag>
+              </Col>
+              <Col span={14}>
+                <Tag color="volcano">{nivelMin.date} hrs</Tag> <br />{" "}
+                <Tag color="volcano">{nivelMin.value} m</Tag>
+              </Col>
+            </Row>
+          </Card>
+        </Col>
+        <Col xs={24} xl={4} lg={4}>
           <Card style={styles.cardStats.ind1} size="small">
             <Row justify={"center"}>
               <Col>
@@ -192,22 +238,52 @@ const Stats24Hours = ({ data }) => {
                   value={total.toLocaleString().replace(/,/g, ".")}
                 />
               </Col>
-              <Col span={24}>
-                <Button
-                  onClick={ModalTotal}
-                  size="small"
-                  style={styles.cardStats.ind1.btnDetail}
-                  type="primary"
-                  block
-                  icon={<TableOutlined />}
-                >
-                  Ver Detalle
-                </Button>
+            </Row>
+          </Card>
+        </Col>
+
+        <Col xs={24} xl={4} lg={4}>
+          <Card style={styles.cardStats.ind3} size="small">
+            <Row justify={"center"}>
+              <Tag
+                color={styles.cardStats.ind3.tag.color}
+                style={{ marginBottom: "10px", fontSize: "16px" }}
+              >
+                Consumo (m³/hora)
+              </Tag>
+            </Row>
+            <Row align="middle">
+              <Col span={10}>
+                <Tag color="green" icon={<RiseOutlined />}>
+                  Max
+                </Tag>
+              </Col>
+              <Col span={14}>
+                <Tag color="green">{maxHours.date} hrs</Tag>
+                <br />
+                <Tag color="green"> {maxHours.value} m³/hora</Tag>
+              </Col>
+              <Col
+                span={24}
+                style={{
+                  borderBottom: "2px dashed #262626",
+                  marginTop: "5px",
+                  marginBottom: "5px",
+                }}
+              ></Col>
+              <Col span={10}>
+                <Tag color="volcano" icon={<FallOutlined />}>
+                  Min
+                </Tag>
+              </Col>
+              <Col span={14}>
+                <Tag color="volcano">{minHours.date} hrs</Tag> <br />{" "}
+                <Tag color="volcano">{minHours.value} m³/hora</Tag>
               </Col>
             </Row>
           </Card>
         </Col>
-        <Col>
+        <Col xs={24} xl={6} lg={6}>
           <Card style={styles.cardStats.ind2} size="small">
             <Row justify={"center"}>
               <Col>
@@ -234,166 +310,7 @@ const Stats24Hours = ({ data }) => {
                   value={totalProm}
                 />
               </Col>
-              <Col span={24}>
-                <Button
-                  size="small"
-                  style={styles.cardStats.ind2.btnDetail}
-                  type="primary"
-                  block
-                  icon={<TableOutlined />}
-                >
-                  Ver Detalle
-                </Button>
-              </Col>
             </Row>
-          </Card>
-        </Col>
-        <Col>
-          <Card style={styles.cardStats.ind3} size="small">
-            <Row justify={"center"}>
-              <Tag
-                color={styles.cardStats.ind3.tag.color}
-                style={{ marginBottom: "10px", fontSize: "16px" }}
-              >
-                Consumo (m³/hora)
-              </Tag>
-            </Row>
-            <Row align="middle">
-              <Col span={10}>
-                <Tag color="green" icon={<RiseOutlined />}>
-                  Max
-                </Tag>
-              </Col>
-              <Col span={14}>
-                <Tag color="green">{maxHours.date}</Tag>
-                <br />
-                <Tag color="green"> {maxHours.value} m³/hora</Tag>
-              </Col>
-              <Col
-                span={24}
-                style={{
-                  borderBottom: "2px dashed #262626",
-                  marginTop: "5px",
-                  marginBottom: "5px",
-                }}
-              ></Col>
-              <Col span={10}>
-                <Tag color="volcano" icon={<FallOutlined />}>
-                  Min
-                </Tag>
-              </Col>
-              <Col span={14}>
-                <Tag color="volcano">{minHours.date}</Tag> <br />{" "}
-                <Tag color="volcano">{minHours.value} m³/hora</Tag>
-              </Col>
-            </Row>
-            <Button
-              size="small"
-              style={styles.cardStats.ind3.btnDetail}
-              block
-              type="primary"
-              icon={<TableOutlined />}
-            >
-              Ver Detalle
-            </Button>
-          </Card>
-        </Col>
-        <Col>
-          <Card style={styles.cardStats.ind4} size="small">
-            <Row justify={"center"}>
-              <Tag
-                color={styles.cardStats.ind4.tag.color}
-                style={{ marginBottom: "10px", fontSize: "16px" }}
-              >
-                Caudal (lt/s)
-              </Tag>
-            </Row>
-            <Row align="middle">
-              <Col span={10}>
-                <Tag color="green" icon={<RiseOutlined />}>
-                  Max
-                </Tag>
-              </Col>
-              <Col span={14}>
-                <Tag color="green">{flowMax.date}</Tag>
-                <br /> <Tag color="green">{flowMax.value} lt/s</Tag>
-              </Col>
-              <Col
-                span={24}
-                style={{
-                  borderBottom: "2px dashed black",
-                  marginTop: "5px",
-                  marginBottom: "5px",
-                }}
-              ></Col>
-              <Col span={10}>
-                <Tag color="volcano" icon={<FallOutlined />}>
-                  Min
-                </Tag>
-              </Col>
-              <Col span={14}>
-                <Tag color="volcano">{flowMin.date}</Tag> <br />{" "}
-                <Tag color="volcano">{flowMin.value} lt/s</Tag>
-              </Col>
-            </Row>
-            <Button
-              size="small"
-              style={styles.cardStats.ind4.btnDetail}
-              block
-              type="primary"
-              icon={<TableOutlined />}
-            >
-              Ver Detalle
-            </Button>
-          </Card>
-        </Col>
-        <Col>
-          <Card style={styles.cardStats.ind5} size="small">
-            <Row justify={"center"}>
-              <Tag
-                color={styles.cardStats.ind5.tag.color}
-                style={{ marginBottom: "10px", fontSize: "17px" }}
-              >
-                Nivel freático (m)
-              </Tag>
-            </Row>
-            <Row align="middle">
-              <Col span={10}>
-                <Tag color="green" icon={<RiseOutlined />}>
-                  Max
-                </Tag>
-              </Col>
-              <Col span={14}>
-                <Tag color="green">{nivelMax.date}</Tag>
-                <br /> <Tag color="green">{nivelMax.value} m</Tag>
-              </Col>
-              <Col
-                span={24}
-                style={{
-                  borderBottom: "2px dashed black",
-                  marginTop: "5px",
-                  marginBottom: "5px",
-                }}
-              ></Col>
-              <Col span={10}>
-                <Tag color="volcano" icon={<FallOutlined />}>
-                  Min
-                </Tag>
-              </Col>
-              <Col span={14}>
-                <Tag color="volcano">{nivelMin.date}</Tag> <br />{" "}
-                <Tag color="volcano">{nivelMin.value} m</Tag>
-              </Col>
-            </Row>
-            <Button
-              size="small"
-              style={styles.cardStats.ind5.btnDetail}
-              type="primary"
-              block
-              icon={<TableOutlined />}
-            >
-              Ver Detalle
-            </Button>
           </Card>
         </Col>
       </Row>
@@ -405,8 +322,8 @@ const styles = {
   cardStats: {
     ind1: {
       width: "100%",
-      minHeight: "24vh",
-      border: "2px #002c8c solid",
+      minHeight: "20vh",
+      border: "2px #001d66 solid",
       borderRadius: "20px",
       marginBottom: window.innerWidth < 900 ? "10px" : "0px",
       value: {
@@ -419,13 +336,13 @@ const styles = {
       background:
         "linear-gradient(90deg, rgba(244,244,244,1) 0%, rgba(232,229,229,1) 49%, rgba(255,255,255,1) 100%)",
       tag: {
-        color: "#002c8c",
+        color: "#4096ff",
       },
     },
     ind2: {
       width: "100%",
-      minHeight: "24vh",
-      border: "2px #262626 solid",
+      minHeight: "20vh",
+      border: "2px #001d66 solid",
       borderRadius: "20px",
       marginBottom: window.innerWidth < 900 ? "10px" : "0px",
       value: {
@@ -438,12 +355,13 @@ const styles = {
       background:
         "linear-gradient(90deg, rgba(244,244,244,1) 0%, rgba(232,229,229,1) 49%, rgba(255,255,255,1) 100%)",
       tag: {
-        color: "#262626",
+        color: "#4096ff",
       },
     },
     ind3: {
-      width: "180px",
-      border: "2px #262626 solid",
+      width: "100%",
+      minHeight: "20vh",
+      border: "2px #001d66 solid",
       borderRadius: "20px",
       marginBottom: window.innerWidth < 900 ? "10px" : "0px",
       value: {
@@ -456,12 +374,13 @@ const styles = {
       background:
         "linear-gradient(90deg, rgba(244,244,244,1) 0%, rgba(232,229,229,1) 49%, rgba(255,255,255,1) 100%)",
       tag: {
-        color: "#262626",
+        color: "#4096ff",
       },
     },
     ind4: {
-      width: "180px",
-      border: "2px #5b8c00 solid",
+      width: "100%",
+      minHeight: "20vh",
+      border: "2px #001d66 solid",
       marginBottom: window.innerWidth < 900 ? "10px" : "0px",
       borderRadius: "20px",
       value: {
@@ -474,12 +393,13 @@ const styles = {
       background:
         "linear-gradient(90deg, rgba(244,244,244,1) 0%, rgba(232,229,229,1) 49%, rgba(255,255,255,1) 100%)",
       tag: {
-        color: "#5b8c00",
+        color: "#001d66",
       },
     },
     ind5: {
-      width: "180px",
-      border: "2px #cf1322 solid",
+      width: "100%",
+      minHeight: "20vh",
+      border: "2px #001d66 solid",
       marginBottom: window.innerWidth < 900 ? "10px" : "0px",
       borderRadius: "20px",
       value: {
@@ -491,7 +411,7 @@ const styles = {
       background:
         "linear-gradient(90deg, rgba(244,244,244,1) 0%, rgba(232,229,229,1) 49%, rgba(255,255,255,1) 100%)",
       tag: {
-        color: "#cf1322",
+        color: "#597ef7",
       },
     },
   },
