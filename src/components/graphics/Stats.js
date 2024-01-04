@@ -21,7 +21,7 @@ import {
 
 const { Title } = Typography;
 
-const Stats24Hours = ({ data }) => {
+const Stats = ({ data, option, parsedDate }) => {
   console.log(data);
   const [total, setTotal] = useState(0);
   const [totalProm, setTotalProm] = useState(0);
@@ -32,7 +32,22 @@ const Stats24Hours = ({ data }) => {
   const [nivelMax, setNivelMax] = useState(0);
   const [nivelMin, setNivelMin] = useState(0);
   console.log(data);
+  const monthNamesMobile = [
+    "ene",
+    "feb",
+    "mar",
+    "abr",
+    "may",
+    "jun",
+    "jul",
+    "ago",
+    "sep",
+    "oct",
+    "nov",
+    "dic",
+  ];
 
+  const monthNameShort = monthNamesMobile[parsedDate.month()];
   const getTotal = () => {
     var count = 0;
     const sum = data.reduce((accumulator, currentValue) => {
@@ -83,16 +98,16 @@ const Stats24Hours = ({ data }) => {
         prev.flow > current.flow ? prev : current
       );
       const min = data.reduce((prev, current) =>
-        prev.value < current.flow ? prev : current
+        prev.flow < current.flow ? prev : current
       );
 
       setFlowMax({
         date: max.date_time_medition,
-        value: max.total_hora,
+        value: parseFloat(max.flow).toFixed(1),
       });
       setFlowMin({
         date: min.date_time_medition,
-        value: min.total_hora,
+        value: parseFloat(min.flow).toFixed(1),
       });
     }
   };
@@ -107,11 +122,11 @@ const Stats24Hours = ({ data }) => {
       );
       setNivelMax({
         date: max.date_time_medition,
-        value: max.total_hora,
+        value: parseFloat(max.nivel).toFixed(1),
       });
       setNivelMin({
         date: min.date_time_medition,
-        value: min.total_hora,
+        value: parseFloat(min.nivel).toFixed(1),
       });
     }
   };
@@ -131,7 +146,7 @@ const Stats24Hours = ({ data }) => {
   return (
     <>
       <Row justify={"space-evenly"} align={"top"} style={{ marginTop: "20px" }}>
-        <Col xs={24} xl={4} lg={4}>
+        <Col xs={11} xl={4} lg={4}>
           <Card style={styles.cardStats.ind4} size="small">
             <Row justify={"center"}>
               <Tag
@@ -148,7 +163,9 @@ const Stats24Hours = ({ data }) => {
                 </Tag>
               </Col>
               <Col span={14}>
-                <Tag color="green">{flowMax.date} hrs</Tag>
+                <Tag color="green">
+                  {flowMax.date} {option === 1 ? "hrs" : `de ${monthNameShort}`}
+                </Tag>
                 <br /> <Tag color="green">{flowMax.value} lt/s</Tag>
               </Col>
               <Col
@@ -165,13 +182,15 @@ const Stats24Hours = ({ data }) => {
                 </Tag>
               </Col>
               <Col span={14}>
-                <Tag color="volcano">{flowMin.date} hrs</Tag> <br />{" "}
-                <Tag color="volcano">{flowMin.value} lt/s</Tag>
+                <Tag color="volcano">
+                  {flowMin.date} {option === 1 ? "hrs" : `de ${monthNameShort}`}
+                </Tag>{" "}
+                <br /> <Tag color="volcano">{flowMin.value} lt/s</Tag>
               </Col>
             </Row>
           </Card>
         </Col>
-        <Col xs={24} xl={4} lg={4}>
+        <Col xs={11} xl={4} lg={4}>
           <Card style={styles.cardStats.ind5} size="small">
             <Row justify={"center"}>
               <Tag
@@ -188,7 +207,10 @@ const Stats24Hours = ({ data }) => {
                 </Tag>
               </Col>
               <Col span={14}>
-                <Tag color="green">{nivelMax.date} hrs</Tag>
+                <Tag color="green">
+                  {nivelMax.date}{" "}
+                  {option === 1 ? "hrs" : `de ${monthNameShort}`}
+                </Tag>
                 <br /> <Tag color="green">{nivelMax.value} m</Tag>
               </Col>
               <Col
@@ -205,13 +227,16 @@ const Stats24Hours = ({ data }) => {
                 </Tag>
               </Col>
               <Col span={14}>
-                <Tag color="volcano">{nivelMin.date} hrs</Tag> <br />{" "}
-                <Tag color="volcano">{nivelMin.value} m</Tag>
+                <Tag color="volcano">
+                  {nivelMin.date}{" "}
+                  {option === 1 ? "hrs" : `de ${monthNameShort}`}
+                </Tag>{" "}
+                <br /> <Tag color="volcano">{nivelMin.value} m</Tag>
               </Col>
             </Row>
           </Card>
         </Col>
-        <Col xs={24} xl={4} lg={4}>
+        <Col xs={11} xl={4} lg={4}>
           <Card style={styles.cardStats.ind1} size="small">
             <Row justify={"center"}>
               <Col>
@@ -242,14 +267,14 @@ const Stats24Hours = ({ data }) => {
           </Card>
         </Col>
 
-        <Col xs={24} xl={4} lg={4}>
+        <Col xs={11} xl={4} lg={4}>
           <Card style={styles.cardStats.ind3} size="small">
             <Row justify={"center"}>
               <Tag
                 color={styles.cardStats.ind3.tag.color}
                 style={{ marginBottom: "10px", fontSize: "16px" }}
               >
-                Consumo (m³/hora)
+                Consumo (m³/{option === 1 ? "hora" : `día`})
               </Tag>
             </Row>
             <Row align="middle">
@@ -259,7 +284,10 @@ const Stats24Hours = ({ data }) => {
                 </Tag>
               </Col>
               <Col span={14}>
-                <Tag color="green">{maxHours.date} hrs</Tag>
+                <Tag color="green">
+                  {maxHours.date}{" "}
+                  {option === 1 ? "hrs" : `de ${monthNameShort}`}
+                </Tag>
                 <br />
                 <Tag color="green"> {maxHours.value} m³/hora</Tag>
               </Col>
@@ -277,8 +305,11 @@ const Stats24Hours = ({ data }) => {
                 </Tag>
               </Col>
               <Col span={14}>
-                <Tag color="volcano">{minHours.date} hrs</Tag> <br />{" "}
-                <Tag color="volcano">{minHours.value} m³/hora</Tag>
+                <Tag color="volcano">
+                  {minHours.date}{" "}
+                  {option === 1 ? "hrs" : `de ${monthNameShort}`}
+                </Tag>{" "}
+                <br /> <Tag color="volcano">{minHours.value} m³/hora</Tag>
               </Col>
             </Row>
           </Card>
@@ -291,7 +322,7 @@ const Stats24Hours = ({ data }) => {
                   color={styles.cardStats.ind2.tag.color}
                   style={{ fontSize: "16px" }}
                 >
-                  Consumo promedio (m³/hora)
+                  Consumo promedio (m³/{option === 1 ? "hora" : `día`})
                 </Tag>
               </Col>
             </Row>
@@ -441,4 +472,4 @@ const styles = {
   },
 };
 
-export default Stats24Hours;
+export default Stats;

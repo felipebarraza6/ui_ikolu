@@ -37,7 +37,7 @@ const MyGraphics = () => {
       setInitialDate(dayjs().subtract(1, "day").format("YYYY-MM-DD"));
     }
     if (option === 2) {
-      setInitialDate(dayjs().format("YYYY-MM"));
+      setInitialDate(dayjs().subtract(1, "month").format("YYYY-MM"));
     }
   }, [state.selected_profile, countUpdate, option]);
 
@@ -70,7 +70,7 @@ const MyGraphics = () => {
                     onSelectDate(date, "initial");
                   }}
                   picker="month"
-                  defaultValue={option === 2 && dayjs()}
+                  defaultValue={option === 2 && dayjs().subtract(1, "month")}
                   placeholder="Selecciona un mes"
                   locale={es_ES}
                 />

@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useContext } from "react";
 import sh from "../../api/sh/endpoints";
-import Stats24Hours from "./Stats24ours";
-import StatsMonth from "./StatsMonth";
-import { Tabs, Card, Row, Col, Table, Typography } from "antd";
+import Stats from "./Stats";
+import { Tabs, Card, Table, Typography, Statistic, Row, Col } from "antd";
 import { Line, Area, Column } from "@ant-design/plots";
 import { AppContext } from "../../App";
+import dayjs from "dayjs";
 import {
   BarChartOutlined,
   LineChartOutlined,
-  LineOutlined,
   AreaChartOutlined,
   TableOutlined,
 } from "@ant-design/icons";
@@ -17,19 +16,19 @@ const { Title } = Typography;
 
 const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
   const [data, setData] = useState([]);
+  const [dataTable, setDataTable] = useState([]);
   const { state } = useContext(AppContext);
 
   const numberForMiles = new Intl.NumberFormat("de-DE");
 
   const position_sensor_nivel = parseFloat(state.selected_profile.d3);
 
-  useEffect(() => {
-    if (option === 1) {
-      asyncFetch();
-    } else if (option === 2) {
-      asyncFetch2();
-    }
-  }, [option, initialDate, state.selected_profile]);
+  var parsedDate = dayjs(initialDate);
+
+  const firstDayOfMonth = dayjs(
+    `${parsedDate.year()}-${parsedDate.month() + 1}-01`
+  );
+  const lastDayOfMonth = firstDayOfMonth.endOf("month");
 
   const processNivel = (nivel_response) => {
     if (nivel_response > 0.0 && nivel_response < position_sensor_nivel) {
@@ -84,6 +83,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
         setData(res.results.reverse());
       });
   };
+
   const asyncFetch2 = async () => {
     var date = new Date(initialDate);
     const rq1 = await sh
@@ -96,10 +96,10 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
         res.results.map((element) => {
           var date_time = element.date_time_medition.slice(8, 10);
           element.date_time_medition = date_time;
-          element.caudal = parseFloat(element.flow);
-          element.acumulado = parseInt(element.total);
-          element.nivel = parseFloat(element.nivel);
-          element.acumulado_hora = parseInt(element.total_hora);
+          element.caudal = processCaudal(element.flow);
+          element.acumulado = processAcum(element.total);
+          element.nivel = processNivel(element.nivel);
+          element.acumulado_hora = processAcum(element.total_hora);
           return element;
         });
 
@@ -107,19 +107,91 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
       });
   };
 
-  const configCaudalDay = {
+  const monthNames = [
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre",
+    "Noviembre",
+    "Diciembre",
+  ];
+
+  const monthNamesMobile = [
+    "ene",
+    "feb",
+    "mar",
+    "abr",
+    "may",
+    "jun",
+    "jul",
+    "ago",
+    "sep",
+    "oct",
+    "nov",
+    "dic",
+  ];
+
+  const monthName = monthNames[parsedDate.month()];
+  const monthNameShort = monthNamesMobile[parsedDate.month()];
+
+  const parsedTitle = (d) => {
+    if (option === 1) {
+      return `${d} hrs.`;
+    } else {
+      if (window.innerWidth > 900) {
+        return `${d} de ${monthName}`;
+      } else {
+        return `${d} de ${monthNameShort}`;
+      }
+    }
+  };
+
+  const parsedText = () => {
+    if (option === 1) {
+      if (window.innerWidth > 900) {
+        return `Hora (00:00 - 23:00 / ${parsedDate.date()} de ${monthName} del ${parsedDate.year()}) `;
+      } else {
+        return `Hora (00:00 - 23:00 ${parsedDate.format(
+          "DD"
+        )}/${parsedDate.format("MM")}/${parsedDate.format("YY")}) `;
+      }
+    } else {
+      if (window.innerWidth > 900) {
+        return `Días (01 al ${lastDayOfMonth.format(
+          "DD"
+        )} de ${monthName} del ${parsedDate.year()})`;
+      } else {
+        return `Días (01 al ${lastDayOfMonth.format(
+          "DD"
+        )} de ${monthNameShort} del ${parsedDate.year()})`;
+      }
+    }
+  };
+
+  const configCaudal = {
     data: data,
     xField: "date_time_medition",
     tooltip: {
-      title: (d) => `${d} hrs.`,
+      title: parsedTitle,
+      formatter: (datum) => {
+        return {
+          name: "Caudal",
+          value: parseFloat(datum.caudal).toFixed(1) + " (lt/s)",
+        };
+      },
     },
     xAxis: {
       title: {
-        text: `Hora (00:00 - 23:001 ${
-          window.innerWidth > 900 && initialDate.slice(2)
-        })`,
+        text: parsedText(),
         style: {
-          fontSize: 14,
+          fontSize: window.innerWidth > 900 ? 16 : 13,
+          fontWeight: "bold",
         },
       },
     },
@@ -127,6 +199,10 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
     yAxis: {
       title: {
         text: "Caudal (lt/s)",
+        style: {
+          fontSize: window.innerWidth > 900 ? 20 : 15,
+          fontWeight: "bold",
+        },
       },
       reverse: true,
       min: Math.min(
@@ -155,17 +231,24 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
     color: "#1677ff",
   };
 
-  const configNivelDay = {
+  const configNivel = {
     data: data,
     xField: "date_time_medition",
     tooltip: {
-      title: (d) => `${d} hrs.`,
+      title: parsedTitle,
+      formatter: (datum) => {
+        return {
+          name: "Nivel Freático",
+          value: parseFloat(datum.nivel).toFixed(1) + " (m)",
+        };
+      },
     },
     xAxis: {
       title: {
-        text: `Hora (00:00 - 23:00 / ${initialDate.slice(2)})`,
+        text: parsedText(),
         style: {
-          fontSize: 14,
+          fontSize: window.innerWidth > 900 ? 16 : 13,
+          fontWeight: "bold",
         },
       },
     },
@@ -173,6 +256,10 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
     yAxis: {
       title: {
         text: "Nivel Freático (m)",
+        style: {
+          fontSize: window.innerWidth > 900 ? 20 : 15,
+          fontWeight: "bold",
+        },
       },
       reverse: true,
       min: Math.min(
@@ -188,6 +275,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
         formatter: (text) => parseFloat(text).toFixed(1), // Redondear a un decimal
       },
     },
+
     point: {
       size: 4,
       shape: "point",
@@ -200,17 +288,24 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
     smooth: true,
     color: "#69b1ff",
   };
-  const configAcumuladoDay = {
+  const configAcumulado = {
     data: data,
     xField: "date_time_medition",
     tooltip: {
-      title: (d) => `${d} hrs.`,
+      title: parsedTitle,
+      formatter: (datum) => {
+        return {
+          name: "Acumulado",
+          value: numberForMiles.format(datum.acumulado) + " (m³)",
+        };
+      },
     },
     xAxis: {
       title: {
-        text: `Hora (00:00 - 23:00 / ${initialDate.slice(2)})`,
+        text: parsedText(),
         style: {
-          fontSize: 14,
+          fontSize: window.innerWidth > 900 ? 16 : 13,
+          fontWeight: "bold",
         },
       },
     },
@@ -218,6 +313,10 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
     yAxis: {
       title: {
         text: "Acumulado (m³)",
+        style: {
+          fontSize: window.innerWidth > 900 ? 20 : 15,
+          fontWeight: "bold",
+        },
       },
       reverse: true,
       min: Math.min(
@@ -230,7 +329,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
       ),
       max: Math.max(...data.map((item) => parseInt(item.acumulado + 1))),
       label: {
-        formatter: (text) => parseInt(text), // Redondear a un decimal
+        formatter: (text) => numberForMiles.format(text), // Redondear a un decimal
       },
     },
     point: {
@@ -246,24 +345,38 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
     color: "#91caff",
   };
 
-  const configAcumuladoHoraDay = {
+  const configAcumuladoHora = {
     data: data,
     xField: "date_time_medition",
     tooltip: {
-      title: (d) => `${d} hrs.`,
+      title: parsedTitle,
+
+      formatter: (datum) => {
+        return {
+          name: "Acumulado",
+          value: `${numberForMiles.format(datum.acumulado_hora)} ${
+            option === 1 ? " (m³/hora)" : " (m³/día)"
+          }`,
+        };
+      },
     },
     xAxis: {
       title: {
-        text: `Hora (00:00 - 23:00 / ${initialDate.slice(2)})`,
+        text: parsedText(),
         style: {
-          fontSize: 14,
+          fontSize: window.innerWidth > 900 ? 16 : 13,
+          fontWeight: "bold",
         },
       },
     },
     yField: "acumulado_hora",
     yAxis: {
       title: {
-        text: "Acumulado (m³/hora)",
+        text: option === 1 ? "Acumulado (m³/hora)" : "Acumulado (m³/día)",
+        style: {
+          fontSize: window.innerWidth > 900 ? 20 : 15,
+          fontWeight: "bold",
+        },
       },
       reverse: true,
       min: Math.min(
@@ -276,7 +389,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
       ),
       max: Math.max(...data.map((item) => parseInt(item.acumulado_hora + 1))),
       label: {
-        formatter: (text) => parseInt(text), // Redondear a un decimal
+        formatter: (text) => numberForMiles.format(text), // Redondear a un decimal
       },
     },
     point: {
@@ -292,324 +405,38 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
     color: "#91caff",
   };
 
-  const configCaudalMonth = {
-    data: data,
-    xField: "date_time_medition",
-    autoFit: true,
-    tooltip: {
-      title: (d) => `Día: ${d} `,
-    },
-    xAxis: {
-      title: {
-        text: "Día",
-        style: {
-          fontSize: 14,
-        },
-      },
-      tickInterval: 1,
-    },
-    yField: ["caudal"],
-    yAxis: {
-      title: {
-        text: "Caudal (lt/s)",
-        style: {
-          fontSize: 14,
-        },
-      },
-      tickInterval: 1,
-      min: Math.min(...data.map((item) => item.caudal)),
+  useEffect(() => {
+    if (data.length > 0) {
+      const totalRow = {
+        date_time_medition: "TOTAL",
+        total_hora: data.reduce(
+          (acc, current) => acc + current.acumulado_hora,
+          0
+        ),
+        total: data[data.length - 1].total, // Agregar el campo "total" con el último valor de "data"
+      };
 
-      label: {
-        formatter: (v) =>
-          `${v}`.replace(/\d{1,3}(?=(\d{3})+$)/g, (s) => `${s}.`),
-      },
-    },
-    point: {
-      shapeField: "square",
-      sizeField: 13,
-    },
-    interaction: {
-      tooltip: {
-        marker: false,
-      },
-    },
-    style: {
-      lineWidth: 4,
-    },
-  };
-
-  const configNivelMonth = {
-    data: data,
-    xField: "date_time_medition",
-    autoFit: true,
-    tooltip: {
-      title: (d) => `Día: ${d} `,
-    },
-    xAxis: {
-      title: {
-        text: "Día",
-        style: {
-          fontSize: 14,
-        },
-      },
-      tickInterval: 1,
-    },
-    yField: ["nivel"],
-    yAxis: {
-      title: {
-        text: "Nivel (m)",
-        style: {
-          fontSize: 14,
-        },
-      },
-      tickInterval: 1,
-      min: Math.min(...data.map((item) => item.caudal)),
-
-      label: {
-        formatter: (v) =>
-          `${v}`.replace(/\d{1,3}(?=(\d{3})+$)/g, (s) => `${s}.`),
-      },
-    },
-    point: {
-      shapeField: "square",
-      sizeField: 13,
-    },
-
-    style: {
-      lineWidth: 4,
-      color: "black",
-    },
-  };
-
-  const configAcumuladoMonth = {
-    data: data,
-    tooltip: {
-      title: (d) => `Día: ${d} `,
-    },
-    xField: "date_time_medition",
-    xAxis: {
-      title: {
-        text: "Día",
-        style: {
-          fontSize: 14,
-        },
-      },
-      tickInterval: 1,
-    },
-    yField: ["acumulado"],
-    yAxis: {
-      title: {
-        text: "Acumulado (m³)",
-        style: {
-          fontSize: 14,
-        },
-      },
-      tickInterval: Math.pow(
-        10,
-        Math.floor(Math.log10((item) => item.acumulado - 10)) - 1
-      ),
-      min: Math.min(...data.map((item) => item.acumulado)),
-    },
-
-    style: {
-      lineWidth: 4,
-      color: "black",
-    },
-  };
-
-  const configAcumuladoHoraMonth = {
-    data: data,
-    tooltip: {
-      title: (d) => `Día: ${d} `,
-    },
-    xField: "date_time_medition",
-    xAxis: {
-      title: {
-        text: "Día",
-        style: {
-          fontSize: 14,
-        },
-      },
-      tickInterval: 1,
-    },
-    yField: ["acumulado_hora"],
-    yAxis: {
-      title: {
-        text: "Acumulado (m³/hora)",
-        style: {
-          fontSize: 14,
-        },
-      },
-      tickInterval: Math.pow(
-        10,
-        Math.floor(Math.log10((item) => item.acumulado - 10)) - 1
-      ),
-      min: Math.min(...data.map((item) => item.acumulado)),
-    },
-    point: {
-      shapeField: "square",
-      sizeField: 13,
-    },
-
-    style: {
-      lineWidth: 4,
-      color: "black",
-    },
-  };
+      setDataTable([totalRow, ...data]); // Agregar totalRow como el primer elemento
+    }
+    if (option === 1) {
+      setData([]);
+      asyncFetch();
+    } else if (option === 2) {
+      setData([]);
+      asyncFetch2();
+    }
+  }, [option, initialDate, state.selected_profile]);
 
   return (
     <>
-      {option === 1 ? (
-        <>
-          {data && (
-            <>
-              <Tabs type="card">
-                <Tabs.TabPane
-                  tab={
-                    window.innerWidth > 900 ? (
-                      <>
-                        <LineChartOutlined /> Caudal (lt/s)
-                      </>
-                    ) : (
-                      "lt/s"
-                    )
-                  }
-                  key="1"
-                >
-                  <Card style={{ marginTop: "-20px" }} hoverable>
-                    <Line {...configCaudalDay} />
-                  </Card>
-                </Tabs.TabPane>
-                <Tabs.TabPane
-                  tab={
-                    window.innerWidth > 900 ? (
-                      <>
-                        <BarChartOutlined /> Nivel Freático (m)
-                      </>
-                    ) : (
-                      "m"
-                    )
-                  }
-                  key="2"
-                >
-                  <Card style={{ marginTop: "-20px" }} hoverable>
-                    <Column {...configNivelDay} />
-                  </Card>
-                </Tabs.TabPane>
-                <Tabs.TabPane
-                  tab={
-                    window.innerWidth > 900 ? (
-                      <>
-                        <AreaChartOutlined /> Acumulado (m³)
-                      </>
-                    ) : (
-                      "m³"
-                    )
-                  }
-                  key="3"
-                >
-                  <Card style={{ marginTop: "-20px" }} hoverable>
-                    <Area {...configAcumuladoDay} />
-                  </Card>
-                </Tabs.TabPane>
-                <Tabs.TabPane
-                  tab={
-                    window.innerWidth > 900 ? (
-                      <>
-                        <BarChartOutlined /> Acumulado (m³/hora)
-                      </>
-                    ) : (
-                      "m³/hora"
-                    )
-                  }
-                  key="4"
-                >
-                  <Card style={{ marginTop: "-20px" }} hoverable>
-                    <Area {...configAcumuladoHoraDay} />
-                  </Card>
-                </Tabs.TabPane>
-                <Tabs.TabPane
-                  tab={
-                    window.innerWidth > 900 ? (
-                      <>
-                        <TableOutlined /> Datos
-                      </>
-                    ) : (
-                      "datos"
-                    )
-                  }
-                  key="5"
-                >
-                  <Card style={{ marginTop: "-20px" }} hoverable size="small">
-                    <Table
-                      dataSource={data}
-                      style={{ width: "100%" }}
-                      pagination={{ simple: true, pageSize: 7 }}
-                      title={() => (
-                        <Title level={5}>
-                          Hora (00:00 - 23:00 / {initialDate.slice(2)})
-                        </Title>
-                      )}
-                      size="small"
-                      bordered
-                      columns={[
-                        {
-                          title: window.innerWidth > 900 ? "Hora" : "hh",
-                          dataIndex: "date_time_medition",
-                        },
-                        {
-                          title:
-                            window.innerWidth > 900 ? "Caudal (lt/s)" : "lt/s",
-                          dataIndex: "caudal",
-                          render: (caudal) =>
-                            parseFloat(processCaudal(caudal)).toFixed(1),
-                        },
-                        {
-                          title:
-                            window.innerWidth > 900
-                              ? "Nivel Freático (m)"
-                              : "m",
-                          dataIndex: "nivel",
-                          render: (nivel) =>
-                            parseFloat(processNivel(nivel)).toFixed(1),
-                        },
-                        {
-                          title:
-                            window.innerWidth > 900 ? "Acumulado (m³)" : "m³",
-                          dataIndex: "total",
-                          render: (acum) => numberForMiles.format(acum),
-                        },
-                        {
-                          title:
-                            window.innerWidth > 900
-                              ? "Acumulado (m³/hora)"
-                              : "m³/h",
-                          dataIndex: "total_hora",
-                          render: (acum) => (
-                            <>
-                              {acum === undefined
-                                ? 0
-                                : numberForMiles.format(acum)}
-                            </>
-                          ),
-                        },
-                      ]}
-                    />
-                  </Card>
-                </Tabs.TabPane>
-              </Tabs>
-              {state.selected_profile.module_5 && <Stats24Hours data={data} />}
-            </>
-          )}
-        </>
-      ) : (
+      {data && (
         <>
           <Tabs type="card">
             <Tabs.TabPane
               tab={
                 window.innerWidth > 900 ? (
                   <>
-                    <LineOutlined /> Caudal (lt/s)
+                    <LineChartOutlined /> Caudal (lt/s)
                   </>
                 ) : (
                   "lt/s"
@@ -618,36 +445,244 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
               key="1"
             >
               <Card style={{ marginTop: "-20px" }} hoverable>
-                <Line {...configCaudalMonth} />
+                <Line {...configCaudal} />
               </Card>
             </Tabs.TabPane>
-
             <Tabs.TabPane
-              tab={window.innerWidth > 900 ? "Nivel Freático (m)" : "m"}
+              tab={
+                window.innerWidth > 900 ? (
+                  <>
+                    <BarChartOutlined /> Nivel Freático (m)
+                  </>
+                ) : (
+                  "m"
+                )
+              }
               key="2"
             >
               <Card style={{ marginTop: "-20px" }} hoverable>
-                <Column {...configNivelMonth} />
+                <Column {...configNivel} />
               </Card>
             </Tabs.TabPane>
             <Tabs.TabPane
-              tab={window.innerWidth > 900 ? "Acumulado (m³)" : "m³"}
+              tab={
+                window.innerWidth > 900 ? (
+                  <>
+                    <AreaChartOutlined /> Acumulado (m³)
+                  </>
+                ) : (
+                  "m³"
+                )
+              }
               key="3"
             >
               <Card style={{ marginTop: "-20px" }} hoverable>
-                <Area {...configAcumuladoMonth} />
+                <Area {...configAcumulado} />
               </Card>
             </Tabs.TabPane>
             <Tabs.TabPane
-              tab={window.innerWidth > 900 ? "Acumulado (m³/hora)" : "m³/hora"}
+              tab={
+                window.innerWidth > 900 ? (
+                  option === 1 ? (
+                    <>
+                      <AreaChartOutlined /> Acumulado (m³/hora)
+                    </>
+                  ) : (
+                    <>
+                      <AreaChartOutlined /> Acumulado (m³/día)
+                    </>
+                  )
+                ) : option === 1 ? (
+                  "m³/hora"
+                ) : (
+                  "m³/día"
+                )
+              }
               key="4"
             >
               <Card style={{ marginTop: "-20px" }} hoverable>
-                <Column {...configAcumuladoHoraMonth} />
+                <Area {...configAcumuladoHora} />
+              </Card>
+            </Tabs.TabPane>
+            <Tabs.TabPane
+              tab={
+                window.innerWidth > 900 ? (
+                  <>
+                    <TableOutlined /> Datos
+                  </>
+                ) : (
+                  "datos"
+                )
+              }
+              key="5"
+            >
+              <Card style={{ marginTop: "-20px" }} hoverable size="small">
+                <Row
+                  justify={"space-evenly"}
+                  align={"middle"}
+                  style={{ marginBottom: "10px" }}
+                >
+                  <Col xl={6} lg={6} xs={12}>
+                    <Card
+                      size="small"
+                      style={{ backgroundColor: "rgb(31, 52, 97)" }}
+                    >
+                      <Statistic
+                        parseFloat
+                        title={
+                          <span style={{ color: "white" }}>
+                            Promedio Caudal
+                          </span>
+                        }
+                        suffix="lt/s"
+                        valueStyle={{ color: "white" }}
+                        value={
+                          data.length > 0
+                            ? processCaudal(
+                                parseFloat(
+                                  data.reduce(
+                                    (total, item) => total + item.caudal,
+                                    0
+                                  ) / data.length
+                                ).toFixed(1)
+                              )
+                            : 0
+                        }
+                      ></Statistic>
+                    </Card>
+                  </Col>
+                  <Col xl={6} lg={6} xs={12}>
+                    <Card
+                      size="small"
+                      bordered
+                      style={{ backgroundColor: "rgb(31, 52, 97)" }}
+                    >
+                      <Statistic
+                        title={
+                          <span style={{ color: "white" }}>
+                            Promedio Nivel Freático
+                          </span>
+                        }
+                        precision={1}
+                        valueStyle={{ color: "white" }}
+                        suffix={"m"}
+                        value={
+                          data.length > 0
+                            ? processNivel(
+                                parseFloat(
+                                  data.reduce(
+                                    (total, item) => total + item.nivel,
+                                    0
+                                  ) / data.length
+                                ).toFixed(1)
+                              )
+                            : 0
+                        }
+                      ></Statistic>
+                    </Card>
+                  </Col>
+                  <Col xl={6} lg={6} xs={12}>
+                    <Card
+                      size="small"
+                      style={{ backgroundColor: "rgb(31, 52, 97)" }}
+                    >
+                      <Statistic
+                        suffix="m³"
+                        title={
+                          <span style={{ color: "white" }}>
+                            Último registro acumulado
+                          </span>
+                        }
+                        valueStyle={{ color: "white" }}
+                        value={numberForMiles.format(
+                          data.length > 0 && data[data.length - 1].total
+                        )}
+                      ></Statistic>
+                    </Card>
+                  </Col>
+                  <Col xl={6} lg={6} xs={12}>
+                    <Card
+                      size="small"
+                      style={{ backgroundColor: "rgb(31, 52, 97)" }}
+                    >
+                      <Statistic
+                        title={
+                          <span style={{ color: "white" }}>
+                            Total consumido
+                          </span>
+                        }
+                        suffix="m³"
+                        valueStyle={{ color: "white" }}
+                        value={numberForMiles.format(
+                          data.reduce(
+                            (acc, current) => acc + current.acumulado_hora,
+                            0
+                          )
+                        )}
+                      ></Statistic>
+                    </Card>
+                  </Col>
+                </Row>
+
+                <Table
+                  dataSource={data}
+                  style={{ width: "100%" }}
+                  pagination={{ simple: true, pageSize: 7 }}
+                  title={() => {
+                    <p>parsedText();</p>;
+                  }}
+                  size="small"
+                  bordered
+                  columns={[
+                    {
+                      title:
+                        window.innerWidth > 900
+                          ? option === 1
+                            ? "Hora"
+                            : monthName
+                          : option === 1
+                          ? "hh"
+                          : monthNameShort,
+                      dataIndex: "date_time_medition",
+                    },
+                    {
+                      title: window.innerWidth > 900 ? "Caudal (lt/s)" : "lt/s",
+                      dataIndex: "caudal",
+                      render: (caudal) =>
+                        parseFloat(processCaudal(caudal)).toFixed(1),
+                    },
+                    {
+                      title:
+                        window.innerWidth > 900 ? "Nivel Freático (m)" : "m",
+                      dataIndex: "nivel",
+                      render: (nivel) =>
+                        parseFloat(processNivel(nivel)).toFixed(1),
+                    },
+                    {
+                      title: window.innerWidth > 900 ? "Acumulado (m³)" : "m³",
+                      dataIndex: "total",
+                      render: (acum) => numberForMiles.format(acum),
+                    },
+                    {
+                      title:
+                        window.innerWidth > 900
+                          ? "Acumulado (m³/hora)"
+                          : "m³/h",
+                      dataIndex: "total_hora",
+                      render: (acum) => (
+                        <>
+                          {acum === undefined ? 0 : numberForMiles.format(acum)}
+                        </>
+                      ),
+                    },
+                  ]}
+                />
               </Card>
             </Tabs.TabPane>
           </Tabs>
-          {state.selected_profile.module_5 && <StatsMonth />}
+          {state.selected_profile.module_5 && (
+            <Stats option={option} data={data} parsedDate={parsedDate} />
+          )}
         </>
       )}
     </>

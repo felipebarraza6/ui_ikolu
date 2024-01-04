@@ -34,7 +34,6 @@ const Dga = () => {
 
   const processCaudal = (caudal) => {
     const flow = parseFloat(caudal).toFixed(1);
-    console.log(flow);
     if (flow > 0.0) {
       return flow;
     } else {
@@ -127,16 +126,18 @@ const Dga = () => {
             {
               title: window.innerWidth > 900 ? "Caudal(lt)" : "lt/s",
               dataIndex: "caudal",
-              render: (flow) => (flow < 0 ? "0.0" : flow),
+              render: (flow) => processCaudal(flow),
             },
             {
               title: window.innerWidth > 900 ? "Nivel Freático(m)" : "m",
               dataIndex: "nivel",
+              render: (nivel) => processNivel(nivel),
             },
             {
               title: window.innerWidth > 900 ? "Acumulado(m³)" : "m³",
               dataIndex: "acumulado",
-              render: (acumulado) => numberForMiles.format(acumulado),
+              render: (acumulado) =>
+                numberForMiles.format(processAcum(acumulado)),
               width: "10%",
             },
           ]}

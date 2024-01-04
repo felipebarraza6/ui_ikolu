@@ -137,18 +137,26 @@ const getDataApiShStructural24h = async (id_profile, year, month, day) => {
 
 const getDataApiShStructuralMonth = async (id_profile, year, month) => {
   const rq1 = await GET(
-    `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__hour=00&date_time_medition__day__range=01,31`
-  );
-  const rq2 = await GET(
-    `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__hour=00&page=2&date_time_medition__day__range=01,31`
-  );
-  const rq3 = await GET(
-    `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__hour=00&page=3&date_time_medition__day__range=01,31`
+    `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__hour=12&date_time_medition__day__range=01,31`
   );
   var listFormat = {
     ...rq1.data,
-    results: [...rq1.data.results, ...rq2.data.results, ...rq3.data.results],
+    results: [...rq1.data.results],
   };
+
+  if (listFormat.results.length > 0) {
+    const rq2 = await GET(
+      `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__hour=12&page=2&date_time_medition__day__range=01,31`
+    );
+    listFormat.results.push(...rq2.data.results);
+  }
+
+  if (listFormat.results.length > 0) {
+    const rq3 = await GET(
+      `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__hour=12&page=3&date_time_medition__day__range=01,31`
+    );
+    listFormat.results.push(...rq3.data.results);
+  }
 
   for (let i = 0; i < listFormat.results.length - 1; i++) {
     const current = listFormat.results[i];
