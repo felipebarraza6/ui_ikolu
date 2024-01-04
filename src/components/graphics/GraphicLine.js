@@ -628,9 +628,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
                   dataSource={data}
                   style={{ width: "100%" }}
                   pagination={{ simple: true, pageSize: 7 }}
-                  title={() => {
-                    <p>parsedText();</p>;
-                  }}
+                  title={() => parsedText()}
                   size="small"
                   bordered
                   columns={[
