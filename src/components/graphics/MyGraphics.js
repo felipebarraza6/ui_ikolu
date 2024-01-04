@@ -31,6 +31,12 @@ const MyGraphics = () => {
   const disabledDate = (current) => {
     return current && current > dayjs().subtract(1, "day").endOf("day");
   };
+  const disabledDateMonth = (current) => {
+    return (
+      current &&
+      (current > dayjs().startOf("month") || current > dayjs().endOf("month"))
+    );
+  };
 
   useEffect(() => {
     if (option === 1) {
@@ -66,10 +72,13 @@ const MyGraphics = () => {
                 <DatePicker
                   style={styles.datePicker}
                   size="small"
+                  showToday={false}
+                  allowEmpty={true}
                   onSelect={(date) => {
                     onSelectDate(date, "initial");
                   }}
                   picker="month"
+                  disabledDate={disabledDateMonth}
                   defaultValue={option === 2 && dayjs().subtract(1, "month")}
                   placeholder="Selecciona un mes"
                   locale={es_ES}
