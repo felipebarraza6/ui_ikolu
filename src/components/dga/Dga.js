@@ -124,7 +124,7 @@ const Dga = () => {
             { title: "Fecha", dataIndex: "fecha" },
             { title: "Hora", dataIndex: "hora" },
             {
-              title: window.innerWidth > 900 ? "Caudal(lt)" : "lt/s",
+              title: window.innerWidth > 900 ? "Caudal(L/s)" : "l/s",
               dataIndex: "caudal",
               render: (flow) => processCaudal(flow),
             },

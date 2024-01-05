@@ -44,6 +44,8 @@ const Reports = () => {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
 
+  const numberForMiles = new Intl.NumberFormat("de-DE");
+
   const [form] = Form.useForm();
 
   const downloadDataToExcel = async () => {
@@ -449,7 +451,7 @@ const Reports = () => {
           level={2}
           style={{ textAlign: window.innerWidth < 900 && "center" }}
         >
-          Datos y reportes ({total})
+          Datos y reportes (Registros: {total})
         </Title>
       </Col>
       {window.innerWidth > 900 ? (
@@ -488,15 +490,23 @@ const Reports = () => {
                         title: "Hora",
                         dataIndex: "date_time_medition_hour",
                       },
-                      { title: "Caudal (lt/s)", dataIndex: "flow" },
+                      { title: "Caudal (L/s)", dataIndex: "flow" },
                       {
                         title: () => (
                           <Tooltip title="Nivel Freático (m)">Nivel...</Tooltip>
                         ),
                         dataIndex: "nivel",
                       },
-                      { title: "Acumulado (m³)", dataIndex: "total" },
-                      { title: "Acumulado/hora (m³)", dataIndex: "total_hora" },
+                      {
+                        title: "Acumulado (m³)",
+                        dataIndex: "total",
+                        render: (a) => numberForMiles.format(a),
+                      },
+                      {
+                        title: "Acumulado/hora (m³)",
+                        dataIndex: "total_hora",
+                        render: (a) => numberForMiles.format(a),
+                      },
                     ]}
                     dataSource={data}
                   />
@@ -894,7 +904,7 @@ const Reports = () => {
                       dataIndex: "date_time_medition_hour",
                     },
 
-                    { title: "(lt/s)", dataIndex: "flow" },
+                    { title: "(l/s)", dataIndex: "flow" },
                     { title: "m", dataIndex: "nivel" },
                     { title: "m³", dataIndex: "total" },
                     { title: "m³/hora", dataIndex: "total_hora" },

@@ -2,7 +2,7 @@ import { Button, Card, Affix } from "antd";
 import React, { useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { AppContext } from "../../App";
-import { ArrowRightOutlined } from "@ant-design/icons";
+import { ArrowRightOutlined, MessageOutlined } from "@ant-design/icons";
 import logo from "../../assets/images/logozivo.png";
 import minLogo from "../../assets/images/logo-blanco.png";
 
@@ -129,37 +129,33 @@ const SiderRight = () => {
             </div>
           )}
 
-          {state.selected_profile.module_6 && (
+          {!state.selected_profile.module_6 && (
             <div
               style={{
                 textAlign: "center",
-                backgroundColor: "white",
                 marginLeft: "-24px",
                 marginRight: "-24px",
                 marginBottom: "220px",
-                paddingBottom: "20px",
-                backgroundColor:
-                  location.pathname == "/docrespaldo" ? "#1F3461" : "white",
               }}
             >
-              <Link to="/docrespaldo">
-                <Button
-                  disabled={state.user.username == "gcastro" ? true : false}
-                  type="link"
-                  style={{
-                    color:
-                      location.pathname !== "/docrespaldo"
-                        ? "#1F3461"
-                        : "white",
-                  }}
-                >
-                  {location.pathname === "/docrespaldo" && (
-                    <ArrowRightOutlined />
-                  )}
-                  Documentacion y <br />
-                  respaldo
-                </Button>
-              </Link>
+              <Button
+                disabled={state.user.username == "gcastro" ? true : false}
+                block
+                type="default"
+                icon={<MessageOutlined />}
+                onClick={() => {
+                  window.location.href = "mailto:soporte@smarthydro.cl";
+                }}
+                style={{
+                  borderColor: "#1F3461",
+                  borderRadius: "0px",
+                  color:
+                    location.pathname !== "/docrespaldo" ? "#1F3461" : "white",
+                }}
+              >
+                {location.pathname === "/docrespaldo" && <ArrowRightOutlined />}
+                Soporte
+              </Button>
             </div>
           )}
         </>

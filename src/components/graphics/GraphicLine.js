@@ -182,7 +182,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
       formatter: (datum) => {
         return {
           name: "Caudal",
-          value: parseFloat(datum.caudal).toFixed(1) + " (lt/s)",
+          value: parseFloat(datum.caudal).toFixed(1) + " (L/s)",
         };
       },
     },
@@ -198,19 +198,14 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
     yField: "caudal",
     yAxis: {
       title: {
-        text: "Caudal (lt/s)",
+        text: "Caudal (L/s)",
         style: {
           fontSize: window.innerWidth > 900 ? 20 : 15,
           fontWeight: "bold",
         },
       },
       reverse: true,
-      min: Math.min(
-        ...data.map((item) => {
-          const caudal = parseFloat(item.caudal);
-          return caudal > 0.0 ? (caudal - 0.5).toFixed(1) : caudal.toFixed(1);
-        })
-      ),
+      min: 0,
       max: Math.max(
         ...data.map((item) => parseFloat(item.caudal + 0.5).toFixed(1))
       ),
@@ -262,12 +257,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
         },
       },
       reverse: true,
-      min: Math.min(
-        ...data.map((item) => {
-          const nivel = parseFloat(item.nivel);
-          return nivel > 0.0 ? (nivel - 0.5).toFixed(1) : nivel.toFixed(1);
-        })
-      ),
+      min: 0,
       max: Math.max(
         ...data.map((item) => parseFloat(item.nivel + 0.5).toFixed(1))
       ),
@@ -379,14 +369,8 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
         },
       },
       reverse: true,
-      min: Math.min(
-        ...data.map((item) => {
-          const acumulado_hora = processAcum(item.acumulado_hora);
-          return acumulado_hora > 0.0
-            ? processAcum(acumulado_hora - 1)
-            : processAcum(acumulado_hora);
-        })
-      ),
+      min: 0,
+      tickInterval: 5,
       max: Math.max(...data.map((item) => parseInt(item.acumulado_hora + 1))),
       label: {
         formatter: (text) => numberForMiles.format(text), // Redondear a un decimal
@@ -436,10 +420,10 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
               tab={
                 window.innerWidth > 900 ? (
                   <>
-                    <LineChartOutlined /> Caudal (lt/s)
+                    <LineChartOutlined /> Caudal (L/s)
                   </>
                 ) : (
-                  "lt/s"
+                  "l/s"
                 )
               }
               key="1"
@@ -534,7 +518,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
                             Promedio Caudal
                           </span>
                         }
-                        suffix="lt/s"
+                        suffix="L/s"
                         valueStyle={{ color: "white" }}
                         value={
                           data.length > 0
@@ -644,7 +628,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
                       dataIndex: "date_time_medition",
                     },
                     {
-                      title: window.innerWidth > 900 ? "Caudal (lt/s)" : "lt/s",
+                      title: window.innerWidth > 900 ? "Caudal (L/s)" : "l/s",
                       dataIndex: "caudal",
                       render: (caudal) =>
                         parseFloat(processCaudal(caudal)).toFixed(1),
