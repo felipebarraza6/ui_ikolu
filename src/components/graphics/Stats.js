@@ -19,7 +19,7 @@ import {
   TableOutlined,
 } from "@ant-design/icons";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const Stats = ({ data, option, parsedDate }) => {
   console.log(data);
@@ -149,17 +149,21 @@ const Stats = ({ data, option, parsedDate }) => {
         <Col xs={11} xl={4} lg={4}>
           <Card style={styles.cardStats.ind4} size="small">
             <Row justify={"center"}>
-              <Tag
-                color={styles.cardStats.ind4.tag.color}
-                style={{ marginBottom: "10px", fontSize: "16px" }}
-              >
-                Caudal (lt/s)
-              </Tag>
+              {window.innerWidth > 900 ? (
+                <Tag
+                  color={styles.cardStats.ind4.tag.color}
+                  style={{ marginBottom: "10px", fontSize: "16px" }}
+                >
+                  Caudal (L/s)
+                </Tag>
+              ) : (
+                <Text style={{ marginBottom: "10px" }}>Caudal (L/s)</Text>
+              )}
             </Row>
-            <Row align="middle">
+            <Row align="middle" justify={"space-evenly"}>
               <Col span={10}>
                 <Tag color="green" icon={<RiseOutlined />}>
-                  Max
+                  {window.innerWidth > 900 ? "Max" : ""}
                 </Tag>
               </Col>
               <Col span={14}>
@@ -178,7 +182,7 @@ const Stats = ({ data, option, parsedDate }) => {
               ></Col>
               <Col span={10}>
                 <Tag color="volcano" icon={<FallOutlined />}>
-                  Min
+                  {window.innerWidth > 900 ? "Min" : ""}
                 </Tag>
               </Col>
               <Col span={14}>
@@ -193,17 +197,21 @@ const Stats = ({ data, option, parsedDate }) => {
         <Col xs={11} xl={4} lg={4}>
           <Card style={styles.cardStats.ind5} size="small">
             <Row justify={"center"}>
-              <Tag
-                color={styles.cardStats.ind5.tag.color}
-                style={{ marginBottom: "10px", fontSize: "17px" }}
-              >
-                Nivel freático (m)
-              </Tag>
+              {window.innerWidth > 900 ? (
+                <Tag
+                  color={styles.cardStats.ind5.tag.color}
+                  style={{ marginBottom: "10px", fontSize: "17px" }}
+                >
+                  Nivel freático (m)
+                </Tag>
+              ) : (
+                <Text style={{ marginBottom: "10px" }}>Nivel freático (m)</Text>
+              )}
             </Row>
             <Row align="middle">
               <Col span={10}>
                 <Tag color="green" icon={<RiseOutlined />}>
-                  Max
+                  {window.innerWidth > 900 ? "Max" : ""}
                 </Tag>
               </Col>
               <Col span={14}>
@@ -223,7 +231,7 @@ const Stats = ({ data, option, parsedDate }) => {
               ></Col>
               <Col span={10}>
                 <Tag color="volcano" icon={<FallOutlined />}>
-                  Min
+                  {window.innerWidth > 900 ? "Min" : ""}
                 </Tag>
               </Col>
               <Col span={14}>
@@ -240,12 +248,18 @@ const Stats = ({ data, option, parsedDate }) => {
           <Card style={styles.cardStats.ind1} size="small">
             <Row justify={"center"}>
               <Col>
-                <Tag
-                  color={styles.cardStats.ind1.tag.color}
-                  style={{ fontSize: "16px" }}
-                >
-                  Consumo total (m³)
-                </Tag>
+                {window.innerWidth > 900 ? (
+                  <Tag
+                    color={styles.cardStats.ind1.tag.color}
+                    style={{ fontSize: "16px" }}
+                  >
+                    Consumo total (m³)
+                  </Tag>
+                ) : (
+                  <Text style={{ marginBottom: "10px" }}>
+                    Consumo total (m³)
+                  </Text>
+                )}
               </Col>
             </Row>
             <Row align={"middle"}>
@@ -270,20 +284,26 @@ const Stats = ({ data, option, parsedDate }) => {
         <Col xs={11} xl={4} lg={4}>
           <Card style={styles.cardStats.ind3} size="small">
             <Row justify={"center"}>
-              <Tag
-                color={styles.cardStats.ind3.tag.color}
-                style={{ marginBottom: "10px", fontSize: "16px" }}
-              >
-                Consumo (m³/{option === 1 ? "hora" : `día`})
-              </Tag>
+              {window.innerWidth > 900 ? (
+                <Tag
+                  color={styles.cardStats.ind3.tag.color}
+                  style={{ marginBottom: "10px", fontSize: "16px" }}
+                >
+                  Consumo (m³/{option === 1 ? "hora" : `día`})
+                </Tag>
+              ) : (
+                <Text style={{ marginBottom: "10px" }}>
+                  Consumo (m³/{option === 1 ? "hora" : `día`})
+                </Text>
+              )}
             </Row>
-            <Row align="middle">
-              <Col span={10}>
+            <Row align="middle" justify={"space-evenly"}>
+              <Col lg={10} xl={10} xs={6}>
                 <Tag color="green" icon={<RiseOutlined />}>
-                  Max
+                  {window.innerWidth > 900 ? "Max" : ""}
                 </Tag>
               </Col>
-              <Col span={14}>
+              <Col lg={10} xl={10} xs={16}>
                 <Tag color="green">
                   {maxHours.date}{" "}
                   {option === 1 ? "hrs" : `de ${monthNameShort}`}
@@ -299,12 +319,12 @@ const Stats = ({ data, option, parsedDate }) => {
                   marginBottom: "5px",
                 }}
               ></Col>
-              <Col span={10}>
+              <Col lg={10} xl={10} xs={6}>
                 <Tag color="volcano" icon={<FallOutlined />}>
-                  Min
+                  {window.innerWidth > 900 ? "Min" : ""}
                 </Tag>
               </Col>
-              <Col span={14}>
+              <Col lg={10} xl={10} xs={16}>
                 <Tag color="volcano">
                   {minHours.date}{" "}
                   {option === 1 ? "hrs" : `de ${monthNameShort}`}
@@ -318,12 +338,18 @@ const Stats = ({ data, option, parsedDate }) => {
           <Card style={styles.cardStats.ind2} size="small">
             <Row justify={"center"}>
               <Col>
-                <Tag
-                  color={styles.cardStats.ind2.tag.color}
-                  style={{ fontSize: "16px" }}
-                >
-                  Consumo promedio (m³/{option === 1 ? "hora" : `día`})
-                </Tag>
+                {window.innerWidth > 900 ? (
+                  <Tag
+                    color={styles.cardStats.ind2.tag.color}
+                    style={{ fontSize: "16px" }}
+                  >
+                    Consumo promedio (m³/{option === 1 ? "hora" : `día`})
+                  </Tag>
+                ) : (
+                  <Text style={{ marginBottom: "10px" }}>
+                    Consumo promedio (m³/{option === 1 ? "hora" : `día`})
+                  </Text>
+                )}
               </Col>
             </Row>
             <Row align={"middle"}>

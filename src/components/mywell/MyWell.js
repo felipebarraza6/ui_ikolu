@@ -345,7 +345,12 @@ const MyWell = () => {
       <Col xs={24} lg={12} xl={12}>
         <Row justify={"end"}>
           <Col span={24}>
-            <img src={pozo1} width={"100%"} alt="pozo" style={styles.well} />
+            <img
+              src={pozo1}
+              width={window.innerWidth < 900 ? "100%" : "90%"}
+              alt="pozo"
+              style={styles.well}
+            />
             <Text style={styles.textFlow}>
               {parseFloat(caudal).toLocaleString("es-ES", {
                 minimumFractionDigits: 1,
@@ -420,7 +425,7 @@ const styles = {
     fontSize: window.innerWidth > 900 ? "17px" : "14px",
     marginTop: window.inner > 900 ? "100px" : "55%",
     padding: window.innerWidth > 900 ? "5px" : "5px",
-    marginLeft: window.inner > 900 ? "280px" : "59%",
+    marginLeft: window.innerWidth > 900 ? "58%" : "64%",
     position: "absolute",
     borderRadius: "10px",
   },

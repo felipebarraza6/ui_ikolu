@@ -6,6 +6,7 @@ import {
   ArrowLeftOutlined,
   ArrowRightOutlined,
   CheckCircleFilled,
+  CloseCircleFilled,
   CheckSquareFilled,
 } from "@ant-design/icons";
 
@@ -49,17 +50,33 @@ const ListWells = () => {
           {state.profile_client
             .sort((a, b) => a.title.localeCompare(b.title))
             .map((e, index) => (
-              <Select.Option key={index} value={index}>
+              <Select.Option
+                key={index}
+                disabled={!e.is_monitoring}
+                value={index}
+              >
                 {e.title}{" "}
                 {e.code_dga_site && window.innerWidth > 900 && (
                   <Tag
-                    color="geekblue-inverse"
+                    color={
+                      e.is_monitoring
+                        ? e.is_send_dga
+                          ? "green-inverse"
+                          : "geekblue-inverse"
+                        : "volcano-inverse"
+                    }
                     style={{
                       float: "right",
                       marginTop: "4px",
                       fontSize: "13px",
                     }}
-                    icon={e.is_send_dga && <CheckCircleFilled />}
+                    icon={
+                      e.is_monitoring ? (
+                        e.is_send_dga && <CheckCircleFilled />
+                      ) : (
+                        <CloseCircleFilled />
+                      )
+                    }
                   >
                     {e.code_dga_site}
                   </Tag>

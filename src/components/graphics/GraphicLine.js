@@ -503,7 +503,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
               <Card style={{ marginTop: "-20px" }} hoverable size="small">
                 <Row
                   justify={"space-evenly"}
-                  align={"middle"}
+                  align={window.innerWidth > 900 ? "middle" : "top"}
                   style={{ marginBottom: "10px" }}
                 >
                   <Col xl={6} lg={6} xs={12}>
@@ -513,6 +513,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
                     >
                       <Statistic
                         parseFloat
+                        style={{ minHeight: window.innerWidth < 900 && "90px" }}
                         title={
                           <span style={{ color: "white" }}>
                             Promedio Caudal
@@ -548,6 +549,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
                           </span>
                         }
                         precision={1}
+                        style={{ minHeight: window.innerWidth < 900 && "90px" }}
                         valueStyle={{ color: "white" }}
                         suffix={"m"}
                         value={
@@ -572,6 +574,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
                     >
                       <Statistic
                         suffix="m³"
+                        style={{ minHeight: window.innerWidth < 900 && "90px" }}
                         title={
                           <span style={{ color: "white" }}>
                             Último registro acumulado
@@ -590,6 +593,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
                       style={{ backgroundColor: "rgb(31, 52, 97)" }}
                     >
                       <Statistic
+                        style={{ minHeight: window.innerWidth < 900 && "90px" }}
                         title={
                           <span style={{ color: "white" }}>
                             Total consumido

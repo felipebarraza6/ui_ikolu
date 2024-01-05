@@ -89,58 +89,67 @@ const HeaderNav = () => {
           <Col span={24}>
             <Row justify={"space-around"}>
               <Col>
-                <Link to="/">
-                  {console.log(state.selected_profile)}
-                  <Button
-                    disabled={state.selected_profile.module1}
-                    type="primary"
-                    style={{
-                      backgroundColor: "rgb(31, 52, 97)",
-                      borderColor: location.pathname === "/" && "white",
-                    }}
-                  >
-                    Mi Pozo
-                  </Button>
-                </Link>
+                {state.selected_profile.module_1 && (
+                  <Link to="/">
+                    <Button
+                      disabled={state.selected_profile.module1}
+                      type="primary"
+                      style={{
+                        backgroundColor: "rgb(31, 52, 97)",
+                        borderColor: location.pathname === "/" && "white",
+                      }}
+                    >
+                      Mi Pozo
+                    </Button>
+                  </Link>
+                )}
               </Col>
               <Col>
-                <Link to="/dga">
-                  <Button
-                    type="primary"
-                    style={{
-                      backgroundColor: "rgb(31, 52, 97)",
-                      borderColor: location.pathname === "/dga" && "white",
-                    }}
-                  >
-                    DGA
-                  </Button>
-                </Link>
+                {state.selected_profile.module_2 && (
+                  <Link to="/dga">
+                    <Button
+                      type="primary"
+                      style={{
+                        backgroundColor: "rgb(31, 52, 97)",
+                        borderColor: location.pathname === "/dga" && "white",
+                      }}
+                    >
+                      DGA
+                    </Button>
+                  </Link>
+                )}
               </Col>
               <Col>
-                <Link to="/reportes">
-                  <Button
-                    type="primary"
-                    style={{
-                      backgroundColor: "rgb(31, 52, 97)",
-                      borderColor: location.pathname === "/reportes" && "white",
-                    }}
-                  >
-                    Reportes
-                  </Button>
-                </Link>
+                {state.selected_profile.module_3 && (
+                  <Link to="/reportes">
+                    <Button
+                      type="primary"
+                      style={{
+                        backgroundColor: "rgb(31, 52, 97)",
+                        borderColor:
+                          location.pathname === "/reportes" && "white",
+                      }}
+                    >
+                      Reportes
+                    </Button>
+                  </Link>
+                )}
               </Col>
               <Col>
-                <Link to="/graficos">
-                  <Button
-                    type="primary"
-                    style={{
-                      backgroundColor: "rgb(31, 52, 97)",
-                      borderColor: location.pathname === "/graficos" && "white",
-                    }}
-                  >
-                    Gráficos
-                  </Button>
-                </Link>
+                {state.selected_profile.module_4 && (
+                  <Link to="/graficos">
+                    <Button
+                      type="primary"
+                      style={{
+                        backgroundColor: "rgb(31, 52, 97)",
+                        borderColor:
+                          location.pathname === "/graficos" && "white",
+                      }}
+                    >
+                      Gráficos
+                    </Button>
+                  </Link>
+                )}
               </Col>
             </Row>
           </Col>
