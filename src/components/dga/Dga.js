@@ -188,7 +188,7 @@ const Dga = () => {
               <img
                 width={window.innerWidth > 900 ? "70%" : "30%"}
                 alt="qr_dga"
-                src={`https://api.smarthydro.cl/${state.selected_profile.qr_dga}`}
+                src={`https://api.smarthydro.app/${state.selected_profile.qr_dga}`}
               />
               <br />
               <br />
