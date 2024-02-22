@@ -90,7 +90,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
       .get_data_structural_month(
         id_profile,
         date.getFullYear(),
-        date.getMonth()
+        date.getMonth() + 1
       )
       .then((res) => {
         res.results.map((element) => {

@@ -29,13 +29,13 @@ const MyGraphics = () => {
   };
 
   const disabledDate = (current) => {
-    return current && current > dayjs().subtract(1, "day").endOf("day");
-  };
-  const disabledDateMonth = (current) => {
     return (
       current &&
-      (current > dayjs().startOf("month") || current > dayjs().endOf("month"))
+      (current > dayjs().endOf("day") || current < dayjs().startOf("month"))
     );
+  };
+  const disabledDateMonth = (current) => {
+    return current && current.month() !== dayjs().month();
   };
 
   useEffect(() => {
@@ -43,7 +43,8 @@ const MyGraphics = () => {
       setInitialDate(dayjs().subtract(1, "day").format("YYYY-MM-DD"));
     }
     if (option === 2) {
-      setInitialDate(dayjs().subtract(1, "month").format("YYYY-MM"));
+      setInitialDate(dayjs().add(1, "month").format("YYYY-MM"));
+      console.log(dayjs().format("YYYY-MM"));
     }
   }, [state.selected_profile, countUpdate, option]);
 
@@ -73,13 +74,13 @@ const MyGraphics = () => {
                   style={styles.datePicker}
                   size="small"
                   showToday={false}
+                  defaultValue={option === 2 && dayjs()}
                   allowEmpty={true}
                   onSelect={(date) => {
                     onSelectDate(date, "initial");
                   }}
-                  picker="month"
                   disabledDate={disabledDateMonth}
-                  defaultValue={option === 2 && dayjs().subtract(1, "month")}
+                  picker="month"
                   placeholder="Selecciona un mes"
                   locale={es_ES}
                 />
