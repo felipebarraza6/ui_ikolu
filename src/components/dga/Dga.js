@@ -19,7 +19,6 @@ const Dga = () => {
   const numberForMiles = new Intl.NumberFormat("de-DE");
 
   const processNivel = (nivel_response) => {
-    console.log(nivel_response);
     nivel_response = parseFloat(nivel_response).toFixed(1);
     if (nivel_response > 0.0 && nivel_response < position_sensor_nivel) {
       return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);

@@ -94,7 +94,6 @@ const getDataApiShStructural24h = async (id_profile, year, month, day) => {
   const rq1 = await GET(
     `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__day=${day}`
   ).then((r) => {
-    console.log(r);
     totalCount = r.data.count;
     listFormat = { ...r.data, results: r.data.results };
     return r;
