@@ -16,6 +16,7 @@ const MyWell = () => {
   const { state } = useContext(AppContext);
   const position_sensor_nivel = parseFloat(state.selected_profile.d3);
   const [caudal, setCaudal] = useState(0.0);
+  const [frecuency, setFrecuency] = useState(60);
   const [nivel, setNivel] = useState(0.0);
   const [finishCounter, setFinishCounter] = useState(0);
   const [acumulado, setAcumulado] = useState(0);
@@ -106,7 +107,20 @@ const MyWell = () => {
     getData();
     const now = new Date();
     const minutesUntilNextHour = 60 - now.getMinutes();
-    const deadline = new Date(now.getTime() + minutesUntilNextHour * 60000);
+    const list_pf = [55, 56, 57, 58];
+    let miliseconds = 60000;
+    let frequency = 60; // default frequency is 60 minutes
+
+    if (list_pf.includes(state.selected_profile.id)) {
+      frequency = 5;
+      setFrecuency(5); // change frequency to 5 minutes if selected_profile.id is in list_pf
+    }
+
+    const minutesUntilNextFrequency =
+      frequency - (now.getMinutes() % frequency);
+    const deadline = new Date(
+      now.getTime() + minutesUntilNextFrequency * miliseconds
+    );
     setDeadline(deadline);
   }, [state.selected_profile, finishCounter]);
 
@@ -139,7 +153,7 @@ const MyWell = () => {
           }}
         >
           {window.innerWidth > 900
-            ? "Tiempo restante para la siguiente medición"
+            ? `Tiempo restante para la siguiente medición (c/ ${frecuency} minutos)`
             : "Siguiente medición"}
         </Title>
         <Countdown
