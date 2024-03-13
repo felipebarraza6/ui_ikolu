@@ -77,7 +77,7 @@ const getDataApiShRangeDateGraphic = async (
 const getDataApiShDgaSend = async (id_profile, page) => {
   const today = new Date();
   const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
+  yesterday.setDate(yesterday.getDate());
 
   const year = yesterday.getFullYear();
   const month = yesterday.getMonth() + 1;

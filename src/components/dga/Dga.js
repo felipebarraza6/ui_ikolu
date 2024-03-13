@@ -104,7 +104,7 @@ const Dga = () => {
         <Title level={2}>
           DGA - {standart} <br />
           <span style={{ fontSize: "20px", marginLeft: "10px" }}>
-            Datos enviados a DGA en las últimas 24 horas:{" "}
+            Últimos datos enviados a DGA en las últimas 24 horas:{" "}
             <strong>({countElements})</strong>
           </span>
         </Title>
@@ -130,7 +130,7 @@ const Dga = () => {
             {
               title: window.innerWidth > 900 ? "Nivel Freático(m)" : "m",
               dataIndex: "nivel",
-              render: (nivel) => processNivel(nivel),
+              render: (nivel) => nivel,
             },
             {
               title: window.innerWidth > 900 ? "Acumulado(m³)" : "m³",
