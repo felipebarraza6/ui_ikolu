@@ -1,5 +1,14 @@
 import React, { useEffect, useContext, useState } from "react";
-import { Row, Col, Table, Typography, Statistic, Button, Tooltip } from "antd";
+import {
+  Row,
+  Col,
+  Table,
+  Typography,
+  Statistic,
+  Button,
+  Tooltip,
+  Tag,
+} from "antd";
 import sh from "../../api/sh/endpoints";
 import { FileImageOutlined, SecurityScanFilled } from "@ant-design/icons";
 import { AppContext } from "../../App";
@@ -103,9 +112,14 @@ const Dga = () => {
       <Col span={24}>
         <Title level={2}>
           DGA - {standart} <br />
-          <span style={{ fontSize: "20px", marginLeft: "10px" }}>
-            Últimos datos enviados a DGA en las últimas 24 horas:{" "}
-            <strong>({countElements})</strong>
+          <span style={{ fontSize: "16px" }}>
+            Últimos datos enviados a DGA el{" "}
+            {new Date().toLocaleDateString("es-ES", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
           </span>
         </Title>
       </Col>
@@ -121,6 +135,7 @@ const Dga = () => {
           dataSource={data}
           columns={[
             { title: "Fecha", dataIndex: "fecha" },
+            { title: "Día", dataIndex: "dia" }, // Add a new column for the day of the week
             { title: "Hora", dataIndex: "hora" },
             {
               title: window.innerWidth > 900 ? "Caudal(L/s)" : "l/s",

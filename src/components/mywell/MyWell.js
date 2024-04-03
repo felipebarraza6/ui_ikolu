@@ -43,7 +43,6 @@ const MyWell = () => {
 
   const processCaudal = (caudal) => {
     const flow = parseFloat(caudal).toFixed(1);
-    console.log(flow);
     if (flow > 0.0) {
       return flow;
     } else {
@@ -82,6 +81,7 @@ const MyWell = () => {
             );
 
         if (r.results[0].nivel !== null) {
+          console.log(r.results[0].nivel);
           nivel = processNivel(r.results[0].nivel);
         }
         if (r.results[0].flow !== null) {
