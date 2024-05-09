@@ -143,14 +143,14 @@ const getDataApiShStructuralMonth = async (id_profile, year, month) => {
     results: [...rq1.data.results],
   };
 
-  if (listFormat.results.length > 0) {
+  if (listFormat.results.length > 10) {
     const rq2 = await GET(
       `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__hour=12&page=2&date_time_medition__day__range=01,31`
     );
     listFormat.results.push(...rq2.data.results);
   }
 
-  if (listFormat.results.length > 0) {
+  if (listFormat.results.length > 20) {
     const rq3 = await GET(
       `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__hour=12&page=3&date_time_medition__day__range=01,31`
     );

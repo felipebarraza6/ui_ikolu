@@ -16,7 +16,6 @@ export const POST_LOGIN = async (endpoint, data) => {
 
 export const GET = async (endpoint) => {
   const token = JSON.parse(localStorage.getItem("token"));
-
   const options = {
     headers: {
       Authorization: `Token ${token}`,
