@@ -43,7 +43,7 @@ const MyWell = () => {
 
   const processCaudal = (caudal) => {
     const flow = parseFloat(caudal).toFixed(1);
-    if (flow > 0.0) {
+    if (flow > 0.5) {
       return flow;
     } else {
       return parseFloat(0.0).toFixed(1);

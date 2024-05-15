@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { AppContext } from "../../App";
-import { Typography, Card, Tag, Affix } from "antd";
+import { Typography, Card, Tag, Affix, Row, Col } from "antd";
 import { useLocation } from "react-router-dom";
 
 const { Title } = Typography;
@@ -11,122 +11,142 @@ const SiderLeft = () => {
   console.log(location.pathname);
 
   return (
-    <Affix offsetTop={110}>
-      <Card
-        style={{
-          backgroundColor: "#1F3461",
-          borderRadius: "20px",
-          paddingRight: "5px",
-          minHeight: "85vh",
-          paddingLeft: "5px",
-        }}
-      >
-        <Title align="center" style={{ color: "white" }} level={3}>
-          {" "}
+    <>
+      <Card style={styles.card}>
+        <Title align="center" style={styles.title} level={4}>
           {state.selected_profile.title}{" "}
-        </Title>
-        <Title
-          align="center"
-          style={{ color: "white", marginTop: "-10px", marginBottom: "30px" }}
-          level={5}
-        >
           {state.selected_profile.standard && (
-            <Tag color="geekblue-inverse">
-              {" "}
-              E. {state.selected_profile.standard.toUpperCase()}
-            </Tag>
+            <div>
+              <Tag color="geekblue-inverse">
+                ESTANDAR: {state.selected_profile.standard.toUpperCase()}
+              </Tag>
+            </div>
           )}
         </Title>
-        <div
-          style={{
-            textAlign: "center",
-            backgroundColor: "white",
-            marginLeft: "-24px",
-            marginRight: "-24px",
-            marginBottom: "30px",
-          }}
-        >
-          Profundida del pozo:
-          <br />
-          <b>
-            <Typography.Paragraph style={{ fontSize: "16px" }}>
-              {" "}
-              {parseFloat(state.selected_profile.d1).toFixed(0)} mtrs
-            </Typography.Paragraph>
-          </b>
-        </div>
-        <div
-          style={{
-            textAlign: "center",
-            backgroundColor: "white",
-            marginLeft: "-24px",
-            marginRight: "-24px",
-            marginBottom: "30px",
-          }}
-        >
-          Posicionamiento de bomba:
-          <br />
-          <b>
-            <Typography.Paragraph style={{ fontSize: "16px" }}>
-              {" "}
-              {parseFloat(state.selected_profile.d2).toFixed(0)} mtrs
-            </Typography.Paragraph>
-          </b>
-        </div>
-        <div
-          style={{
-            textAlign: "center",
-            backgroundColor: "white",
-            marginLeft: "-24px",
-            marginRight: "-24px",
-            marginBottom: "30px",
-          }}
-        >
-          Posicionamiento de sensor (freatico):
-          <br />
-          <b>
-            <Typography.Paragraph style={{ fontSize: "16px" }}>
-              {parseFloat(state.selected_profile.d3).toFixed(0)} mtrs
-            </Typography.Paragraph>
-          </b>
-        </div>
-        <div
-          style={{
-            textAlign: "center",
-            backgroundColor: "white",
-            marginLeft: "-24px",
-            marginRight: "-24px",
-            marginBottom: "30px",
-          }}
-        >
-          Diámetro ducto de salida (bomba)
-          <br />
-          <b>
-            <Typography.Paragraph style={{ fontSize: "16px" }}>
-              {parseFloat(state.selected_profile.d4).toFixed(0)} pulg
-            </Typography.Paragraph>
-          </b>
-        </div>
-        <div
-          style={{
-            textAlign: "center",
-            backgroundColor: "white",
-            marginLeft: "-24px",
-            marginRight: "-24px",
-            marginBottom: "50px",
-          }}
-        >
-          Diámetro flujometro
-          <br />
-          <b>
-            <Typography.Paragraph style={{ fontSize: "16px" }}>
-              {parseFloat(state.selected_profile.d5).toFixed(0)} pulg
-            </Typography.Paragraph>
-          </b>
-        </div>
+        <Row align={"middle"}>
+      {state.selected_profile.date_report_api &&
+          <Col span={24}>
+            <div style={styles.element}>
+              Inicio transmision Ikolu:
+              <br />
+              <b>
+                <Typography.Paragraph style={{ fontSize: "16px" }}>
+                  {state.selected_profile.date_report_api}                 
+                </Typography.Paragraph>
+              </b>
+            </div>
+          </Col>}
+
+          {state.selected_profile.date_code_dga && 
+          <Col span={24}>
+            <div style={styles.element}>
+              Creacion codigo de obra:
+              <br />
+              <b>
+                <Typography.Paragraph style={{ fontSize: "16px" }}>
+                  {state.selected_profile.date_code_dga}
+                </Typography.Paragraph>
+              </b>
+            </div>
+          </Col>}
+          {state.selected_profile.date_reporting_dga && 
+          <Col span={24}>
+            <div style={styles.element}>
+              Inicio transmision DGA:
+              <br />
+              <b>
+                <Typography.Paragraph style={{ fontSize: "16px" }}>
+                  {state.selected_profile.date_reporting_dga}
+                </Typography.Paragraph>
+              </b>
+            </div>
+          </Col>}
+
+          <Col span={24}>
+            <div style={styles.element}>
+              Profundida del pozo:
+              <br />
+              <b>
+                <Typography.Paragraph style={{ fontSize: "16px" }}>
+                  {parseFloat(state.selected_profile.d1).toFixed(0)} mtrs
+                </Typography.Paragraph>
+              </b>
+            </div>
+          </Col>
+
+          <Col span={24}>
+            <div style={styles.element}>
+              Posicionamiento de bomba:
+              <br />
+              <b>
+                <Typography.Paragraph style={{ fontSize: "16px" }}>
+                  {parseFloat(state.selected_profile.d2).toFixed(0)} mtrs
+                </Typography.Paragraph>
+              </b>
+            </div>
+          </Col>
+
+          <Col span={24}>
+            <div style={styles.element}>
+              Posicionamiento de sensor:
+              <br />
+              <b>
+                <Typography.Paragraph style={{ fontSize: "16px" }}>
+                  {parseFloat(state.selected_profile.d3).toFixed(0)} mtrs
+                </Typography.Paragraph>
+              </b>
+            </div>
+          </Col>
+
+          <Col span={24}>
+            <div style={styles.element}>
+              Diámetro ducto de salida (bomba)
+              <br />
+              <b>
+                <Typography.Paragraph style={{ fontSize: "16px" }}>
+                  {parseFloat(state.selected_profile.d4).toFixed(0)} pulg
+                </Typography.Paragraph>
+              </b>
+            </div>
+          </Col>
+
+          <Col span={24}>
+            <div style={styles.element}>
+              Diámetro flujometro
+              <br />
+              <b>
+                <Typography.Paragraph style={{ fontSize: "16px" }}>
+                  {parseFloat(state.selected_profile.d5).toFixed(0)} pulg
+                </Typography.Paragraph>
+              </b>
+            </div>
+          </Col>
+        </Row>
       </Card>
-    </Affix>
+    </>
   );
+};
+
+const styles = {
+  card: {
+    backgroundColor: "#1F3461",
+    borderRadius: "20px",
+    minHeight: "85vh",
+  },
+  title: {
+    color: "white",
+    marginTop: "-15px",
+      marginBottom:"30px"
+  },
+  element: {
+    textAlign: "center",
+    paddingLeft: "4px",
+    paddingRight: "4px",
+    backgroundColor: "white",
+    borderRadius: "10px",
+    marginLeft: "-20px",
+    marginRight: "-20px",
+  },
 };
 
 export default SiderLeft;

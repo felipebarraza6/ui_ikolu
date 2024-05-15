@@ -22,7 +22,6 @@ import {
 const { Title, Text } = Typography;
 
 const Stats = ({ data, option, parsedDate }) => {
-  console.log(data);
   const [total, setTotal] = useState(0);
   const [totalProm, setTotalProm] = useState(0);
   const [maxHours, setMaxHours] = useState(0);
@@ -107,7 +106,7 @@ const Stats = ({ data, option, parsedDate }) => {
       });
       setFlowMin({
         date: min.date_time_medition,
-        value: parseFloat(min.flow).toFixed(1),
+        value: min.flow > 0.5 ? parseFloat(min.flow).toFixed(1):parseFloat(0.0).toFixed(1),
       });
     }
   };
