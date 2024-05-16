@@ -175,6 +175,7 @@ const Dga = () => {
           >
             Siguiente envío de información a servicio DGA
           </Title>
+      {state.selected_profile.is_send_dga ? 
           <Countdown
             valueStyle={{ color: "white" }}
             style={{
@@ -184,7 +185,7 @@ const Dga = () => {
               marginTop: "20px",
             }}
             value={deadline}
-          />
+          />: <Tag color="red-inverse"><b>No programado</b></Tag>}
           {state.selected_profile.qr_dga ? (
             <>
               <Title

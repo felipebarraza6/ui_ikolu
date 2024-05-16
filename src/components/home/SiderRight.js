@@ -1,20 +1,20 @@
 import React, { useContext } from "react";
 import { AppContext } from "../../App";
-import { Typography, Card, Tag, Affix, Row, Col } from "antd";
+import { Typography, Card, Tag, Affix, Row, Col, Button } from "antd";
 import { useLocation } from "react-router-dom";
+import { MailOutlined } from "@ant-design/icons";
 
 const { Title } = Typography;
 
 const SiderLeft = () => {
   const { state } = useContext(AppContext);
   let location = useLocation();
-  console.log(location.pathname);
+  console.log(state.selected_profile);
 
   return (
     <>
       <Card style={styles.card}>
         <Title align="center" style={styles.title} level={4}>
-          {state.selected_profile.title}{" "}
           {state.selected_profile.standard && (
             <div>
               <Tag color="geekblue-inverse">
@@ -24,43 +24,69 @@ const SiderLeft = () => {
           )}
         </Title>
         <Row align={"middle"}>
-      {state.selected_profile.date_report_api &&
-          <Col span={24}>
-            <div style={styles.element}>
-              Inicio transmision Ikolu:
-              <br />
-              <b>
-                <Typography.Paragraph style={{ fontSize: "16px" }}>
-                  {state.selected_profile.date_report_api}                 
-                </Typography.Paragraph>
-              </b>
-            </div>
-          </Col>}
+          {state.selected_profile.flow_granted_dga && (
+            <Col span={24}>
+              <div style={styles.element}>
+                Caudal otorgado por la DGA:
+                <br />
+                <b>
+                  <Typography.Paragraph style={{ fontSize: "16px" }}>
+                    {state.selected_profile.flow_granted_dga} lt/s
+                  </Typography.Paragraph>
+                </b>
+              </div>
+            </Col>
+          )}
+          {state.selected_profile.date_report_api && (
+            <Col span={24}>
+              <div style={styles.element}>
+                Inicio transmision Ikolu:
+                <br />
+                <b>
+                  <Typography.Paragraph style={{ fontSize: "16px" }}>
+                    {state.selected_profile.date_report_api}
+                  </Typography.Paragraph>
+                </b>
+              </div>
+            </Col>
+          )}
 
-          {state.selected_profile.date_code_dga && 
-          <Col span={24}>
-            <div style={styles.element}>
-              Creacion codigo de obra:
-              <br />
-              <b>
-                <Typography.Paragraph style={{ fontSize: "16px" }}>
-                  {state.selected_profile.date_code_dga}
-                </Typography.Paragraph>
-              </b>
-            </div>
-          </Col>}
-          {state.selected_profile.date_reporting_dga && 
-          <Col span={24}>
-            <div style={styles.element}>
-              Inicio transmision DGA:
-              <br />
-              <b>
-                <Typography.Paragraph style={{ fontSize: "16px" }}>
-                  {state.selected_profile.date_reporting_dga}
-                </Typography.Paragraph>
-              </b>
-            </div>
-          </Col>}
+          {state.selected_profile.date_code_dga && (
+            <Col span={24}>
+              <div style={styles.element}>
+                Creacion codigo de obra:
+                <br />
+                <b>
+                  <Typography.Paragraph style={{ fontSize: "16px" }}>
+                    {state.selected_profile.date_code_dga}
+                  </Typography.Paragraph>
+                </b>
+              </div>
+            </Col>
+          )}
+          {state.selected_profile.code_dga_site && (
+            <Col span={24}>
+              <div style={styles.element}>
+                Inicio transmision DGA:
+                <br />
+                <b>
+                  {state.selected_profile.date_reporting_dga ? (
+                    <Typography.Paragraph style={{ fontSize: "16px" }}>
+                      {state.selected_profile.date_reporting_dga}
+                    </Typography.Paragraph>
+                  ) : (<>
+                    <Typography.Paragraph
+                      style={{ fontSize: "13px", color: "red" }}
+                    >
+                      PENDIENTE AUTORIZACION CLIENTE
+                      <br/>
+                      
+                    </Typography.Paragraph>
+                  </>)}
+                </b>
+              </div>
+            </Col>
+          )}
 
           <Col span={24}>
             <div style={styles.element}>
@@ -136,7 +162,7 @@ const styles = {
   title: {
     color: "white",
     marginTop: "-15px",
-      marginBottom:"30px"
+    marginBottom: "30px",
   },
   element: {
     textAlign: "center",
