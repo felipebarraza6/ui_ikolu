@@ -62,12 +62,13 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
 
   const asyncFetch = async () => {
     var date = new Date(initialDate);
+    console.log(date.getDate() + 1);
     const rq1 = await sh
       .get_data_structural(
         id_profile,
         date.getFullYear(),
         date.getMonth() + 1,
-        option === 1 ? date.getDate() : ""
+        option === 1 ? date.getDate() + 1 : ""
       )
       .then((res) => {
         res.results.map((element) => {
@@ -155,11 +156,15 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
   const parsedText = () => {
     if (option === 1) {
       if (window.innerWidth > 900) {
-        return `Hora (00:00 - 23:00 / ${parsedDate.date()} de ${monthName} del ${parsedDate.year()}) `;
+        return `Hora (00:00 - ${
+          data.length > 0 && data[data.length - 1].date_time_medition
+        } / ${parsedDate.date()} de ${monthName} del ${parsedDate.year()}) `;
       } else {
-        return `Hora (00:00 - 23:00 ${parsedDate.format(
-          "DD"
-        )}/${parsedDate.format("MM")}/${parsedDate.format("YY")}) `;
+        return `Hora (00:00 - ${
+          data.length > 0 && data[data.length - 1].date_time_medition
+        } ${parsedDate.format("DD")}/${parsedDate.format(
+          "MM"
+        )}/${parsedDate.format("YY")}) `;
       }
     } else {
       if (window.innerWidth > 900) {
@@ -641,8 +646,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
                       title:
                         window.innerWidth > 900 ? "Nivel Freático (m)" : "m",
                       dataIndex: "nivel",
-                      render: (nivel) =>
-                        parseFloat(processNivel(nivel)).toFixed(1),
+                      render: (nivel) => nivel.toFixed(1),
                     },
                     {
                       title: window.innerWidth > 900 ? "Acumulado (m³)" : "m³",

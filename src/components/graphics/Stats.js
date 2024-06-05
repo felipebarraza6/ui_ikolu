@@ -23,6 +23,7 @@ const { Title, Text } = Typography;
 
 const Stats = ({ data, option, parsedDate }) => {
   const [total, setTotal] = useState(0);
+  const [totalDate, setTotalDate] = useState(0);
   const [totalProm, setTotalProm] = useState(0);
   const [maxHours, setMaxHours] = useState(0);
   const [minHours, setMinHours] = useState(0);
@@ -30,7 +31,6 @@ const Stats = ({ data, option, parsedDate }) => {
   const [flowMin, setFlowMin] = useState(0);
   const [nivelMax, setNivelMax] = useState(0);
   const [nivelMin, setNivelMin] = useState(0);
-  console.log(data);
   const monthNamesMobile = [
     "ene",
     "feb",
@@ -55,6 +55,7 @@ const Stats = ({ data, option, parsedDate }) => {
     }, 0);
 
     setTotal(sum);
+    setTotalDate(data[data.length - 1].acumulado_hora);
     setTotalProm(
       parseFloat(sum / count).toLocaleString("es-ES", {
         minimumFractionDigits: 1,
@@ -106,7 +107,10 @@ const Stats = ({ data, option, parsedDate }) => {
       });
       setFlowMin({
         date: min.date_time_medition,
-        value: min.flow > 0.5 ? parseFloat(min.flow).toFixed(1):parseFloat(0.0).toFixed(1),
+        value:
+          min.flow > 0.5
+            ? parseFloat(min.flow).toFixed(1)
+            : parseFloat(0.0).toFixed(1),
       });
     }
   };
@@ -248,12 +252,14 @@ const Stats = ({ data, option, parsedDate }) => {
             <Row justify={"center"}>
               <Col>
                 {window.innerWidth > 900 ? (
-                  <Tag
-                    color={styles.cardStats.ind1.tag.color}
-                    style={{ fontSize: "16px" }}
-                  >
-                    Consumo total (m³)
-                  </Tag>
+                  <>
+                    <Tag
+                      color={styles.cardStats.ind1.tag.color}
+                      style={{ fontSize: "16px" }}
+                    >
+                      Consumo total (m³)
+                    </Tag>
+                  </>
                 ) : (
                   <Text style={{ marginBottom: "10px" }}>
                     Consumo total (m³)
@@ -264,7 +270,7 @@ const Stats = ({ data, option, parsedDate }) => {
             <Row align={"middle"}>
               <Col
                 span={24}
-                style={{ marginBottom: "34px", marginTop: "40px" }}
+                style={{ marginBottom: "20px", marginTop: "20px" }}
               >
                 <Statistic
                   suffix={
@@ -275,6 +281,13 @@ const Stats = ({ data, option, parsedDate }) => {
                   valueStyle={styles.cardStats.ind1.value}
                   value={total.toLocaleString().replace(/,/g, ".")}
                 />
+              </Col>
+              <Col span={24} style={{ marginBottom: "10px" }}>
+                <center>
+                  {option === 1
+                    ? parsedDate.format("YYYY-MM-DD")
+                    : parsedDate.format("YYYY-MM")}
+                </center>
               </Col>
             </Row>
           </Card>
