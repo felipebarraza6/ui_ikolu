@@ -44,6 +44,8 @@ const Reports = () => {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
 
+  console.log(data);
+
   const numberForMiles = new Intl.NumberFormat("de-DE");
 
   const [form] = Form.useForm();
@@ -297,6 +299,7 @@ const Reports = () => {
           // Dividir los datos en lotes más pequeños
           const batchSize = 1000; // Tamaño del lote
           const batches = Math.ceil(allData.length / batchSize);
+          console.log(batches);
 
           for (let i = 0; i < batches; i++) {
             const startIndex = i * batchSize;
@@ -306,7 +309,7 @@ const Reports = () => {
               if (index === 0) {
                 return {
                   ...item,
-                  total_hora: item.total - batch[index + 1].total,
+                  total_hora: item.total,
                   date_time_medition_hour: item.date_time_medition.slice(
                     11,
                     16
@@ -319,6 +322,7 @@ const Reports = () => {
                 const previousTotal = batch[index - 1].total;
                 const currentTotal = item.total;
                 const total_hora = previousTotal - currentTotal;
+                console.log(batch[index - 1], currentTotal);
                 return {
                   ...item,
                   total_hora,
@@ -350,6 +354,7 @@ const Reports = () => {
 
               return acc;
             }, []);
+            console.log(sumTotal);
             setData2(sumTotal);
           }
         };
@@ -544,11 +549,13 @@ const Reports = () => {
                                 ? prev
                                 : current
                             );
+
                             const min = data2.reduce((prev, current) =>
                               prev.total_hora < current.total_hora
                                 ? prev
                                 : current
                             );
+
                             return record.total_hora === max.total_hora ? (
                               <Tag
                                 color="blue-inverse"

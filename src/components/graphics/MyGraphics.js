@@ -43,7 +43,7 @@ const MyGraphics = () => {
       setInitialDate(dayjs().subtract(1, "day").format("YYYY-MM-DD"));
     }
     if (option === 2) {
-      setInitialDate(dayjs().add(1, "month").format("YYYY-MM"));
+      setInitialDate(dayjs().format("YYYY-MM"));
     }
   }, [state.selected_profile, countUpdate, option]);
 
