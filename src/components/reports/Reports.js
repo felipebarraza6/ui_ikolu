@@ -456,7 +456,18 @@ const Reports = () => {
                           current && current.isSame(moment(), "day")
                         }
                         onSelect={(x) => {
-                          setFinishDate(dayjs(x).format("YYYY-MM-DD"));
+                          if (
+                            initialDate &&
+                            dayjs(x).format("YYYY-MM-DD") < initialDate
+                          ) {
+                            notification.error({
+                              message:
+                                "La fecha final no puede ser menor a la fecha inicial",
+                            });
+                            setFinishDate("");
+                          } else {
+                            setFinishDate(dayjs(x).format("YYYY-MM-DD"));
+                          }
                         }}
                       />
                     </Form.Item>
