@@ -13,12 +13,23 @@ const SiderLeft = () => {
 
   return (
     <>
-      <Card style={styles.card}>
+      <Card
+        style={styles.card}
+        title={
+          <h3 style={{ color: "white", textAlign: "center" }}>
+            {state.selected_profile.title}
+          </h3>
+        }
+      >
         <Title align="center" style={styles.title} level={4}>
           {state.selected_profile.standard && (
             <div>
+              <Tag color="geekblue-inverse">ESTANDAR</Tag>
               <Tag color="geekblue-inverse">
-                ESTANDAR: {state.selected_profile.standard.toUpperCase()}
+                {state.selected_profile.standard.toUpperCase() ===
+                "CAUDALES_MUY_PEQUENOS"
+                  ? "CAUDALES MUY PEQUEÑOS"
+                  : state.selected_profile.standard.toUpperCase()}
               </Tag>
             </div>
           )}
@@ -74,15 +85,16 @@ const SiderLeft = () => {
                     <Typography.Paragraph style={{ fontSize: "16px" }}>
                       {state.selected_profile.date_reporting_dga}
                     </Typography.Paragraph>
-                  ) : (<>
-                    <Typography.Paragraph
-                      style={{ fontSize: "13px", color: "red" }}
-                    >
-                      PENDIENTE AUTORIZACION CLIENTE
-                      <br/>
-                      
-                    </Typography.Paragraph>
-                  </>)}
+                  ) : (
+                    <>
+                      <Typography.Paragraph
+                        style={{ fontSize: "13px", color: "red" }}
+                      >
+                        PENDIENTE AUTORIZACION CLIENTE
+                        <br />
+                      </Typography.Paragraph>
+                    </>
+                  )}
                 </b>
               </div>
             </Col>

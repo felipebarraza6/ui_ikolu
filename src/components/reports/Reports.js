@@ -43,15 +43,135 @@ const Reports = () => {
   const [finishDate, setFinishDate] = useState("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-
-  console.log(data);
-
   const numberForMiles = new Intl.NumberFormat("de-DE");
 
   const [form] = Form.useForm();
 
+  const processNivel = (nivel_response) => {
+    if (nivel_response > 0.0 && nivel_response < position_sensor_nivel) {
+      return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
+    } else if (nivel_response > position_sensor_nivel || nivel_response < 0.0) {
+      nivel_response = 50.0;
+      return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
+    } else {
+      nivel_response = 0.0;
+      return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
+    }
+  };
+
+  const processCaudal = (caudal) => {
+    const flow = parseFloat(caudal).toFixed(1);
+    if (flow > 0.5) {
+      return flow;
+    } else {
+      return parseFloat(0.0).toFixed(1);
+    }
+  };
+
+  const processAcum = (acum) => {
+    const acumulado = parseInt(acum);
+    if (acumulado > 0) {
+      return acumulado;
+    } else {
+      return 0;
+    }
+  };
+
   const downloadDataToExcel = async () => {
+    // Convertir los datos en el formato deseado para el archivo Excel
+    const filteredData = data.map((item) => ({
+      Fecha: item.date_time_medition,
+      Hora: item.date_time_medition_hour,
+      "Acumulado (m³)": item.total,
+      "Nivel (m)": item.nivel,
+      "Caudal (l/s)": item.flow,
+      "Acumulado (m³)/ hora": item.total_hora,
+    }));
+
+    const filteredData2 = data2.map((item) => ({
+      Fecha: item.date_time_medition,
+      "Acumulado (m³)/ día": item.total_hora,
+    }));
+
+    // Crear el archivo Excel y descargarlo
+    const worksheet = XLSX.utils.json_to_sheet(filteredData);
+    const worksheet2 = XLSX.utils.json_to_sheet(filteredData2);
+
+    // Set column widths based on the length of the title text
+    const columnWidths = Object.keys(worksheet).reduce((widths, cell) => {
+      const column = cell.replace(/[0-9]/g, "");
+      const value = worksheet[cell].v;
+      const length = value ? value.toString().length : 10; // Default width if value is empty
+      widths[column] = Math.max(widths[column] || 0, length);
+      return widths;
+    }, {});
+
+    const columnWidths2 = Object.keys(worksheet2).reduce((widths, cell) => {
+      const column = cell.replace(/[0-9]/g, "");
+      const value = worksheet2[cell].v;
+      const length = value ? value.toString().length : 10; // Default width if value is empty
+      widths[column] = Math.max(widths[column] || 0, length);
+      return widths;
+    }, {});
+
+    // Apply column widths to the worksheets
+    worksheet["!cols"] = Object.keys(columnWidths).map((column) => ({
+      wch: columnWidths[column],
+    }));
+    worksheet2["!cols"] = Object.keys(columnWidths2).map((column) => ({
+      wch: columnWidths2[column],
+    }));
+
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Detalle");
+    XLSX.utils.book_append_sheet(workbook, worksheet2, "Resumen diario");
+
+    // Función para aplicar estilos a las celdas
+    const applyStyles = (worksheet, range, style) => {
+      const { s, e } = XLSX.utils.decode_range(range);
+      for (let row = s.r; row <= e.r; row++) {
+        for (let col = s.c; col <= e.c; col++) {
+          const cell = XLSX.utils.encode_cell({ r: row, c: col });
+          if (!worksheet[cell]) {
+            worksheet[cell] = {};
+          }
+          worksheet[cell].s = style;
+        }
+      }
+    };
+
+    // Crear estilos para las celdas
+    const borderStyle = {
+      border: {
+        top: { style: "thin", color: { rgb: "00000000" } },
+        bottom: { style: "thin", color: { rgb: "00000000" } },
+        left: { style: "thin", color: { rgb: "00000000" } },
+        right: { style: "thin", color: { rgb: "00000000" } },
+      },
+    };
+
+    const headerStyle = {
+      fill: { fgColor: { rgb: "00000000" } },
+      font: { color: { rgb: "FFFFFFFF" } },
+    };
+
+    // Aplicar estilos a las celdas con datos
+    applyStyles(worksheet, "A1:Z1000", borderStyle);
+
+    // Aplicar estilo a la primera fila
+    applyStyles(worksheet, "A1:Z1", headerStyle);
+
+    XLSX.writeFile(
+      workbook,
+      `${state.user.username}_${state.selected_profile.title}.xlsx`
+    );
+  };
+
+  const getData = async () => {
     const pageSize = 10; // Número de elementos por página
+    setLoadingTab1(true);
+    setLoadingTab2(true);
     let currentPage = 1; // Página actual
     let allData = []; // Array para almacenar todos los datos
 
@@ -135,305 +255,13 @@ const Reports = () => {
 
       processedData2.push(...sumTotal);
       processedData.push(...updatedResults);
+      setData(updatedResults);
     }
-
-    // Convertir los datos en el formato deseado para el archivo Excel
-    const filteredData = processedData.map((item) => ({
-      Fecha: item.date_time_medition,
-      Hora: item.date_time_medition_hour,
-      "Acumulado (m³)": item.total,
-      "Nivel (m)": item.nivel,
-      "Caudal (l/s)": item.flow,
-      "Acumulado (m³)/ hora": item.total_hora,
-    }));
-
-    const filteredData2 = processedData2.map((item) => ({
-      Fecha: item.date_time_medition,
-      "Acumulado (m³)/ día": item.total_hora,
-    }));
-
-    // Crear el archivo Excel y descargarlo
-    const worksheet = XLSX.utils.json_to_sheet(filteredData);
-    const worksheet2 = XLSX.utils.json_to_sheet(filteredData2);
-
-    // Set column widths based on the length of the title text
-    const columnWidths = Object.keys(worksheet).reduce((widths, cell) => {
-      const column = cell.replace(/[0-9]/g, "");
-      const value = worksheet[cell].v;
-      const length = value ? value.toString().length : 10; // Default width if value is empty
-      widths[column] = Math.max(widths[column] || 0, length);
-      return widths;
-    }, {});
-
-    const columnWidths2 = Object.keys(worksheet2).reduce((widths, cell) => {
-      const column = cell.replace(/[0-9]/g, "");
-      const value = worksheet2[cell].v;
-      const length = value ? value.toString().length : 10; // Default width if value is empty
-      widths[column] = Math.max(widths[column] || 0, length);
-      return widths;
-    }, {});
-
-    // Apply column widths to the worksheets
-    worksheet["!cols"] = Object.keys(columnWidths).map((column) => ({
-      wch: columnWidths[column],
-    }));
-    worksheet2["!cols"] = Object.keys(columnWidths2).map((column) => ({
-      wch: columnWidths2[column],
-    }));
-
-    const workbook = XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Detalle");
-    XLSX.utils.book_append_sheet(workbook, worksheet2, "Resumen diario");
-
-    // Función para aplicar estilos a las celdas
-    const applyStyles = (worksheet, range, style) => {
-      const { s, e } = XLSX.utils.decode_range(range);
-      for (let row = s.r; row <= e.r; row++) {
-        for (let col = s.c; col <= e.c; col++) {
-          const cell = XLSX.utils.encode_cell({ r: row, c: col });
-          if (!worksheet[cell]) {
-            worksheet[cell] = {};
-          }
-          worksheet[cell].s = style;
-        }
-      }
-    };
-
-    // Crear estilos para las celdas
-    const borderStyle = {
-      border: {
-        top: { style: "thin", color: { rgb: "00000000" } },
-        bottom: { style: "thin", color: { rgb: "00000000" } },
-        left: { style: "thin", color: { rgb: "00000000" } },
-        right: { style: "thin", color: { rgb: "00000000" } },
-      },
-    };
-
-    const headerStyle = {
-      fill: { fgColor: { rgb: "00000000" } },
-      font: { color: { rgb: "FFFFFFFF" } },
-    };
-
-    // Aplicar estilos a las celdas con datos
-    applyStyles(worksheet, "A1:Z1000", borderStyle);
-
-    // Aplicar estilo a la primera fila
-    applyStyles(worksheet, "A1:Z1", headerStyle);
-
-    XLSX.writeFile(
-      workbook,
-      `${state.user.username}_${state.selected_profile.title}.xlsx`
-    );
-  };
-
-  const processNivel = (nivel_response) => {
-    if (nivel_response > 0.0 && nivel_response < position_sensor_nivel) {
-      return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
-    } else if (nivel_response > position_sensor_nivel || nivel_response < 0.0) {
-      nivel_response = 50.0;
-      return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
-    } else {
-      nivel_response = 0.0;
-      return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
-    }
-  };
-
-  const processCaudal = (caudal) => {
-    const flow = parseFloat(caudal).toFixed(1);
-    console.log(flow);
-    if (flow > 0.5) {
-      return flow;
-    } else {
-      return parseFloat(0.0).toFixed(1);
-    }
-  };
-
-  const processAcum = (acum) => {
-    const acumulado = parseInt(acum);
-    if (acumulado > 0) {
-      return acumulado;
-    } else {
-      return 0;
-    }
-  };
-
-  const getData = async () => {
-    const rq = await sh
-      .get_data_sh_range(
-        state.selected_profile.id,
-        initialDate,
-        finishDate,
-        page
-      )
-      .then(async (r) => {
-        setLoadingTab1(true);
-        const selfGetAll = async () => {
-          setLoadingTab2(true);
-          const pageSize = 10; // Número de elementos por página
-          let currentPage = 1; // Página actual
-          let allData = []; // Array para almacenar todos los datos
-
-          // Función para obtener los datos de una página específica
-          const getDataPage = async (page) => {
-            const rq = await sh.get_data_sh_range_hour(
-              state.selected_profile.id,
-              initialDate,
-              finishDate,
-              page
-            );
-            return rq.results;
-          };
-
-          // Obtener los datos de la primera página
-          let pageData = await getDataPage(currentPage);
-          allData = allData.concat(pageData);
-
-          // Obtener los datos de las páginas restantes
-          while (pageData.length === pageSize) {
-            currentPage++;
-            pageData = await getDataPage(currentPage);
-            allData = allData.concat(pageData);
-          }
-
-          // Dividir los datos en lotes más pequeños
-          const batchSize = 1000; // Tamaño del lote
-          const batches = Math.ceil(allData.length / batchSize);
-          console.log(batches);
-
-          for (let i = 0; i < batches; i++) {
-            const startIndex = i * batchSize;
-            const endIndex = startIndex + batchSize;
-            const batch = allData.slice(startIndex, endIndex);
-            const updatedResults = batch.map((item, index) => {
-              if (index === 0) {
-                return {
-                  ...item,
-                  total_hora: item.total,
-                  date_time_medition_hour: item.date_time_medition.slice(
-                    11,
-                    16
-                  ),
-                  nivel: processNivel(item.nivel),
-                  flow: processCaudal(item.flow),
-                  date_time_medition: item.date_time_medition.slice(0, 10),
-                };
-              } else {
-                const previousTotal = batch[index - 1].total;
-                const currentTotal = item.total;
-                const total_hora = previousTotal - currentTotal;
-                console.log(batch[index - 1], currentTotal);
-                return {
-                  ...item,
-                  total_hora,
-                  date_time_medition_hour: item.date_time_medition.slice(
-                    11,
-                    16
-                  ),
-                  nivel: processNivel(item.nivel),
-                  date_time_medition: item.date_time_medition.slice(0, 10),
-                };
-              }
-            });
-
-            const sumTotal = updatedResults.reduce((acc, item, index) => {
-              const currentDate = item.date_time_medition.slice(0, 10);
-              const existingItem = acc.find((el) => el.date === currentDate);
-
-              if (existingItem) {
-                existingItem.total_hora += item.total_hora;
-                setLoadingTab2(false);
-              } else {
-                acc.push({
-                  ...item,
-                  total_hora: item.total_hora,
-                  date: currentDate,
-                });
-                setLoadingTab2(false);
-              }
-
-              return acc;
-            }, []);
-            console.log(sumTotal);
-            setData2(sumTotal);
-          }
-        };
-
-        const updatedResults = r.results.map((item, index) => {
-          if (index === 0) {
-            setLoadingTab1(false);
-            return {
-              ...item,
-              date_time_medition_hour: item.date_time_medition.slice(11, 16),
-              nivel: processNivel(item.nivel),
-              total: processAcum(item.total),
-              total_hora: processAcum(item.total - r.results[index + 1].total),
-              flow: processCaudal(item.flow),
-              date_time_medition: item.date_time_medition.slice(0, 10),
-            };
-          } else {
-            setLoadingTab1(false);
-            const previousTotal = r.results[index - 1].total;
-            const currentTotal = item.total;
-            const total_hora = previousTotal - currentTotal;
-            return {
-              ...item,
-              date_time_medition_hour: item.date_time_medition.slice(11, 16),
-              nivel: processNivel(item.nivel),
-              total: processAcum(item.total),
-              total_hora: processAcum(total_hora),
-              flow: processCaudal(item.flow),
-              date_time_medition: item.date_time_medition.slice(0, 10),
-            };
-          }
-        });
-
-        setData(updatedResults);
-        setTotal(r.count);
-
-        await selfGetAll(); // Wait for the data to be processed and stored in data2
-      });
-  };
-
-  const getDataPage = async (page) => {
-    const rq = await sh
-      .get_data_sh_range(
-        state.selected_profile.id,
-        initialDate,
-        finishDate,
-        page
-      )
-      .then((r) => {
-        const updatedResults = r.results.map((item, index) => {
-          if (index === 0) {
-            return {
-              ...item,
-              date_time_medition_hour: item.date_time_medition.slice(11, 16),
-              nivel: processNivel(item.nivel),
-              total: processAcum(item.total),
-              total_hora: processAcum(item.total - r.results[index + 1].total),
-              flow: processCaudal(item.flow),
-              date_time_medition: item.date_time_medition.slice(0, 10),
-            };
-          } else {
-            const previousTotal = r.results[index - 1].total;
-            const currentTotal = item.total;
-            const total_hora = previousTotal - currentTotal;
-            return {
-              ...item,
-              date_time_medition_hour: item.date_time_medition.slice(11, 16),
-              nivel: processNivel(item.nivel),
-              total: processAcum(item.total),
-              total_hora: processAcum(total_hora),
-              flow: processCaudal(item.flow),
-              date_time_medition: item.date_time_medition.slice(0, 10),
-            };
-          }
-        });
-
-        setData(updatedResults);
-        setTotal(r.count);
-      });
+    setLoadingTab1(false);
+    setLoadingTab2(false);
+    setData(processedData);
+    setData2(processedData2);
+    setTotal(processedData.length);
   };
 
   useEffect(() => {
@@ -480,11 +308,6 @@ const Reports = () => {
                     pagination={{
                       total: total,
                       simple: true,
-                      page: page,
-                      onChange: (x) => {
-                        setPage(x);
-                        getDataPage(x);
-                      },
                     }}
                     columns={[
                       {
@@ -595,7 +418,7 @@ const Reports = () => {
                   <Col span={24}>
                     <Alert
                       type="info"
-                      message="Debes selecciona al menos 2 días para visualizar información."
+                      message="Debes seleccionar una fecha de inicio y una fecha final para visualizar los datos."
                       size="small"
                       icon={<InfoCircleFilled />}
                       showIcon
@@ -633,19 +456,7 @@ const Reports = () => {
                           current && current.isSame(moment(), "day")
                         }
                         onSelect={(x) => {
-                          if (
-                            initialDate &&
-                            dayjs(x).format("YYYY-MM-DD") <= initialDate
-                          ) {
-                            notification.error({
-                              closeIcon: <></>,
-                              message:
-                                "La fecha final no puede ser menor o igual a la fecha inicial",
-                            });
-                            setFinishDate("");
-                          } else {
-                            setFinishDate(dayjs(x).format("YYYY-MM-DD"));
-                          }
+                          setFinishDate(dayjs(x).format("YYYY-MM-DD"));
                         }}
                       />
                     </Form.Item>
@@ -896,10 +707,6 @@ const Reports = () => {
                   pagination={{
                     total: total,
                     page: page,
-                    onChange: (x) => {
-                      setPage(x);
-                      getDataPage(x);
-                    },
                   }}
                   columns={[
                     {
