@@ -12,7 +12,6 @@ const HeaderNav = () => {
   const location = useLocation();
   const { state, dispatch } = useContext(AppContext);
 
-  console.log(state);
 
   return (
     <Affix>

@@ -29,7 +29,6 @@ const MyWell = () => {
   };
 
   const processNivel = (nivel_response) => {
-    console.log(nivel_response);
     nivel_response = parseFloat(nivel_response).toFixed(1);
     if (nivel_response > 0.0 && nivel_response < position_sensor_nivel) {
       return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
@@ -82,7 +81,6 @@ const MyWell = () => {
             );
 
         if (r.results[0].nivel !== null) {
-          console.log(r.results[0].nivel);
           nivel = processNivel(r.results[0].nivel);
         }
         if (r.results[0].flow !== null) {

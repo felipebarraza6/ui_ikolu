@@ -17,7 +17,6 @@ import {} from "react-router-dom";
 const Home = () => {
   const { state } = useContext(AppContext);
   const location = useLocation();
-  console.log(location);
 
   return (
     <Row>

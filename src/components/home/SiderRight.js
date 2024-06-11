@@ -9,7 +9,6 @@ const { Title } = Typography;
 const SiderLeft = () => {
   const { state } = useContext(AppContext);
   let location = useLocation();
-  console.log(state.selected_profile);
 
   return (
     <>

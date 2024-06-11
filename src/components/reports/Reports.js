@@ -420,7 +420,7 @@ const Reports = () => {
                       type="info"
                       message="Debes seleccionar una fecha de inicio y una fecha final para visualizar los datos."
                       size="small"
-                      icon={<InfoCircleFilled />}
+                      icon={<></>}
                       showIcon
                       closable
                     />
@@ -448,6 +448,7 @@ const Reports = () => {
                       <DatePicker
                         style={{ width: "100%" }}
                         placeholder="Selecciona una fecha final"
+                        disabled = {initialDate ? false : true}
                         defaultValue={initialDate}
                         disabledDate={(current) =>
                           current && current >= moment().endOf("day")
