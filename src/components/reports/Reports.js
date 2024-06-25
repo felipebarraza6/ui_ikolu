@@ -205,36 +205,22 @@ const Reports = () => {
 
     for (let i = 0; i < batches; i++) {
       const startIndex = i * batchSize;
-      const endIndex = startIndex + batchSize;
-      const batch = allData.slice(startIndex, endIndex);
-      const updatedResults = batch.map((item, index) => {
-        if (index === 0) {
-          return {
-            ...item,
-            date_time_medition_hour: item.date_time_medition.slice(11, 16),
-            nivel: processNivel(item.nivel),
-            flow: processCaudal(item.flow),
-            total: processAcum(item.total),
-            total_hora: processAcum(
-              item ? item.total - batch[index + 1].total : 0
-            ),
-            date_time_medition: item.date_time_medition.slice(0, 10),
-          };
-        } else {
-          const previousTotal = batch[index - 1].total;
-          const currentTotal = item.total;
-          const total_hora = previousTotal - currentTotal;
-          return {
-            ...item,
-            date_time_medition_hour: item.date_time_medition.slice(11, 16),
-            nivel: processNivel(item.nivel),
-            flow: processCaudal(item.flow),
-            total: processAcum(item.total),
-            total_hora: processAcum(total_hora),
-            date_time_medition: item.date_time_medition.slice(0, 10),
-          };
-        }
-      });
+  const endIndex = startIndex + batchSize;
+  const batch = allData.slice(startIndex, endIndex);
+  const updatedResults = batch.map((item, index) => {
+    const nextTotal = batch[index + 1] ? batch[index + 1].total : 0;
+    const currentTotal = item.total;
+    const total_hora = currentTotal - nextTotal;
+    return {
+      ...item,
+      date_time_medition_hour: item.date_time_medition.slice(11, 16),
+      nivel: processNivel(item.nivel),
+      flow: processCaudal(item.flow),
+      total: processAcum(item.total),
+      total_hora: processAcum(total_hora),
+      date_time_medition: item.date_time_medition.slice(0, 10),
+    };
+  })
 
       const sumTotal = updatedResults.reduce((acc, item, index) => {
         const currentDate = item.date_time_medition.slice(0, 10);
