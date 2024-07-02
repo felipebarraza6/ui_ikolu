@@ -16,6 +16,7 @@ import {
   CloudUploadOutlined,
   CheckOutlined,
   DeleteFilled,
+  ClearOutlined,
 } from "@ant-design/icons";
 const { Countdown } = Statistic;
 
@@ -85,14 +86,21 @@ const TableStandarVerySmall = ({ data }) => {
               form.resetFields();
             }}
           >
-            <Form.Item name="date_time_medition">
+            <Form.Item
+              name="date_time_medition"
+              rules={[{ required: true, message: "Ingresa la fecha" }]}
+            >
               <DatePicker
                 placeholder="Fecha de captación"
                 style={{ width: "200px" }}
               />
             </Form.Item>
 
-            <Form.Item label="Caudal" name="flow">
+            <Form.Item
+              label="Caudal"
+              name="flow"
+              rules={[{ required: true, message: "Ingesa el caudal" }]}
+            >
               <InputNumber
                 style={{ width: "65px" }}
                 placeholder="0.0"
@@ -101,7 +109,11 @@ const TableStandarVerySmall = ({ data }) => {
                 suffix="l/s"
               />
             </Form.Item>
-            <Form.Item label="Nivel freático" name="nivel">
+            <Form.Item
+              label="Nivel freático"
+              name="nivel"
+              rules={[{ required: true, message: "Ingesa el nivel" }]}
+            >
               <InputNumber
                 style={{ width: "60px" }}
                 placeholder="0.0"
@@ -110,17 +122,28 @@ const TableStandarVerySmall = ({ data }) => {
                 parser={(value) => parseFloat(value)}
               />
             </Form.Item>
-            <Form.Item label="Totalizado" name="total">
+            <Form.Item
+              label="Totalizado"
+              name="total"
+              rules={[{ required: true, message: "Ingesa el total" }]}
+            >
               <Input style={{ width: "80px" }} placeholder="0" suffix={"m³"} />
             </Form.Item>
             <Form.Item>
-              <Button
-                type="primary"
-                icon={<CloudUploadOutlined />}
-                htmlType="submit"
-              >
-                Cargar registro
-              </Button>
+              <Row justify={"center"} align={"middle"} style={{minHeight:"80px"}}>
+                <Col span={24}>
+                  <Button
+                    type="primary"
+                    icon={<CloudUploadOutlined />}
+                    htmlType="submit"
+                  >
+                    Cargar registro
+                  </Button>
+                </Col>
+                <Col span={24} >
+                  <Button icon={<ClearOutlined />} onClick={()=>form.resetFields()}>Limpiar</Button>
+                </Col>
+              </Row>
             </Form.Item>
           </Form>
         </Col>

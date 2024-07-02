@@ -39,7 +39,7 @@ const SiderRight = () => {
               style={{ color: location.pathname !== "/" ? "#1F3461" : "white" }}
               prefix={<>a</>}
             >
-              {location.pathname === "/" && <ArrowRightOutlined />} Mi Pozo
+              {location.pathname === "/" && <ArrowRightOutlined />} {state.selected_profile.standard == "CAUDALES_MUY_PEQUENOS" ? "Registros":"Mi Pozo"}
             </Button>
           </Link>
         </div>
