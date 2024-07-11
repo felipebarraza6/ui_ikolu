@@ -1,4 +1,4 @@
-import { POST_LOGIN, GET, DOWNLOAD } from "./config";
+import { POST_LOGIN, GET, DOWNLOAD, DELETE, POST } from "./config";
 
 const login = async (data) => {
   const request = await POST_LOGIN("users/login/", {
@@ -32,6 +32,16 @@ const downloadFile = async (id_profile, initialDate, finishDate, title) => {
     `${title}.xlsx`
   );
 };
+
+const deleteDataApiSh = async (id) => {
+  const rq = await DELETE(`interaction_detail_json/${id}/`);
+  return rq.data;
+};
+
+const createDataApiSh = async (data) => {
+  const rq = await POST(`interaction_detail_json/`, data);
+  return rq.data;
+}
 
 const getDataApiSh = async (id_profile) => {
   const rq = await GET(
@@ -181,6 +191,8 @@ const sh = {
   get_data_sh_range_graphic: getDataApiShRangeDateGraphic,
   get_data_structural: getDataApiShStructural24h,
   get_data_structural_month: getDataApiShStructuralMonth,
+  delete_data_sh: deleteDataApiSh,
+  create_data_sh: createDataApiSh,
 };
 
 export default sh;

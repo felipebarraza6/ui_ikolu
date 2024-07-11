@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   Table,
   Col,
@@ -7,7 +7,7 @@ import {
   Row,
   Input,
   DatePicker,
-  Statistic,
+  notification,
   InputNumber,
   Button,
 } from "antd";
@@ -18,13 +18,18 @@ import {
   DeleteFilled,
   ClearOutlined,
 } from "@ant-design/icons";
-const { Countdown } = Statistic;
+import { AppContext } from "../../App";
+import api from "../../api/sh/endpoints";
+import dayjs from "dayjs";
+import moment from "moment";
 
 const { Title } = Typography;
 
-const TableStandarVerySmall = ({ data }) => {
+const TableStandarVerySmall = () => {
   const [form] = Form.useForm();
+  const [count, setCount] = useState(0);
   const [dataForm, setDataForm] = useState([]);
+  const { state } = useContext(AppContext);
 
   const dateStep = () => {
     const currentDate = new Date();
@@ -34,34 +39,67 @@ const TableStandarVerySmall = ({ data }) => {
     const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
     const weeks = Math.floor(days / 7);
     const months = Math.floor(days / 30);
-    const years = Math.floor(days / 365);
 
     const remainingDays = days % 30;
     const remainingWeeks = weeks % 4;
     const remainingMonths = months % 12;
-
     return (
-      <>
-        <Title level={5} style={{ fontSize: "12px", marginTop: "4px" }}>
-          Ingresar información en: <br />
-        </Title>
-        <Title
-          level={5}
-          style={{
-            marginTop: "-10px",
-            textIndent: "3px",
-            fontSize: "12px",
-            color: "grey",
-          }}
-        >
-          {remainingMonths} Meses, {remainingWeeks} semanas y {remainingDays}{" "}
-          días
-        </Title>
-      </>
+      <Row>
+        <Col>
+          <Title level={5} style={{ fontSize: "12px", marginTop: "4px" }}>
+            Ingresar información en: <br />
+          </Title>
+          <Title
+            level={5}
+            style={{
+              marginTop: "-10px",
+              textIndent: "3px",
+              fontSize: "12px",
+              color: "grey",
+            }}
+          >
+            {remainingMonths} Meses, {remainingWeeks} semanas y {remainingDays}{" "}
+            días (posterior a este periodo no podras editar la información)
+          </Title>
+        </Col>
+      </Row>
     );
   };
 
+  const getData = async () => {
+    const rq = await api.get_data_sh(state.selected_profile.id).then((res) => {
+      setDataForm(res.results);
+    });
+  };
+
+  const deleteData = async (id) => {
+    const rq = await api.delete_data_sh(id).then((res) => {
+      notification.success({
+        message: "Eliminado",
+        description: "Registro eliminado correctamente",
+      });
+      getData();
+      setCount(count + 1);
+    });
+  };
+
+  const createData = async (values) => {
+    const rq = await api.create_data_sh(values).then((res) => {
+      notification.success({
+        message: "Guardado",
+        description: "Registro guardado correctamente",
+      });
+      console.log(res);
+      setCount(count + 1);
+    });
+  };
+
   console.log(dataForm);
+  console.log(state);
+
+  useEffect(() => {
+    getData();
+  }, [count]);
 
   return (
     <Col xl={24} lg={24} xs={24}>
@@ -76,75 +114,105 @@ const TableStandarVerySmall = ({ data }) => {
             onFinish={(values) => {
               values = {
                 ...values,
-                flow: parseFloat(values.flow).toFixed(1),
-                nivel: parseFloat(values.nivel).toFixed(1),
+                profile_client: state.selected_profile.id,
+                flow: parseFloat(values.flow),
+                nivel: parseFloat(values.nivel),
                 total: parseInt(values.total),
-                date_time_medition:
-                  values.date_time_medition.format("YYYY-MM-DD"),
+                date_time_medition: values.date_time_medition.format(
+                  "YYYY-MM-DD HH:mm:ss"
+                ),
               };
-              setDataForm([...dataForm, values]);
+              console.log(values);
+              createData(values);
+
               form.resetFields();
             }}
           >
-            <Form.Item
-              name="date_time_medition"
-              rules={[{ required: true, message: "Ingresa la fecha" }]}
-            >
-              <DatePicker
-                placeholder="Fecha de captación"
-                style={{ width: "200px" }}
-              />
-            </Form.Item>
-
-            <Form.Item
-              label="Caudal"
-              name="flow"
-              rules={[{ required: true, message: "Ingesa el caudal" }]}
-            >
-              <InputNumber
-                style={{ width: "65px" }}
-                placeholder="0.0"
-                step={0.1}
-                parser={(value) => parseFloat(value)}
-                suffix="l/s"
-              />
-            </Form.Item>
-            <Form.Item
-              label="Nivel freático"
-              name="nivel"
-              rules={[{ required: true, message: "Ingesa el nivel" }]}
-            >
-              <InputNumber
-                style={{ width: "60px" }}
-                placeholder="0.0"
-                step={0.1}
-                suffix="m"
-                parser={(value) => parseFloat(value)}
-              />
-            </Form.Item>
-            <Form.Item
-              label="Totalizado"
-              name="total"
-              rules={[{ required: true, message: "Ingesa el total" }]}
-            >
-              <Input style={{ width: "80px" }} placeholder="0" suffix={"m³"} />
-            </Form.Item>
-            <Form.Item>
-              <Row justify={"center"} align={"middle"} style={{minHeight:"80px"}}>
-                <Col span={24}>
-                  <Button
-                    type="primary"
-                    icon={<CloudUploadOutlined />}
-                    htmlType="submit"
+            <Row>
+              <Col>
+                Fecha de captación
+                <Form.Item
+                  name="date_time_medition"
+                  rules={[{ required: true, message: "Ingresa la fecha" }]}
+                >
+                  <DatePicker
+                    placeholder="Selecciona una fecha"
+                    format="YYYY-MM-DD HH:mm:ss"
+                    style={{ width: "200px" }}
+                  />
+                </Form.Item>
+              </Col>
+              <Col>
+                Caudal
+                <Form.Item
+                  name="flow"
+                  rules={[{ required: true, message: "Ingesa el caudal" }]}
+                >
+                  <InputNumber
+                    style={{ width: "100px" }}
+                    placeholder="0.0"
+                    step={0.1}
+                    parser={(value) => parseFloat(value)}
+                    suffix="l/s"
+                  />
+                </Form.Item>
+              </Col>
+              <Col>
+                Nivel freático
+                <Form.Item
+                  name="nivel"
+                  rules={[{ required: true, message: "Ingesa el nivel" }]}
+                >
+                  <InputNumber
+                    style={{ width: "100px" }}
+                    placeholder="0.0"
+                    step={0.1}
+                    suffix="m"
+                    parser={(value) => parseFloat(value)}
+                  />
+                </Form.Item>
+              </Col>
+              <Col>
+                Totalizado
+                <Form.Item
+                  name="total"
+                  rules={[{ required: true, message: "Ingesa el total" }]}
+                >
+                  <Input
+                    style={{ width: "150px" }}
+                    placeholder="0"
+                    suffix={"m³"}
+                  />
+                </Form.Item>
+              </Col>
+              <Col>
+                <Form.Item>
+                  <Row
+                    justify={"center"}
+                    align={"middle"}
+                    style={{ minHeight: "80px", minWidth: "220px" }}
                   >
-                    Cargar registro
-                  </Button>
-                </Col>
-                <Col span={24} >
-                  <Button icon={<ClearOutlined />} onClick={()=>form.resetFields()}>Limpiar</Button>
-                </Col>
-              </Row>
-            </Form.Item>
+                    <Col span={12}>
+                      <Button
+                        type="primary"
+                        icon={<CloudUploadOutlined />}
+                        htmlType="submit"
+                      >
+                        Guardar
+                      </Button>
+                    </Col>
+                    <Col span={12}>
+                      <Button
+                        icon={<ClearOutlined />}
+                        onClick={() => form.resetFields()}
+                      >
+                        Limpiar
+                      </Button>
+                    </Col>
+                  </Row>
+                </Form.Item>
+              </Col>
+            </Row>
           </Form>
         </Col>
         <Col>{dateStep()}</Col>
@@ -152,7 +220,11 @@ const TableStandarVerySmall = ({ data }) => {
           <Table
             bordered
             columns={[
-              { title: "Fecha", dataIndex: "date_time_medition" },
+              {
+                title: "Fecha",
+                dataIndex: "date_time_medition",
+                render: (date) => new Date(date).toLocaleDateString(),
+              },
               {
                 title: "Caudal(l/s)",
                 dataIndex: "flow",
@@ -161,26 +233,25 @@ const TableStandarVerySmall = ({ data }) => {
                 title: "Nivel freatico(m)",
                 dataIndex: "nivel",
               },
-              { title: "Totalizado(m³)", dataIndex: "total" },
               {
-                render: () => (
+                title: "Totalizado(m³)",
+                dataIndex: "total",
+                render: (total) => parseInt(total).toLocaleString("es-ES"),
+              },
+              {
+                render: (x) => (
                   <>
-                    <Button
-                      type="primary"
-                      size="small"
-                      style={{ marginRight: "10px" }}
-                      icon={<CheckOutlined />}
-                    >
-                      Validar
-                    </Button>
-                    <Button
-                      danger
-                      type="primary"
-                      size="small"
-                      icon={<DeleteFilled />}
-                    >
-                      Eliminar
-                    </Button>
+                    {!x.is_send_dga && (
+                      <Button
+                        danger
+                        type="primary"
+                        size="small"
+                        icon={<DeleteFilled />}
+                        onClick={() => deleteData(x.id)}
+                      >
+                        Eliminar
+                      </Button>
+                    )}
                   </>
                 ),
               },

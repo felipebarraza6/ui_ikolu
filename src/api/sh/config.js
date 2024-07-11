@@ -25,6 +25,28 @@ export const GET = async (endpoint) => {
   return request;
 };
 
+export const POST = async (endpoint, data) => {
+  const token = JSON.parse(localStorage.getItem("token"));
+  const options = {
+    headers: {
+      Authorization: `Token ${token}`,
+    },
+  };
+  const request = await Axios.post(endpoint, data, options);
+  return request;
+};
+
+export const DELETE = async (endpoint) => {
+  const token = JSON.parse(localStorage.getItem("token"));
+  const options = {
+    headers: {
+      Authorization: `Token ${token}`,
+    },
+  };
+  const request = await Axios.delete(endpoint, options);
+  return request;
+};
+
 export const DOWNLOAD = async (endpoint, name_file) => {
   const token = JSON.parse(localStorage.getItem("token"));
   const download = {
