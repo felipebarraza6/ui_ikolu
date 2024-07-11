@@ -8,22 +8,26 @@ import {
   Input,
   DatePicker,
   notification,
+  Tooltip,
   InputNumber,
+  Tag,
   Button,
+  Card,
 } from "antd";
 
 import {
   CloudUploadOutlined,
-  CheckOutlined,
+  SecurityScanFilled,
   DeleteFilled,
   ClearOutlined,
+  CheckCircleFilled,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
 import api from "../../api/sh/endpoints";
 import dayjs from "dayjs";
 import moment from "moment";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const TableStandarVerySmall = () => {
   const [form] = Form.useForm();
@@ -45,7 +49,7 @@ const TableStandarVerySmall = () => {
     const remainingMonths = months % 12;
     return (
       <Row>
-        <Col>
+        <Col span={24}>
           <Title level={5} style={{ fontSize: "12px", marginTop: "4px" }}>
             Ingresar información en: <br />
           </Title>
@@ -59,7 +63,7 @@ const TableStandarVerySmall = () => {
             }}
           >
             {remainingMonths} Meses, {remainingWeeks} semanas y {remainingDays}{" "}
-            días (posterior a este periodo no podras editar la información)
+            días
           </Title>
         </Col>
       </Row>
@@ -94,8 +98,20 @@ const TableStandarVerySmall = () => {
     });
   };
 
-  console.log(dataForm);
-  console.log(state);
+  const groupedByYear = dataForm.reduce((acc, record) => {
+    const year = new Date(record.date_time_medition).getFullYear();
+    if (!acc[year]) {
+      acc[year] = [];
+    }
+    acc[year].push(record);
+    return acc;
+  }, {});
+
+  const hasMoreThanTwoRecordsPerYear = Object.values(groupedByYear).some(
+    (records) => records.length >= 2
+  );
+
+  console.log();
 
   useEffect(() => {
     getData();
@@ -110,6 +126,7 @@ const TableStandarVerySmall = () => {
           </Title>
           <Form
             layout="inline"
+            initialValues={{ nivel: 0.0, flow: 0.0 }}
             form={form}
             onFinish={(values) => {
               values = {
@@ -122,7 +139,6 @@ const TableStandarVerySmall = () => {
                   "YYYY-MM-DD HH:mm:ss"
                 ),
               };
-              console.log(values);
               createData(values);
 
               form.resetFields();
@@ -137,7 +153,6 @@ const TableStandarVerySmall = () => {
                 >
                   <DatePicker
                     placeholder="Selecciona una fecha"
-                    format="YYYY-MM-DD HH:mm:ss"
                     style={{ width: "200px" }}
                   />
                 </Form.Item>
@@ -197,6 +212,7 @@ const TableStandarVerySmall = () => {
                         type="primary"
                         icon={<CloudUploadOutlined />}
                         htmlType="submit"
+                        disabled={hasMoreThanTwoRecordsPerYear}
                       >
                         Guardar
                       </Button>
@@ -215,23 +231,26 @@ const TableStandarVerySmall = () => {
             </Row>
           </Form>
         </Col>
-        <Col>{dateStep()}</Col>
-        <Col span={24} style={{ marginTop: "20px" }}>
+        <Col span={24}>{dateStep()}</Col>
+        <Col span={18} style={{ marginTop: "10px", paddingRight: "10px" }}>
           <Table
+            size="small"
             bordered
             columns={[
               {
                 title: "Fecha",
                 dataIndex: "date_time_medition",
-                render: (date) => new Date(date).toLocaleDateString(),
+                render: (date) => new Date(date).toLocaleDateString(1),
               },
               {
                 title: "Caudal(l/s)",
                 dataIndex: "flow",
+                render: (flow) => parseFloat(flow).toFixed(1),
               },
               {
                 title: "Nivel freatico(m)",
                 dataIndex: "nivel",
+                render: (nivel) => parseFloat(nivel).toFixed(1),
               },
               {
                 title: "Totalizado(m³)",
@@ -241,7 +260,7 @@ const TableStandarVerySmall = () => {
               {
                 render: (x) => (
                   <>
-                    {!x.is_send_dga && (
+                    {!x.is_send_dga ? (
                       <Button
                         danger
                         type="primary"
@@ -251,6 +270,10 @@ const TableStandarVerySmall = () => {
                       >
                         Eliminar
                       </Button>
+                    ) : (
+                      <Tag icon={<CheckCircleFilled />} color={"green-inverse"}>
+                        REGISTRO ENVIADO A DGA
+                      </Tag>
                     )}
                   </>
                 ),
@@ -258,6 +281,50 @@ const TableStandarVerySmall = () => {
             ]}
             dataSource={dataForm}
           />
+        </Col>
+        <Col span={6}>
+          <Row justify={"center"}>
+            <Col>
+              <Card hoverable>
+                <Tooltip
+                  style={{}}
+                  color="#1F3461"
+                  title={
+                    <Text style={{ color: "white" }}>
+                      Los siguientes datos son proporcionados por la DGA,
+                      respecto a dudas o iconsistencias: ponte en contacto con{" "}
+                      <b>soporte@smarthydro.cl</b>
+                    </Text>
+                  }
+                >
+                  <Button
+                    icon={<SecurityScanFilled />}
+                    type="primary"
+                    block
+                    onClick={() => {
+                      window.open(
+                        `https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.code_dga_site}`,
+                        "_blank"
+                      );
+                    }}
+                    style={{
+                      paddingBottom: "50px",
+                    }}
+                  >
+                    Ver <b> {state.selected_profile.code_dga_site}</b> <br />
+                    en plataforma oficial DGA
+                  </Button>
+                </Tooltip>
+                <center>
+                  <img
+                    src={`https://api.smarthydro.app/${state.selected_profile.qr_dga}`}
+                    style={{ width: "100%", marginTop: "10px" }}
+                  />
+                </center>
+              </Card>
+            </Col>
+            <Col></Col>
+          </Row>
         </Col>
       </Row>
     </Col>
