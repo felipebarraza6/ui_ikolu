@@ -12,6 +12,7 @@ import {
 import sh from "../../api/sh/endpoints";
 import { FileImageOutlined, SecurityScanFilled } from "@ant-design/icons";
 import { AppContext } from "../../App";
+import { QRCodeCanvas } from "qrcode.react";
 const { Countdown } = Statistic;
 
 const { Title, Text } = Typography;
@@ -168,111 +169,123 @@ const Dga = () => {
           minHeight: "30vh",
         }}
       >
-        <center>
-          <Title
-            level={4}
-            style={{ paddingLeft: "10px", paddingRight: "10px" }}
-          >
-            Siguiente envío de información a servicio DGA
-          </Title>
-      {state.selected_profile.is_send_dga ? 
-          <Countdown
-            valueStyle={{ color: "white" }}
-            style={{
-              textAlign: "center",
-              backgroundColor: "#1F3461",
-              marginBottom: "30px",
-              marginTop: "20px",
-            }}
-            value={deadline}
-          />: <Tag color="red-inverse"><b>No programado</b></Tag>}
-          {state.selected_profile.qr_dga ? (
-            <>
+        <Row>
+          <center>
+            <Col span={24}>
               <Title
-                level={5}
-                style={{
-                  paddingLeft: "10px",
-                  paddingRight: "10px",
-                  marginBottom: "20px",
-                }}
+                level={4}
+                style={{ paddingLeft: "10px", paddingRight: "10px" }}
               >
-                {standart === "MAYOR"
-                  ? "El estándar Mayor envía información cada una hora"
-                  : "El estándar Medio envía información cada 24 horas"}
+                Siguiente envío de información a servicio DGA
               </Title>
-              <img
-                width={window.innerWidth > 900 ? "70%" : "30%"}
-                alt="qr_dga"
-                src={`https://api.smarthydro.app/${state.selected_profile.qr_dga}`}
-              />
-              <br />
-              <br />
-            </>
-          ) : (
-            <>
-              <FileImageOutlined
-                style={{
-                  fontWeight: "100",
-                  fontSize: "150px",
-                  textAlign: "center",
-                  color: "#1f3461",
-                }}
-              />
-              <br />
-              <br />
-            </>
-          )}
-          <Text
-            level={4}
-            style={{
-              color: "white",
-              backgroundColor: "#1F3461",
-              border: "0px solid #1F3461",
-              fontSize: "17px",
-              fontWeight: "bold",
-              padding: "5px",
-              borderRadius: "10px",
-            }}
-          >
-            {state.selected_profile.code_dga_site
-              ? state.selected_profile.code_dga_site
-              : "CÓDIGO DE OBRA"}
-          </Text>
-          <br />
-          <Tooltip
-            style={{}}
-            color="#1F3461"
-            title={
-              <Text style={{ color: "white" }}>
-                Los siguientes datos son proporcionados por la DGA, respecto a
-                dudas o iconsistencias: ponte en contacto con{" "}
-                <b>soporte@smarthydro.cl</b>
-              </Text>
-            }
-          >
-            <Button
-              icon={<SecurityScanFilled />}
-              type="primary"
-              onClick={() => {
-                window.open(
-                  `https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.code_dga_site}`,
-                  "_blank"
-                );
-              }}
+            </Col>
+            <Col span={24} style={{ marginBottom: "10px" }}>
+              {state.selected_profile.is_send_dga ? (
+                <Countdown
+                  valueStyle={{ color: "white" }}
+                  style={{
+                    textAlign: "center",
+                    backgroundColor: "#1F3461",
+                    marginBottom: "30px",
+                    marginTop: "20px",
+                  }}
+                  value={deadline}
+                />
+              ) : (
+                <Tag color="red-inverse">
+                  <b>No programado</b>
+                </Tag>
+              )}
+            </Col>
+
+            {state.selected_profile.qr_dga ? (
+              <>
+                <Title
+                  level={5}
+                  style={{
+                    paddingLeft: "10px",
+                    paddingRight: "10px",
+                    marginBottom: "20px",
+                  }}
+                >
+                  {standart === "MAYOR"
+                    ? "El estándar Mayor envía información cada una hora"
+                    : "El estándar Medio envía información cada 24 horas"}
+                </Title>
+                <QRCodeCanvas
+                  size={200}
+                  value={`https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.code_dga_site}`}
+                />
+
+                <br />
+                <br />
+              </>
+            ) : (
+              <>
+                <FileImageOutlined
+                  style={{
+                    fontWeight: "100",
+                    fontSize: "150px",
+                    textAlign: "center",
+                    color: "#1f3461",
+                  }}
+                />
+                <br />
+                <br />
+              </>
+            )}
+            <Text
+              level={4}
               style={{
-                paddingBottom: "50px",
-                marginTop: "20px",
+                color: "white",
                 backgroundColor: "#1F3461",
-                borderColor: "#1F3461",
+                border: "0px solid #1F3461",
+                fontSize: "17px",
+                fontWeight: "bold",
+                padding: "5px",
+                borderRadius: "10px",
               }}
             >
-              Ver <b> {state.selected_profile.code_dga_site}</b> <br />
-              en plataforma oficia DGA
-            </Button>
-          </Tooltip>
-          <br />
-          <br />
-        </center>
+              {state.selected_profile.code_dga_site
+                ? state.selected_profile.code_dga_site
+                : "CÓDIGO DE OBRA"}
+            </Text>
+            <br />
+            <Tooltip
+              style={{}}
+              color="#1F3461"
+              title={
+                <Text style={{ color: "white" }}>
+                  Los siguientes datos son proporcionados por la DGA, respecto a
+                  dudas o iconsistencias: ponte en contacto con{" "}
+                  <b>soporte@smarthydro.cl</b>
+                </Text>
+              }
+            >
+              <Button
+                icon={<SecurityScanFilled />}
+                type="primary"
+                onClick={() => {
+                  window.open(
+                    `https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.code_dga_site}`,
+                    "_blank"
+                  );
+                }}
+                style={{
+                  paddingBottom: "50px",
+                  marginTop: "20px",
+                  backgroundColor: "#1F3461",
+                  borderColor: "#1F3461",
+                }}
+              >
+                Ver <b> {state.selected_profile.code_dga_site}</b> <br />
+                en plataforma oficia DGA
+              </Button>
+            </Tooltip>
+            <br />
+            <br />
+          </center>
+        </Row>
       </Col>
     </Row>
   );

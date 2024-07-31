@@ -24,8 +24,6 @@ import {
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
 import api from "../../api/sh/endpoints";
-import dayjs from "dayjs";
-import moment from "moment";
 
 const { Title, Text } = Typography;
 
@@ -38,7 +36,13 @@ const TableStandarVerySmall = () => {
   const dateStep = () => {
     const currentDate = new Date();
     const endOfYear = new Date(currentDate.getFullYear(), 11, 31);
+    const endOfMonth = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() + 1,
+      0
+    );
     const timeLeft = endOfYear - currentDate;
+    const timeLeftMonth = endOfMonth - currentDate;
 
     const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
     const weeks = Math.floor(days / 7);
@@ -47,6 +51,9 @@ const TableStandarVerySmall = () => {
     const remainingDays = days % 30;
     const remainingWeeks = weeks % 4;
     const remainingMonths = months % 12;
+    const remainingDaysMonth = days % 7;
+    const remainingDaysWeek = days % weeks;
+
     return (
       <Row>
         <Col span={24}>
@@ -62,8 +69,17 @@ const TableStandarVerySmall = () => {
               color: "grey",
             }}
           >
-            {remainingMonths} Meses, {remainingWeeks} semanas y {remainingDays}{" "}
-            días
+            {state.selected_profile.standard === "CAUDALES_MUY_PEQUENOS" && (
+              <>
+                {remainingMonths} Meses, {remainingWeeks} semanas y{" "}
+                {remainingDays} días
+              </>
+            )}
+            {state.selected_profile.standard === "MENOR" && (
+              <>
+                {remainingDaysWeek} semanas y {remainingDaysMonth} días
+              </>
+            )}
           </Title>
         </Col>
       </Row>
@@ -122,11 +138,20 @@ const TableStandarVerySmall = () => {
       <Row>
         <Col span={24}>
           <Title level={4} style={{ marginBottom: "20px" }}>
-            Formulario para caudales muy pequeños
+            {state.selected_profile.standard === "CAUDALES_MUY_PEQUENOS" &&
+              "Formulario para caudales muy pequeños"}
+            {state.selected_profile.standard === "MENOR" &&
+              "Formulario para estandar menor"}
           </Title>
           <Form
             layout="inline"
-            initialValues={{ nivel: 0.0, flow: 0.0 }}
+            initialValues={{
+              nivel:
+                state.selected_profile.standard === "CAUDALES_MUY_PEQUENOS"
+                  ? 0.0
+                  : "",
+              flow: 0.0,
+            }}
             form={form}
             onFinish={(values) => {
               values = {
@@ -163,12 +188,10 @@ const TableStandarVerySmall = () => {
                   name="flow"
                   rules={[{ required: true, message: "Ingesa el caudal" }]}
                 >
-                  <InputNumber
+                  <Input
                     style={{ width: "100px" }}
                     placeholder="0.0"
-                    step={0.1}
-                    parser={(value) => parseFloat(value)}
-                    suffix="l/s"
+                    suffix={"l/s"}
                   />
                 </Form.Item>
               </Col>
@@ -178,12 +201,10 @@ const TableStandarVerySmall = () => {
                   name="nivel"
                   rules={[{ required: true, message: "Ingesa el nivel" }]}
                 >
-                  <InputNumber
+                  <Input
                     style={{ width: "100px" }}
                     placeholder="0.0"
-                    step={0.1}
-                    suffix="m"
-                    parser={(value) => parseFloat(value)}
+                    suffix={"m"}
                   />
                 </Form.Item>
               </Col>

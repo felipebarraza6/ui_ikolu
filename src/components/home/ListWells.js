@@ -1,14 +1,7 @@
 import React, { useContext, useEffect } from "react";
-import { Button } from "antd";
 import { AppContext } from "../../App";
 import { Row, Col, Tag, Badge, Select } from "antd";
-import {
-  ArrowLeftOutlined,
-  ArrowRightOutlined,
-  CheckCircleFilled,
-  CloseCircleFilled,
-  CheckSquareFilled,
-} from "@ant-design/icons";
+import { CheckCircleFilled, CloseCircleFilled } from "@ant-design/icons";
 
 const ListWells = () => {
   const { state, dispatch } = useContext(AppContext);
@@ -55,32 +48,36 @@ const ListWells = () => {
                 disabled={!e.is_monitoring}
                 value={index}
               >
-                {e.title}{" "}
-                {e.code_dga_site && window.innerWidth > 900 && (
-                  <Tag
-                    color={
-                      e.is_monitoring
-                        ? e.is_send_dga
-                          ? "green-inverse"
-                          : "geekblue-inverse"
-                        : "volcano-inverse"
-                    }
-                    style={{
-                      float: "right",
-                      marginTop: "4px",
-                      fontSize: "13px",
-                    }}
-                    icon={
-                      e.is_monitoring ? (
-                        e.is_send_dga && <CheckCircleFilled />
-                      ) : (
-                        <CloseCircleFilled />
-                      )
-                    }
-                  >
-                    {e.code_dga_site}
-                  </Tag>
-                )}
+                <Row justify={"space-between"}>
+                  <Col span={12}>{e.title}</Col>
+                  <Col span={12}>
+                    {e.code_dga_site && window.innerWidth > 900 && (
+                      <Tag
+                        color={
+                          e.is_monitoring
+                            ? e.is_send_dga
+                              ? "green-inverse"
+                              : "geekblue-inverse"
+                            : "volcano-inverse"
+                        }
+                        style={{
+                          float: "right",
+                          marginTop: "4px",
+                          fontSize: "13px",
+                        }}
+                        icon={
+                          e.is_monitoring ? (
+                            e.is_send_dga && <CheckCircleFilled />
+                          ) : (
+                            <CloseCircleFilled />
+                          )
+                        }
+                      >
+                        {e.code_dga_site}
+                      </Tag>
+                    )}
+                  </Col>
+                </Row>
               </Select.Option>
             ))}
         </Select>

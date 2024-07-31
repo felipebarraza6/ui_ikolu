@@ -125,7 +125,8 @@ const MyWell = () => {
 
   return (
     <Row justify={window.innerWidth > 900 ? "center" : "start"}>
-      {state.selected_profile.standard === "CAUDALES_MUY_PEQUENOS" ? (
+      {state.selected_profile.standard === "CAUDALES_MUY_PEQUENOS" ||
+       state.selected_profile.standard==="MENOR" ? (
         <Col xl={24} lg={24} xs={24}>
           <TableStandarVerySmall />
         </Col>
