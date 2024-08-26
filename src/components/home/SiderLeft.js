@@ -106,6 +106,7 @@ const SiderRight = () => {
               )}
               {state.selected_profile.module_4 && (
                 <Col
+                  span={24}
                   style={{
                     backgroundColor:
                       location.pathname == "/graficos" ? "white" : "#1F3461",
@@ -113,7 +114,7 @@ const SiderRight = () => {
                 >
                   <Link to="/graficos">
                     <Button
-                      disabled={state.user.username == "gcastro" ? true : false}
+                      disabled={!state.selected_profile.module_4}
                       type="link"
                       style={{
                         color:
