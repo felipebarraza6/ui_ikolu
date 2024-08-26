@@ -6,6 +6,18 @@ import { CheckCircleFilled, CloseCircleFilled } from "@ant-design/icons";
 const ListWells = () => {
   const { state, dispatch } = useContext(AppContext);
 
+  const disabledWell = (well) => {
+    if (well.is_monitoring) {
+      return false;
+    } else if (well.standard === "CAUDALES_MUY_PEQUENOS") {
+      return false;
+    } else if (well.standard === "MENOR") {
+      return false;
+    } else {
+      return true;
+    }
+  };
+
   return (
     <Row style={{ marginTop: "0px" }} align={"middle"} justify={"start"}>
       <Col>
@@ -24,7 +36,7 @@ const ListWells = () => {
         <br />
         <Select
           style={{
-            width: window.innerWidth > 900 ? "300px" : "100%",
+            width: window.innerWidth > 900 ? "350px" : "100%",
             zIndex: 9999,
             color: "black",
           }}
@@ -45,37 +57,42 @@ const ListWells = () => {
             .map((e, index) => (
               <Select.Option
                 key={index}
-                disabled={!e.is_monitoring}
+                disabled={disabledWell(e)}
                 value={index}
               >
                 <Row justify={"space-between"}>
-                  <Col span={12}>{e.title}</Col>
-                  <Col span={12}>
-                    {e.code_dga_site && window.innerWidth > 900 && (
-                      <Tag
-                        color={
-                          e.is_monitoring
-                            ? e.is_send_dga
-                              ? "green-inverse"
-                              : "geekblue-inverse"
-                            : "volcano-inverse"
-                        }
-                        style={{
-                          float: "right",
-                          marginTop: "4px",
-                          fontSize: "13px",
-                        }}
-                        icon={
-                          e.is_monitoring ? (
-                            e.is_send_dga && <CheckCircleFilled />
-                          ) : (
-                            <CloseCircleFilled />
-                          )
-                        }
-                      >
-                        {e.code_dga_site}
-                      </Tag>
-                    )}
+                  <Col span={24}>
+                    <Row justify={"space-between"}>
+                      <Col>{e.title}</Col>
+                      <Col>
+                        {e.code_dga_site && window.innerWidth > 900 && (
+                          <Tag
+                            color={
+                              e.is_send_dga
+                                ? "green-inverse"
+                                : "volcano-inverse"
+                            }
+                            style={{
+                              float: "right",
+                              marginTop: "4px",
+                              fontSize: "13px",
+                            }}
+                            icon={
+                              e.is_send_dga ? (
+                                <CheckCircleFilled />
+                              ) : (
+                                <CloseCircleFilled />
+                              )
+                            }
+                          >
+                            {e.code_dga_site}
+                          </Tag>
+                        )}
+                      </Col>
+                      <Col>
+                        {e.is_monitoring && <Badge status="processing" />}
+                      </Col>
+                    </Row>
                   </Col>
                 </Row>
               </Select.Option>

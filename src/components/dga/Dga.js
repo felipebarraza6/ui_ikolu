@@ -198,7 +198,7 @@ const Dga = () => {
               )}
             </Col>
 
-            {state.selected_profile.qr_dga ? (
+            {state.selected_profile.code_dga_site ? (
               <>
                 <Title
                   level={5}

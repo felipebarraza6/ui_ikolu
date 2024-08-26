@@ -23,6 +23,7 @@ import {
   CheckCircleFilled,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
+import { QRCodeCanvas } from "qrcode.react";
 import api from "../../api/sh/endpoints";
 
 const { Title, Text } = Typography;
@@ -337,10 +338,20 @@ const TableStandarVerySmall = () => {
                   </Button>
                 </Tooltip>
                 <center>
-                  <img
-                    src={`https://api.smarthydro.app/${state.selected_profile.qr_dga}`}
-                    style={{ width: "100%", marginTop: "10px" }}
-                  />
+                  {state.selected_profile.qr_dga ? (
+                    <img
+                      src={`https://api.smarthydro.app/${state.selected_profile.qr_dga}`}
+                      style={{ width: "100%", marginTop: "10px" }}
+                    />
+                  ) : state.selected_profile.code_dga_site ? (
+                    <QRCodeCanvas
+                      size={170}
+                      style={{ marginTop: "10px" }}
+                      value={`https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.code_dga_site}`}
+                    />
+                  ) : (
+                    <b style={{ color: "red" }}>SIN CODIGO DE OBRA</b>
+                  )}
                 </center>
               </Card>
             </Col>

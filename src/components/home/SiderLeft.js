@@ -1,4 +1,4 @@
-import { Button, Card, Affix, Modal } from "antd";
+import { Button, Card, Affix, Modal, Row, Col } from "antd";
 import React, { useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { AppContext } from "../../App";
@@ -13,128 +13,130 @@ const SiderRight = () => {
 
   return (
     <Affix offsetTop={110}>
-      <Card
+      <Row
         style={{
           backgroundColor: "#1F3461",
           borderRadius: "20px",
           minHeight: "85vh",
+          paddingTop: "10px",
+          marginLeft: "2px",
         }}
+        align={"space-around"}
       >
-        <center>
-          <img src={logo} width="50px" style={{ marginBottom: "40px" }} />
-        </center>
-        <div
-          style={{
-            textAlign: "center",
-            backgroundColor: "white",
-            marginLeft: "-24px",
-            marginRight: "-24px",
-            marginBottom: "15px",
-            backgroundColor: location.pathname == "/" ? "#1F3461" : "white",
-          }}
-        >
-          <Link to="/">
-            <Button
-              type="link"
-              style={{ color: location.pathname !== "/" ? "#1F3461" : "white" }}
-              prefix={<>a</>}
-            >
-              {location.pathname === "/" && <ArrowRightOutlined />} {state.selected_profile.standard == "CAUDALES_MUY_PEQUENOS" ? "Registros":"Mi Pozo"}
-            </Button>
-          </Link>
-        </div>
-        {state.selected_profile.module_2 && (
-          <div
-            style={{
-              textAlign: "center",
-              backgroundColor: "white",
-              marginLeft: "-24px",
-              marginRight: "-24px",
-              marginBottom: state.selected_profile.module_3 ? "15px" : "200px",
-              backgroundColor:
-                location.pathname == "/dga" ? "#1F3461" : "white",
-            }}
-          >
-            <Link to="/dga">
-              <Button
-                disabled={!state.selected_profile.module_2}
-                type="link"
+        <Row>
+          <Col span={24}>
+            <center>
+              <img src={logo} width="50px" style={{ marginTop: "10px" }} />
+            </center>
+          </Col>
+          <Col span={24} style={{ minHeight: "300px" }}>
+            <Row align={"top"}>
+              <Col
+                span={24}
                 style={{
-                  color: location.pathname !== "/dga" ? "#1F3461" : "white",
+                  backgroundColor:
+                    location.pathname == "/" ? "white" : "#1F3461",
                 }}
               >
-                {location.pathname === "/dga" && <ArrowRightOutlined />} DGA
-              </Button>
-            </Link>
-          </div>
-        )}
-
-        <>
-          {state.selected_profile.module_3 && (
-            <div
-              style={{
-                textAlign: "center",
-                backgroundColor: "white",
-                marginLeft: "-24px",
-                marginRight: "-24px",
-                marginBottom: state.selected_profile.module_4
-                  ? "15px"
-                  : "300px",
-                backgroundColor:
-                  location.pathname == "/reportes" ? "#1F3461" : "white",
-              }}
-            >
-              <Link to="/reportes">
-                <Button
-                  disabled={!state.selected_profile.module_3}
-                  type="link"
+                <Link to="/">
+                  <Button
+                    type="link"
+                    style={{
+                      color: location.pathname !== "/" ? "white" : "#1F3461",
+                    }}
+                  >
+                    {location.pathname === "/" && <ArrowRightOutlined />}{" "}
+                    {state.selected_profile.standard ===
+                      "CAUDALES_MUY_PEQUENOS" ||
+                    state.selected_profile.standard === "MENOR"
+                      ? "Registros"
+                      : "Mi Pozo"}
+                  </Button>
+                </Link>
+              </Col>
+              {state.selected_profile.module_2 && (
+                <Col
+                  span={24}
                   style={{
-                    color:
-                      location.pathname !== "/reportes" ? "#1F3461" : "white",
+                    backgroundColor:
+                      location.pathname == "/dga" ? "white" : "#1F3461",
                   }}
                 >
-                  {location.pathname === "/reportes" && <ArrowRightOutlined />}{" "}
-                  Datos y Reportes
-                </Button>
-              </Link>
-            </div>
-          )}
-          {state.selected_profile.module_4 && (
-            <div
-              style={{
-                textAlign: "center",
-                backgroundColor: "white",
-                marginLeft: "-24px",
-                marginRight: "-24px",
-                marginBottom: state.selected_profile.module_4
-                  ? "15px"
-                  : "200px",
-                backgroundColor:
-                  location.pathname == "/graficos" ? "#1F3461" : "white",
-              }}
-            >
-              <Link to="/graficos">
-                <Button
-                  disabled={state.user.username == "gcastro" ? true : false}
-                  type="link"
+                  <Link to="/dga">
+                    <Button
+                      disabled={!state.selected_profile.module_2}
+                      type="link"
+                      style={{
+                        color:
+                          location.pathname !== "/dga" ? "white" : "#1F3461",
+                      }}
+                    >
+                      {location.pathname === "/dga" && <ArrowRightOutlined />}{" "}
+                      DGA
+                    </Button>
+                  </Link>
+                </Col>
+              )}
+              {state.selected_profile.module_3 && (
+                <Col
+                  span={24}
                   style={{
-                    color:
-                      location.pathname !== "/graficos" ? "#1F3461" : "white",
+                    backgroundColor:
+                      location.pathname == "/reportes" ? "white" : "#1F3461",
                   }}
                 >
-                  {location.pathname === "/graficos" && <ArrowRightOutlined />}{" "}
-                  Gráficos
-                </Button>
-              </Link>
-            </div>
-          )}
+                  <Link to="/reportes">
+                    <Button
+                      disabled={!state.selected_profile.module_3}
+                      type="link"
+                      style={{
+                        color:
+                          location.pathname !== "/reportes"
+                            ? "white"
+                            : "#1F3461",
+                      }}
+                    >
+                      {location.pathname === "/reportes" && (
+                        <ArrowRightOutlined />
+                      )}{" "}
+                      Datos y Reportes
+                    </Button>
+                  </Link>
+                </Col>
+              )}
+              {state.selected_profile.module_4 && (
+                <Col
+                  style={{
+                    backgroundColor:
+                      location.pathname == "/graficos" ? "white" : "#1F3461",
+                  }}
+                >
+                  <Link to="/graficos">
+                    <Button
+                      disabled={state.user.username == "gcastro" ? true : false}
+                      type="link"
+                      style={{
+                        color:
+                          location.pathname !== "/graficos"
+                            ? "white"
+                            : "#1F3461",
+                      }}
+                    >
+                      {location.pathname === "/graficos" && (
+                        <ArrowRightOutlined />
+                      )}{" "}
+                      Gráficos
+                    </Button>
+                  </Link>
+                </Col>
+              )}
+            </Row>
+          </Col>
 
-          <div
+          <Col
+            span={24}
             style={{
-              textAlign: "center",
-              marginLeft: "-24px",
-              marginRight: "-24px",
-              marginBottom: "220px",
+              textAlign: "left",
             }}
           >
             <Button
@@ -168,13 +170,15 @@ const SiderRight = () => {
               {location.pathname === "/docrespaldo" && <ArrowRightOutlined />}
               Soporte
             </Button>
-          </div>
-        </>
+          </Col>
 
-        <div style={{ marginTop: "50px" }}>
-          <img src={minLogo} width={"130px"} />
-        </div>
-      </Card>
+          <Col span={24}>
+            <center>
+              <img src={minLogo} width={"130px"} />
+            </center>
+          </Col>
+        </Row>
+      </Row>
     </Affix>
   );
 };

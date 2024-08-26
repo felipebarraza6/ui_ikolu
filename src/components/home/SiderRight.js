@@ -15,9 +15,9 @@ const SiderLeft = () => {
       <Card
         style={styles.card}
         title={
-          <h3 style={{ color: "white", textAlign: "center" }}>
+          <p style={{ color: "white", textAlign: "center" }}>
             {state.selected_profile.title}
-          </h3>
+          </p>
         }
       >
         <Title align="center" style={styles.title} level={4}>
