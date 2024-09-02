@@ -47,6 +47,20 @@ const SiderLeft = () => {
               </div>
             </Col>
           )}
+
+          {state.user.username === "demo" && (
+            <Col span={24}>
+              <div style={styles.element}>
+                m³ anuales otorgado por la DGA:
+                <br />
+                <b>
+                  <Typography.Paragraph style={{ fontSize: "16px" }}>
+                    1.000.000.000 m³
+                  </Typography.Paragraph>
+                </b>
+              </div>
+            </Col>
+          )}
           {state.selected_profile.date_report_api && (
             <Col span={24}>
               <div style={styles.element}>

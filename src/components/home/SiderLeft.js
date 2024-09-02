@@ -131,6 +131,61 @@ const SiderRight = () => {
                   </Link>
                 </Col>
               )}
+              {console.log(state.selected_profile)}
+              {state.selected_profile.code_dga_site === "OB-0111-1111" && (
+                <>
+                  <Col
+                    span={24}
+                    style={{
+                      backgroundColor:
+                        location.pathname == "/doc" ? "white" : "#1F3461",
+                      paddingBottom: "10px",
+                    }}
+                  >
+                    <Link to="/doc">
+                      <Button
+                        disabled={!state.selected_profile.module_4}
+                        type="link"
+                        style={{
+                          color:
+                            location.pathname !== "/doc" ? "white" : "#1F3461",
+                          textAlign: "left",
+                        }}
+                      >
+                        {location.pathname === "/doc" && <ArrowRightOutlined />}{" "}
+                        Documentación y <br />
+                        respaldo
+                      </Button>
+                    </Link>
+                  </Col>
+                  <Col
+                    span={24}
+                    style={{
+                      backgroundColor:
+                        location.pathname == "/alert" ? "white" : "#1F3461",
+                    }}
+                  >
+                    <Link to="/alert">
+                      <Button
+                        disabled={!state.selected_profile.module_4}
+                        type="link"
+                        style={{
+                          color:
+                            location.pathname !== "/alert"
+                              ? "white"
+                              : "#1F3461",
+                          textAlign: "left",
+                        }}
+                      >
+                        {location.pathname === "/alert" && (
+                          <ArrowRightOutlined />
+                        )}{" "}
+                        Alertas
+                      </Button>
+                    </Link>
+                  </Col>
+                </>
+              )}
             </Row>
           </Col>
 

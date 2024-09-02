@@ -11,6 +11,10 @@ import Reports from "../components/reports/Reports";
 import DriveInternal from "../components/drive_internal/Drive";
 import Indicators from "../components/Indicators/Indicators";
 import Dga from "../components/dga/Dga";
+
+import DocRes from "../components/docres/DocRes";
+import Alerts from "../components/alerts/Alerts";
+
 import { AppContext } from "../App";
 import {} from "react-router-dom";
 
@@ -66,6 +70,8 @@ const Home = () => {
                       path="/docrespaldo"
                       element={<DriveInternal />}
                     />
+                    <Route exact path="/alert" element={<Alerts />} />
+                    <Route exact path="/doc" element={<DocRes />} />
                   </Routes>
                 </Card>
               </Col>
