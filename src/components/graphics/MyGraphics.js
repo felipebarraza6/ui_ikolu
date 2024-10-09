@@ -35,7 +35,13 @@ const MyGraphics = () => {
     );
   };
   const disabledDateMonth = (current) => {
-    return current && current.month() !== dayjs().month();
+    const currentMonth = dayjs().month();
+    const previousMonth = dayjs().subtract(1, "month").month();
+    return (
+      current &&
+      current.month() !== currentMonth &&
+      current.month() !== previousMonth
+    );
   };
 
   useEffect(() => {
