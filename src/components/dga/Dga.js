@@ -113,8 +113,8 @@ const Dga = () => {
         r.results.map((e, index) => {
           process_list.push({
             nivel: parseFloat(e.nivel) > 0 ? processNivel(e.nivel) : 0,
-            caudal: parseFloat(e.total) > 0 ? processCaudal(e.flow) : 0,
-            acumulado: parseFloat(e.nivel) > 0 ? processAcum(e.total) : 0,
+            caudal: parseFloat(e.flow) > 0 ? processCaudal(e.flow) : 0,
+            acumulado: parseFloat(e.total) > 0 ? processAcum(e.total) : 0,
             fecha: `${r.results[index].date_time_medition.slice(0, 10)}`,
             hora: `${r.results[index].date_time_medition.slice(11, 16)}`,
             n_voucher: e.n_voucher,
@@ -135,7 +135,9 @@ const Dga = () => {
         <Title level={3}>
           DGA - {standart} <br />
           <span style={{ fontSize: "16px" }}>
-            Datos enviados a la DGA en las últimas 48 horas
+            Datos enviados a la DGA del {new Date().getDate()} y{" "}
+            {new Date().getDate() - 1} de{" "}
+            {new Date().toLocaleString("es-CL", { month: "long" })}{" "}
           </span>
         </Title>
       </Col>
