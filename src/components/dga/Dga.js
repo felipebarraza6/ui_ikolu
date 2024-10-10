@@ -61,11 +61,10 @@ const Dga = () => {
 
   const getDataSh = async () => {
     const rq = await sh
-      .get_data_send_dga(state.selected_profile.id, page)
+      .get_data_send_dga(state.selected_profile, page)
       .then((r) => {
         const now = new Date();
         let deadline;
-
         if (standart === "MAYOR") {
           const minutesUntilNextHour = 60 - now.getMinutes();
           deadline = new Date(now.getTime() + minutesUntilNextHour * 60000);
@@ -79,6 +78,26 @@ const Dga = () => {
             0,
             0
           );
+        } else if (standart === "MENOR") {
+          const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+          deadline = new Date(
+            tomorrow.getFullYear(),
+            tomorrow.getMonth(),
+            1,
+            9,
+            0,
+            0
+          );
+        } else {
+          deadline = new Date(
+            now.getFullYear(),
+
+            now.getMonth(),
+            now.getDate(),
+            now.getHours(),
+            now.getMinutes() + 1,
+            now.getSeconds()
+          );
         }
 
         setDeadline(deadline);
@@ -87,19 +106,14 @@ const Dga = () => {
         var process_list = [];
         r.results.map((e, index) => {
           process_list.push({
-            nivel: r.results[0].nivel
-              ? processNivel(r.results[index].nivel)
-              : 0,
-            caudal: r.results[index].flow
-              ? processCaudal(r.results[0].flow)
-              : 0,
-            acumulado: r.results[0].total
-              ? processAcum(r.results[index].total)
-              : 0,
+            nivel: parseFloat(e.nivel) > 0 ? processNivel(e.nivel) : 0,
+            caudal: parseFloat(e.total) > 0 ? processCaudal(e.flow) : 0,
+            acumulado: parseFloat(e.nivel) > 0 ? processAcum(e.total) : 0,
             fecha: `${r.results[index].date_time_medition.slice(0, 10)}`,
             hora: `${r.results[index].date_time_medition.slice(11, 16)}`,
           });
         });
+        console.log(r.results);
         setData(process_list);
       });
   };
@@ -111,7 +125,7 @@ const Dga = () => {
   return (
     <Row>
       <Col span={24}>
-        <Title level={2}>
+        <Title level={3}>
           DGA - {standart} <br />
           <span style={{ fontSize: "16px" }}>
             Últimos datos enviados a DGA el{" "}
@@ -124,7 +138,7 @@ const Dga = () => {
           </span>
         </Title>
       </Col>
-      <Col xs={24} lg={16} xl={16} style={{ padding: "20px" }}>
+      <Col xs={24} lg={16} xl={16} style={{ paddingRight: "10px" }}>
         <Table
           style={{ borderRadius: "20px" }}
           bordered
@@ -136,7 +150,6 @@ const Dga = () => {
           dataSource={data}
           columns={[
             { title: "Fecha", dataIndex: "fecha" },
-            { title: "Día", dataIndex: "dia" }, // Add a new column for the day of the week
             { title: "Hora", dataIndex: "hora" },
             {
               title: window.innerWidth > 900 ? "Caudal(L/s)" : "l/s",
@@ -208,9 +221,14 @@ const Dga = () => {
                     marginBottom: "20px",
                   }}
                 >
-                  {standart === "MAYOR"
-                    ? "El estándar Mayor envía información cada una hora"
-                    : "El estándar Medio envía información cada 24 horas"}
+                  {standart === "MAYOR" &&
+                    "El estándar Mayor envía información cada una hora"}
+                  {standart === "MEDIO" &&
+                    "El estándar Mayor envía información cada un día"}
+                  {standart === "MENOR" &&
+                    "El estándar Mayor envía información cada un mes"}
+                  {standart === "MENOR" &&
+                    "El estándar Mayor envía información cada seis meses"}
                 </Title>
                 <QRCodeCanvas
                   size={200}

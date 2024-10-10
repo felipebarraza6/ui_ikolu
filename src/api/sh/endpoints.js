@@ -41,7 +41,7 @@ const deleteDataApiSh = async (id) => {
 const createDataApiSh = async (data) => {
   const rq = await POST(`interaction_detail_json/`, data);
   return rq.data;
-}
+};
 
 const getDataApiSh = async (id_profile) => {
   const rq = await GET(
@@ -87,14 +87,30 @@ const getDataApiShRangeDateGraphic = async (
 const getDataApiShDgaSend = async (id_profile, page) => {
   const year = new Date().getFullYear();
   const month = new Date().getMonth() + 1;
-  console.log(month);
   const day = new Date().getDate();
-  console.log(day);
   const rq = await GET(
-    `interaction_detail_json/?profile_client=${id_profile}&is_send_dga=true&page=${page}&date_time_medition__day=${day}&date_time_medition__month=${month}&date_time_medition__year=${year}`
+    `interaction_detail_json/?profile_client=${
+      id_profile.id
+    }&page=${page}&date_time_medition__day=${day}&date_time_medition__month=${month}&date_time_medition__year=${year}${
+      id_profile.standard === "MEDIO" ? "&date_time_medition__hour=9" : ""
+    }`
   );
 
-  console.log(rq);
+  const rq2 = await GET(
+    `interaction_detail_json/?profile_client=${
+      id_profile.id
+    }&page=${page}&date_time_medition__day=${
+      day - 1
+    }&date_time_medition__month=${month}&date_time_medition__year=${year}${
+      id_profile.standard === "MEDIO" ? "&date_time_medition__hour=9" : ""
+    }`
+  );
+
+  rq.data = {
+    ...rq.data,
+    results: [...rq2.data.results, ...rq.data.results],
+  };
+
   return rq.data;
 };
 
