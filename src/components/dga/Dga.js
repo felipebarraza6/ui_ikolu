@@ -8,9 +8,15 @@ import {
   Button,
   Tooltip,
   Tag,
+  Modal,
 } from "antd";
 import sh from "../../api/sh/endpoints";
-import { FileImageOutlined, SecurityScanFilled } from "@ant-design/icons";
+import {
+  CheckCircleFilled,
+  ClockCircleFilled,
+  FileImageOutlined,
+  SecurityScanFilled,
+} from "@ant-design/icons";
 import { AppContext } from "../../App";
 import { QRCodeCanvas } from "qrcode.react";
 const { Countdown } = Statistic;
@@ -111,6 +117,7 @@ const Dga = () => {
             acumulado: parseFloat(e.nivel) > 0 ? processAcum(e.total) : 0,
             fecha: `${r.results[index].date_time_medition.slice(0, 10)}`,
             hora: `${r.results[index].date_time_medition.slice(11, 16)}`,
+            n_voucher: e.n_voucher,
           });
         });
         console.log(r.results);
@@ -128,20 +135,15 @@ const Dga = () => {
         <Title level={3}>
           DGA - {standart} <br />
           <span style={{ fontSize: "16px" }}>
-            Últimos datos enviados a DGA el{" "}
-            {new Date().toLocaleDateString("es-ES", {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}
+            Datos enviados a la DGA en las últimas 48 horas
           </span>
         </Title>
       </Col>
-      <Col xs={24} lg={16} xl={16} style={{ paddingRight: "10px" }}>
+      <Col xs={24} lg={16} xl={18} style={{ paddingRight: "10px" }}>
         <Table
           style={{ borderRadius: "20px" }}
           bordered
+          loading={data.length === 0}
           pagination={{
             total: countElements,
             onChange: (page) => setPage(page),
@@ -168,13 +170,33 @@ const Dga = () => {
                 numberForMiles.format(processAcum(acumulado)),
               width: "10%",
             },
+            {
+              title: <center>DGA</center>,
+              dataIndex: "n_voucher",
+              render: (n_voucher) =>
+                n_voucher ? (
+                  <center>
+                    <Tooltip title={n_voucher} color="green" placement="right">
+                      <Tag
+                        icon={<CheckCircleFilled />}
+                        color="green-inverse"
+                        style={{ cursor: "pointer" }}
+                      >
+                        Completado
+                      </Tag>
+                    </Tooltip>
+                  </center>
+                ) : (
+                  <Tag icon={<ClockCircleFilled />}>Pendiente</Tag>
+                ),
+            },
           ]}
         />
       </Col>
       <Col
         xs={24}
         lg={16}
-        xl={8}
+        xl={6}
         style={{
           border: "2px solid #1F3461",
           borderRadius: "10px",
