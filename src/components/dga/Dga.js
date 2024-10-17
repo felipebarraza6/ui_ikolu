@@ -15,6 +15,7 @@ import {
   CheckCircleFilled,
   ClockCircleFilled,
   FileImageOutlined,
+  CloudServerOutlined,
   SecurityScanFilled,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
@@ -112,10 +113,11 @@ const Dga = () => {
         var process_list = [];
         r.results.map((e, index) => {
           process_list.push({
+            id: e.id,
             nivel: parseFloat(e.nivel) > 0 ? processNivel(e.nivel) : 0,
             caudal: parseFloat(e.flow) > 0 ? processCaudal(e.flow) : 0,
             acumulado: parseFloat(e.total) > 0 ? processAcum(e.total) : 0,
-            fecha: `${r.results[index].date_time_medition.slice(0, 10)}`,
+            fecha: `${r.results[index].date_time_medition.slice(2, 10)}`,
             hora: `${r.results[index].date_time_medition.slice(11, 16)}`,
             n_voucher: e.n_voucher,
           });
@@ -174,11 +176,14 @@ const Dga = () => {
             },
             {
               title: <center>DGA</center>,
-              dataIndex: "n_voucher",
-              render: (n_voucher) =>
-                n_voucher ? (
+              render: (obj) =>
+                obj.n_voucher ? (
                   <center>
-                    <Tooltip title={n_voucher} color="green" placement="right">
+                    <Tooltip
+                      title={obj.n_voucher}
+                      color="green"
+                      placement="right"
+                    >
                       <Tag
                         icon={<CheckCircleFilled />}
                         color="green-inverse"
@@ -189,7 +194,9 @@ const Dga = () => {
                     </Tooltip>
                   </center>
                 ) : (
-                  <Tag icon={<ClockCircleFilled />}>Pendiente</Tag>
+                  <Tag icon={<CloudServerOutlined />} color={"volcano"}>
+                    Servicio DGA no disponible Ref: #{obj.id}
+                  </Tag>
                 ),
             },
           ]}

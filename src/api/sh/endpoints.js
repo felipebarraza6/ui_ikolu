@@ -6,6 +6,10 @@ const login = async (data) => {
     password: data.password,
   });
 
+  request.data.user.profile_data.sort(
+    (a, b) => b.is_monitoring - a.is_monitoring
+  );
+
   return request.data;
 };
 
@@ -22,6 +26,11 @@ const get_history_data_admin = async () => {
 const get_profile = async () => {
   const user = JSON.parse(localStorage.getItem("user") || null);
   const rq = await GET(`users/${user.username}/`);
+
+  rq.data.user.profile_data.forEach((item, index) => {
+    item.key = index;
+  });
+
   return rq.data;
 };
 

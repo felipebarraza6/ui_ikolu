@@ -1,10 +1,13 @@
 import React, { useContext, useEffect } from "react";
 import { AppContext } from "../../App";
 import { Row, Col, Tag, Badge, Select } from "antd";
+import { useNavigate } from "react-router";
 import { CheckCircleFilled, CloseCircleFilled } from "@ant-design/icons";
 
 const ListWells = () => {
   const { state, dispatch } = useContext(AppContext);
+
+  const navigate = useNavigate();
 
   const disabledWell = (well) => {
     if (well.is_monitoring) {
@@ -41,25 +44,30 @@ const ListWells = () => {
             color: "black",
           }}
           placeholder="Selecciona un punto de captación"
-          defaultValue={state.selected_profile.key}
+          defaultValue={state.selected_profile.id}
           onSelect={(key) => {
-            console.log(state.profile_client[key]);
+            console.log(key);
+            const selectedProfile = state.profile_client.find(
+              (profile) => profile.id === key
+            );
             dispatch({
               type: "CHANGE_SELECTED_PROFILE",
               payload: {
-                selected_profile: { ...state.profile_client[key], key: key },
+                selected_profile: { ...selectedProfile, key: key },
               },
             });
+            navigate("/");
           }}
         >
           {state.profile_client
-            .sort((a, b) => a.title.localeCompare(b.title))
-            .map((e, index) => (
-              <Select.Option
-                key={index}
-                disabled={disabledWell(e)}
-                value={index}
-              >
+            .sort((a, b) => {
+              if (a.is_monitoring === b.is_monitoring) {
+                return a.title.localeCompare(b.title);
+              }
+              return a.is_monitoring ? -1 : 1;
+            })
+            .map((e) => (
+              <Select.Option key={e.id} disabled={disabledWell(e)} value={e.id}>
                 <Row justify={"space-between"}>
                   <Col span={24}>
                     <Row justify={"space-between"}>

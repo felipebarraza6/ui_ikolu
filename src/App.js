@@ -47,7 +47,7 @@ function App() {
   };
 
   useEffect(() => {
-          updateApp();
+    updateApp();
   }, []);
 
   return (
