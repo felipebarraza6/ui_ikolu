@@ -7,8 +7,10 @@ import {
   Statistic,
   Button,
   Tooltip,
+  Affix,
   Tag,
   Modal,
+  Alert,
 } from "antd";
 import sh from "../../api/sh/endpoints";
 import {
@@ -117,7 +119,11 @@ const Dga = () => {
             nivel: parseFloat(e.nivel) > 0 ? processNivel(e.nivel) : 0,
             caudal: parseFloat(e.flow) > 0 ? processCaudal(e.flow) : 0,
             acumulado: parseFloat(e.total) > 0 ? processAcum(e.total) : 0,
-            fecha: `${r.results[index].date_time_medition.slice(2, 10)}`,
+            fecha: `${new Date(
+              r.results[index].date_time_medition
+            ).getDate()}-${new Date(
+              r.results[index].date_time_medition
+            ).toLocaleString("default", { month: "short" })}`,
             hora: `${r.results[index].date_time_medition.slice(11, 16)}`,
             n_voucher: e.n_voucher,
           });
@@ -132,10 +138,9 @@ const Dga = () => {
   }, [state.selected_profile, page]);
 
   return (
-    <Row>
+    <Row align={"top"} justify={"space-evenly"}>
       <Col span={24}>
         <Title level={3}>
-          DGA - {standart} <br />
           <span style={{ fontSize: "16px" }}>
             Datos enviados a la DGA del {new Date().getDate()} y{" "}
             {new Date().getDate() - 1} de{" "}
@@ -150,6 +155,7 @@ const Dga = () => {
           loading={data.length === 0}
           pagination={{
             total: countElements,
+            pageSize: 10,
             onChange: (page) => setPage(page),
           }}
           size="small"
@@ -175,166 +181,160 @@ const Dga = () => {
               width: "10%",
             },
             {
-              title: <center>DGA</center>,
+              title: <center>Comprobante ingreso DGA</center>,
               render: (obj) =>
                 obj.n_voucher ? (
-                  <center>
-                    <Tooltip
-                      title={obj.n_voucher}
-                      color="green"
-                      placement="right"
-                    >
-                      <Tag
-                        icon={<CheckCircleFilled />}
-                        color="green-inverse"
-                        style={{ cursor: "pointer" }}
-                      >
-                        Completado
-                      </Tag>
-                    </Tooltip>
-                  </center>
+                  <Alert
+                    icon={<CheckCircleFilled />}
+                    size="small"
+                    showIcon
+                    style={{ width: "210px", padding: "5px" }}
+                    type="success"
+                    message={<>{obj.n_voucher}</>}
+                  />
                 ) : (
-                  <Tag icon={<CloudServerOutlined />} color={"volcano"}>
-                    Servicio DGA no disponible Ref: #{obj.id}
-                  </Tag>
+                  <Alert
+                    icon={<CloudServerOutlined />}
+                    size="small"
+                    style={{ width: "210px", padding: "5px" }}
+                    showIcon
+                    type="error"
+                    description={<>Servicio DGA no disponible ref: #{obj.id}</>}
+                  />
                 ),
             },
           ]}
         />
       </Col>
-      <Col
-        xs={24}
-        lg={16}
-        xl={6}
-        style={{
-          border: "2px solid #1F3461",
-          borderRadius: "10px",
-          marginTop: window.innerWidth > 900 ? "-100px" : "0px",
-          minHeight: "30vh",
-        }}
-      >
-        <Row>
-          <center>
-            <Col span={24}>
-              <Title
-                level={4}
-                style={{ paddingLeft: "10px", paddingRight: "10px" }}
-              >
-                Siguiente envío de información a servicio DGA
-              </Title>
-            </Col>
-            <Col span={24} style={{ marginBottom: "10px" }}>
-              {state.selected_profile.is_send_dga ? (
-                <Countdown
-                  valueStyle={{ color: "white" }}
-                  style={{
-                    textAlign: "center",
-                    backgroundColor: "#1F3461",
-                    marginBottom: "30px",
-                    marginTop: "20px",
-                  }}
-                  value={deadline}
-                />
-              ) : (
-                <Tag color="red-inverse">
-                  <b>No programado</b>
-                </Tag>
-              )}
-            </Col>
+      <Col xs={24} lg={16} xl={6}>
+        <Affix offsetTop={200}>
+          <Row
+            style={{
+              border: "2px solid #1F3461",
+              borderRadius: "10px",
+              marginTop: window.innerWidth > 900 ? "-70px" : "0px",
+              minHeight: "30vh",
+            }}
+          >
+            <center>
+              <Col span={24}>
+                <Title level={4}>
+                  Siguiente envío de información a servicio DGA
+                </Title>
+              </Col>
+              <Col span={24} style={{ marginBottom: "10px" }}>
+                {state.selected_profile.is_send_dga ? (
+                  <Countdown
+                    valueStyle={{ color: "white" }}
+                    style={{
+                      textAlign: "center",
+                      backgroundColor: "#1F3461",
+                      marginBottom: "30px",
+                      marginTop: "20px",
+                    }}
+                    value={deadline}
+                  />
+                ) : (
+                  <Tag color="red-inverse">
+                    <b>No programado</b>
+                  </Tag>
+                )}
+              </Col>
 
-            {state.selected_profile.code_dga_site ? (
-              <>
-                <Title
-                  level={5}
+              {state.selected_profile.code_dga_site ? (
+                <>
+                  <Title
+                    level={5}
+                    style={{
+                      paddingLeft: "10px",
+                      paddingRight: "10px",
+                      marginBottom: "20px",
+                    }}
+                  >
+                    {standart === "MAYOR" &&
+                      "El estándar Mayor envía información cada una hora"}
+                    {standart === "MEDIO" &&
+                      "El estándar Mayor envía información cada un día"}
+                    {standart === "MENOR" &&
+                      "El estándar Mayor envía información cada un mes"}
+                    {standart === "MENOR" &&
+                      "El estándar Mayor envía información cada seis meses"}
+                  </Title>
+                  <QRCodeCanvas
+                    size={200}
+                    value={`https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.code_dga_site}`}
+                  />
+
+                  <br />
+                  <br />
+                </>
+              ) : (
+                <>
+                  <FileImageOutlined
+                    style={{
+                      fontWeight: "100",
+                      fontSize: "150px",
+                      textAlign: "center",
+                      color: "#1f3461",
+                    }}
+                  />
+                  <br />
+                  <br />
+                </>
+              )}
+              <Text
+                level={4}
+                style={{
+                  color: "white",
+                  backgroundColor: "#1F3461",
+                  border: "0px solid #1F3461",
+                  fontSize: "17px",
+                  fontWeight: "bold",
+                  padding: "5px",
+                  borderRadius: "10px",
+                }}
+              >
+                {state.selected_profile.code_dga_site
+                  ? state.selected_profile.code_dga_site
+                  : "CÓDIGO DE OBRA"}
+              </Text>
+              <br />
+              <Tooltip
+                style={{}}
+                color="#1F3461"
+                title={
+                  <Text style={{ color: "white" }}>
+                    Los siguientes datos son proporcionados por la DGA, respecto
+                    a dudas o iconsistencias: ponte en contacto con{" "}
+                    <b>soporte@smarthydro.cl</b>
+                  </Text>
+                }
+              >
+                <Button
+                  icon={<SecurityScanFilled />}
+                  type="primary"
+                  onClick={() => {
+                    window.open(
+                      `https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.code_dga_site}`,
+                      "_blank"
+                    );
+                  }}
                   style={{
-                    paddingLeft: "10px",
-                    paddingRight: "10px",
-                    marginBottom: "20px",
+                    paddingBottom: "50px",
+                    marginTop: "20px",
+                    backgroundColor: "#1F3461",
+                    borderColor: "#1F3461",
                   }}
                 >
-                  {standart === "MAYOR" &&
-                    "El estándar Mayor envía información cada una hora"}
-                  {standart === "MEDIO" &&
-                    "El estándar Mayor envía información cada un día"}
-                  {standart === "MENOR" &&
-                    "El estándar Mayor envía información cada un mes"}
-                  {standart === "MENOR" &&
-                    "El estándar Mayor envía información cada seis meses"}
-                </Title>
-                <QRCodeCanvas
-                  size={200}
-                  value={`https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.code_dga_site}`}
-                />
-
-                <br />
-                <br />
-              </>
-            ) : (
-              <>
-                <FileImageOutlined
-                  style={{
-                    fontWeight: "100",
-                    fontSize: "150px",
-                    textAlign: "center",
-                    color: "#1f3461",
-                  }}
-                />
-                <br />
-                <br />
-              </>
-            )}
-            <Text
-              level={4}
-              style={{
-                color: "white",
-                backgroundColor: "#1F3461",
-                border: "0px solid #1F3461",
-                fontSize: "17px",
-                fontWeight: "bold",
-                padding: "5px",
-                borderRadius: "10px",
-              }}
-            >
-              {state.selected_profile.code_dga_site
-                ? state.selected_profile.code_dga_site
-                : "CÓDIGO DE OBRA"}
-            </Text>
-            <br />
-            <Tooltip
-              style={{}}
-              color="#1F3461"
-              title={
-                <Text style={{ color: "white" }}>
-                  Los siguientes datos son proporcionados por la DGA, respecto a
-                  dudas o iconsistencias: ponte en contacto con{" "}
-                  <b>soporte@smarthydro.cl</b>
-                </Text>
-              }
-            >
-              <Button
-                icon={<SecurityScanFilled />}
-                type="primary"
-                onClick={() => {
-                  window.open(
-                    `https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.code_dga_site}`,
-                    "_blank"
-                  );
-                }}
-                style={{
-                  paddingBottom: "50px",
-                  marginTop: "20px",
-                  backgroundColor: "#1F3461",
-                  borderColor: "#1F3461",
-                }}
-              >
-                Ver <b> {state.selected_profile.code_dga_site}</b> <br />
-                en plataforma oficia DGA
-              </Button>
-            </Tooltip>
-            <br />
-            <br />
-          </center>
-        </Row>
+                  Ver <b> {state.selected_profile.code_dga_site}</b> <br />
+                  en plataforma oficia DGA
+                </Button>
+              </Tooltip>
+              <br />
+              <br />
+            </center>
+          </Row>
+        </Affix>
       </Col>
     </Row>
   );

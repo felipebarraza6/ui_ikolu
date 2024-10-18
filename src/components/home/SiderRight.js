@@ -12,15 +12,13 @@ const SiderLeft = () => {
 
   return (
     <>
-      <Card
-        style={styles.card}
-        title={
-          <p style={{ color: "white", textAlign: "center" }}>
+      <Card style={styles.card}>
+        <Title align="center" style={styles.title} level={4}>
+          <p
+            style={{ color: "white", textAlign: "center", marginTop: "-12px" }}
+          >
             {state.selected_profile.title}
           </p>
-        }
-      >
-        <Title align="center" style={styles.title} level={4}>
           {state.selected_profile.standard && (
             <div>
               <Tag color="geekblue-inverse">ESTANDAR</Tag>
