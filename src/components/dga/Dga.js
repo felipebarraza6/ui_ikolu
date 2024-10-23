@@ -15,10 +15,9 @@ import {
 import sh from "../../api/sh/endpoints";
 import {
   CheckCircleFilled,
-  ClockCircleFilled,
   FileImageOutlined,
   CloudServerOutlined,
-  SecurityScanFilled,
+  LinkOutlined,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
 import { QRCodeCanvas } from "qrcode.react";
@@ -148,7 +147,7 @@ const Dga = () => {
           </span>
         </Title>
       </Col>
-      <Col xs={24} lg={16} xl={18} style={{ paddingRight: "10px" }}>
+      <Col xs={24} lg={16} xl={19} style={{ paddingRight: "10px" }}>
         <Table
           style={{ borderRadius: "20px" }}
           bordered
@@ -161,15 +160,15 @@ const Dga = () => {
           size="small"
           dataSource={data}
           columns={[
-            { title: "Fecha", dataIndex: "fecha" },
-            { title: "Hora", dataIndex: "hora" },
+            { title: "Fecha", dataIndex: "fecha", width: "50%", fixed: "top" },
+            { title: "Hora", dataIndex: "hora", width: "10%" },
             {
               title: window.innerWidth > 900 ? "Caudal(L/s)" : "l/s",
               dataIndex: "caudal",
               render: (flow) => processCaudal(flow),
             },
             {
-              title: window.innerWidth > 900 ? "Nivel Freático(m)" : "m",
+              title: window.innerWidth > 900 ? "N.Freático(m)" : "m",
               dataIndex: "nivel",
               render: (nivel) => nivel,
             },
@@ -206,49 +205,47 @@ const Dga = () => {
           ]}
         />
       </Col>
-      <Col xs={24} lg={16} xl={6}>
-        <Affix offsetTop={200}>
+      <Col xs={24} lg={16} xl={5}>
+        <Affix offsetTop={185}>
           <Row
+            justify={"center"}
+            align={"middle"}
             style={{
               border: "2px solid #1F3461",
+              zIndex: -10,
               borderRadius: "10px",
               marginTop: window.innerWidth > 900 ? "-70px" : "0px",
-              minHeight: "30vh",
             }}
           >
-            <center>
-              <Col span={24}>
-                <Title level={4}>
-                  Siguiente envío de información a servicio DGA
-                </Title>
-              </Col>
-              <Col span={24} style={{ marginBottom: "10px" }}>
-                {state.selected_profile.is_send_dga ? (
-                  <Countdown
-                    valueStyle={{ color: "white" }}
-                    style={{
-                      textAlign: "center",
-                      backgroundColor: "#1F3461",
-                      marginBottom: "30px",
-                      marginTop: "20px",
-                    }}
-                    value={deadline}
-                  />
-                ) : (
-                  <Tag color="red-inverse">
-                    <b>No programado</b>
-                  </Tag>
-                )}
-              </Col>
-
+            <Col>
+              <Title level={4} style={{ textAlign: "center" }}>
+                Siguiente envío de información a servicio DGA
+              </Title>
+            </Col>
+            <Col span={24}>
+              {state.selected_profile.is_send_dga ? (
+                <Countdown
+                  valueStyle={{ color: "white" }}
+                  style={{
+                    textAlign: "center",
+                    backgroundColor: "#1F3461",
+                  }}
+                  value={deadline}
+                />
+              ) : (
+                <Tag color="red-inverse">
+                  <b>No programado</b>
+                </Tag>
+              )}
+            </Col>
+            <Col>
               {state.selected_profile.code_dga_site ? (
-                <>
+                <center>
                   <Title
                     level={5}
                     style={{
                       paddingLeft: "10px",
                       paddingRight: "10px",
-                      marginBottom: "20px",
                     }}
                   >
                     {standart === "MAYOR" &&
@@ -261,13 +258,12 @@ const Dga = () => {
                       "El estándar Mayor envía información cada seis meses"}
                   </Title>
                   <QRCodeCanvas
-                    size={200}
+                    size={150}
                     value={`https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.code_dga_site}`}
                   />
-
                   <br />
                   <br />
-                </>
+                </center>
               ) : (
                 <>
                   <FileImageOutlined
@@ -282,15 +278,14 @@ const Dga = () => {
                   <br />
                 </>
               )}
+            </Col>
+            <Col>
               <Text
                 level={4}
                 style={{
-                  color: "white",
-                  backgroundColor: "#1F3461",
-                  border: "0px solid #1F3461",
+                  color: "#1F3461",
                   fontSize: "17px",
                   fontWeight: "bold",
-                  padding: "5px",
                   borderRadius: "10px",
                 }}
               >
@@ -298,20 +293,21 @@ const Dga = () => {
                   ? state.selected_profile.code_dga_site
                   : "CÓDIGO DE OBRA"}
               </Text>
-              <br />
+            </Col>
+            <Col>
               <Tooltip
-                style={{}}
+                placement="right"
                 color="#1F3461"
                 title={
                   <Text style={{ color: "white" }}>
                     Los siguientes datos son proporcionados por la DGA, respecto
-                    a dudas o iconsistencias: ponte en contacto con{" "}
+                    a dudas o inconsistencias: ponte en contacto con{" "}
                     <b>soporte@smarthydro.cl</b>
                   </Text>
                 }
               >
                 <Button
-                  icon={<SecurityScanFilled />}
+                  icon={<LinkOutlined />}
                   type="primary"
                   onClick={() => {
                     window.open(
@@ -320,19 +316,17 @@ const Dga = () => {
                     );
                   }}
                   style={{
-                    paddingBottom: "50px",
-                    marginTop: "20px",
                     backgroundColor: "#1F3461",
                     borderColor: "#1F3461",
                   }}
                 >
-                  Ver <b> {state.selected_profile.code_dga_site}</b> <br />
-                  en plataforma oficia DGA
+                  Plataforma DGA
                 </Button>
               </Tooltip>
-              <br />
-              <br />
-            </center>
+            </Col>
+            <br />
+            <br />
+            <br />
           </Row>
         </Affix>
       </Col>
