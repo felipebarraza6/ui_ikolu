@@ -16,7 +16,9 @@ import sh from "../../api/sh/endpoints";
 import {
   CheckCircleFilled,
   FileImageOutlined,
+  ClockCircleFilled,
   CloudServerOutlined,
+  OrderedListOutlined,
   LinkOutlined,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
@@ -191,7 +193,7 @@ const Dga = () => {
                     type="success"
                     message={<>{obj.n_voucher}</>}
                   />
-                ) : (
+                ) : state.selected_profile.is_send_dga ? (
                   <Alert
                     icon={<CloudServerOutlined />}
                     size="small"
@@ -199,6 +201,15 @@ const Dga = () => {
                     showIcon
                     type="error"
                     description={<>Servicio DGA no disponible ref: #{obj.id}</>}
+                  />
+                ) : (
+                  <Alert
+                    size="small"
+                    style={{ width: "210px", padding: "5px" }}
+                    showIcon
+                    icon={<OrderedListOutlined />}
+                    type="warning"
+                    description={<>Envío DGA no programado</>}
                   />
                 ),
             },
@@ -233,9 +244,11 @@ const Dga = () => {
                   value={deadline}
                 />
               ) : (
-                <Tag color="red-inverse">
-                  <b>No programado</b>
-                </Tag>
+                <center>
+                  <Tag color="red-inverse" icon={<ClockCircleFilled />}>
+                    <b>No programado</b>
+                  </Tag>
+                </center>
               )}
             </Col>
             <Col>
