@@ -207,19 +207,22 @@ const MyWell = () => {
                     (L/s)
                   </Card>
                 </Col>
-                <Col span={8}>
-                  <Card
-                    size="small"
-                    style={{ backgroundColor: "#1F3461", color: "white" }}
-                  >
-                    <b>Nivel Freático</b>
-                    <br />
-                    {parseFloat(nivel).toLocaleString("es-ES", {
-                      minimumFractionDigits: 1,
-                    })}{" "}
-                    (m)
-                  </Card>
-                </Col>
+                {state.selected_profile.type_dga === "SUB" && (
+                  <Col span={8}>
+                    <Card
+                      size="small"
+                      style={{ backgroundColor: "#1F3461", color: "white" }}
+                    >
+                      <b>Nivel Freático</b>
+                      <br />
+                      {parseFloat(nivel).toLocaleString("es-ES", {
+                        minimumFractionDigits: 1,
+                      })}{" "}
+                      (m)
+                    </Card>
+                  </Col>
+                )}
+
                 <Col span={8}>
                   <Card
                     size="small"
