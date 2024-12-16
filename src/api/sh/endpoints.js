@@ -100,11 +100,8 @@ const getDataApiShDgaSend = async (id_profile, page) => {
   let totalCount = 0;
 
   const rq = await GET(
-    `interaction_detail_json/?profile_client=${
-      id_profile.id
-    }&page=${page}&date_time_medition__day__range=${
-      day - 1
-    },${day}&date_time_medition__month=${month}&date_time_medition__year=${year}${
+    `interaction_detail_json/?profile_client=${id_profile.id}&page=${page}
+    &date_time_medition__month=${month}&date_time_medition__year=${year}${
       id_profile.standard === "MEDIO" ? "&date_time_medition__hour=9" : ""
     }`
   ).then((r) => {

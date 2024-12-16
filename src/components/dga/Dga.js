@@ -9,7 +9,6 @@ import {
   Tooltip,
   Affix,
   Tag,
-  Modal,
   Alert,
 } from "antd";
 import sh from "../../api/sh/endpoints";
