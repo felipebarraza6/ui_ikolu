@@ -21,8 +21,8 @@ const SiderLeft = () => {
           </p>
           {state.selected_profile.standard && (
             <div>
-              <Tag color="geekblue-inverse">ESTANDAR</Tag>
               <Tag color="geekblue-inverse">
+                ESTANDAR:{" "}
                 {state.selected_profile.standard.toUpperCase() ===
                 "CAUDALES_MUY_PEQUENOS"
                   ? "CAUDALES MUY PEQUEÑOS"

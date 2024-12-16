@@ -126,7 +126,7 @@ const MyWell = () => {
   return (
     <Row justify={window.innerWidth > 900 ? "center" : "start"}>
       {state.selected_profile.standard === "CAUDALES_MUY_PEQUENOS" ||
-       state.selected_profile.standard==="MENOR" ? (
+      state.selected_profile.standard === "MENOR" ? (
         <Col xl={24} lg={24} xs={24}>
           <TableStandarVerySmall />
         </Col>
@@ -190,6 +190,7 @@ const MyWell = () => {
               </Typography.Title>
             )}
           </Col>
+
           {window.innerWidth < 900 ? (
             <Col span={24} style={{ marginTop: "10px" }}>
               <Row justify={"space-evenly"}>
@@ -206,19 +207,22 @@ const MyWell = () => {
                     (L/s)
                   </Card>
                 </Col>
-                <Col span={8}>
-                  <Card
-                    size="small"
-                    style={{ backgroundColor: "#1F3461", color: "white" }}
-                  >
-                    <b>Nivel Freático</b>
-                    <br />
-                    {parseFloat(nivel).toLocaleString("es-ES", {
-                      minimumFractionDigits: 1,
-                    })}{" "}
-                    (m)
-                  </Card>
-                </Col>
+                {state.selected_profile.type_dga === "SUB" && (
+                  <Col span={8}>
+                    <Card
+                      size="small"
+                      style={{ backgroundColor: "#1F3461", color: "white" }}
+                    >
+                      <b>Nivel Freático</b>
+                      <br />
+                      {parseFloat(nivel).toLocaleString("es-ES", {
+                        minimumFractionDigits: 1,
+                      })}{" "}
+                      (m)
+                    </Card>
+                  </Col>
+                )}
+
                 <Col span={8}>
                   <Card
                     size="small"
@@ -281,52 +285,58 @@ const MyWell = () => {
                   </Col>
                 </Row>
               </Card>
-              <Card hoverable style={styles.cardValues} size="small">
-                <Row
-                  justify={window.innerWidth > 900 ? "space-around" : "center"}
-                >
-                  <Col xs={24} lg={6} xl={6}>
-                    <center>
-                      <img
-                        src={nivel_img}
-                        alt="caudal_img"
-                        width={window.innerWidth > 900 ? "73%" : "50%"}
-                        style={{
-                          marginBottom: window.innerWidth > 900 ? "0px" : "5px",
-                        }}
-                      />
-                    </center>
-                  </Col>
-                  <Col xs={24} lg={18} xl={18} style={styles.colCard}>
-                    {window.innerWidth > 900 && (
-                      <Title level={5} style={{ marginTop: "-10px" }}>
-                        Nivel Freático
-                      </Title>
-                    )}
-
-                    {window.innerWidth > 900 ? (
-                      <Text style={styles.valueCard}>
-                        <b>
-                          {parseFloat(nivel).toLocaleString("es-ES", {
-                            minimumFractionDigits: 1,
-                          })}{" "}
-                          (m)
-                        </b>
-                      </Text>
-                    ) : (
+              {state.selected_profile.type_dga === "SUB" && (
+                <Card hoverable style={styles.cardValues} size="small">
+                  <Row
+                    justify={
+                      window.innerWidth > 900 ? "space-around" : "center"
+                    }
+                  >
+                    <Col xs={24} lg={6} xl={6}>
                       <center>
-                        <Tag color="#1F3461">Nivel Freático</Tag>
-                        <Tag color="#1F3461">
-                          {parseFloat(nivel).toLocaleString("es-ES", {
-                            minimumFractionDigits: 1,
-                          })}{" "}
-                          (m)
-                        </Tag>
+                        <img
+                          src={nivel_img}
+                          alt="caudal_img"
+                          width={window.innerWidth > 900 ? "73%" : "50%"}
+                          style={{
+                            marginBottom:
+                              window.innerWidth > 900 ? "0px" : "5px",
+                          }}
+                        />
                       </center>
-                    )}
-                  </Col>
-                </Row>
-              </Card>
+                    </Col>
+                    <Col xs={24} lg={18} xl={18} style={styles.colCard}>
+                      {window.innerWidth > 900 && (
+                        <Title level={5} style={{ marginTop: "-10px" }}>
+                          Nivel Freático
+                        </Title>
+                      )}
+
+                      {window.innerWidth > 900 ? (
+                        <Text style={styles.valueCard}>
+                          <b>
+                            {parseFloat(nivel).toLocaleString("es-ES", {
+                              minimumFractionDigits: 1,
+                            })}{" "}
+                            (m)
+                          </b>
+                        </Text>
+                      ) : (
+                        <center>
+                          <Tag color="#1F3461">Nivel Freático</Tag>
+                          <Tag color="#1F3461">
+                            {parseFloat(nivel).toLocaleString("es-ES", {
+                              minimumFractionDigits: 1,
+                            })}{" "}
+                            (m)
+                          </Tag>
+                        </center>
+                      )}
+                    </Col>
+                  </Row>
+                </Card>
+              )}
+
               <Card hoverable style={styles.cardValues} size="small">
                 <Row
                   justify={window.innerWidth > 900 ? "space-around" : "center"}
@@ -386,12 +396,14 @@ const MyWell = () => {
                 <Text style={styles.textTotal}>
                   {numberForMiles.format(acumulado)} (m³)
                 </Text>
-                <Text style={styles.textNivel}>
-                  {parseFloat(nivel).toLocaleString("es-ES", {
-                    minimumFractionDigits: 1,
-                  })}{" "}
-                  (m)
-                </Text>
+                {state.selected_profile.type_dga === "SUB" && (
+                  <Text style={styles.textNivel}>
+                    {parseFloat(nivel).toLocaleString("es-ES", {
+                      minimumFractionDigits: 1,
+                    })}{" "}
+                    (m)
+                  </Text>
+                )}
               </Col>
             </Row>
           </Col>

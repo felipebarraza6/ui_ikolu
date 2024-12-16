@@ -2,7 +2,12 @@ import React, { useContext, useEffect } from "react";
 import { AppContext } from "../../App";
 import { Row, Col, Tag, Badge, Select } from "antd";
 import { useNavigate } from "react-router";
-import { CheckCircleFilled, CloseCircleFilled } from "@ant-design/icons";
+import {
+  CheckCircleFilled,
+  CloseCircleFilled,
+  SendOutlined,
+  DatabaseFilled,
+} from "@ant-design/icons";
 
 const ListWells = () => {
   const { state, dispatch } = useContext(AppContext);
@@ -68,18 +73,17 @@ const ListWells = () => {
             })
             .map((e) => (
               <Select.Option key={e.id} disabled={disabledWell(e)} value={e.id}>
-                <Row justify={"space-between"}>
+                <Row>
                   <Col span={24}>
                     <Row justify={"space-between"}>
-                      <Col>{e.title}</Col>
-                      <Col>
+                      <Col span={11}>{e.title}</Col>
+                      <Col span={1}>
+                        {e.is_monitoring && <Badge status="processing" />}
+                      </Col>
+                      <Col span={11}>
                         {e.code_dga_site && window.innerWidth > 900 && (
                           <Tag
-                            color={
-                              e.is_send_dga
-                                ? "green-inverse"
-                                : "volcano-inverse"
-                            }
+                            color={e.is_send_dga ? "green-inverse" : "blue"}
                             style={{
                               float: "right",
                               marginTop: "4px",
@@ -87,18 +91,15 @@ const ListWells = () => {
                             }}
                             icon={
                               e.is_send_dga ? (
-                                <CheckCircleFilled />
+                                <SendOutlined />
                               ) : (
-                                <CloseCircleFilled />
+                                <DatabaseFilled />
                               )
                             }
                           >
                             {e.code_dga_site}
                           </Tag>
                         )}
-                      </Col>
-                      <Col>
-                        {e.is_monitoring && <Badge status="processing" />}
                       </Col>
                     </Row>
                   </Col>
