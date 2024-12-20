@@ -29,6 +29,7 @@ import {
   RiseOutlined,
 } from "@ant-design/icons";
 import sh from "../../api/sh/endpoints";
+import QueueAnim from "rc-queue-anim";
 
 const { Title } = Typography;
 
@@ -205,22 +206,22 @@ const Reports = () => {
 
     for (let i = 0; i < batches; i++) {
       const startIndex = i * batchSize;
-  const endIndex = startIndex + batchSize;
-  const batch = allData.slice(startIndex, endIndex);
-  const updatedResults = batch.map((item, index) => {
-    const nextTotal = batch[index + 1] ? batch[index + 1].total : 0;
-    const currentTotal = item.total;
-    const total_hora = currentTotal - nextTotal;
-    return {
-      ...item,
-      date_time_medition_hour: item.date_time_medition.slice(11, 16),
-      nivel: processNivel(item.nivel),
-      flow: processCaudal(item.flow),
-      total: processAcum(item.total),
-      total_hora: processAcum(total_hora),
-      date_time_medition: item.date_time_medition.slice(0, 10),
-    };
-  })
+      const endIndex = startIndex + batchSize;
+      const batch = allData.slice(startIndex, endIndex);
+      const updatedResults = batch.map((item, index) => {
+        const nextTotal = batch[index + 1] ? batch[index + 1].total : 0;
+        const currentTotal = item.total;
+        const total_hora = currentTotal - nextTotal;
+        return {
+          ...item,
+          date_time_medition_hour: item.date_time_medition.slice(11, 16),
+          nivel: processNivel(item.nivel),
+          flow: processCaudal(item.flow),
+          total: processAcum(item.total),
+          total_hora: index === batch.length - 1 ? 0 : total_hora,
+          date_time_medition: item.date_time_medition.slice(0, 10),
+        };
+      });
 
       const sumTotal = updatedResults.reduce((acc, item, index) => {
         const currentDate = item.date_time_medition.slice(0, 10);
@@ -263,536 +264,609 @@ const Reports = () => {
     setTotal(0);
   }, [state.selected_profile]);
 
+  console.log(initialDate);
   return (
-    <Row style={{ padding: "0px", marginTop: "-20px" }} justify={"center"}>
-      <Col xl={24} lg={24} xs={24}>
-        <Title
-          level={2}
-          style={{ textAlign: window.innerWidth < 900 && "center" }}
-        >
-          Datos y reportes (Registros: {total})
-        </Title>
-      </Col>
-      {window.innerWidth > 900 ? (
-        <>
-          {" "}
-          <Col
-            span={18}
-            style={{
-              marginTop: "0px",
-              marginBottom: "0px",
-              paddingRight: "10px",
-            }}
-          >
-            <Card hoverable>
-              <Tabs type="card">
-                <Tabs.TabPane tab="Datos" key="1" icon={<TableOutlined />}>
-                  <Table
-                    bordered
-                    size={"small"}
-                    loading={loadingTab1}
-                    pagination={{
-                      total: total,
-                      simple: true,
-                    }}
-                    columns={[
-                      {
-                        title: "Fecha",
-                        dataIndex: "date_time_medition",
-                      },
-                      {
-                        title: "Hora",
-                        dataIndex: "date_time_medition_hour",
-                      },
-                      { title: "Caudal (L/s)", dataIndex: "flow" },
-                      {
-                        title: () => (
-                          <Tooltip title="Nivel Freático (m)">Nivel...</Tooltip>
-                        ),
-                        dataIndex: "nivel",
-                      },
-                      {
-                        title: "Acumulado (m³)",
-                        dataIndex: "total",
-                        render: (a) => numberForMiles.format(a),
-                      },
-                      {
-                        title: "Acumulado/hora (m³)",
-                        dataIndex: "total_hora",
-                        render: (a) => numberForMiles.format(a),
-                      },
-                    ]}
-                    dataSource={data}
-                  />
-                </Tabs.TabPane>
-                {total > 0 && (
-                  <Tabs.TabPane
-                    tab={
-                      <>
-                        Detalle:{" "}
-                        {moment(finishDate) &&
-                          moment(finishDate).diff(moment(initialDate), "days") +
-                            1}{" "}
-                        día/s ({initialDate.slice(5, 12)} /{" "}
-                        {finishDate.slice(5, 12)})
-                      </>
-                    }
-                    key="2"
+    <QueueAnim type="top" delay={300} duration={1000}>
+      <div key="1">
+        <Row style={{ padding: "0px", marginTop: "-20px" }} justify={"center"}>
+          <Col xl={24} lg={24} xs={24}>
+            <Title
+              level={4}
+              style={{ textAlign: window.innerWidth < 900 && "center" }}
+            >
+              Datos y reportes
+            </Title>
+          </Col>
+          {window.innerWidth > 900 ? (
+            <>
+              {" "}
+              <Col
+                span={18}
+                style={{
+                  marginTop: "0px",
+                  marginBottom: "0px",
+                  paddingRight: "30px",
+                }}
+              >
+                <QueueAnim type="left" delay={500} duration={1000}>
+                  <div key="2">
+                    <Tabs type="line" size="small">
+                      <Tabs.TabPane
+                        tab="Datos"
+                        key="1"
+                        icon={<TableOutlined />}
+                      >
+                        <Table
+                          bordered
+                          size={"small"}
+                          loading={loadingTab1}
+                          pagination={{
+                            total: total,
+                            simple: true,
+                          }}
+                          columns={[
+                            {
+                              title: "Fecha",
+                              dataIndex: "date_time_medition",
+                            },
+                            {
+                              title: "Hora",
+                              dataIndex: "date_time_medition_hour",
+                            },
+                            { title: "Caudal (L/s)", dataIndex: "flow" },
+                            {
+                              title: () => (
+                                <Tooltip title="Nivel Freático (m)">
+                                  Nivel...
+                                </Tooltip>
+                              ),
+                              dataIndex: "nivel",
+                            },
+                            {
+                              title: "Acumulado (m³)",
+                              dataIndex: "total",
+                              render: (a) => numberForMiles.format(a),
+                            },
+                            {
+                              title: "Acumulado/hora (m³)",
+                              dataIndex: "total_hora",
+                              render: (a) => numberForMiles.format(a),
+                            },
+                          ]}
+                          dataSource={data}
+                        />
+                      </Tabs.TabPane>
+                      {total > 0 && (
+                        <Tabs.TabPane
+                          tab={
+                            <>
+                              Detalle:{" "}
+                              {moment(finishDate) &&
+                                moment(finishDate).diff(
+                                  moment(initialDate),
+                                  "days"
+                                ) + 1}{" "}
+                              día/s ({initialDate.slice(5, 12)} /{" "}
+                              {finishDate.slice(5, 12)})
+                            </>
+                          }
+                          key="2"
+                        >
+                          <Table
+                            bordered
+                            size={"small"}
+                            loading={loadingTab2}
+                            pagination={{ simple: true }}
+                            columns={[
+                              {
+                                title: "Fecha",
+                                dataIndex: "date_time_medition",
+                              },
+                              {
+                                title: "Acumulado/día (m³)",
+                                dataIndex: "total_hora",
+                                render: (text, record) => {
+                                  const max = data2.reduce((prev, current) =>
+                                    prev.total_hora > current.total_hora
+                                      ? prev
+                                      : current
+                                  );
+
+                                  const min = data2.reduce((prev, current) =>
+                                    prev.total_hora < current.total_hora
+                                      ? prev
+                                      : current
+                                  );
+
+                                  return record.total_hora ===
+                                    max.total_hora ? (
+                                    <Tag
+                                      color="blue-inverse"
+                                      icon={<RiseOutlined />}
+                                      style={{ fontSize: "15px" }}
+                                    >
+                                      {text}
+                                    </Tag>
+                                  ) : record.total_hora === min.total_hora ? (
+                                    <Tag
+                                      color="volcano-inverse"
+                                      icon={<FallOutlined />}
+                                      style={{ fontSize: "15px" }}
+                                    >
+                                      {text}
+                                    </Tag>
+                                  ) : (
+                                    text
+                                  );
+                                },
+                              },
+                            ]}
+                            dataSource={data2}
+                          />
+                        </Tabs.TabPane>
+                      )}
+                    </Tabs>
+                  </div>
+                </QueueAnim>
+              </Col>
+              <Col span={6}>
+                <QueueAnim type="scale" delay={500} duration={1000}>
+                  <div key="3">
+                    <Card
+                      size="small"
+                      style={{
+                        marginTop: "0px",
+                        paddingBottom: "20px",
+                        border: "2px solid #1F3461",
+                        background:
+                          "radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(161,181,199,0.4150035014005602) 100%)",
+                      }}
+                      hoverable
+                    >
+                      <Row justify={"center"} align={"top"}>
+                        <Col span={24}>
+                          <Title level={5} style={{ textAlign: "center" }}>
+                            Selecciona un rango de tiempo a visualizar
+                          </Title>
+                          <Form form={form} layout="vertical">
+                            <Col span={24}></Col>
+                            <Col span={24} style={{ paddingTop: "20px" }}>
+                              <Form.Item name="initialDate">
+                                <DatePicker
+                                  style={{ width: "100%" }}
+                                  placeholder="Selecciona una fecha inicial"
+                                  disabledDate={(current) =>
+                                    current && current >= moment().endOf("day")
+                                  }
+                                  disabledTime={(current) =>
+                                    current && current.isSame(moment(), "day")
+                                  }
+                                  onChange={(x) => {
+                                    setInitialDate(
+                                      dayjs(x).format("YYYY-MM-DD")
+                                    );
+                                  }}
+                                  locale="es"
+                                />
+                              </Form.Item>
+                            </Col>
+                            <Col span={24} style={{ paddingTop: "-20px" }}>
+                              <Form.Item name="finishDate">
+                                <DatePicker
+                                  style={{ width: "100%" }}
+                                  placeholder="Selecciona una fecha final"
+                                  disabled={initialDate ? false : true}
+                                  defaultValue={initialDate}
+                                  disabledDate={(current) =>
+                                    current && current >= moment().endOf("day")
+                                  }
+                                  disabledTime={(current) =>
+                                    current && current.isSame(moment(), "day")
+                                  }
+                                  onChange={(x) => {
+                                    if (
+                                      initialDate &&
+                                      dayjs(x).format("YYYY-MM-DD") <
+                                        initialDate
+                                    ) {
+                                      notification.error({
+                                        message:
+                                          "La fecha final no puede ser menor a la fecha inicial",
+                                      });
+                                      setFinishDate("");
+                                    } else {
+                                      setFinishDate(
+                                        dayjs(x).format("YYYY-MM-DD")
+                                      );
+                                    }
+                                  }}
+                                />
+                              </Form.Item>
+                            </Col>
+                          </Form>
+                        </Col>
+                        <Col
+                          span={24}
+                          style={{ paddingTop: "0px", paddingLeft: "0px" }}
+                        >
+                          desde:{" "}
+                          <b>{initialDate ? initialDate : "YYYY-MM-DD"} </b>
+                          <br />
+                          hasta:{" "}
+                          <b>{finishDate ? finishDate : "YYYY-MM-DD"} </b>
+                          {finishDate && (
+                            <>
+                              <br />
+                              <br />
+                              Visualización:{" "}
+                              <b>
+                                {moment(finishDate) &&
+                                  moment(finishDate).diff(
+                                    moment(initialDate),
+                                    "days"
+                                  ) + 1}{" "}
+                                día/s
+                              </b>
+                            </>
+                          )}
+                          <br />
+                          <br />
+                          <Button
+                            type="primary"
+                            icon={<TableOutlined />}
+                            disabled={!initialDate || !finishDate}
+                            style={{
+                              width: "100%",
+                              textAlign: "left",
+                              backgroundColor:
+                                !initialDate || !finishDate
+                                  ? "#D9D9D9"
+                                  : "#1F3461",
+                              color:
+                                !initialDate || !finishDate
+                                  ? "#1F3461"
+                                  : "white",
+                              borderColor: "#1F3461",
+                            }}
+                            onClick={getData}
+                          >
+                            Previsualizar reporte
+                          </Button>
+                        </Col>
+                        <Col
+                          span={24}
+                          style={{ paddingTop: "10px", paddingLeft: "0px" }}
+                        >
+                          <Button
+                            icon={<ClearOutlined />}
+                            type="primary"
+                            disabled={!initialDate || !finishDate}
+                            style={{
+                              width: "100%",
+                              textAlign: "left",
+                              backgroundColor:
+                                !initialDate || !finishDate
+                                  ? "#D9D9D9"
+                                  : "#1F3461",
+                              color:
+                                !initialDate || !finishDate
+                                  ? "#1F3461"
+                                  : "white",
+                              borderColor: "#1F3461",
+                            }}
+                            block={false}
+                            onClick={() => {
+                              setInitialDate("");
+                              setFinishDate("");
+                              form.resetFields();
+                              setData([]);
+                              setTotal(0);
+                              setData2([]);
+                            }}
+                          >
+                            Limpiar
+                          </Button>
+                        </Col>
+                        <Col
+                          span={24}
+                          style={{ paddingTop: "10px", paddingLeft: "0px" }}
+                        >
+                          <Button
+                            icon={<FileExcelFilled />}
+                            type="primary"
+                            disabled={!initialDate || !finishDate}
+                            style={{
+                              width: "100%",
+                              textAlign: "left",
+                              backgroundColor:
+                                !initialDate || !finishDate
+                                  ? "#D9D9D9"
+                                  : "#1F3461",
+                              color:
+                                !initialDate || !finishDate
+                                  ? "#1F3461"
+                                  : "white",
+                              borderColor: "#1F3461",
+                            }}
+                            block={false}
+                            onClick={downloadDataToExcel}
+                          >
+                            Descargar reporte (.xlsx)
+                          </Button>
+                        </Col>
+                      </Row>
+                    </Card>
+                  </div>
+                </QueueAnim>
+              </Col>
+            </>
+          ) : (
+            <>
+              {" "}
+              <Col xs={24} style={{ paddingLeft: "10px" }}>
+                <Row justify={"center"} align={"top"}>
+                  <Col span={24}>
+                    <Title level={4} style={{ textAlign: "center" }}>
+                      Selecciona un rango de tiempo a visualizar
+                    </Title>
+                    <Form form={form} layout="vertical">
+                      <Col span={24} style={{ paddingTop: "20px" }}>
+                        <Form.Item name="initialDate">
+                          <DatePicker
+                            style={{ width: "100%" }}
+                            placeholder="Selecciona una fecha inicial"
+                            disabledDate={(current) =>
+                              current && current >= moment().endOf("day")
+                            }
+                            disabledTime={(current) =>
+                              current && current.isSame(moment(), "day")
+                            }
+                            onSelect={(x) => {
+                              setInitialDate(dayjs(x).format("YYYY-MM-DD"));
+                            }}
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col span={24} style={{ paddingTop: "-20px" }}>
+                        <Form.Item name="finishDate">
+                          <DatePicker
+                            style={{ width: "100%" }}
+                            placeholder="Selecciona una fecha final"
+                            defaultValue={initialDate}
+                            disabledDate={(current) =>
+                              current && current >= moment().endOf("day")
+                            }
+                            disabledTime={(current) =>
+                              current && current.isSame(moment(), "day")
+                            }
+                            onSelect={(x) => {
+                              if (
+                                initialDate &&
+                                dayjs(x).format("YYYY-MM-DD") <= initialDate
+                              ) {
+                                notification.error({
+                                  placement:
+                                    window.innerWidth < 900 && "bottom",
+                                  style: { zIndex: 1000000 },
+                                  closeIcon: <></>,
+                                  message:
+                                    "La fecha final no puede ser menor o igual a la fecha inicial",
+                                });
+                                setFinishDate("");
+                              } else {
+                                setFinishDate(dayjs(x).format("YYYY-MM-DD"));
+                              }
+                            }}
+                          />
+                        </Form.Item>
+                      </Col>
+                    </Form>
+                  </Col>
+                  <Col
+                    span={24}
+                    style={{ paddingTop: "0px", paddingLeft: "0px" }}
                   >
+                    desde: <b>{initialDate ? initialDate : "YYYY-MM-DD"} </b>
+                    <br />
+                    hasta: <b>{finishDate ? finishDate : "YYYY-MM-DD"} </b>
+                    {finishDate && (
+                      <>
+                        <br />
+                        <br />
+                        Visualización:{" "}
+                        <b>
+                          {moment(finishDate) &&
+                            moment(finishDate).diff(
+                              moment(initialDate),
+                              "days"
+                            ) + 1}{" "}
+                          día/s
+                        </b>
+                      </>
+                    )}
+                    <br />
+                    <br />
+                    <Button
+                      type="primary"
+                      icon={<TableOutlined />}
+                      block={false}
+                      disabled={!initialDate || !finishDate}
+                      style={{
+                        width: "100%",
+                        textAlign: "left",
+                        backgroundColor:
+                          !initialDate || !finishDate ? "#D9D9D9" : "#1F3461",
+                        color:
+                          !initialDate || !finishDate ? "#1F3461" : "white",
+                        borderColor: "#1F3461",
+                      }}
+                      onClick={getData}
+                    >
+                      Previsualizar reporte
+                    </Button>
+                  </Col>
+                  <Col
+                    span={24}
+                    style={{ paddingTop: "10px", paddingLeft: "0px" }}
+                  >
+                    <Button
+                      icon={<ClearOutlined />}
+                      type="primary"
+                      disabled={!initialDate || !finishDate}
+                      style={{
+                        width: "100%",
+                        textAlign: "left",
+                        backgroundColor:
+                          !initialDate || !finishDate ? "#D9D9D9" : "#1F3461",
+                        color:
+                          !initialDate || !finishDate ? "#1F3461" : "white",
+                        borderColor: "#1F3461",
+                      }}
+                      block={false}
+                      onClick={() => {
+                        setInitialDate("");
+                        setFinishDate("");
+                        form.resetFields();
+                        setData([]);
+                      }}
+                    >
+                      Limpiar
+                    </Button>
+                  </Col>
+                  <Col
+                    span={24}
+                    style={{ paddingTop: "10px", paddingLeft: "0px" }}
+                  >
+                    <Button
+                      icon={<FileExcelFilled />}
+                      type="primary"
+                      disabled={!initialDate || !finishDate}
+                      style={{
+                        width: "100%",
+                        textAlign: "left",
+                        backgroundColor:
+                          !initialDate || !finishDate ? "#D9D9D9" : "#1F3461",
+                        color:
+                          !initialDate || !finishDate ? "#1F3461" : "white",
+                        borderColor: "#1F3461",
+                      }}
+                      block={false}
+                      onClick={downloadDataToExcel}
+                    >
+                      Descargar reporte (.xlsx)
+                    </Button>
+                  </Col>
+                </Row>
+              </Col>
+              <Col
+                span={24}
+                style={{
+                  marginTop: "10px",
+                  marginBottom: "0px",
+                  paddingRight: "10px",
+                }}
+              >
+                <Tabs type="card">
+                  <Tabs.TabPane tab="Datos" key="1" icon={<TableOutlined />}>
                     <Table
                       bordered
                       size={"small"}
-                      loading={loadingTab2}
-                      pagination={{ simple: true }}
+                      loading={loadingTab1}
+                      pagination={{
+                        total: total,
+                        page: page,
+                      }}
                       columns={[
                         {
                           title: "Fecha",
                           dataIndex: "date_time_medition",
                         },
                         {
-                          title: "Acumulado/día (m³)",
-                          dataIndex: "total_hora",
-                          render: (text, record) => {
-                            const max = data2.reduce((prev, current) =>
-                              prev.total_hora > current.total_hora
-                                ? prev
-                                : current
-                            );
-
-                            const min = data2.reduce((prev, current) =>
-                              prev.total_hora < current.total_hora
-                                ? prev
-                                : current
-                            );
-
-                            return record.total_hora === max.total_hora ? (
-                              <Tag
-                                color="blue-inverse"
-                                icon={<RiseOutlined />}
-                                style={{ fontSize: "15px" }}
-                              >
-                                {text}
-                              </Tag>
-                            ) : record.total_hora === min.total_hora ? (
-                              <Tag
-                                color="volcano-inverse"
-                                icon={<FallOutlined />}
-                                style={{ fontSize: "15px" }}
-                              >
-                                {text}
-                              </Tag>
-                            ) : (
-                              text
-                            );
-                          },
+                          title: "Hora",
+                          dataIndex: "date_time_medition_hour",
                         },
+
+                        { title: "(l/s)", dataIndex: "flow" },
+                        { title: "m", dataIndex: "nivel" },
+                        { title: "m³", dataIndex: "total" },
+                        { title: "m³/hora", dataIndex: "total_hora" },
                       ]}
-                      dataSource={data2}
+                      dataSource={data}
                     />
                   </Tabs.TabPane>
-                )}
-              </Tabs>
-            </Card>
-          </Col>
-          <Col span={6}>
-            <Row justify={"center"} align={"top"}>
-              <Col span={24}>
-                <Title level={4} style={{ textAlign: "center" }}>
-                  Selecciona un rango de tiempo a visualizar
-                </Title>
-                <Form form={form} layout="vertical">
-                  <Col span={24}>
-                    <Alert
-                      type="info"
-                      message="Debes seleccionar una fecha de inicio y una fecha final para visualizar los datos."
-                      size="small"
-                      icon={<></>}
-                      showIcon
-                      closable
-                    />
-                  </Col>
-                  <Col span={24} style={{ paddingTop: "20px" }}>
-                    <Form.Item name="initialDate">
-                      <DatePicker
-                        style={{ width: "100%" }}
-                        placeholder="Selecciona una fecha inicial"
-                        disabledDate={(current) =>
-                          current && current >= moment().endOf("day")
-                        }
-                        disabledTime={(current) =>
-                          current && current.isSame(moment(), "day")
-                        }
-                        onSelect={(x) => {
-                          setInitialDate(dayjs(x).format("YYYY-MM-DD"));
-                        }}
-                        locale="es"
+                  {total > 0 && (
+                    <Tabs.TabPane
+                      tab={
+                        <>
+                          Detalle:{" "}
+                          {moment(finishDate) &&
+                            moment(finishDate).diff(
+                              moment(initialDate),
+                              "days"
+                            ) + 1}{" "}
+                          día/s ({initialDate.slice(5, 12)} /{" "}
+                          {finishDate.slice(5, 12)})
+                        </>
+                      }
+                      key="2"
+                    >
+                      <Table
+                        bordered
+                        loading={loadingTab2}
+                        size={"small"}
+                        pagination={{ simple: true }}
+                        columns={[
+                          {
+                            title: "Fecha",
+                            dataIndex: "date_time_medition",
+                          },
+                          {
+                            title: "m³/día",
+                            dataIndex: "total_hora",
+                            render: (text, record) => {
+                              const max = data2.reduce((prev, current) =>
+                                prev.total_hora > current.total_hora
+                                  ? prev
+                                  : current
+                              );
+                              const min = data2.reduce((prev, current) =>
+                                prev.total_hora < current.total_hora
+                                  ? prev
+                                  : current
+                              );
+                              return record.total_hora === max.total_hora ? (
+                                <Tag
+                                  color="blue-inverse"
+                                  icon={<RiseOutlined />}
+                                  style={{ fontSize: "15px" }}
+                                >
+                                  {text}
+                                </Tag>
+                              ) : record.total_hora === min.total_hora ? (
+                                <Tag
+                                  color="volcano-inverse"
+                                  icon={<FallOutlined />}
+                                  style={{ fontSize: "15px" }}
+                                >
+                                  {text}
+                                </Tag>
+                              ) : (
+                                text
+                              );
+                            },
+                          },
+                        ]}
+                        dataSource={data2}
                       />
-                    </Form.Item>
-                  </Col>
-                  <Col span={24} style={{ paddingTop: "-20px" }}>
-                    <Form.Item name="finishDate">
-                      <DatePicker
-                        style={{ width: "100%" }}
-                        placeholder="Selecciona una fecha final"
-                        disabled = {initialDate ? false : true}
-                        defaultValue={initialDate}
-                        disabledDate={(current) =>
-                          current && current >= moment().endOf("day")
-                        }
-                        disabledTime={(current) =>
-                          current && current.isSame(moment(), "day")
-                        }
-                        onSelect={(x) => {
-                          if (
-                            initialDate &&
-                            dayjs(x).format("YYYY-MM-DD") < initialDate
-                          ) {
-                            notification.error({
-                              message:
-                                "La fecha final no puede ser menor a la fecha inicial",
-                            });
-                            setFinishDate("");
-                          } else {
-                            setFinishDate(dayjs(x).format("YYYY-MM-DD"));
-                          }
-                        }}
-                      />
-                    </Form.Item>
-                  </Col>
-                </Form>
+                    </Tabs.TabPane>
+                  )}
+                </Tabs>
               </Col>
-              <Col span={24} style={{ paddingTop: "0px", paddingLeft: "0px" }}>
-                desde: <b>{initialDate ? initialDate : "YYYY-MM-DD"} </b>
-                <br />
-                hasta: <b>{finishDate ? finishDate : "YYYY-MM-DD"} </b>
-                {finishDate && (
-                  <>
-                    <br />
-                    <br />
-                    Visualización:{" "}
-                    <b>
-                      {moment(finishDate) &&
-                        moment(finishDate).diff(moment(initialDate), "days") +
-                          1}{" "}
-                      día/s
-                    </b>
-                  </>
-                )}
-                <br />
-                <br />
-                <Button
-                  type="primary"
-                  icon={<TableOutlined />}
-                  disabled={!initialDate || !finishDate}
-                  style={{
-                    width: "100%",
-                    textAlign: "left",
-                    backgroundColor:
-                      !initialDate || !finishDate ? "#D9D9D9" : "#1F3461",
-                    color: !initialDate || !finishDate ? "#1F3461" : "white",
-                    borderColor: "#1F3461",
-                  }}
-                  onClick={getData}
-                >
-                  Previsualizar reporte
-                </Button>
-              </Col>
-              <Col span={24} style={{ paddingTop: "10px", paddingLeft: "0px" }}>
-                <Button
-                  icon={<ClearOutlined />}
-                  type="primary"
-                  disabled={!initialDate || !finishDate}
-                  style={{
-                    width: "100%",
-                    textAlign: "left",
-                    backgroundColor:
-                      !initialDate || !finishDate ? "#D9D9D9" : "#1F3461",
-                    color: !initialDate || !finishDate ? "#1F3461" : "white",
-                    borderColor: "#1F3461",
-                  }}
-                  block={false}
-                  onClick={() => {
-                    setInitialDate("");
-                    setFinishDate("");
-                    form.resetFields();
-                    setData([]);
-                    setTotal(0);
-                    setData2([]);
-                  }}
-                >
-                  Limpiar
-                </Button>
-              </Col>
-              <Col span={24} style={{ paddingTop: "10px", paddingLeft: "0px" }}>
-                <Button
-                  icon={<FileExcelFilled />}
-                  type="primary"
-                  disabled={!initialDate || !finishDate}
-                  style={{
-                    width: "100%",
-                    textAlign: "left",
-                    backgroundColor:
-                      !initialDate || !finishDate ? "#D9D9D9" : "#1F3461",
-                    color: !initialDate || !finishDate ? "#1F3461" : "white",
-                    borderColor: "#1F3461",
-                  }}
-                  block={false}
-                  onClick={downloadDataToExcel}
-                >
-                  Descargar reporte (.xlsx)
-                </Button>
-              </Col>
-            </Row>
-          </Col>
-        </>
-      ) : (
-        <>
-          {" "}
-          <Col xs={24} style={{ paddingLeft: "10px" }}>
-            <Row justify={"center"} align={"top"}>
-              <Col span={24}>
-                <Title level={4} style={{ textAlign: "center" }}>
-                  Selecciona un rango de tiempo a visualizar
-                </Title>
-                <Form form={form} layout="vertical">
-                  <Col span={24} style={{ paddingTop: "20px" }}>
-                    <Form.Item name="initialDate">
-                      <DatePicker
-                        style={{ width: "100%" }}
-                        placeholder="Selecciona una fecha inicial"
-                        disabledDate={(current) =>
-                          current && current >= moment().endOf("day")
-                        }
-                        disabledTime={(current) =>
-                          current && current.isSame(moment(), "day")
-                        }
-                        onSelect={(x) => {
-                          setInitialDate(dayjs(x).format("YYYY-MM-DD"));
-                        }}
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col span={24} style={{ paddingTop: "-20px" }}>
-                    <Form.Item name="finishDate">
-                      <DatePicker
-                        style={{ width: "100%" }}
-                        placeholder="Selecciona una fecha final"
-                        defaultValue={initialDate}
-                        disabledDate={(current) =>
-                          current && current >= moment().endOf("day")
-                        }
-                        disabledTime={(current) =>
-                          current && current.isSame(moment(), "day")
-                        }
-                        onSelect={(x) => {
-                          if (
-                            initialDate &&
-                            dayjs(x).format("YYYY-MM-DD") <= initialDate
-                          ) {
-                            notification.error({
-                              placement: window.innerWidth < 900 && "bottom",
-                              style: { zIndex: 1000000 },
-                              closeIcon: <></>,
-                              message:
-                                "La fecha final no puede ser menor o igual a la fecha inicial",
-                            });
-                            setFinishDate("");
-                          } else {
-                            setFinishDate(dayjs(x).format("YYYY-MM-DD"));
-                          }
-                        }}
-                      />
-                    </Form.Item>
-                  </Col>
-                </Form>
-              </Col>
-              <Col span={24} style={{ paddingTop: "0px", paddingLeft: "0px" }}>
-                desde: <b>{initialDate ? initialDate : "YYYY-MM-DD"} </b>
-                <br />
-                hasta: <b>{finishDate ? finishDate : "YYYY-MM-DD"} </b>
-                {finishDate && (
-                  <>
-                    <br />
-                    <br />
-                    Visualización:{" "}
-                    <b>
-                      {moment(finishDate) &&
-                        moment(finishDate).diff(moment(initialDate), "days") +
-                          1}{" "}
-                      día/s
-                    </b>
-                  </>
-                )}
-                <br />
-                <br />
-                <Button
-                  type="primary"
-                  icon={<TableOutlined />}
-                  block={false}
-                  disabled={!initialDate || !finishDate}
-                  style={{
-                    width: "100%",
-                    textAlign: "left",
-                    backgroundColor:
-                      !initialDate || !finishDate ? "#D9D9D9" : "#1F3461",
-                    color: !initialDate || !finishDate ? "#1F3461" : "white",
-                    borderColor: "#1F3461",
-                  }}
-                  onClick={getData}
-                >
-                  Previsualizar reporte
-                </Button>
-              </Col>
-              <Col span={24} style={{ paddingTop: "10px", paddingLeft: "0px" }}>
-                <Button
-                  icon={<ClearOutlined />}
-                  type="primary"
-                  disabled={!initialDate || !finishDate}
-                  style={{
-                    width: "100%",
-                    textAlign: "left",
-                    backgroundColor:
-                      !initialDate || !finishDate ? "#D9D9D9" : "#1F3461",
-                    color: !initialDate || !finishDate ? "#1F3461" : "white",
-                    borderColor: "#1F3461",
-                  }}
-                  block={false}
-                  onClick={() => {
-                    setInitialDate("");
-                    setFinishDate("");
-                    form.resetFields();
-                    setData([]);
-                  }}
-                >
-                  Limpiar
-                </Button>
-              </Col>
-              <Col span={24} style={{ paddingTop: "10px", paddingLeft: "0px" }}>
-                <Button
-                  icon={<FileExcelFilled />}
-                  type="primary"
-                  disabled={!initialDate || !finishDate}
-                  style={{
-                    width: "100%",
-                    textAlign: "left",
-                    backgroundColor:
-                      !initialDate || !finishDate ? "#D9D9D9" : "#1F3461",
-                    color: !initialDate || !finishDate ? "#1F3461" : "white",
-                    borderColor: "#1F3461",
-                  }}
-                  block={false}
-                  onClick={downloadDataToExcel}
-                >
-                  Descargar reporte (.xlsx)
-                </Button>
-              </Col>
-            </Row>
-          </Col>
-          <Col
-            span={24}
-            style={{
-              marginTop: "10px",
-              marginBottom: "0px",
-              paddingRight: "10px",
-            }}
-          >
-            <Tabs type="card">
-              <Tabs.TabPane tab="Datos" key="1" icon={<TableOutlined />}>
-                <Table
-                  bordered
-                  size={"small"}
-                  loading={loadingTab1}
-                  pagination={{
-                    total: total,
-                    page: page,
-                  }}
-                  columns={[
-                    {
-                      title: "Fecha",
-                      dataIndex: "date_time_medition",
-                    },
-                    {
-                      title: "Hora",
-                      dataIndex: "date_time_medition_hour",
-                    },
-
-                    { title: "(l/s)", dataIndex: "flow" },
-                    { title: "m", dataIndex: "nivel" },
-                    { title: "m³", dataIndex: "total" },
-                    { title: "m³/hora", dataIndex: "total_hora" },
-                  ]}
-                  dataSource={data}
-                />
-              </Tabs.TabPane>
-              {total > 0 && (
-                <Tabs.TabPane
-                  tab={
-                    <>
-                      Detalle:{" "}
-                      {moment(finishDate) &&
-                        moment(finishDate).diff(moment(initialDate), "days") +
-                          1}{" "}
-                      día/s ({initialDate.slice(5, 12)} /{" "}
-                      {finishDate.slice(5, 12)})
-                    </>
-                  }
-                  key="2"
-                >
-                  <Table
-                    bordered
-                    loading={loadingTab2}
-                    size={"small"}
-                    pagination={{ simple: true }}
-                    columns={[
-                      {
-                        title: "Fecha",
-                        dataIndex: "date_time_medition",
-                      },
-                      {
-                        title: "m³/día",
-                        dataIndex: "total_hora",
-                        render: (text, record) => {
-                          const max = data2.reduce((prev, current) =>
-                            prev.total_hora > current.total_hora
-                              ? prev
-                              : current
-                          );
-                          const min = data2.reduce((prev, current) =>
-                            prev.total_hora < current.total_hora
-                              ? prev
-                              : current
-                          );
-                          return record.total_hora === max.total_hora ? (
-                            <Tag
-                              color="blue-inverse"
-                              icon={<RiseOutlined />}
-                              style={{ fontSize: "15px" }}
-                            >
-                              {text}
-                            </Tag>
-                          ) : record.total_hora === min.total_hora ? (
-                            <Tag
-                              color="volcano-inverse"
-                              icon={<FallOutlined />}
-                              style={{ fontSize: "15px" }}
-                            >
-                              {text}
-                            </Tag>
-                          ) : (
-                            text
-                          );
-                        },
-                      },
-                    ]}
-                    dataSource={data2}
-                  />
-                </Tabs.TabPane>
-              )}
-            </Tabs>
-          </Col>
-        </>
-      )}
-    </Row>
+            </>
+          )}
+        </Row>
+      </div>
+    </QueueAnim>
   );
 };
 

@@ -11,6 +11,7 @@ import {
   AreaChartOutlined,
   TableOutlined,
 } from "@ant-design/icons";
+import QueueAnim from "rc-queue-anim";
 
 const { Title } = Typography;
 
@@ -417,265 +418,278 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
   }, [option, initialDate, state.selected_profile]);
 
   return (
-    <>
-      {data && (
-        <>
-          <Tabs type="card">
-            <Tabs.TabPane
-              tab={
-                window.innerWidth > 900 ? (
-                  <>
-                    <LineChartOutlined /> Caudal (L/s)
-                  </>
-                ) : (
-                  "l/s"
-                )
-              }
-              key="1"
-            >
-              <Card style={{ marginTop: "-20px" }} hoverable>
-                <Line {...configCaudal} />
-              </Card>
-            </Tabs.TabPane>
-            <Tabs.TabPane
-              tab={
-                window.innerWidth > 900 ? (
-                  <>
-                    <BarChartOutlined /> Nivel Freático (m)
-                  </>
-                ) : (
-                  "m"
-                )
-              }
-              key="2"
-            >
-              <Card style={{ marginTop: "-20px" }} hoverable>
-                <Column {...configNivel} />
-              </Card>
-            </Tabs.TabPane>
-            <Tabs.TabPane
-              tab={
-                window.innerWidth > 900 ? (
-                  <>
-                    <AreaChartOutlined /> Acumulado (m³)
-                  </>
-                ) : (
-                  "m³"
-                )
-              }
-              key="3"
-            >
-              <Card style={{ marginTop: "-20px" }} hoverable>
-                <Area {...configAcumulado} />
-              </Card>
-            </Tabs.TabPane>
-            <Tabs.TabPane
-              tab={
-                window.innerWidth > 900 ? (
-                  option === 1 ? (
+    <QueueAnim delay={500} type="top" duration={1000}>
+      <div key="master">
+        {data && (
+          <>
+            <Tabs type="card" size="small">
+              <Tabs.TabPane
+                tab={
+                  window.innerWidth > 900 ? (
                     <>
-                      <AreaChartOutlined /> Acumulado (m³/hora)
+                      <LineChartOutlined /> Caudal (L/s)
                     </>
                   ) : (
-                    <>
-                      <AreaChartOutlined /> Acumulado (m³/día)
-                    </>
+                    "l/s"
                   )
-                ) : option === 1 ? (
-                  "m³/hora"
-                ) : (
-                  "m³/día"
-                )
-              }
-              key="4"
-            >
-              <Card style={{ marginTop: "-20px" }} hoverable>
-                <Area {...configAcumuladoHora} />
-              </Card>
-            </Tabs.TabPane>
-            <Tabs.TabPane
-              tab={
-                window.innerWidth > 900 ? (
-                  <>
-                    <TableOutlined /> Datos
-                  </>
-                ) : (
-                  "datos"
-                )
-              }
-              key="5"
-            >
-              <Card style={{ marginTop: "-20px" }} hoverable size="small">
-                <Row
-                  justify={"space-evenly"}
-                  align={window.innerWidth > 900 ? "middle" : "top"}
-                  style={{ marginBottom: "10px" }}
-                >
-                  <Col xl={6} lg={6} xs={12}>
-                    <Card
-                      size="small"
-                      style={{ backgroundColor: "rgb(31, 52, 97)" }}
-                    >
-                      <Statistic
-                        parseFloat
-                        style={{ minHeight: window.innerWidth < 900 && "90px" }}
-                        title={
-                          <span style={{ color: "white" }}>
-                            Promedio Caudal
-                          </span>
-                        }
-                        suffix="L/s"
-                        valueStyle={{ color: "white" }}
-                        value={
-                          data.length > 0
-                            ? processCaudal(
-                                parseFloat(
-                                  data.reduce(
-                                    (total, item) => total + item.caudal,
-                                    0
-                                  ) / data.length
-                                ).toFixed(1)
-                              )
-                            : 0
-                        }
-                      ></Statistic>
-                    </Card>
-                  </Col>
-                  <Col xl={6} lg={6} xs={12}>
-                    <Card
-                      size="small"
-                      bordered
-                      style={{ backgroundColor: "rgb(31, 52, 97)" }}
-                    >
-                      <Statistic
-                        title={
-                          <span style={{ color: "white" }}>
-                            Promedio Nivel Freático
-                          </span>
-                        }
-                        precision={1}
-                        style={{ minHeight: window.innerWidth < 900 && "90px" }}
-                        valueStyle={{ color: "white" }}
-                        suffix={"m"}
-                        value={
-                          data.length > 0
-                            ? processNivel(
-                                parseFloat(
-                                  data.reduce(
-                                    (total, item) => total + item.nivel,
-                                    0
-                                  ) / data.length
-                                ).toFixed(1)
-                              )
-                            : 0
-                        }
-                      ></Statistic>
-                    </Card>
-                  </Col>
-                  <Col xl={6} lg={6} xs={12}>
-                    <Card
-                      size="small"
-                      style={{ backgroundColor: "rgb(31, 52, 97)" }}
-                    >
-                      <Statistic
-                        suffix="m³"
-                        style={{ minHeight: window.innerWidth < 900 && "90px" }}
-                        title={
-                          <span style={{ color: "white" }}>
-                            Último registro acumulado
-                          </span>
-                        }
-                        valueStyle={{ color: "white" }}
-                        value={numberForMiles.format(
-                          data.length > 0 && data[data.length - 1].total
-                        )}
-                      ></Statistic>
-                    </Card>
-                  </Col>
-                  <Col xl={6} lg={6} xs={12}>
-                    <Card
-                      size="small"
-                      style={{ backgroundColor: "rgb(31, 52, 97)" }}
-                    >
-                      <Statistic
-                        style={{ minHeight: window.innerWidth < 900 && "90px" }}
-                        title={
-                          <span style={{ color: "white" }}>
-                            Total consumido
-                          </span>
-                        }
-                        suffix="m³"
-                        valueStyle={{ color: "white" }}
-                        value={numberForMiles.format(
-                          data.reduce(
-                            (acc, current) => acc + current.acumulado_hora,
-                            0
-                          )
-                        )}
-                      ></Statistic>
-                    </Card>
-                  </Col>
-                </Row>
+                }
+                key="1"
+              >
+                <Card style={{ marginTop: "-20px" }} hoverable>
+                  <Line {...configCaudal} />
+                </Card>
+              </Tabs.TabPane>
+              <Tabs.TabPane
+                tab={
+                  window.innerWidth > 900 ? (
+                    <>
+                      <BarChartOutlined /> Nivel Freático (m)
+                    </>
+                  ) : (
+                    "m"
+                  )
+                }
+                key="2"
+              >
+                <Card style={{ marginTop: "-20px" }} hoverable>
+                  <Column {...configNivel} />
+                </Card>
+              </Tabs.TabPane>
+              <Tabs.TabPane
+                tab={
+                  window.innerWidth > 900 ? (
+                    <>
+                      <AreaChartOutlined /> Acumulado (m³)
+                    </>
+                  ) : (
+                    "m³"
+                  )
+                }
+                key="3"
+              >
+                <Card style={{ marginTop: "-20px" }} hoverable>
+                  <Area {...configAcumulado} />
+                </Card>
+              </Tabs.TabPane>
+              <Tabs.TabPane
+                tab={
+                  window.innerWidth > 900 ? (
+                    option === 1 ? (
+                      <>
+                        <AreaChartOutlined /> Acumulado (m³/hora)
+                      </>
+                    ) : (
+                      <>
+                        <AreaChartOutlined /> Acumulado (m³/día)
+                      </>
+                    )
+                  ) : option === 1 ? (
+                    "m³/hora"
+                  ) : (
+                    "m³/día"
+                  )
+                }
+                key="4"
+              >
+                <Card style={{ marginTop: "-20px" }} hoverable>
+                  <Area {...configAcumuladoHora} />
+                </Card>
+              </Tabs.TabPane>
+              <Tabs.TabPane
+                tab={
+                  window.innerWidth > 900 ? (
+                    <>
+                      <TableOutlined /> Datos
+                    </>
+                  ) : (
+                    "datos"
+                  )
+                }
+                key="5"
+              >
+                <Card style={{ marginTop: "-20px" }} hoverable size="small">
+                  <Row
+                    justify={"space-evenly"}
+                    align={window.innerWidth > 900 ? "middle" : "top"}
+                    style={{ marginBottom: "10px" }}
+                  >
+                    <Col xl={6} lg={6} xs={12}>
+                      <Card
+                        size="small"
+                        style={{ backgroundColor: "rgb(31, 52, 97)" }}
+                      >
+                        <Statistic
+                          parseFloat
+                          style={{
+                            minHeight: window.innerWidth < 900 && "90px",
+                          }}
+                          title={
+                            <span style={{ color: "white" }}>
+                              Promedio Caudal
+                            </span>
+                          }
+                          suffix="L/s"
+                          valueStyle={{ color: "white" }}
+                          value={
+                            data.length > 0
+                              ? processCaudal(
+                                  parseFloat(
+                                    data.reduce(
+                                      (total, item) => total + item.caudal,
+                                      0
+                                    ) / data.length
+                                  ).toFixed(1)
+                                )
+                              : 0
+                          }
+                        ></Statistic>
+                      </Card>
+                    </Col>
+                    <Col xl={6} lg={6} xs={12}>
+                      <Card
+                        size="small"
+                        bordered
+                        style={{ backgroundColor: "rgb(31, 52, 97)" }}
+                      >
+                        <Statistic
+                          title={
+                            <span style={{ color: "white" }}>
+                              Promedio Nivel Freático
+                            </span>
+                          }
+                          precision={1}
+                          style={{
+                            minHeight: window.innerWidth < 900 && "90px",
+                          }}
+                          valueStyle={{ color: "white" }}
+                          suffix={"m"}
+                          value={
+                            data.length > 0
+                              ? processNivel(
+                                  parseFloat(
+                                    data.reduce(
+                                      (total, item) => total + item.nivel,
+                                      0
+                                    ) / data.length
+                                  ).toFixed(1)
+                                )
+                              : 0
+                          }
+                        ></Statistic>
+                      </Card>
+                    </Col>
+                    <Col xl={6} lg={6} xs={12}>
+                      <Card
+                        size="small"
+                        style={{ backgroundColor: "rgb(31, 52, 97)" }}
+                      >
+                        <Statistic
+                          suffix="m³"
+                          style={{
+                            minHeight: window.innerWidth < 900 && "90px",
+                          }}
+                          title={
+                            <span style={{ color: "white" }}>
+                              Último registro acumulado
+                            </span>
+                          }
+                          valueStyle={{ color: "white" }}
+                          value={numberForMiles.format(
+                            data.length > 0 && data[data.length - 1].total
+                          )}
+                        ></Statistic>
+                      </Card>
+                    </Col>
+                    <Col xl={6} lg={6} xs={12}>
+                      <Card
+                        size="small"
+                        style={{ backgroundColor: "rgb(31, 52, 97)" }}
+                      >
+                        <Statistic
+                          style={{
+                            minHeight: window.innerWidth < 900 && "90px",
+                          }}
+                          title={
+                            <span style={{ color: "white" }}>
+                              Total consumido
+                            </span>
+                          }
+                          suffix="m³"
+                          valueStyle={{ color: "white" }}
+                          value={numberForMiles.format(
+                            data.reduce(
+                              (acc, current) => acc + current.acumulado_hora,
+                              0
+                            )
+                          )}
+                        ></Statistic>
+                      </Card>
+                    </Col>
+                  </Row>
 
-                <Table
-                  dataSource={data}
-                  style={{ width: "100%" }}
-                  pagination={{ simple: true, pageSize: 7 }}
-                  title={() => parsedText()}
-                  size="small"
-                  bordered
-                  columns={[
-                    {
-                      title:
-                        window.innerWidth > 900
-                          ? option === 1
-                            ? "Hora"
-                            : monthName
-                          : option === 1
-                          ? "hh"
-                          : monthNameShort,
-                      dataIndex: "date_time_medition",
-                    },
-                    {
-                      title: window.innerWidth > 900 ? "Caudal (L/s)" : "l/s",
-                      dataIndex: "caudal",
-                      render: (caudal) =>
-                        parseFloat(processCaudal(caudal)).toFixed(1),
-                    },
-                    {
-                      title:
-                        window.innerWidth > 900 ? "Nivel Freático (m)" : "m",
-                      dataIndex: "nivel",
-                      render: (nivel) => nivel.toFixed(1),
-                    },
-                    {
-                      title: window.innerWidth > 900 ? "Acumulado (m³)" : "m³",
-                      dataIndex: "total",
-                      render: (acum) => numberForMiles.format(acum),
-                    },
-                    {
-                      title:
-                        window.innerWidth > 900
-                          ? "Acumulado (m³/hora)"
-                          : "m³/h",
-                      dataIndex: "total_hora",
-                      render: (acum) => (
-                        <>
-                          {acum === undefined ? 0 : numberForMiles.format(acum)}
-                        </>
-                      ),
-                    },
-                  ]}
-                />
-              </Card>
-            </Tabs.TabPane>
-          </Tabs>
-          {state.selected_profile.module_5 && (
-            <Stats option={option} data={data} parsedDate={parsedDate} />
-          )}
-        </>
-      )}
-    </>
+                  <Table
+                    dataSource={data}
+                    style={{ width: "100%" }}
+                    pagination={{ simple: true, pageSize: 7 }}
+                    title={() => parsedText()}
+                    size="small"
+                    bordered
+                    columns={[
+                      {
+                        title:
+                          window.innerWidth > 900
+                            ? option === 1
+                              ? "Hora"
+                              : monthName
+                            : option === 1
+                            ? "hh"
+                            : monthNameShort,
+                        dataIndex: "date_time_medition",
+                      },
+                      {
+                        title: window.innerWidth > 900 ? "Caudal (L/s)" : "l/s",
+                        dataIndex: "caudal",
+                        render: (caudal) =>
+                          parseFloat(processCaudal(caudal)).toFixed(1),
+                      },
+                      {
+                        title:
+                          window.innerWidth > 900 ? "Nivel Freático (m)" : "m",
+                        dataIndex: "nivel",
+                        render: (nivel) => nivel.toFixed(1),
+                      },
+                      {
+                        title:
+                          window.innerWidth > 900 ? "Acumulado (m³)" : "m³",
+                        dataIndex: "total",
+                        render: (acum) => numberForMiles.format(acum),
+                      },
+                      {
+                        title:
+                          window.innerWidth > 900
+                            ? "Acumulado (m³/hora)"
+                            : "m³/h",
+                        dataIndex: "total_hora",
+                        render: (acum) => (
+                          <>
+                            {acum === undefined
+                              ? 0
+                              : numberForMiles.format(acum)}
+                          </>
+                        ),
+                      },
+                    ]}
+                  />
+                </Card>
+              </Tabs.TabPane>
+            </Tabs>
+            {state.selected_profile.module_5 && (
+              <Stats option={option} data={data} parsedDate={parsedDate} />
+            )}
+          </>
+        )}
+      </div>
+    </QueueAnim>
   );
 };
 

@@ -18,6 +18,7 @@ import {
   EyeFilled,
   TableOutlined,
 } from "@ant-design/icons";
+import QueueAnim from "rc-queue-anim";
 
 const { Title, Text } = Typography;
 
@@ -150,237 +151,261 @@ const Stats = ({ data, option, parsedDate }) => {
     <>
       <Row justify={"space-evenly"} align={"top"} style={{ marginTop: "20px" }}>
         <Col xs={11} xl={4} lg={4}>
-          <Card style={styles.cardStats.ind4} size="small">
-            <Row justify={"center"}>
-              {window.innerWidth > 900 ? (
-                <Tag
-                  color={styles.cardStats.ind4.tag.color}
-                  style={{ marginBottom: "10px", fontSize: "16px" }}
-                >
-                  Caudal (L/s)
-                </Tag>
-              ) : (
-                <Text style={{ marginBottom: "10px" }}>Caudal (L/s)</Text>
-              )}
-            </Row>
-            <Row align="middle" justify={"space-evenly"}>
-              <Col span={10}>
-                <Tag color="green" icon={<RiseOutlined />}>
-                  {window.innerWidth > 900 ? "Max" : ""}
-                </Tag>
-              </Col>
-              <Col span={14}>
-                <Tag color="green">
-                  {flowMax.date} {option === 1 ? "hrs" : `de ${monthNameShort}`}
-                </Tag>
-                <br /> <Tag color="green">{flowMax.value} lt/s</Tag>
-              </Col>
-              <Col
-                span={24}
-                style={{
-                  borderBottom: "2px dashed black",
-                  marginTop: "5px",
-                  marginBottom: "5px",
-                }}
-              ></Col>
-              <Col span={10}>
-                <Tag color="volcano" icon={<FallOutlined />}>
-                  {window.innerWidth > 900 ? "Min" : ""}
-                </Tag>
-              </Col>
-              <Col span={14}>
-                <Tag color="volcano">
-                  {flowMin.date} {option === 1 ? "hrs" : `de ${monthNameShort}`}
-                </Tag>{" "}
-                <br /> <Tag color="volcano">{flowMin.value} lt/s</Tag>
-              </Col>
-            </Row>
-          </Card>
-        </Col>
-        <Col xs={11} xl={4} lg={4}>
-          <Card style={styles.cardStats.ind5} size="small">
-            <Row justify={"center"}>
-              {window.innerWidth > 900 ? (
-                <Tag
-                  color={styles.cardStats.ind5.tag.color}
-                  style={{ marginBottom: "10px", fontSize: "17px" }}
-                >
-                  Nivel freático (m)
-                </Tag>
-              ) : (
-                <Text style={{ marginBottom: "10px" }}>Nivel freático (m)</Text>
-              )}
-            </Row>
-            <Row align="middle">
-              <Col span={10}>
-                <Tag color="green" icon={<RiseOutlined />}>
-                  {window.innerWidth > 900 ? "Max" : ""}
-                </Tag>
-              </Col>
-              <Col span={14}>
-                <Tag color="green">
-                  {nivelMax.date}{" "}
-                  {option === 1 ? "hrs" : `de ${monthNameShort}`}
-                </Tag>
-                <br /> <Tag color="green">{nivelMax.value} m</Tag>
-              </Col>
-              <Col
-                span={24}
-                style={{
-                  borderBottom: "2px dashed black",
-                  marginTop: "5px",
-                  marginBottom: "5px",
-                }}
-              ></Col>
-              <Col span={10}>
-                <Tag color="volcano" icon={<FallOutlined />}>
-                  {window.innerWidth > 900 ? "Min" : ""}
-                </Tag>
-              </Col>
-              <Col span={14}>
-                <Tag color="volcano">
-                  {nivelMin.date}{" "}
-                  {option === 1 ? "hrs" : `de ${monthNameShort}`}
-                </Tag>{" "}
-                <br /> <Tag color="volcano">{nivelMin.value} m</Tag>
-              </Col>
-            </Row>
-          </Card>
-        </Col>
-        <Col xs={11} xl={4} lg={4}>
-          <Card style={styles.cardStats.ind1} size="small">
-            <Row justify={"center"}>
-              <Col>
-                {window.innerWidth > 900 ? (
-                  <>
+          <QueueAnim delay={400} type="bottom" duration={1000}>
+            <div key="1">
+              <Card style={styles.cardStats.ind4} size="small">
+                <Row justify={"center"}>
+                  {window.innerWidth > 900 ? (
                     <Tag
-                      color={styles.cardStats.ind1.tag.color}
-                      style={{ fontSize: "16px" }}
+                      color={styles.cardStats.ind4.tag.color}
+                      style={{ marginBottom: "10px", fontSize: "16px" }}
                     >
-                      Consumo total (m³)
+                      Caudal (L/s)
                     </Tag>
-                  </>
-                ) : (
-                  <Text style={{ marginBottom: "10px" }}>
-                    Consumo total (m³)
-                  </Text>
-                )}
-              </Col>
-            </Row>
-            <Row align={"middle"}>
-              <Col
-                span={24}
-                style={{ marginBottom: "20px", marginTop: "20px" }}
-              >
-                <Statistic
-                  suffix={
-                    <Row>
-                      <Col style={{ fontSize: "16px" }}>m³</Col>
-                    </Row>
-                  }
-                  valueStyle={styles.cardStats.ind1.value}
-                  value={total.toLocaleString().replace(/,/g, ".")}
-                />
-              </Col>
-              <Col span={24} style={{ marginBottom: "10px" }}>
-                <center>
-                  {option === 1
-                    ? parsedDate.format("YYYY-MM-DD")
-                    : parsedDate.format("YYYY-MM")}
-                </center>
-              </Col>
-            </Row>
-          </Card>
+                  ) : (
+                    <Text style={{ marginBottom: "10px" }}>Caudal (L/s)</Text>
+                  )}
+                </Row>
+                <Row align="middle" justify={"space-evenly"}>
+                  <Col span={10}>
+                    <Tag color="green" icon={<RiseOutlined />}>
+                      {window.innerWidth > 900 ? "Max" : ""}
+                    </Tag>
+                  </Col>
+                  <Col span={14}>
+                    <Tag color="green">
+                      {flowMax.date}{" "}
+                      {option === 1 ? "hrs" : `de ${monthNameShort}`}
+                    </Tag>
+                    <br /> <Tag color="green">{flowMax.value} lt/s</Tag>
+                  </Col>
+                  <Col
+                    span={24}
+                    style={{
+                      borderBottom: "2px dashed black",
+                      marginTop: "5px",
+                      marginBottom: "5px",
+                    }}
+                  ></Col>
+                  <Col span={10}>
+                    <Tag color="volcano" icon={<FallOutlined />}>
+                      {window.innerWidth > 900 ? "Min" : ""}
+                    </Tag>
+                  </Col>
+                  <Col span={14}>
+                    <Tag color="volcano">
+                      {flowMin.date}{" "}
+                      {option === 1 ? "hrs" : `de ${monthNameShort}`}
+                    </Tag>{" "}
+                    <br /> <Tag color="volcano">{flowMin.value} lt/s</Tag>
+                  </Col>
+                </Row>
+              </Card>
+            </div>
+          </QueueAnim>
+        </Col>
+        <Col xs={11} xl={4} lg={4}>
+          <QueueAnim delay={500} type="top" duration={1000}>
+            <div key="1">
+              <Card style={styles.cardStats.ind5} size="small">
+                <Row justify={"center"}>
+                  {window.innerWidth > 900 ? (
+                    <Tag
+                      color={styles.cardStats.ind5.tag.color}
+                      style={{ marginBottom: "10px", fontSize: "17px" }}
+                    >
+                      Nivel freático (m)
+                    </Tag>
+                  ) : (
+                    <Text style={{ marginBottom: "10px" }}>
+                      Nivel freático (m)
+                    </Text>
+                  )}
+                </Row>
+                <Row align="middle">
+                  <Col span={10}>
+                    <Tag color="green" icon={<RiseOutlined />}>
+                      {window.innerWidth > 900 ? "Max" : ""}
+                    </Tag>
+                  </Col>
+                  <Col span={14}>
+                    <Tag color="green">
+                      {nivelMax.date}{" "}
+                      {option === 1 ? "hrs" : `de ${monthNameShort}`}
+                    </Tag>
+                    <br /> <Tag color="green">{nivelMax.value} m</Tag>
+                  </Col>
+                  <Col
+                    span={24}
+                    style={{
+                      borderBottom: "2px dashed black",
+                      marginTop: "5px",
+                      marginBottom: "5px",
+                    }}
+                  ></Col>
+                  <Col span={10}>
+                    <Tag color="volcano" icon={<FallOutlined />}>
+                      {window.innerWidth > 900 ? "Min" : ""}
+                    </Tag>
+                  </Col>
+                  <Col span={14}>
+                    <Tag color="volcano">
+                      {nivelMin.date}{" "}
+                      {option === 1 ? "hrs" : `de ${monthNameShort}`}
+                    </Tag>{" "}
+                    <br /> <Tag color="volcano">{nivelMin.value} m</Tag>
+                  </Col>
+                </Row>
+              </Card>
+            </div>
+          </QueueAnim>
+        </Col>
+        <Col xs={11} xl={4} lg={4}>
+          <QueueAnim delay={600} type="bottom" duration={1000}>
+            <div key="1">
+              <Card style={styles.cardStats.ind1} size="small">
+                <Row justify={"center"}>
+                  <Col>
+                    {window.innerWidth > 900 ? (
+                      <>
+                        <Tag
+                          color={styles.cardStats.ind1.tag.color}
+                          style={{ fontSize: "16px" }}
+                        >
+                          Consumo total (m³)
+                        </Tag>
+                      </>
+                    ) : (
+                      <Text style={{ marginBottom: "10px" }}>
+                        Consumo total (m³)
+                      </Text>
+                    )}
+                  </Col>
+                </Row>
+                <Row align={"middle"}>
+                  <Col
+                    span={24}
+                    style={{ marginBottom: "20px", marginTop: "20px" }}
+                  >
+                    <Statistic
+                      suffix={
+                        <Row>
+                          <Col style={{ fontSize: "16px" }}>m³</Col>
+                        </Row>
+                      }
+                      valueStyle={styles.cardStats.ind1.value}
+                      value={total.toLocaleString().replace(/,/g, ".")}
+                    />
+                  </Col>
+                  <Col span={24} style={{ marginBottom: "10px" }}>
+                    <center>
+                      {option === 1
+                        ? parsedDate.format("YYYY-MM-DD")
+                        : parsedDate.format("YYYY-MM")}
+                    </center>
+                  </Col>
+                </Row>
+              </Card>
+            </div>
+          </QueueAnim>
         </Col>
 
         <Col xs={11} xl={4} lg={4}>
-          <Card style={styles.cardStats.ind3} size="small">
-            <Row justify={"center"}>
-              {window.innerWidth > 900 ? (
-                <Tag
-                  color={styles.cardStats.ind3.tag.color}
-                  style={{ marginBottom: "10px", fontSize: "16px" }}
-                >
-                  Consumo (m³/{option === 1 ? "hora" : `día`})
-                </Tag>
-              ) : (
-                <Text style={{ marginBottom: "10px" }}>
-                  Consumo (m³/{option === 1 ? "hora" : `día`})
-                </Text>
-              )}
-            </Row>
-            <Row align="middle" justify={"space-evenly"}>
-              <Col lg={10} xl={10} xs={6}>
-                <Tag color="green" icon={<RiseOutlined />}>
-                  {window.innerWidth > 900 ? "Max" : ""}
-                </Tag>
-              </Col>
-              <Col lg={10} xl={10} xs={16}>
-                <Tag color="green">
-                  {maxHours.date}{" "}
-                  {option === 1 ? "hrs" : `de ${monthNameShort}`}
-                </Tag>
-                <br />
-                <Tag color="green"> {maxHours.value} m³/hora</Tag>
-              </Col>
-              <Col
-                span={24}
-                style={{
-                  borderBottom: "2px dashed #262626",
-                  marginTop: "5px",
-                  marginBottom: "5px",
-                }}
-              ></Col>
-              <Col lg={10} xl={10} xs={6}>
-                <Tag color="volcano" icon={<FallOutlined />}>
-                  {window.innerWidth > 900 ? "Min" : ""}
-                </Tag>
-              </Col>
-              <Col lg={10} xl={10} xs={16}>
-                <Tag color="volcano">
-                  {minHours.date}{" "}
-                  {option === 1 ? "hrs" : `de ${monthNameShort}`}
-                </Tag>{" "}
-                <br /> <Tag color="volcano">{minHours.value} m³/hora</Tag>
-              </Col>
-            </Row>
-          </Card>
+          <QueueAnim delay={700} type="top" duration={1000}>
+            <div key="1">
+              <Card style={styles.cardStats.ind3} size="small">
+                <Row justify={"center"}>
+                  {window.innerWidth > 900 ? (
+                    <Tag
+                      color={styles.cardStats.ind3.tag.color}
+                      style={{ marginBottom: "10px", fontSize: "16px" }}
+                    >
+                      Consumo (m³/{option === 1 ? "hora" : `día`})
+                    </Tag>
+                  ) : (
+                    <Text style={{ marginBottom: "10px" }}>
+                      Consumo (m³/{option === 1 ? "hora" : `día`})
+                    </Text>
+                  )}
+                </Row>
+                <Row align="middle" justify={"space-evenly"}>
+                  <Col lg={10} xl={10} xs={6}>
+                    <Tag color="green" icon={<RiseOutlined />}>
+                      {window.innerWidth > 900 ? "Max" : ""}
+                    </Tag>
+                  </Col>
+                  <Col lg={10} xl={10} xs={16}>
+                    <Tag color="green">
+                      {maxHours.date}{" "}
+                      {option === 1 ? "hrs" : `de ${monthNameShort}`}
+                    </Tag>
+                    <br />
+                    <Tag color="green"> {maxHours.value} m³/hora</Tag>
+                  </Col>
+                  <Col
+                    span={24}
+                    style={{
+                      borderBottom: "2px dashed #262626",
+                      marginTop: "5px",
+                      marginBottom: "5px",
+                    }}
+                  ></Col>
+                  <Col lg={10} xl={10} xs={6}>
+                    <Tag color="volcano" icon={<FallOutlined />}>
+                      {window.innerWidth > 900 ? "Min" : ""}
+                    </Tag>
+                  </Col>
+                  <Col lg={10} xl={10} xs={16}>
+                    <Tag color="volcano">
+                      {minHours.date}{" "}
+                      {option === 1 ? "hrs" : `de ${monthNameShort}`}
+                    </Tag>{" "}
+                    <br /> <Tag color="volcano">{minHours.value} m³/hora</Tag>
+                  </Col>
+                </Row>
+              </Card>
+            </div>
+          </QueueAnim>
         </Col>
         <Col xs={24} xl={6} lg={6}>
-          <Card style={styles.cardStats.ind2} size="small">
-            <Row justify={"center"}>
-              <Col>
-                {window.innerWidth > 900 ? (
-                  <Tag
-                    color={styles.cardStats.ind2.tag.color}
-                    style={{ fontSize: "16px" }}
+          <QueueAnim delay={800} type="bottom" duration={1000}>
+            <div key="1">
+              <Card style={styles.cardStats.ind2} size="small">
+                <Row justify={"center"}>
+                  <Col>
+                    {window.innerWidth > 900 ? (
+                      <Tag
+                        color={styles.cardStats.ind2.tag.color}
+                        style={{ fontSize: "16px" }}
+                      >
+                        Consumo promedio (m³/{option === 1 ? "hora" : `día`})
+                      </Tag>
+                    ) : (
+                      <Text style={{ marginBottom: "10px" }}>
+                        Consumo promedio (m³/{option === 1 ? "hora" : `día`})
+                      </Text>
+                    )}
+                  </Col>
+                </Row>
+                <Row align={"middle"}>
+                  <Col
+                    span={24}
+                    style={{ marginBottom: "34px", marginTop: "40px" }}
                   >
-                    Consumo promedio (m³/{option === 1 ? "hora" : `día`})
-                  </Tag>
-                ) : (
-                  <Text style={{ marginBottom: "10px" }}>
-                    Consumo promedio (m³/{option === 1 ? "hora" : `día`})
-                  </Text>
-                )}
-              </Col>
-            </Row>
-            <Row align={"middle"}>
-              <Col
-                span={24}
-                style={{ marginBottom: "34px", marginTop: "40px" }}
-              >
-                <Statistic
-                  suffix={
-                    <Row>
-                      <Col style={{ fontSize: "16px" }}>m³</Col>
-                    </Row>
-                  }
-                  valueStyle={styles.cardStats.ind2.value}
-                  value={totalProm}
-                />
-              </Col>
-            </Row>
-          </Card>
+                    <Statistic
+                      suffix={
+                        <Row>
+                          <Col style={{ fontSize: "16px" }}>m³</Col>
+                        </Row>
+                      }
+                      valueStyle={styles.cardStats.ind2.value}
+                      value={totalProm}
+                    />
+                  </Col>
+                </Row>
+              </Card>
+            </div>
+          </QueueAnim>
         </Col>
       </Row>
     </>

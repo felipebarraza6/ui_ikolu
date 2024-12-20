@@ -4,6 +4,7 @@ import GraphicLine from "./GraphicLine";
 import { AppContext } from "../../App";
 import { ClockCircleOutlined, CalendarOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
+import QueueAnim from "rc-queue-anim";
 import es_ES from "antd/lib/locale/es_ES";
 
 const { Title } = Typography;
@@ -54,77 +55,81 @@ const MyGraphics = () => {
   }, [state.selected_profile, countUpdate, option]);
 
   return (
-    <Row justify={"space-between"} align="middle">
-      <Col xs={8} lg={3} xl={3}>
-        {option && (
-          <>
-            {option === 1 && (
-              <DatePicker
-                style={styles.datePicker}
-                size="small"
-                allowEmpty={true}
-                onSelect={(date) => {
-                  onSelectDate(date, "initial");
-                }}
-                defaultValue={option === 1 && dayjs().subtract(1, "day")}
-                showToday={false}
-                disabledDate={disabledDate}
-                placeholder="Selecciona un dia"
-                locale={es_ES}
-              />
-            )}
-            {option === 2 && (
+    <QueueAnim delay={500} duration={900} type="alpha">
+      <div key="graphic">
+        <Row justify={"space-between"} align="middle">
+          <Col xs={8} lg={3} xl={3}>
+            {option && (
               <>
-                <DatePicker
-                  style={styles.datePicker}
-                  size="small"
-                  showToday={false}
-                  defaultValue={option === 2 && dayjs()}
-                  allowEmpty={true}
-                  onSelect={(date) => {
-                    onSelectDate(date, "initial");
-                  }}
-                  disabledDate={disabledDateMonth}
-                  picker="month"
-                  placeholder="Selecciona un mes"
-                  locale={es_ES}
-                />
+                {option === 1 && (
+                  <DatePicker
+                    style={styles.datePicker}
+                    size="small"
+                    allowEmpty={true}
+                    onSelect={(date) => {
+                      onSelectDate(date, "initial");
+                    }}
+                    defaultValue={option === 1 && dayjs().subtract(1, "day")}
+                    showToday={false}
+                    disabledDate={disabledDate}
+                    placeholder="Selecciona un dia"
+                    locale={es_ES}
+                  />
+                )}
+                {option === 2 && (
+                  <>
+                    <DatePicker
+                      style={styles.datePicker}
+                      size="small"
+                      showToday={false}
+                      defaultValue={option === 2 && dayjs()}
+                      allowEmpty={true}
+                      onSelect={(date) => {
+                        onSelectDate(date, "initial");
+                      }}
+                      disabledDate={disabledDateMonth}
+                      picker="month"
+                      placeholder="Selecciona un mes"
+                      locale={es_ES}
+                    />
+                  </>
+                )}
               </>
             )}
-          </>
-        )}
-      </Col>
-      <Col xs={10} lg={3} xl={6}>
-        <Button
-          type={option === 2 ? "primary" : "default"}
-          onClick={() => handleOption(1)}
-          size="small"
-          style={styles.btnOption}
-          icon={<ClockCircleOutlined />}
-        >
-          Registro 24 horas
-        </Button>
-        <Button
-          type={option === 1 ? "primary" : "default"}
-          onClick={() => handleOption(2)}
-          size="small"
-          style={styles.btnOption}
-          icon={<CalendarOutlined />}
-        >
-          Mensual
-        </Button>
-      </Col>
-      <Col span={24} style={styles.container}>
-        {onGetFilter && (
-          <GraphicLine
-            option={option}
-            initialDate={initialDate}
-            id_profile={state.selected_profile.id}
-            monthSelect={monthSelect}
-          />
-        )}
-      </Col>
-    </Row>
+          </Col>
+          <Col xs={10} lg={3} xl={6}>
+            <Button
+              type={option === 2 ? "primary" : "default"}
+              onClick={() => handleOption(1)}
+              size="small"
+              style={styles.btnOption}
+              icon={<ClockCircleOutlined />}
+            >
+              Registro 24 horas
+            </Button>
+            <Button
+              type={option === 1 ? "primary" : "default"}
+              onClick={() => handleOption(2)}
+              size="small"
+              style={styles.btnOption}
+              icon={<CalendarOutlined />}
+            >
+              Mensual
+            </Button>
+          </Col>
+          <Col span={24} style={styles.container}>
+            {onGetFilter && (
+              <GraphicLine
+                option={option}
+                initialDate={initialDate}
+                id_profile={state.selected_profile.id}
+                monthSelect={monthSelect}
+              />
+            )}
+          </Col>
+        </Row>
+      </div>
+    </QueueAnim>
   );
 };
 

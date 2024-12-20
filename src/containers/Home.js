@@ -10,6 +10,7 @@ import MyGraphics from "../components/graphics/MyGraphics";
 import Reports from "../components/reports/Reports";
 import DriveInternal from "../components/drive_internal/Drive";
 import Indicators from "../components/Indicators/Indicators";
+import QueueAnim from "rc-queue-anim";
 import Dga from "../components/dga/Dga";
 
 import DocRes from "../components/docres/DocRes";
@@ -45,37 +46,49 @@ const Home = () => {
                 : 24
             }
           >
-            <Row justify="center">
-              <Col span={24}>
-                <Card
-                  size={window.innerWidth > 900 ? "default" : "small"}
-                  bordered
-                  style={{
-                    margin: window.innerWidth > 900 && "15px",
-                    minHeight: "84vh",
-                    boxShadow:
-                      "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
-                  }}
-                >
-                  <Routes>
-                    <Route exact path="/" element={<MyWell />} />
+            <QueueAnim delay={400} duration={1200} type="bottom">
+              <div key="home">
+                <Row justify="center">
+                  <Col span={24}>
+                    <Card
+                      size={window.innerWidth > 900 ? "default" : "small"}
+                      bordered
+                      style={{
+                        margin: window.innerWidth > 900 && "15px",
+                        minHeight: "84vh",
+                        boxShadow:
+                          "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
+                      }}
+                    >
+                      <Routes>
+                        <Route exact path="/" element={<MyWell />} />
 
-                    <Route exact path="/graficos" element={<MyGraphics />} />
-                    <Route exact path="/indicadores" element={<Indicators />} />
-                    <Route exact path="/reportes" element={<Reports />} />
-                    <Route exact path="/dga" element={<Dga />} />
+                        <Route
+                          exact
+                          path="/graficos"
+                          element={<MyGraphics />}
+                        />
+                        <Route
+                          exact
+                          path="/indicadores"
+                          element={<Indicators />}
+                        />
+                        <Route exact path="/reportes" element={<Reports />} />
+                        <Route exact path="/dga" element={<Dga />} />
 
-                    <Route
-                      exact
-                      path="/docrespaldo"
-                      element={<DriveInternal />}
-                    />
-                    <Route exact path="/alert" element={<Alerts />} />
-                    <Route exact path="/doc" element={<DocRes />} />
-                  </Routes>
-                </Card>
-              </Col>
-            </Row>
+                        <Route
+                          exact
+                          path="/docrespaldo"
+                          element={<DriveInternal />}
+                        />
+                        <Route exact path="/alert" element={<Alerts />} />
+                        <Route exact path="/doc" element={<DocRes />} />
+                      </Routes>
+                    </Card>
+                  </Col>
+                </Row>
+              </div>
+            </QueueAnim>
           </Col>
           {window.innerWidth > 900 && (
             <>

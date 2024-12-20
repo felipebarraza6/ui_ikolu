@@ -22,6 +22,7 @@ import {
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
 import { QRCodeCanvas } from "qrcode.react";
+import QueueAnim from "rc-queue-anim";
 const { Countdown } = Statistic;
 
 const { Title, Text } = Typography;
@@ -138,211 +139,233 @@ const Dga = () => {
   }, [state.selected_profile, page]);
 
   return (
-    <Row align={"top"} justify={"space-evenly"}>
-      <Col span={24}>
-        <Title level={3}>
-          <span style={{ fontSize: "16px" }}>
-            Datos enviados a la DGA del {new Date().getDate()} y{" "}
-            {new Date().getDate() - 1} de{" "}
-            {new Date().toLocaleString("es-CL", { month: "long" })}{" "}
-          </span>
-        </Title>
-      </Col>
-      <Col xs={24} lg={16} xl={19} style={{ paddingRight: "10px" }}>
-        <Table
-          style={{ borderRadius: "20px" }}
-          bordered
-          loading={data.length === 0}
-          pagination={{
-            total: countElements,
-            pageSize: 10,
-            onChange: (page) => setPage(page),
-          }}
-          size="small"
-          dataSource={data}
-          columns={[
-            { title: "Fecha", dataIndex: "fecha", width: "50%", fixed: "top" },
-            { title: "Hora", dataIndex: "hora", width: "10%" },
-            {
-              title: window.innerWidth > 900 ? "Caudal(L/s)" : "l/s",
-              dataIndex: "caudal",
-              render: (flow) => processCaudal(flow),
-            },
-            {
-              title: window.innerWidth > 900 ? "N.Freático(m)" : "m",
-              dataIndex: "nivel",
-              render: (nivel) => nivel,
-            },
-            {
-              title: window.innerWidth > 900 ? "Acumulado(m³)" : "m³",
-              dataIndex: "acumulado",
-              render: (acumulado) =>
-                numberForMiles.format(processAcum(acumulado)),
-              width: "10%",
-            },
-            {
-              title: <center>Comprobante ingreso DGA</center>,
-              render: (obj) =>
-                obj.n_voucher ? (
-                  <Alert
-                    icon={<CheckCircleFilled />}
-                    size="small"
-                    showIcon
-                    style={{ width: "210px", padding: "5px" }}
-                    type="success"
-                    message={<>{obj.n_voucher}</>}
-                  />
-                ) : state.selected_profile.is_send_dga ? (
-                  <Alert
-                    icon={<CloudServerOutlined />}
-                    size="small"
-                    style={{ width: "210px", padding: "5px" }}
-                    showIcon
-                    type="error"
-                    description={<>Servicio DGA no disponible ref: #{obj.id}</>}
-                  />
-                ) : (
-                  <Alert
-                    size="small"
-                    style={{ width: "210px", padding: "5px" }}
-                    showIcon
-                    icon={<OrderedListOutlined />}
-                    type="warning"
-                    description={<>Envío DGA no programado</>}
-                  />
-                ),
-            },
-          ]}
-        />
-      </Col>
-      <Col xs={24} lg={16} xl={5}>
-        <Affix offsetTop={185}>
-          <Row
-            justify={"center"}
-            align={"middle"}
-            style={{
-              border: "2px solid #1F3461",
-              zIndex: -10,
-              borderRadius: "10px",
-              marginTop: window.innerWidth > 900 ? "-70px" : "0px",
-            }}
-          >
-            <Col>
-              <Title level={4} style={{ textAlign: "center" }}>
-                Siguiente envío de información a servicio DGA
-              </Title>
-            </Col>
-            <Col span={24}>
-              {state.selected_profile.is_send_dga ? (
-                <Countdown
-                  valueStyle={{ color: "white" }}
-                  style={{
-                    textAlign: "center",
-                    backgroundColor: "#1F3461",
+    <QueueAnim delay={500} duration={900} type="top">
+      <div key="dga">
+        <Row align={"top"} justify={"space-between"}>
+          <Col span={24}>
+            <Title level={3}>
+              <span style={{ fontSize: "16px" }}>
+                Mediciones procesadas el {new Date().getDate()} y{" "}
+                {new Date().getDate() - 1} de{" "}
+                {new Date().toLocaleString("es-CL", { month: "short" })}{" "}
+              </span>
+            </Title>
+          </Col>
+          <Col xs={24} lg={16} xl={19} style={{ paddingRight: "10px" }}>
+            <QueueAnim delay={500} duration={900} type="left">
+              <div key="table">
+                <Table
+                  style={{ borderRadius: "20px" }}
+                  bordered
+                  loading={data.length === 0}
+                  pagination={{
+                    total: countElements,
+                    pageSize: 10,
+                    onChange: (page) => setPage(page),
                   }}
-                  value={deadline}
+                  size="small"
+                  dataSource={data}
+                  columns={[
+                    {
+                      title: "Fecha",
+                      dataIndex: "fecha",
+                      width: "50%",
+                      fixed: "top",
+                    },
+                    { title: "Hora", dataIndex: "hora", width: "10%" },
+                    {
+                      title: window.innerWidth > 900 ? "Caudal(L/s)" : "l/s",
+                      dataIndex: "caudal",
+                      render: (flow) => processCaudal(flow),
+                    },
+                    {
+                      title: window.innerWidth > 900 ? "N.Freático(m)" : "m",
+                      dataIndex: "nivel",
+                      render: (nivel) => nivel,
+                    },
+                    {
+                      title: window.innerWidth > 900 ? "Acumulado(m³)" : "m³",
+                      dataIndex: "acumulado",
+                      render: (acumulado) =>
+                        numberForMiles.format(processAcum(acumulado)),
+                      width: "10%",
+                    },
+                    {
+                      title: <center>Comprobante ingreso DGA</center>,
+                      render: (obj) =>
+                        obj.n_voucher ? (
+                          <QueueAnim delay={500} duration={1700} type="alpha">
+                            <div key="voucher">
+                              <Alert
+                                icon={<CheckCircleFilled />}
+                                size="small"
+                                showIcon
+                                style={{ width: "210px", padding: "5px" }}
+                                type="success"
+                                message={<>Enviado correctamente</>}
+                              />
+                            </div>
+                          </QueueAnim>
+                        ) : state.selected_profile.is_send_dga ? (
+                          <QueueAnim delay={800} duration={1700} type="alpha">
+                            <div key="voucher">
+                              <Alert
+                                icon={<CloudServerOutlined />}
+                                size="small"
+                                style={{ width: "210px", padding: "5px" }}
+                                showIcon
+                                type="error"
+                                description={<>ref: #{obj.id}</>}
+                              />
+                            </div>
+                          </QueueAnim>
+                        ) : (
+                          <Alert
+                            size="small"
+                            style={{ width: "210px", padding: "5px" }}
+                            showIcon
+                            icon={<OrderedListOutlined />}
+                            type="warning"
+                            description={<>Envío DGA no programado</>}
+                          />
+                        ),
+                    },
+                  ]}
                 />
-              ) : (
-                <center>
-                  <Tag color="red-inverse" icon={<ClockCircleFilled />}>
-                    <b>No programado</b>
-                  </Tag>
-                </center>
-              )}
-            </Col>
-            <Col>
-              {state.selected_profile.code_dga_site ? (
-                <center>
-                  <Title
-                    level={5}
+              </div>
+            </QueueAnim>
+          </Col>
+          <Col xs={24} lg={16} xl={5}>
+            <QueueAnim delay={500} duration={1100} type="scaleBig">
+              <div key="affix">
+                <Affix offsetTop={5}>
+                  <Row
                     style={{
-                      paddingLeft: "10px",
-                      paddingRight: "10px",
+                      border: "2px solid #1F3461",
+                      borderRadius: "10px",
+                      paddingBottom: "10px",
+                      background:
+                        "radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(161,181,199,0.4150035014005602) 100%)",
                     }}
+                    justify={"center"}
                   >
-                    {standart === "MAYOR" &&
-                      "El estándar Mayor envía información cada una hora"}
-                    {standart === "MEDIO" &&
-                      "El estándar Mayor envía información cada un día"}
-                    {standart === "MENOR" &&
-                      "El estándar Mayor envía información cada un mes"}
-                    {standart === "MENOR" &&
-                      "El estándar Mayor envía información cada seis meses"}
-                  </Title>
-                  <QRCodeCanvas
-                    size={150}
-                    value={`https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.code_dga_site}`}
-                  />
-                  <br />
-                  <br />
-                </center>
-              ) : (
-                <>
-                  <FileImageOutlined
-                    style={{
-                      fontWeight: "100",
-                      fontSize: "150px",
-                      textAlign: "center",
-                      color: "#1f3461",
-                    }}
-                  />
-                  <br />
-                  <br />
-                </>
-              )}
-            </Col>
-            <Col>
-              <Text
-                level={4}
-                style={{
-                  color: "#1F3461",
-                  fontSize: "17px",
-                  fontWeight: "bold",
-                  borderRadius: "10px",
-                }}
-              >
-                {state.selected_profile.code_dga_site
-                  ? state.selected_profile.code_dga_site
-                  : "CÓDIGO DE OBRA"}
-              </Text>
-            </Col>
-            <Col>
-              <Tooltip
-                placement="right"
-                color="#1F3461"
-                title={
-                  <Text style={{ color: "white" }}>
-                    Los siguientes datos son proporcionados por la DGA, respecto
-                    a dudas o inconsistencias: ponte en contacto con{" "}
-                    <b>soporte@smarthydro.cl</b>
-                  </Text>
-                }
-              >
-                <Button
-                  icon={<LinkOutlined />}
-                  type="primary"
-                  onClick={() => {
-                    window.open(
-                      `https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.code_dga_site}`,
-                      "_blank"
-                    );
-                  }}
-                  style={{
-                    backgroundColor: "#1F3461",
-                    borderColor: "#1F3461",
-                  }}
-                >
-                  Plataforma DGA
-                </Button>
-              </Tooltip>
-            </Col>
-            <br />
-            <br />
-            <br />
-          </Row>
-        </Affix>
-      </Col>
-    </Row>
+                    <Col>
+                      <Title level={5} style={{ textAlign: "center" }}>
+                        Siguiente envío de información a servicio DGA
+                      </Title>
+                    </Col>
+                    <Col span={24}>
+                      {state.selected_profile.is_send_dga ? (
+                        <Countdown
+                          valueStyle={{ color: "white" }}
+                          style={{
+                            textAlign: "center",
+                            backgroundColor: "#1F3461",
+                          }}
+                          value={deadline}
+                        />
+                      ) : (
+                        <center>
+                          <Tag color="red-inverse" icon={<ClockCircleFilled />}>
+                            <b>No programado</b>
+                          </Tag>
+                        </center>
+                      )}
+                    </Col>
+                    <Col>
+                      {state.selected_profile.code_dga_site ? (
+                        <center>
+                          <Title
+                            level={5}
+                            style={{
+                              paddingLeft: "10px",
+                              paddingRight: "10px",
+                            }}
+                          >
+                            {standart === "MAYOR" &&
+                              "El estándar Mayor envía información cada una hora"}
+                            {standart === "MEDIO" &&
+                              "El estándar Mayor envía información cada un día"}
+                            {standart === "MENOR" &&
+                              "El estándar Mayor envía información cada un mes"}
+                            {standart === "MENOR" &&
+                              "El estándar Mayor envía información cada seis meses"}
+                          </Title>
+                          <QRCodeCanvas
+                            size={120}
+                            value={`https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.code_dga_site}`}
+                          />
+                          <br />
+                          <br />
+                        </center>
+                      ) : (
+                        <>
+                          <FileImageOutlined
+                            style={{
+                              fontWeight: "100",
+                              fontSize: "150px",
+                              textAlign: "center",
+                              color: "#1f3461",
+                            }}
+                          />
+                          <br />
+                          <br />
+                        </>
+                      )}
+                    </Col>
+                    <Col>
+                      <Text
+                        level={4}
+                        style={{
+                          color: "#1F3461",
+                          fontSize: "17px",
+                          fontWeight: "bold",
+                          borderRadius: "10px",
+                        }}
+                      >
+                        {state.selected_profile.code_dga_site
+                          ? state.selected_profile.code_dga_site
+                          : "CÓDIGO DE OBRA"}
+                      </Text>
+                    </Col>
+                    <Col>
+                      <Tooltip
+                        placement="right"
+                        color="#1F3461"
+                        title={
+                          <Text style={{ color: "white" }}>
+                            Los siguientes datos son proporcionados por la DGA,
+                            respecto a dudas o inconsistencias: ponte en
+                            contacto con <b>soporte@smarthydro.cl</b>
+                          </Text>
+                        }
+                      >
+                        <Button
+                          icon={<LinkOutlined />}
+                          type="primary"
+                          onClick={() => {
+                            window.open(
+                              `https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.code_dga_site}`,
+                              "_blank"
+                            );
+                          }}
+                          style={{
+                            backgroundColor: "#1F3461",
+                            borderColor: "#1F3461",
+                          }}
+                        >
+                          Plataforma DGA
+                        </Button>
+                      </Tooltip>
+                    </Col>
+                  </Row>
+                </Affix>
+              </div>
+            </QueueAnim>
+          </Col>
+        </Row>
+      </div>
+    </QueueAnim>
   );
 };
 
