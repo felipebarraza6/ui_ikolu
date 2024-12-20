@@ -25,6 +25,7 @@ import {
 import { AppContext } from "../../App";
 import { QRCodeCanvas } from "qrcode.react";
 import api from "../../api/sh/endpoints";
+import QueueAnim from "rc-queue-anim";
 
 const { Title, Text } = Typography;
 
@@ -136,229 +137,227 @@ const TableStandarVerySmall = () => {
 
   return (
     <Col xl={24} lg={24} xs={24}>
-      <Row>
-        <Col span={24}>
-          <Title level={4} style={{ marginBottom: "20px" }}>
-            {state.selected_profile.standard === "CAUDALES_MUY_PEQUENOS" &&
-              "Formulario para caudales muy pequeños"}
-            {state.selected_profile.standard === "MENOR" &&
-              "Formulario para estandar menor"}
-          </Title>
-          <Form
-            layout="inline"
-            initialValues={{
-              nivel:
-                state.selected_profile.standard === "CAUDALES_MUY_PEQUENOS"
-                  ? 0.0
-                  : "",
-              flow: 0.0,
-            }}
-            form={form}
-            onFinish={(values) => {
-              values = {
-                ...values,
-                profile_client: state.selected_profile.id,
-                flow: parseFloat(values.flow),
-                nivel: parseFloat(values.nivel),
-                total: parseInt(values.total),
-                date_time_medition: values.date_time_medition.format(
-                  "YYYY-MM-DD HH:mm:ss"
-                ),
-              };
-              createData(values);
+      <QueueAnim delay={300} type="top">
+        <div key="registers">
+          <Row>
+            <Col span={24}>
+              <Title level={4} style={{ marginBottom: "20px" }}>
+                Formulario de mediciones
+              </Title>
+              <Form
+                layout="inline"
+                initialValues={{
+                  nivel:
+                    state.selected_profile.standard === "CAUDALES_MUY_PEQUENOS"
+                      ? 0.0
+                      : "",
+                  flow: 0.0,
+                }}
+                form={form}
+                onFinish={(values) => {
+                  values = {
+                    ...values,
+                    profile_client: state.selected_profile.id,
+                    flow: parseFloat(values.flow),
+                    nivel: parseFloat(values.nivel),
+                    total: parseInt(values.total),
+                    date_time_medition: values.date_time_medition.format(
+                      "YYYY-MM-DD HH:mm:ss"
+                    ),
+                  };
+                  createData(values);
 
-              form.resetFields();
-            }}
-          >
-            <Row>
-              <Col>
-                Fecha de captación
-                <Form.Item
-                  name="date_time_medition"
-                  rules={[{ required: true, message: "Ingresa la fecha" }]}
-                >
-                  <DatePicker
-                    placeholder="Selecciona una fecha"
-                    style={{ width: "200px" }}
-                  />
-                </Form.Item>
-              </Col>
-              <Col>
-                Caudal
-                <Form.Item
-                  name="flow"
-                  rules={[{ required: true, message: "Ingesa el caudal" }]}
-                >
-                  <Input
-                    style={{ width: "100px" }}
-                    placeholder="0.0"
-                    suffix={"l/s"}
-                  />
-                </Form.Item>
-              </Col>
-              <Col>
-                Nivel freático
-                <Form.Item
-                  name="nivel"
-                  rules={[{ required: true, message: "Ingesa el nivel" }]}
-                >
-                  <Input
-                    style={{ width: "100px" }}
-                    placeholder="0.0"
-                    suffix={"m"}
-                  />
-                </Form.Item>
-              </Col>
-              <Col>
-                Totalizado
-                <Form.Item
-                  name="total"
-                  rules={[{ required: true, message: "Ingesa el total" }]}
-                >
-                  <Input
-                    style={{ width: "150px" }}
-                    placeholder="0"
-                    suffix={"m³"}
-                  />
-                </Form.Item>
-              </Col>
-              <Col>
-                <Form.Item>
-                  <Row
-                    justify={"center"}
-                    align={"middle"}
-                    style={{ minHeight: "80px", minWidth: "220px" }}
-                  >
-                    <Col span={12}>
-                      <Button
-                        type="primary"
-                        icon={<CloudUploadOutlined />}
-                        htmlType="submit"
-                        disabled={hasMoreThanTwoRecordsPerYear}
+                  form.resetFields();
+                }}
+              >
+                <Row>
+                  <Col>
+                    Fecha de captación
+                    <Form.Item
+                      name="date_time_medition"
+                      rules={[{ required: true, message: "Ingresa la fecha" }]}
+                    >
+                      <DatePicker
+                        placeholder="Selecciona una fecha"
+                        style={{ width: "200px" }}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col>
+                    Caudal
+                    <Form.Item
+                      name="flow"
+                      rules={[{ required: true, message: "Ingesa el caudal" }]}
+                    >
+                      <Input
+                        style={{ width: "100px" }}
+                        placeholder="0.0"
+                        suffix={"l/s"}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col>
+                    Nivel freático
+                    <Form.Item
+                      name="nivel"
+                      rules={[{ required: true, message: "Ingesa el nivel" }]}
+                    >
+                      <Input
+                        style={{ width: "100px" }}
+                        placeholder="0.0"
+                        suffix={"m"}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col>
+                    Totalizado
+                    <Form.Item
+                      name="total"
+                      rules={[{ required: true, message: "Ingesa el total" }]}
+                    >
+                      <Input
+                        style={{ width: "150px" }}
+                        placeholder="0"
+                        suffix={"m³"}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col>
+                    <Form.Item>
+                      <Row
+                        justify={"center"}
+                        align={"middle"}
+                        style={{ minHeight: "80px", minWidth: "220px" }}
                       >
-                        Guardar
-                      </Button>
-                    </Col>
-                    <Col span={12}>
-                      <Button
-                        icon={<ClearOutlined />}
-                        onClick={() => form.resetFields()}
-                      >
-                        Limpiar
-                      </Button>
-                    </Col>
-                  </Row>
-                </Form.Item>
-              </Col>
-            </Row>
-          </Form>
-        </Col>
-        <Col span={24}>{dateStep()}</Col>
-        <Col span={18} style={{ marginTop: "10px", paddingRight: "10px" }}>
-          <Table
-            size="small"
-            bordered
-            columns={[
-              {
-                title: "Fecha",
-                dataIndex: "date_time_medition",
-                render: (date) => new Date(date).toLocaleDateString(1),
-              },
-              {
-                title: "Caudal(l/s)",
-                dataIndex: "flow",
-                render: (flow) => parseFloat(flow).toFixed(1),
-              },
-              {
-                title: "Nivel freatico(m)",
-                dataIndex: "nivel",
-                render: (nivel) => parseFloat(nivel).toFixed(1),
-              },
-              {
-                title: "Totalizado(m³)",
-                dataIndex: "total",
-                render: (total) => parseInt(total).toLocaleString("es-ES"),
-              },
-              {
-                render: (x) => (
-                  <>
-                    {!x.is_send_dga ? (
-                      <Button
-                        danger
-                        type="primary"
-                        size="small"
-                        icon={<DeleteFilled />}
-                        onClick={() => deleteData(x.id)}
-                      >
-                        Eliminar
-                      </Button>
-                    ) : (
-                      <Tag icon={<CheckCircleFilled />} color={"green-inverse"}>
-                        REGISTRO ENVIADO A DGA
-                      </Tag>
-                    )}
-                  </>
-                ),
-              },
-            ]}
-            dataSource={dataForm}
-          />
-        </Col>
-        <Col span={6}>
-          <Row justify={"center"}>
-            <Col>
-              <Card hoverable>
-                <Tooltip
-                  style={{}}
-                  color="#1F3461"
-                  title={
-                    <Text style={{ color: "white" }}>
-                      Los siguientes datos son proporcionados por la DGA,
-                      respecto a dudas o iconsistencias: ponte en contacto con{" "}
-                      <b>soporte@smarthydro.cl</b>
-                    </Text>
-                  }
-                >
-                  <Button
-                    icon={<SecurityScanFilled />}
-                    type="primary"
-                    block
-                    onClick={() => {
-                      window.open(
-                        `https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.code_dga_site}`,
-                        "_blank"
-                      );
-                    }}
-                    style={{
-                      paddingBottom: "50px",
-                    }}
-                  >
-                    Ver <b> {state.selected_profile.code_dga_site}</b> <br />
-                    en plataforma oficial DGA
-                  </Button>
-                </Tooltip>
-                <center>
-                  {state.selected_profile.qr_dga ? (
-                    <img
-                      src={`https://api.smarthydro.app/${state.selected_profile.qr_dga}`}
-                      style={{ width: "100%", marginTop: "10px" }}
-                    />
-                  ) : state.selected_profile.code_dga_site ? (
-                    <QRCodeCanvas
-                      size={170}
-                      style={{ marginTop: "10px" }}
-                      value={`https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.code_dga_site}`}
-                    />
-                  ) : (
-                    <b style={{ color: "red" }}>SIN CODIGO DE OBRA</b>
-                  )}
-                </center>
-              </Card>
+                        <Col span={12}>
+                          <Button
+                            type="primary"
+                            icon={<CloudUploadOutlined />}
+                            htmlType="submit"
+                            disabled={hasMoreThanTwoRecordsPerYear}
+                          >
+                            Guardar
+                          </Button>
+                        </Col>
+                        <Col span={12}>
+                          <Button
+                            icon={<ClearOutlined />}
+                            onClick={() => form.resetFields()}
+                          >
+                            Limpiar
+                          </Button>
+                        </Col>
+                      </Row>
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </Form>
             </Col>
-            <Col></Col>
+            <Col span={24}>{dateStep()}</Col>
+            <Col span={18} style={{ marginTop: "10px", paddingRight: "10px" }}>
+              <Table
+                size="small"
+                bordered
+                columns={[
+                  {
+                    title: "Fecha",
+                    dataIndex: "date_time_medition",
+                    render: (date) => new Date(date).toLocaleDateString(1),
+                  },
+                  {
+                    title: "Caudal(l/s)",
+                    dataIndex: "flow",
+                    render: (flow) => parseFloat(flow).toFixed(1),
+                  },
+                  {
+                    title: "Nivel freatico(m)",
+                    dataIndex: "nivel",
+                    render: (nivel) => parseFloat(nivel).toFixed(1),
+                  },
+                  {
+                    title: "Totalizado(m³)",
+                    dataIndex: "total",
+                    render: (total) => parseInt(total).toLocaleString("es-ES"),
+                  },
+                  {
+                    render: (x) => (
+                      <>
+                        {!x.is_send_dga ? (
+                          <Button
+                            danger
+                            type="primary"
+                            size="small"
+                            icon={<DeleteFilled />}
+                            onClick={() => deleteData(x.id)}
+                          >
+                            Eliminar
+                          </Button>
+                        ) : (
+                          <Tag
+                            icon={<CheckCircleFilled />}
+                            color={"green-inverse"}
+                          >
+                            REGISTRO ENVIADO A DGA
+                          </Tag>
+                        )}
+                      </>
+                    ),
+                  },
+                ]}
+                dataSource={dataForm}
+              />
+            </Col>
+            <Col span={6}>
+              <Row justify={"center"}>
+                <Col>
+                  <Tooltip
+                    style={{}}
+                    color="#1F3461"
+                    title={
+                      <Text style={{ color: "white" }}>
+                        Los siguientes datos son proporcionados por la DGA,
+                        respecto a dudas o iconsistencias: ponte en contacto con{" "}
+                        <b>soporte@smarthydro.cl</b>
+                      </Text>
+                    }
+                  >
+                    <Button
+                      icon={<SecurityScanFilled />}
+                      type="primary"
+                      block
+                      onClick={() => {
+                        window.open(
+                          `https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.code_dga_site}`,
+                          "_blank"
+                        );
+                      }}
+                    >
+                      {state.selected_profile.code_dga_site}
+                    </Button>
+                  </Tooltip>
+                  <center>
+                    {state.selected_profile.qr_dga ? (
+                      <img
+                        src={`https://api.smarthydro.app/${state.selected_profile.qr_dga}`}
+                        style={{ width: "100%", marginTop: "10px" }}
+                      />
+                    ) : state.selected_profile.code_dga_site ? (
+                      <QRCodeCanvas
+                        size={170}
+                        style={{ marginTop: "10px" }}
+                        value={`https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.code_dga_site}`}
+                      />
+                    ) : (
+                      <b style={{ color: "red" }}>SIN CODIGO DE OBRA</b>
+                    )}
+                  </center>
+                </Col>
+                <Col></Col>
+              </Row>
+            </Col>
           </Row>
-        </Col>
-      </Row>
+        </div>
+      </QueueAnim>
     </Col>
   );
 };
