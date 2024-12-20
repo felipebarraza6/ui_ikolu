@@ -456,7 +456,6 @@ const Reports = () => {
                                   style={{ width: "100%" }}
                                   placeholder="Selecciona una fecha final"
                                   disabled={initialDate ? false : true}
-                                  defaultValue={initialDate}
                                   disabledDate={(current) =>
                                     current && current >= moment().endOf("day")
                                   }
