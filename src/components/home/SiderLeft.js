@@ -2,7 +2,11 @@ import { Button, Card, Affix, Modal, Row, Col } from "antd";
 import React, { useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { AppContext } from "../../App";
-import { ArrowRightOutlined, MessageOutlined } from "@ant-design/icons";
+import {
+  ArrowRightOutlined,
+  MessageOutlined,
+  OrderedListOutlined,
+} from "@ant-design/icons";
 import logo from "../../assets/images/logozivo.png";
 import minLogo from "../../assets/images/logo-blanco.png";
 import QueueAnim from "rc-queue-anim";
@@ -41,22 +45,41 @@ const SiderRight = () => {
                         location.pathname == "/" ? "white" : "#1F3461",
                     }}
                   >
-                    <Link to="/">
+                    {location.pathname !== "/supp" && (
+                      <Link to="/">
+                        <Button
+                          type="link"
+                          style={{
+                            color:
+                              location.pathname !== "/" ? "white" : "#1F3461",
+                          }}
+                        >
+                          {location.pathname === "/" && <ArrowRightOutlined />}{" "}
+                          {state.selected_profile.standard ===
+                            "CAUDALES_MUY_PEQUENOS" ||
+                          state.selected_profile.standard === "MENOR"
+                            ? "Registros"
+                            : "Mi Pozo"}
+                        </Button>
+                      </Link>
+                    )}
+                    {location.pathname === "/supp" && (
                       <Button
                         type="link"
                         style={{
                           color:
-                            location.pathname !== "/" ? "white" : "#1F3461",
+                            location.pathname == "/supp" ? "black" : "#1F3461",
+                          backgroundColor: "white",
+                          paddingLeft: "10px",
+                          borderRadius: "0px",
+                          paddingRight: "10px",
                         }}
+                        block
+                        icon={<OrderedListOutlined />}
                       >
-                        {location.pathname === "/" && <ArrowRightOutlined />}{" "}
-                        {state.selected_profile.standard ===
-                          "CAUDALES_MUY_PEQUENOS" ||
-                        state.selected_profile.standard === "MENOR"
-                          ? "Registros"
-                          : "Mi Pozo"}
+                        Superficiales
                       </Button>
-                    </Link>
+                    )}
                   </Col>
                   {state.selected_profile.module_2 && (
                     <Col

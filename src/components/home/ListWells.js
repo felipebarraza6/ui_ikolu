@@ -26,6 +26,25 @@ const ListWells = () => {
     }
   };
 
+  const onSelectWell = (key) => {
+    if (key === "admin") {
+      console.log(state.profile_client);
+
+      navigate("/supp");
+    } else {
+      const selectedProfile = state.profile_client.find(
+        (profile) => profile.id === key
+      );
+      dispatch({
+        type: "CHANGE_SELECTED_PROFILE",
+        payload: {
+          selected_profile: { ...selectedProfile, key: key },
+        },
+      });
+      navigate("/");
+    }
+  };
+
   return (
     <Row style={{ marginTop: "0px" }} align={"middle"} justify={"start"}>
       <Col>
@@ -49,19 +68,11 @@ const ListWells = () => {
             color: "black",
           }}
           placeholder="Selecciona un punto de captación"
-          defaultValue={state.selected_profile.id}
+          defaultValue={
+            state.selected_profile.id ? state.selected_profile.id : ""
+          }
           onSelect={(key) => {
-            console.log(key);
-            const selectedProfile = state.profile_client.find(
-              (profile) => profile.id === key
-            );
-            dispatch({
-              type: "CHANGE_SELECTED_PROFILE",
-              payload: {
-                selected_profile: { ...selectedProfile, key: key },
-              },
-            });
-            navigate("/");
+            onSelectWell(key);
           }}
         >
           {state.profile_client
@@ -81,7 +92,7 @@ const ListWells = () => {
                         {e.is_monitoring && <Badge status="processing" />}
                       </Col>
                       <Col span={11}>
-                        {e.code_dga_site && window.innerWidth > 900 && (
+                        {!state.user.is_admin_view && (
                           <Tag
                             color={e.is_send_dga ? "green-inverse" : "blue"}
                             style={{
@@ -106,6 +117,33 @@ const ListWells = () => {
                 </Row>
               </Select.Option>
             ))}
+          {state.user.is_admin_view && (
+            <Select.Option key="admin" value="admin">
+              <Row>
+                <Col span={24}>
+                  <Row justify={"space-between"}>
+                    <Col span={11}>STotal</Col>
+                    <Col span={1}>
+                      <Badge status="success" />
+                    </Col>
+                    <Col span={11}>
+                      <Tag
+                        color="green-inverse"
+                        style={{
+                          float: "right",
+                          marginTop: "4px",
+                          fontSize: "13px",
+                        }}
+                        icon={<DatabaseFilled />}
+                      >
+                        {state.profile_client[0].code_dga_site}
+                      </Tag>
+                    </Col>
+                  </Row>
+                </Col>
+              </Row>
+            </Select.Option>
+          )}
         </Select>
       </Col>
     </Row>

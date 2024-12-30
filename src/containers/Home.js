@@ -4,7 +4,6 @@ import HeaderNav from "../components/home/HeaderNav";
 import { useLocation, Routes, Route } from "react-router-dom";
 import SiderRight from "../components/home/SiderLeft";
 import SiderLeft from "../components/home/SiderRight";
-import ListWells from "../components/home/ListWells";
 import MyWell from "../components/mywell/MyWell";
 import MyGraphics from "../components/graphics/MyGraphics";
 import Reports from "../components/reports/Reports";
@@ -12,6 +11,7 @@ import DriveInternal from "../components/drive_internal/Drive";
 import Indicators from "../components/Indicators/Indicators";
 import QueueAnim from "rc-queue-anim";
 import Dga from "../components/dga/Dga";
+import Supp from "../components/home/Supp";
 
 import DocRes from "../components/docres/DocRes";
 import Alerts from "../components/alerts/Alerts";
@@ -40,7 +40,8 @@ const Home = () => {
           <Col
             span={
               window.innerWidth > 900
-                ? location.pathname !== "/graficos"
+                ? location.pathname !== "/graficos" &&
+                  location.pathname !== "/supp"
                   ? 17
                   : 21
                 : 24
@@ -83,6 +84,7 @@ const Home = () => {
                         />
                         <Route exact path="/alert" element={<Alerts />} />
                         <Route exact path="/doc" element={<DocRes />} />
+                        <Route exact path="/supp" element={<Supp />} />
                       </Routes>
                     </Card>
                   </Col>
@@ -92,14 +94,15 @@ const Home = () => {
           </Col>
           {window.innerWidth > 900 && (
             <>
-              {location.pathname !== "/graficos" && (
-                <Col
-                  span={window.innerWidth > 900 ? 4 : 24}
-                  style={{ paddingTop: "10px" }}
-                >
-                  <SiderLeft />
-                </Col>
-              )}
+              {location.pathname !== "/graficos" &&
+                location.pathname !== "/supp" && (
+                  <Col
+                    span={window.innerWidth > 900 ? 4 : 24}
+                    style={{ paddingTop: "10px" }}
+                  >
+                    <SiderLeft />
+                  </Col>
+                )}
             </>
           )}
         </Row>
