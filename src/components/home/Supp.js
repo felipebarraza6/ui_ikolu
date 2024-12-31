@@ -1,6 +1,19 @@
 import React, { useContext, useState, useEffect } from "react";
-import { Flex, Typography, Table, Card, Button } from "antd";
-import { LinkOutlined } from "@ant-design/icons";
+import {
+  Flex,
+  Typography,
+  Table,
+  Card,
+  Button,
+  Tag,
+  Popconfirm,
+  Tooltip,
+} from "antd";
+import {
+  LinkOutlined,
+  CheckCircleFilled,
+  CloudServerOutlined,
+} from "@ant-design/icons";
 import { AppContext } from "../../App";
 import sh from "../../api/sh/endpoints";
 
@@ -9,7 +22,6 @@ const { Title } = Typography;
 const Supp = () => {
   const { state } = useContext(AppContext);
   const [data, setData] = useState(null);
-  const [profiles, setProfiles] = useState([]);
   const [dataProcessing, setDataProcessing] = useState([]);
 
   const numberFormatter = new Intl.NumberFormat("de-DE");
@@ -18,7 +30,6 @@ const Supp = () => {
     let totalSum = 0;
     for (const profile of state.profile_client) {
       const data = await sh.get_data_sh(profile.id);
-      console.log(data);
       if (data.results.length > 0) {
         profile.total = +data.results[0].total; // Convertir a número
         totalSum += profile.total;
@@ -34,7 +45,6 @@ const Supp = () => {
     const today = new Date();
     const formattedDate = today.toLocaleDateString("en-US");
     const title = `Registros enviados a la DGA - ${formattedDate} `;
-    const allData = [];
     const mergedData = [];
     const mergedMap = new Map();
 
@@ -43,17 +53,52 @@ const Supp = () => {
       for (const result of data.results) {
         const key = result.date_time_medition;
         if (mergedMap.has(key)) {
-          mergedMap.set(key, mergedMap.get(key) + Number(result.total));
+          const existing = mergedMap.get(key);
+          console.log(result);
+          console.log(existing);
+          mergedMap.set(key, {
+            total: existing.total + Number(result.total),
+            flow: existing.flow + Number(result.flow),
+            n_voucher: existing.n_voucher,
+            id: existing.id,
+          });
         } else {
-          mergedMap.set(key, Number(result.total));
+          mergedMap.set(key, {
+            total: Number(result.total),
+            flow: Number(result.flow),
+            n_voucher: result.n_voucher,
+            id: result.id,
+          });
         }
       }
     }
+    console.log(mergedMap);
 
-    mergedMap.forEach((total, date) => {
+    mergedMap.forEach((value, date) => {
       mergedData.push({
         date_time_medition: date,
-        total: total,
+        total: value.total,
+        flow: value.flow,
+
+        n_voucher: value.n_voucher ? (
+          <Tooltip
+            title={
+              <>
+                <b>COMPROBANTE DGA:</b> {value.n_voucher}
+              </>
+            }
+            color={"green"}
+            trigger={"click"}
+          >
+            <Tag color="green" icon={<CheckCircleFilled />}>
+              Enviado correctamente
+            </Tag>
+          </Tooltip>
+        ) : (
+          <Tag color="volcano" icon={<CloudServerOutlined />}>
+            ref: #{value.id}
+          </Tag>
+        ),
       });
     });
 
@@ -85,6 +130,7 @@ const Supp = () => {
               title: "Estandar",
             },
             {
+              width: "100%",
               title: "Total (m³)",
               dataIndex: "total",
               render: (total) => numberFormatter.format(total),
@@ -93,7 +139,12 @@ const Supp = () => {
         />
         <Card
           title={dataProcessing.title}
-          style={{ width: "100%" }}
+          style={{
+            width: "100%",
+            border: "1px solid white",
+            background:
+              "linear-gradient(124deg, rgba(255,255,255,1) 0%, rgba(165,171,173,1) 100%)",
+          }}
           hoverable
           extra={
             <Button
@@ -127,9 +178,18 @@ const Supp = () => {
                 render: (time) => time.slice(11, 16) + " hrs",
               },
               {
+                title: "Cualdal (lt/s)",
+                dataIndex: "flow",
+                render: (number) => parseFloat(number).toFixed(2),
+              },
+              {
                 title: "Total (m³)",
                 dataIndex: "total",
                 render: (total) => numberFormatter.format(total),
+              },
+              {
+                title: "DGA",
+                dataIndex: "n_voucher",
               },
             ]}
           />
