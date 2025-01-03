@@ -9,10 +9,8 @@ import {
   DatePicker,
   notification,
   Tooltip,
-  InputNumber,
   Tag,
   Button,
-  Card,
 } from "antd";
 
 import {
@@ -234,7 +232,6 @@ const TableStandarVerySmall = () => {
                             type="primary"
                             icon={<CloudUploadOutlined />}
                             htmlType="submit"
-                            disabled={hasMoreThanTwoRecordsPerYear}
                           >
                             Guardar
                           </Button>
@@ -336,12 +333,7 @@ const TableStandarVerySmall = () => {
                     </Button>
                   </Tooltip>
                   <center>
-                    {state.selected_profile.qr_dga ? (
-                      <img
-                        src={`https://api.smarthydro.app/${state.selected_profile.qr_dga}`}
-                        style={{ width: "100%", marginTop: "10px" }}
-                      />
-                    ) : state.selected_profile.code_dga_site ? (
+                    {state.selected_profile.code_dga_site ? (
                       <QRCodeCanvas
                         size={170}
                         style={{ marginTop: "10px" }}

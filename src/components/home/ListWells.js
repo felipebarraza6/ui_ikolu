@@ -1,13 +1,8 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext } from "react";
 import { AppContext } from "../../App";
 import { Row, Col, Tag, Badge, Select, Flex } from "antd";
 import { useNavigate } from "react-router";
-import {
-  CheckCircleFilled,
-  CloseCircleFilled,
-  SendOutlined,
-  DatabaseFilled,
-} from "@ant-design/icons";
+import { SendOutlined, DatabaseFilled } from "@ant-design/icons";
 
 const ListWells = () => {
   const { state, dispatch } = useContext(AppContext);
@@ -46,7 +41,7 @@ const ListWells = () => {
   };
 
   return (
-    <Row style={{ marginTop: "0px" }} align={"middle"} justify={"start"}>
+    <Row align={"middle"} justify={"start"}>
       <Col>
         <Tag
           color="rgb(31, 52, 97)"
@@ -63,7 +58,7 @@ const ListWells = () => {
         <br />
         <Select
           style={{
-            width: window.innerWidth > 900 ? "400px" : "100%",
+            width: window.innerWidth > 900 ? "100%" : "100%",
             zIndex: 9999,
             color: "black",
           }}
@@ -84,7 +79,7 @@ const ListWells = () => {
             })
             .map((e) => (
               <Select.Option key={e.id} disabled={disabledWell(e)} value={e.id}>
-                <Flex gap="small" justify="start">
+                <Flex gap="small" justify="space-between">
                   {e.is_monitoring && <Badge status="processing" />}
                   <span style={{ textAlign: "left" }}>{e.title}</span>
                   {!state.user.is_admin_view && (
