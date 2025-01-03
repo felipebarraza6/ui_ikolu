@@ -87,7 +87,7 @@ const ListWells = () => {
                   )}
 
                   <Flex justify="space-around" gap={"large"}>
-                    <span >{e.title}</span>
+                    <span>{e.title}</span>
                     {!state.user.is_admin_view && (
                       <Tag
                         color={e.is_send_dga ? "green-inverse" : "blue"}
@@ -110,29 +110,20 @@ const ListWells = () => {
             ))}
           {state.user.is_admin_view && (
             <Select.Option key="admin" value="admin">
-              <Row>
-                <Col span={24}>
-                  <Row justify={"space-between"}>
-                    <Col span={11}>STotal</Col>
-                    <Col span={1}>
-                      <Badge status="success" />
-                    </Col>
-                    <Col span={11}>
-                      <Tag
-                        color="green-inverse"
-                        style={{
-                          float: "right",
-                          marginTop: "4px",
-                          fontSize: "13px",
-                        }}
-                        icon={<DatabaseFilled />}
-                      >
-                        {state.profile_client[0].code_dga_site}
-                      </Tag>
-                    </Col>
-                  </Row>
-                </Col>
-              </Row>
+              <Flex gap="large">
+                <Badge status="success" />
+                Total
+                <Tag
+                  color="green-inverse"
+                  style={{
+                    marginTop: "4px",
+                    fontSize: "13px",
+                  }}
+                  icon={<DatabaseFilled />}
+                >
+                  {state.profile_client[0].code_dga_site}
+                </Tag>
+              </Flex>
             </Select.Option>
           )}
         </Select>
