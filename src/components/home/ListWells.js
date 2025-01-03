@@ -1,6 +1,6 @@
 import React, { useContext, useEffect } from "react";
 import { AppContext } from "../../App";
-import { Row, Col, Tag, Badge, Select } from "antd";
+import { Row, Col, Tag, Badge, Select, Flex } from "antd";
 import { useNavigate } from "react-router";
 import {
   CheckCircleFilled,
@@ -63,11 +63,11 @@ const ListWells = () => {
         <br />
         <Select
           style={{
-            width: window.innerWidth > 900 ? "350px" : "100%",
+            width: window.innerWidth > 900 ? "400px" : "100%",
             zIndex: 9999,
             color: "black",
           }}
-          placeholder="Selecciona un punto de captación"
+          placeholder="Punto de captación"
           defaultValue={
             state.selected_profile.id ? state.selected_profile.id : ""
           }
@@ -84,37 +84,26 @@ const ListWells = () => {
             })
             .map((e) => (
               <Select.Option key={e.id} disabled={disabledWell(e)} value={e.id}>
-                <Row>
-                  <Col span={24}>
-                    <Row justify={"space-between"}>
-                      <Col span={11}>{e.title}</Col>
-                      <Col span={1}>
-                        {e.is_monitoring && <Badge status="processing" />}
-                      </Col>
-                      <Col span={11}>
-                        {!state.user.is_admin_view && (
-                          <Tag
-                            color={e.is_send_dga ? "green-inverse" : "blue"}
-                            style={{
-                              float: "right",
-                              marginTop: "4px",
-                              fontSize: "13px",
-                            }}
-                            icon={
-                              e.is_send_dga ? (
-                                <SendOutlined />
-                              ) : (
-                                <DatabaseFilled />
-                              )
-                            }
-                          >
-                            {e.code_dga_site}
-                          </Tag>
-                        )}
-                      </Col>
-                    </Row>
-                  </Col>
-                </Row>
+                <Flex gap="small" justify="start">
+                  {e.is_monitoring && <Badge status="processing" />}
+                  <span style={{ textAlign: "left" }}>{e.title}</span>
+                  {!state.user.is_admin_view && (
+                    <Tag
+                      color={e.is_send_dga ? "green-inverse" : "blue"}
+                      style={{
+                        float: "right",
+                        marginTop: "4px",
+                        marginBottom: "4px",
+                        fontSize: "13px",
+                      }}
+                      icon={
+                        e.is_send_dga ? <SendOutlined /> : <DatabaseFilled />
+                      }
+                    >
+                      {e.code_dga_site}
+                    </Tag>
+                  )}
+                </Flex>
               </Select.Option>
             ))}
           {state.user.is_admin_view && (
