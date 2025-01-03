@@ -1,11 +1,11 @@
 import React, { useContext } from "react";
 import { AppContext } from "../../App";
-import { Typography, Card, Tag, Affix, Row, Col, Badge } from "antd";
+import { Typography, Card, Tag, Affix, Row, Col, Badge, Flex } from "antd";
 import { useLocation } from "react-router-dom";
 import { MailOutlined } from "@ant-design/icons";
 import QueueAnim from "rc-queue-anim";
 
-const { Title } = Typography;
+const { Title, Paragraph } = Typography;
 
 const SiderLeft = () => {
   const { state } = useContext(AppContext);
@@ -14,31 +14,31 @@ const SiderLeft = () => {
   return (
     <QueueAnim delay={200} duration={900} type="right">
       <div key="right">
-        <Card style={styles.card}>
-          <Title align="center" style={styles.title} level={4}>
-            <p
-              style={{
-                color: "white",
-                textAlign: "center",
-                marginTop: "-12px",
-              }}
-            >
-              {state.selected_profile.title}
-              <Badge status="success" style={{ marginLeft: "5px" }} />
-            </p>
-            {state.selected_profile.standard && (
-              <div>
-                <Tag color="geekblue-inverse">
-                  ESTANDAR:{" "}
-                  {state.selected_profile.standard.toUpperCase() ===
-                  "CAUDALES_MUY_PEQUENOS"
-                    ? "CAUDALES MUY PEQUEÑOS"
-                    : state.selected_profile.standard.toUpperCase()}
-                </Tag>
-              </div>
-            )}
-          </Title>
-
+        <Card
+          style={styles.card}
+          title={
+            <Flex vertical>
+              <Paragraph
+                style={{
+                  color: "white",
+                }}
+                ellipsis              >
+                {state.selected_profile.title}
+              </Paragraph>
+              {state.selected_profile.standard && (
+                <div>
+                  <Tag color="geekblue-inverse">
+                    ESTANDAR:{" "}
+                    {state.selected_profile.standard.toUpperCase() ===
+                    "CAUDALES_MUY_PEQUENOS"
+                      ? "CAUDALES MUY PEQUEÑOS"
+                      : state.selected_profile.standard.toUpperCase()}
+                  </Tag>
+                </div>
+              )}
+            </Flex>
+          }
+        >
           <Row align={"middle"} justify={"center"}>
             <QueueAnim delay={500} duration={2000} type="bottom">
               <div key="right" style={{ width: "100%" }}>

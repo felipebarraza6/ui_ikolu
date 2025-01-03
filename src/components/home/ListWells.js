@@ -58,7 +58,7 @@ const ListWells = () => {
         <br />
         <Select
           style={{
-            width: window.innerWidth > 900 ? "100%" : "100%",
+            width: window.innerWidth > 900 ? "300px" : "100%",
             zIndex: 9999,
             color: "black",
           }}
@@ -79,25 +79,32 @@ const ListWells = () => {
             })
             .map((e) => (
               <Select.Option key={e.id} disabled={disabledWell(e)} value={e.id}>
-                <Flex gap="small" justify="space-between">
-                  {e.is_monitoring && <Badge status="processing" />}
-                  <span style={{ textAlign: "left" }}>{e.title}</span>
-                  {!state.user.is_admin_view && (
-                    <Tag
-                      color={e.is_send_dga ? "green-inverse" : "blue"}
-                      style={{
-                        float: "right",
-                        marginTop: "4px",
-                        marginBottom: "4px",
-                        fontSize: "13px",
-                      }}
-                      icon={
-                        e.is_send_dga ? <SendOutlined /> : <DatabaseFilled />
-                      }
-                    >
-                      {e.code_dga_site}
-                    </Tag>
+                <Flex gap="large" justify="start">
+                  {e.is_monitoring ? (
+                    <Badge status="processing" />
+                  ) : (
+                    <Badge status="default" />
                   )}
+
+                  <Flex justify="space-around" gap={"large"}>
+                    <span >{e.title}</span>
+                    {!state.user.is_admin_view && (
+                      <Tag
+                        color={e.is_send_dga ? "green-inverse" : "blue"}
+                        style={{
+                          float: "right",
+                          marginTop: "4px",
+                          marginBottom: "4px",
+                          fontSize: "13px",
+                        }}
+                        icon={
+                          e.is_send_dga ? <SendOutlined /> : <DatabaseFilled />
+                        }
+                      >
+                        {e.code_dga_site}
+                      </Tag>
+                    )}
+                  </Flex>
                 </Flex>
               </Select.Option>
             ))}
