@@ -16,19 +16,21 @@ const SiderLeft = () => {
       <div key="right">
         <Card
           style={styles.card}
+          size="small"
+          hoverable
           title={
-            <Flex vertical>
-              <Paragraph
+            <Flex justify="space-between" align="baseline">
+              <Title
                 style={{
                   color: "white",
                 }}
-                ellipsis              >
+                level={5}
+              >
                 {state.selected_profile.title}
-              </Paragraph>
+              </Title>
               {state.selected_profile.standard && (
                 <div>
-                  <Tag color="geekblue-inverse">
-                    ESTANDAR:{" "}
+                  <Tag color="green">
                     {state.selected_profile.standard.toUpperCase() ===
                     "CAUDALES_MUY_PEQUENOS"
                       ? "CAUDALES MUY PEQUEÑOS"
@@ -193,11 +195,12 @@ const styles = {
   card: {
     backgroundColor: "#1F3461",
     borderRadius: "20px",
+    paddingLeft: "10px",
+    paddingRight: "10px",
     minHeight: "85vh",
   },
   title: {
     color: "white",
-    marginTop: "-15px",
     marginBottom: "30px",
   },
   element: {
@@ -206,8 +209,8 @@ const styles = {
     paddingRight: "4px",
     backgroundColor: "white",
     borderRadius: "10px",
-    marginLeft: "-20px",
-    marginRight: "-20px",
+    marginLeft: "-10px",
+    marginRight: "-10px",
 
     background:
       "linear-gradient(90deg, rgb(244, 244, 244) 0%, rgb(232, 229, 229) 49%, rgb(255, 255, 255) 100%)",
