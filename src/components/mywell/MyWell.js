@@ -47,7 +47,7 @@ const MyWell = () => {
   const processCaudal = (caudal) => {
     const flow = parseFloat(caudal).toFixed(1);
     if (flow > 0.5) {
-      return flow;
+      return parseFloat(flow).toFixed(1);
     } else {
       return parseFloat(0.0).toFixed(1);
     }
@@ -55,7 +55,7 @@ const MyWell = () => {
 
   const processAcum = (acum) => {
     console.log(acum);
-    const acumulado = parseInt(parseFloat(acum) * 1000);
+    const acumulado = parseInt(acum);
     if (acumulado > 0) {
       return acumulado;
     } else {
@@ -242,7 +242,7 @@ const MyWell = () => {
                       >
                         <b>Acumulado</b>
                         <br />
-                        {numberForMiles.format(acumulado)} (m³)
+                        {dataSource[0].total} (m³)
                       </Card>
                     </Col>
                   </Row>
@@ -287,9 +287,7 @@ const MyWell = () => {
                             {window.innerWidth > 900 ? (
                               <Text style={styles.valueCard}>
                                 <b>
-                                  {parseFloat(caudal).toLocaleString("es-ES", {
-                                    minimumFractionDigits: 1,
-                                  })}{" "}
+                                  {processCaudal(dataSource[0].flow)}{" "}
                                   {state.selected_profile.is_prom_flow
                                     ? "(L/h)"
                                     : "(L/s)"}
@@ -300,12 +298,11 @@ const MyWell = () => {
                                 <center>
                                   <Tag color="#1F3461">Caudal</Tag>
                                   <Tag color="#1F3461">
-                                    {parseFloat(caudal).toLocaleString(
-                                      "es-ES",
-                                      {
-                                        minimumFractionDigits: 1,
-                                      }
-                                    )}{" "}
+                                    {parseFloat(
+                                      dataSource[0].flow
+                                    ).toLocaleString("es-ES", {
+                                      minimumFractionDigits: 1,
+                                    })}{" "}
                                     (L/s)
                                   </Tag>
                                 </center>
@@ -426,56 +423,6 @@ const MyWell = () => {
                       </Card>
                     </div>
                   </QueueAnim>
-                  <QueueAnim delay={1000} duration={1200} type="left">
-                    <div key={"card3"}>
-                      <Card
-                        hoverable
-                        bordered={false}
-                        style={styles.cardValues}
-                        size="small"
-                      >
-                        <Row
-                          justify={
-                            window.innerWidth > 900 ? "space-around" : "center"
-                          }
-                        >
-                          <Col xs={24} lg={6} xl={6}>
-                            <center>
-                              <img
-                                src={acumulado_img}
-                                alt="caudal_img"
-                                width={window.innerWidth > 900 ? "100%" : "70%"}
-                                style={{
-                                  marginBottom:
-                                    window.innerWidth > 900 ? "0px" : "5px",
-                                }}
-                              />
-                            </center>
-                          </Col>
-                          <Col xs={24} lg={18} xl={18} style={styles.colCard}>
-                            {window.innerWidth > 900 && (
-                              <Title level={5} style={{ marginTop: "-10px" }}>
-                                Acumulado 2
-                              </Title>
-                            )}
-
-                            {window.innerWidth > 900 ? (
-                              <Text style={styles.valueCard}>
-                                <b>{numberForMiles.format(acumulado2)} (m³)</b>
-                              </Text>
-                            ) : (
-                              <center>
-                                <Tag color="#1F3461">Acumulado</Tag>
-                                <Tag color="#1F3461">
-                                  {numberForMiles.format(acumulado2)} (m³)
-                                </Tag>
-                              </center>
-                            )}
-                          </Col>
-                        </Row>
-                      </Card>
-                    </div>
-                  </QueueAnim>
                 </Col>
               )}
               {state.user.username === "lecheriavalleverde" && (
@@ -485,6 +432,7 @@ const MyWell = () => {
                     title={() => "Telemetría"}
                     size="small"
                     dataSource={dataSource}
+                    pagination={false}
                     columns={[
                       {
                         title: "Fecha",
@@ -496,9 +444,16 @@ const MyWell = () => {
                         dataIndex: "date_time_medition",
                         render: (time) => time.slice(11, 16) + " hrs",
                       },
-                      { title: "Caudal(lt/s)", dataIndex: "flow" },
-                      { title: "Total (m³)", dataIndex: "total" },
-                      { title: "Total 2 (m³)", dataIndex: "total2" },
+                      {
+                        title: "Caudal(lt/s)",
+                        dataIndex: "flow",
+                        render: (flow) => parseFloat(flow).toFixed(1),
+                      },
+                      {
+                        title: "Total (m³)",
+                        dataIndex: "total",
+                        render: (total) => processAcum(total),
+                      },
                     ]}
                   />
                 </Col>
