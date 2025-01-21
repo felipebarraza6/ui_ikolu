@@ -239,7 +239,12 @@ const MyWell = () => {
                   </Row>
                 </Col>
               ) : (
-                <Col lg={12} xs={6} xl={12}>
+                <Col
+                  lg={12}
+                  xs={6}
+                  style={{ marginTop: "20px" }}
+                  xl={state.selected_profile.type_dga === "SUB" ? 12 : 1}
+                >
                   <QueueAnim delay={400} duration={1200} type="left">
                     <div key={"card"}>
                       <Card hoverable style={styles.cardValues} size="small">
@@ -413,52 +418,53 @@ const MyWell = () => {
                   </QueueAnim>
                 </Col>
               )}
-
-              <Col xs={24} lg={12} xl={12}>
-                <Row justify={"end"}>
-                  <Col span={24}>
-                    <QueueAnim delay={300} duration={1200} type="bottom">
-                      <div key={"pozo1"}>
-                        <img
-                          src={pozo1}
-                          width={window.innerWidth < 900 ? "100%" : "90%"}
-                          alt="pozo"
-                          style={styles.well}
-                        />
-                      </div>
-                    </QueueAnim>
-                    <QueueAnim delay={400} duration={1200} type="scale">
-                      <div key={"pozo2"}>
-                        <Text style={styles.textFlow}>
-                          {parseFloat(caudal).toLocaleString("es-ES", {
-                            minimumFractionDigits: 1,
-                          })}{" "}
-                          (L/s)
-                        </Text>
-                      </div>
-                    </QueueAnim>
-                    <QueueAnim delay={1000} duration={1200} type="scale">
-                      <div key={"pozo2"}>
-                        <Text style={styles.textTotal}>
-                          {numberForMiles.format(acumulado)} (m³)
-                        </Text>
-                      </div>
-                    </QueueAnim>
-                    {state.selected_profile.type_dga === "SUB" && (
-                      <QueueAnim delay={800} duration={1200} type="scale">
+              {state.selected_profile.type_dga === "SUB" && (
+                <Col xs={24} lg={12} xl={12}>
+                  <Row justify={"end"}>
+                    <Col span={24}>
+                      <QueueAnim delay={300} duration={1200} type="bottom">
+                        <div key={"pozo1"}>
+                          <img
+                            src={pozo1}
+                            width={window.innerWidth < 900 ? "100%" : "90%"}
+                            alt="pozo"
+                            style={styles.well}
+                          />
+                        </div>
+                      </QueueAnim>
+                      <QueueAnim delay={400} duration={1200} type="scale">
                         <div key={"pozo2"}>
-                          <Text style={styles.textNivel}>
-                            {parseFloat(nivel).toLocaleString("es-ES", {
+                          <Text style={styles.textFlow}>
+                            {parseFloat(caudal).toLocaleString("es-ES", {
                               minimumFractionDigits: 1,
                             })}{" "}
-                            (m)
+                            (L/s)
                           </Text>
                         </div>
                       </QueueAnim>
-                    )}
-                  </Col>
-                </Row>
-              </Col>
+                      <QueueAnim delay={1000} duration={1200} type="scale">
+                        <div key={"pozo2"}>
+                          <Text style={styles.textTotal}>
+                            {numberForMiles.format(acumulado)} (m³)
+                          </Text>
+                        </div>
+                      </QueueAnim>
+                      {state.selected_profile.type_dga === "SUB" && (
+                        <QueueAnim delay={800} duration={1200} type="scale">
+                          <div key={"pozo2"}>
+                            <Text style={styles.textNivel}>
+                              {parseFloat(nivel).toLocaleString("es-ES", {
+                                minimumFractionDigits: 1,
+                              })}{" "}
+                              (m)
+                            </Text>
+                          </div>
+                        </QueueAnim>
+                      )}
+                    </Col>
+                  </Row>
+                </Col>
+              )}
             </>
           )}
         </Row>

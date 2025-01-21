@@ -44,7 +44,7 @@ const Supp = () => {
   const fetchAllData = async () => {
     const today = new Date();
     const formattedDate = today.toLocaleDateString("en-US");
-    const title = `Registros enviados a la DGA - ${formattedDate} `;
+    const title = `Telemetria - ${formattedDate} `;
     const mergedData = [];
     const mergedMap = new Map();
 
@@ -115,7 +115,7 @@ const Supp = () => {
   return (
     <Flex vertical gap={"large"} style={{ marginTop: "-30px" }}>
       <Title level={4}>
-        Resumen de captaciones superficiales (
+        Resumen de captaciones (
         {state.profile_client.map((rec) => rec.title).join(", ")})
       </Title>
       <Flex gap={"large"}>
@@ -147,18 +147,20 @@ const Supp = () => {
           }}
           hoverable
           extra={
-            <Button
-              color={"green-inverse"}
-              type={"primary"}
-              icon={<LinkOutlined />}
-              onClick={() => {
-                window.open(
-                  `https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.profile_client[0].code_dga_site}`
-                );
-              }}
-            >
-              <strong>{state.profile_client[0].code_dga_site}</strong>
-            </Button>
+            state.profile_client[0].code_dga_site ? (
+              <Button
+                color={"green-inverse"}
+                type={"primary"}
+                icon={<LinkOutlined />}
+                onClick={() => {
+                  window.open(
+                    `https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.profile_client[0].code_dga_site}`
+                  );
+                }}
+              >
+                <strong>{state.profile_client[0].code_dga_site}</strong>
+              </Button>
+            ) : null
           }
         >
           <Table
@@ -188,6 +190,7 @@ const Supp = () => {
                 render: (total) => numberFormatter.format(total),
               },
               {
+                hidden: !state.profile_client[0].code_dga_site,
                 title: "DGA",
                 dataIndex: "n_voucher",
               },
