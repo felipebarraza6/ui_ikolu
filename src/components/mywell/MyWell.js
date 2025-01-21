@@ -287,7 +287,7 @@ const MyWell = () => {
                             {window.innerWidth > 900 ? (
                               <Text style={styles.valueCard}>
                                 <b>
-                                  {processCaudal(dataSource[0].flow)}{" "}
+                                  {caudal}
                                   {state.selected_profile.is_prom_flow
                                     ? "(L/h)"
                                     : "(L/s)"}
