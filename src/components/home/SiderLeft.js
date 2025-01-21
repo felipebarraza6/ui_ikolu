@@ -59,6 +59,8 @@ const SiderRight = () => {
                             "CAUDALES_MUY_PEQUENOS" ||
                           state.selected_profile.standard === "MENOR"
                             ? "Registros"
+                            : state.user.username === "lecheriavalleverde"
+                            ? "SMA"
                             : "Mi Pozo"}
                         </Button>
                       </Link>
@@ -77,7 +79,7 @@ const SiderRight = () => {
                         block
                         icon={<OrderedListOutlined />}
                       >
-                        Superficiales
+                        Resumen
                       </Button>
                     )}
                   </Col>

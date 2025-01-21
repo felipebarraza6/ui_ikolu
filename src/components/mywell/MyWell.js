@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Row, Col, Typography, Statistic, Card, Tag } from "antd";
+import { Row, Col, Typography, Statistic, Card, Tag, Table } from "antd";
 import { ClockCircleFilled } from "@ant-design/icons";
 import caudal_img from "../../assets/images/caudal.png";
 import nivel_img from "../../assets/images/nivel.png";
@@ -22,8 +22,10 @@ const MyWell = () => {
   const [nivel, setNivel] = useState(0.0);
   const [finishCounter, setFinishCounter] = useState(0);
   const [acumulado, setAcumulado] = useState(0);
+  const [acumulado2, setAcumulado2] = useState(0);
   const [deadline, setDeadline] = useState(null);
   const [lastCaption, setLastCaption] = useState(null);
+  const [dataSource, setDataSource] = useState([]);
 
   const onFinishCounter = (finishCounter) => {
     setFinishCounter(finishCounter + 1);
@@ -52,7 +54,8 @@ const MyWell = () => {
   };
 
   const processAcum = (acum) => {
-    const acumulado = parseInt(acum);
+    console.log(acum);
+    const acumulado = parseInt(parseFloat(acum) * 1000);
     if (acumulado > 0) {
       return acumulado;
     } else {
@@ -65,6 +68,7 @@ const MyWell = () => {
       var nivel = 0.0;
       var flow = 0.0;
       var total = 0;
+      var total2 = 0;
       var nivel_response = r.results.length > 0 ? r.results[0].nivel : 0.0;
       if (r.results.length > 0) {
         window.innerWidth > 900
@@ -90,9 +94,14 @@ const MyWell = () => {
         if (r.results[0].total !== null) {
           total = processAcum(r.results[0].total);
         }
+        if (r.results[0].total2 !== null) {
+          total2 = processAcum(r.results[0].total2);
+        }
+        setDataSource(r.results);
         setNivel(nivel);
         setCaudal(flow);
         setAcumulado(total);
+        setAcumulado2(total2);
       } else {
         setNivel(0.0);
         setCaudal(0.0);
@@ -240,10 +249,10 @@ const MyWell = () => {
                 </Col>
               ) : (
                 <Col
-                  lg={12}
+                  lg={10}
                   xs={6}
                   style={{ marginTop: "20px" }}
-                  xl={state.selected_profile.type_dga === "SUB" ? 12 : 1}
+                  xl={state.selected_profile.type_dga === "SUB" ? 12 : 12}
                 >
                   <QueueAnim delay={400} duration={1200} type="left">
                     <div key={"card"}>
@@ -307,6 +316,7 @@ const MyWell = () => {
                       </Card>
                     </div>
                   </QueueAnim>
+
                   {state.selected_profile.type_dga === "SUB" && (
                     <QueueAnim delay={800} duration={1200} type="left">
                       <div key={"card2"}>
@@ -416,8 +426,84 @@ const MyWell = () => {
                       </Card>
                     </div>
                   </QueueAnim>
+                  <QueueAnim delay={1000} duration={1200} type="left">
+                    <div key={"card3"}>
+                      <Card
+                        hoverable
+                        bordered={false}
+                        style={styles.cardValues}
+                        size="small"
+                      >
+                        <Row
+                          justify={
+                            window.innerWidth > 900 ? "space-around" : "center"
+                          }
+                        >
+                          <Col xs={24} lg={6} xl={6}>
+                            <center>
+                              <img
+                                src={acumulado_img}
+                                alt="caudal_img"
+                                width={window.innerWidth > 900 ? "100%" : "70%"}
+                                style={{
+                                  marginBottom:
+                                    window.innerWidth > 900 ? "0px" : "5px",
+                                }}
+                              />
+                            </center>
+                          </Col>
+                          <Col xs={24} lg={18} xl={18} style={styles.colCard}>
+                            {window.innerWidth > 900 && (
+                              <Title level={5} style={{ marginTop: "-10px" }}>
+                                Acumulado 2
+                              </Title>
+                            )}
+
+                            {window.innerWidth > 900 ? (
+                              <Text style={styles.valueCard}>
+                                <b>{numberForMiles.format(acumulado2)} (m³)</b>
+                              </Text>
+                            ) : (
+                              <center>
+                                <Tag color="#1F3461">Acumulado</Tag>
+                                <Tag color="#1F3461">
+                                  {numberForMiles.format(acumulado2)} (m³)
+                                </Tag>
+                              </center>
+                            )}
+                          </Col>
+                        </Row>
+                      </Card>
+                    </div>
+                  </QueueAnim>
                 </Col>
               )}
+              {state.user.username === "lecheriavalleverde" && (
+                <Col span={12}>
+                  <Table
+                    bordered
+                    title={() => "Telemetría"}
+                    size="small"
+                    dataSource={dataSource}
+                    columns={[
+                      {
+                        title: "Fecha",
+                        dataIndex: "date_time_medition",
+                        render: (date) => date.slice(0, 10),
+                      },
+                      {
+                        title: "Hora",
+                        dataIndex: "date_time_medition",
+                        render: (time) => time.slice(11, 16) + " hrs",
+                      },
+                      { title: "Caudal(lt/s)", dataIndex: "flow" },
+                      { title: "Total (m³)", dataIndex: "total" },
+                      { title: "Total 2 (m³)", dataIndex: "total2" },
+                    ]}
+                  />
+                </Col>
+              )}
+
               {state.selected_profile.type_dga === "SUB" && (
                 <Col xs={24} lg={12} xl={12}>
                   <Row justify={"end"}>

@@ -44,7 +44,7 @@ const Supp = () => {
   const fetchAllData = async () => {
     const today = new Date();
     const formattedDate = today.toLocaleDateString("en-US");
-    const title = `Telemetria - ${formattedDate} `;
+    const title = `- ${formattedDate} `;
     const mergedData = [];
     const mergedMap = new Map();
 
@@ -147,20 +147,18 @@ const Supp = () => {
           }}
           hoverable
           extra={
-            state.profile_client[0].code_dga_site ? (
-              <Button
-                color={"green-inverse"}
-                type={"primary"}
-                icon={<LinkOutlined />}
-                onClick={() => {
-                  window.open(
-                    `https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.profile_client[0].code_dga_site}`
-                  );
-                }}
-              >
-                <strong>{state.profile_client[0].code_dga_site}</strong>
-              </Button>
-            ) : null
+            <Button
+              color={"green-inverse"}
+              type={"primary"}
+              icon={<LinkOutlined />}
+              onClick={() => {
+                window.open(
+                  `https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.profile_client[0].code_dga_site}`
+                );
+              }}
+            >
+              <strong>{state.profile_client[0].code_dga_site}</strong>
+            </Button>
           }
         >
           <Table
