@@ -48,31 +48,31 @@ const Reports = () => {
 
   const [form] = Form.useForm();
 
-  const processNivel = (nivel_response) => {
-    if (nivel_response > 0.0 && nivel_response < position_sensor_nivel) {
-      return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
-    } else if (nivel_response > position_sensor_nivel || nivel_response < 0.0) {
-      nivel_response = 50.0;
-      return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
+  const processLevel = (level_response) => {
+    if (level_response > 0.0 && level_response < position_sensor_nivel) {
+      return parseFloat(position_sensor_nivel - level_response).toFixed(1);
+    } else if (level_response > position_sensor_nivel || level_response < 0.0) {
+      level_response = 50.0;
+      return parseFloat(position_sensor_nivel - level_response).toFixed(1);
     } else {
-      nivel_response = 0.0;
-      return parseFloat(position_sensor_nivel - nivel_response).toFixed(1);
+      level_response = 0.0;
+      return parseFloat(position_sensor_nivel - level_response).toFixed(1);
     }
   };
 
-  const processCaudal = (caudal) => {
-    const flow = parseFloat(caudal).toFixed(1);
-    if (flow > 0.5) {
-      return flow;
+  const processFlow = (flow) => {
+    const flowValue = parseFloat(flow).toFixed(1);
+    if (flowValue > 0.5) {
+      return flowValue;
     } else {
       return parseFloat(0.0).toFixed(1);
     }
   };
 
-  const processAcum = (acum) => {
-    const acumulado = parseInt(acum);
-    if (acumulado > 0) {
-      return acumulado;
+  const processAccumulated = (accumulated) => {
+    const accumulatedValue = parseInt(accumulated);
+    if (accumulatedValue > 0) {
+      return accumulatedValue;
     } else {
       return 0;
     }
@@ -170,101 +170,63 @@ const Reports = () => {
   };
 
   const getData = async () => {
-    const pageSize = 10; // Número de elementos por página
     setLoadingTab1(true);
     setLoadingTab2(true);
-    let currentPage = 1; // Página actual
-    let allData = []; // Array para almacenar todos los datos
 
-    // Función para obtener los datos de una página específica
-    const getDataPage = async (page) => {
-      const rq = await sh.get_data_sh_range(
-        state.selected_profile.id,
-        initialDate,
-        finishDate,
-        page
-      );
-      return rq.results;
-    };
+    // Get the data for the requested page
+    const rq = await sh.get_data_sh_range(
+      state.selected_profile.id,
+      initialDate,
+      finishDate,
+      page
+    );
 
-    // Obtener los datos de la primera página
-    let pageData = await getDataPage(currentPage);
-    allData = allData.concat(pageData);
+    const updatedResults = rq.results.map((item, index) => {
+      const nextTotal = rq.results[index + 1] ? rq.results[index + 1].total : 0;
+      const currentTotal = item.total;
+      const total_hora = currentTotal - nextTotal;
+      return {
+        ...item,
+        date_time_medition_hour: item.date_time_medition.slice(11, 16),
+        level: processLevel(item.level),
+        flow: processFlow(item.flow),
+        total: processAccumulated(item.total),
+        total_hora: index === rq.results.length - 1 ? 0 : total_hora,
+        date_time_medition: item.date_time_medition.slice(0, 10),
+      };
+    });
 
-    // Obtener los datos de las páginas restantes
-    while (pageData.length === pageSize) {
-      currentPage++;
-      pageData = await getDataPage(currentPage);
-      allData = allData.concat(pageData);
-    }
+    const sumTotal = updatedResults.reduce((acc, item) => {
+      const currentDate = item.date_time_medition.slice(0, 10);
+      const existingItem = acc.find((el) => el.date === currentDate);
 
-    // Dividir los datos en lotes más pequeños
-    const batchSize = 1000; // Tamaño del lote
-    const batches = Math.ceil(allData.length / batchSize);
-    const processedData = [];
-    const processedData2 = [];
-
-    for (let i = 0; i < batches; i++) {
-      const startIndex = i * batchSize;
-      const endIndex = startIndex + batchSize;
-      const batch = allData.slice(startIndex, endIndex);
-      const updatedResults = batch.map((item, index) => {
-        const nextTotal = batch[index + 1] ? batch[index + 1].total : 0;
-        const currentTotal = item.total;
-        const total_hora = currentTotal - nextTotal;
-        return {
+      if (existingItem) {
+        existingItem.total_hora += item.total_hora;
+      } else {
+        acc.push({
           ...item,
-          date_time_medition_hour: item.date_time_medition.slice(11, 16),
-          nivel: processNivel(item.nivel),
-          flow: processCaudal(item.flow),
-          total: processAcum(item.total),
-          total_hora: index === batch.length - 1 ? 0 : total_hora,
-          date_time_medition: item.date_time_medition.slice(0, 10),
-        };
-      });
+          total_hora: item.total_hora,
+          date: currentDate,
+        });
+      }
 
-      const sumTotal = updatedResults.reduce((acc, item, index) => {
-        const currentDate = item.date_time_medition.slice(0, 10);
-        const existingItem = acc.find((el) => el.date === currentDate);
+      return acc;
+    }, []);
+    console.log(rq.count);
 
-        if (existingItem) {
-          existingItem.total_hora += item.total_hora;
-        } else {
-          acc.push({
-            ...item,
-            total_hora: item.total_hora,
-            date: currentDate,
-          });
-        }
-
-        return acc;
-      }, []);
-
-      processedData2.push(...sumTotal);
-      processedData.push(...updatedResults);
-      setData(updatedResults);
-    }
     setLoadingTab1(false);
     setLoadingTab2(false);
-    setData(processedData);
-    setData2(processedData2);
-    setTotal(processedData.length);
+    setData(updatedResults);
+
+    setData2(sumTotal);
+    setTotal(rq.count);
   };
-
+  console.log(page);
   useEffect(() => {
-    setData([]);
-    setLoadingTab1(false);
-    setData2([]);
-    setLoadingTab2(false);
-    setInitialDate("");
-    setFinishDate("");
-    form.resetFields();
-    setPage(1);
+    getData(page);
+  }, [state.selected_profile, page]);
 
-    setTotal(0);
-  }, [state.selected_profile]);
-
-  console.log(initialDate);
+  console.log(state);
   return (
     <QueueAnim type="top" delay={300} duration={1000}>
       <div key="1">
@@ -302,7 +264,10 @@ const Reports = () => {
                           loading={loadingTab1}
                           pagination={{
                             total: total,
-                            simple: true,
+                            pageSize: 10,
+                            onChange: (page) => {
+                              setPage(page);
+                            },
                           }}
                           columns={[
                             {
@@ -315,6 +280,7 @@ const Reports = () => {
                             },
                             { title: "Caudal (L/s)", dataIndex: "flow" },
                             {
+                              hidden: state.user.id === 43,
                               title: () => (
                                 <Tooltip title="Nivel Freático (m)">
                                   Nivel...
@@ -570,28 +536,30 @@ const Reports = () => {
                           span={24}
                           style={{ paddingTop: "10px", paddingLeft: "0px" }}
                         >
-                          <Button
-                            icon={<FileExcelFilled />}
-                            type="primary"
-                            disabled={!initialDate || !finishDate}
-                            style={{
-                              width: "100%",
-                              textAlign: "left",
-                              backgroundColor:
-                                !initialDate || !finishDate
-                                  ? "#D9D9D9"
-                                  : "#1F3461",
-                              color:
-                                !initialDate || !finishDate
-                                  ? "#1F3461"
-                                  : "white",
-                              borderColor: "#1F3461",
-                            }}
-                            block={false}
-                            onClick={downloadDataToExcel}
-                          >
-                            Descargar reporte (.xlsx)
-                          </Button>
+                          {state.user.id !== 43 && (
+                            <Button
+                              icon={<FileExcelFilled />}
+                              type="primary"
+                              disabled={!initialDate || !finishDate}
+                              style={{
+                                width: "100%",
+                                textAlign: "left",
+                                backgroundColor:
+                                  !initialDate || !finishDate
+                                    ? "#D9D9D9"
+                                    : "#1F3461",
+                                color:
+                                  !initialDate || !finishDate
+                                    ? "#1F3461"
+                                    : "white",
+                                borderColor: "#1F3461",
+                              }}
+                              block={false}
+                              onClick={downloadDataToExcel}
+                            >
+                              Descargar reporte (.xlsx)
+                            </Button>
+                          )}
                         </Col>
                       </Row>
                     </Card>
@@ -727,6 +695,8 @@ const Reports = () => {
                         setFinishDate("");
                         form.resetFields();
                         setData([]);
+                        setTotal(0);
+                        setData2([]);
                       }}
                     >
                       Limpiar
@@ -773,7 +743,13 @@ const Reports = () => {
                       loading={loadingTab1}
                       pagination={{
                         total: total,
-                        page: page,
+                        pageSize: 10,
+                        current: page,
+
+                        onChange: (page) => {
+                          console.log(page);
+                          setPage(page);
+                        },
                       }}
                       columns={[
                         {
@@ -813,7 +789,7 @@ const Reports = () => {
                         bordered
                         loading={loadingTab2}
                         size={"small"}
-                        pagination={{ simple: true }}
+                        pagination={{ simple: true, pageSize: 10 }}
                         columns={[
                           {
                             title: "Fecha",
