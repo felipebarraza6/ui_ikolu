@@ -64,17 +64,20 @@ const Reports = () => {
     const flowValue = parseFloat(flow).toFixed(1);
     if (flowValue > 0.5) {
       return flowValue;
+    } else if (flowValue < 0.0) {
+      return 0.0;
     } else {
       return parseFloat(0.0).toFixed(1);
     }
   };
 
-  const processAccumulated = (accumulated) => {
+  const processAccumulated = (accumulated, last_total) => {
+    console.log(last_total);
     const accumulatedValue = parseInt(accumulated);
     if (accumulatedValue > 0) {
       return accumulatedValue;
     } else {
-      return 0;
+      return last_total;
     }
   };
 
@@ -183,14 +186,28 @@ const Reports = () => {
 
     const updatedResults = rq.results.map((item, index) => {
       const nextTotal = rq.results[index + 1] ? rq.results[index + 1].total : 0;
-      const currentTotal = item.total;
-      const total_hora = currentTotal - nextTotal;
+      const previusTotal = rq.results[index - 1]
+        ? rq.results[index - 1].total
+        : 0;
+      var currentTotal = item.total;
+      if (currentTotal < 0) {
+        currentTotal = previusTotal;
+      } else {
+        currentTotal = item.total;
+      }
+
+      var total_hora = currentTotal - nextTotal;
+
+      if (total_hora > item.total) {
+        total_hora = 0;
+      }
+
       return {
         ...item,
         date_time_medition_hour: item.date_time_medition.slice(11, 16),
         level: processLevel(item.level),
         flow: processFlow(item.flow),
-        total: processAccumulated(item.total),
+        total: processAccumulated(item.total, previusTotal),
         total_hora: index === rq.results.length - 1 ? 0 : total_hora,
         date_time_medition: item.date_time_medition.slice(0, 10),
       };
@@ -294,9 +311,20 @@ const Reports = () => {
                               render: (a) => numberForMiles.format(a),
                             },
                             {
-                              title: "Acumulado/hora (m³)",
+                              title:
+                                state.user.id === 43
+                                  ? "Acumulado (lt/h)"
+                                  : "Acumulado (m³)",
+
                               dataIndex: "total_hora",
-                              render: (a) => numberForMiles.format(a),
+                              render: (a) =>
+                                state.user.id === 43
+                                  ? parseFloat(
+                                      numberForMiles.format(a * 1000) > 0
+                                        ? numberForMiles.format(a * 1000)
+                                        : 0
+                                    )
+                                  : numberForMiles.format(a),
                             },
                           ]}
                           dataSource={data}

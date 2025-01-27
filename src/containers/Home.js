@@ -15,6 +15,7 @@ import Supp from "../components/home/Supp";
 
 import DocRes from "../components/docres/DocRes";
 import Alerts from "../components/alerts/Alerts";
+import FormMultiData from "../containers/FormMultiData";
 
 import { AppContext } from "../App";
 import {} from "react-router-dom";
@@ -73,6 +74,11 @@ const Home = () => {
                           exact
                           path="/indicadores"
                           element={<Indicators />}
+                        />
+                        <Route
+                          exact
+                          path="/formmultidata"
+                          element={<FormMultiData />}
                         />
                         <Route exact path="/reportes" element={<Reports />} />
                         <Route exact path="/dga" element={<Dga />} />

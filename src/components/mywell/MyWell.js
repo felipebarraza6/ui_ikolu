@@ -97,9 +97,15 @@ const MyWell = () => {
         if (r.results[0].total2 !== null) {
           total2 = processAcum(r.results[0].total2);
         }
+        r.results.forEach((result, i) => {
+          result.total_hora = result.total - r.results[i + 1]?.total;
+          if (result.total_hora < 0 || isNaN(result.total_hora)) {
+            result.total_hora = 0;
+          }
+        });
         setDataSource(r.results);
         setNivel(nivel);
-        setCaudal(flow);
+        setCaudal(flow > 0 ? flow : 0.0);
         setAcumulado(total);
         setAcumulado2(total2);
       } else {
@@ -252,7 +258,7 @@ const MyWell = () => {
                   lg={10}
                   xs={6}
                   style={{ marginTop: "20px" }}
-                  xl={state.selected_profile.type_dga === "SUB" ? 12 : 12}
+                  xl={state.selected_profile.type_dga === "SUB" ? 11 : 11}
                 >
                   <QueueAnim delay={400} duration={1200} type="left">
                     <div key={"card"}>
@@ -426,7 +432,7 @@ const MyWell = () => {
                 </Col>
               )}
               {state.user.username === "lecheriavalleverde" && (
-                <Col span={12}>
+                <Col span={13}>
                   <Table
                     bordered
                     title={() => "Telemetría"}
@@ -453,6 +459,18 @@ const MyWell = () => {
                         title: "Total (m³)",
                         dataIndex: "total",
                         render: (total) => processAcum(total),
+                      },
+                      {
+                        title:
+                          state.user.id === 43
+                            ? "Acumulado (lt/h)"
+                            : "Acumulado (m³)",
+
+                        dataIndex: "total_hora",
+                        render: (a) =>
+                          state.user.id === 43
+                            ? parseFloat(numberForMiles.format(a * 1000))
+                            : numberForMiles.format(a),
                       },
                     ]}
                   />
