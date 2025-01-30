@@ -1,9 +1,14 @@
 import React, { useContext } from "react";
 import { Row, Col, Typography, Button, Popconfirm, Affix } from "antd";
 import wallpaper from "../../assets/images/wallssr.png";
-import { useLocation, Link } from "react-router-dom";
+import wallpaper0 from "../../assets/images/walldga.png";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import { AppContext } from "../../App";
-import { LogoutOutlined, ArrowLeftOutlined } from "@ant-design/icons";
+import {
+  LogoutOutlined,
+  ArrowLeftOutlined,
+  LeftCircleFilled,
+} from "@ant-design/icons";
 import ListWells from "./ListWells";
 import QueueAnim from "rc-queue-anim";
 
@@ -12,6 +17,9 @@ const { Title } = Typography;
 const HeaderNav = () => {
   const location = useLocation();
   const { state, dispatch } = useContext(AppContext);
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  console.log(pathname);
 
   return (
     <QueueAnim delay={100} duration={900} type="top">
@@ -21,7 +29,10 @@ const HeaderNav = () => {
             align={"middle"}
             justify={window.innerWidth > 900 ? "start" : "space-evenly"}
             style={{
-              backgroundImage: `url(${wallpaper})`,
+              backgroundImage:
+                pathname == "/formmultidata"
+                  ? `url(${wallpaper0})`
+                  : `url(${wallpaper})`,
               minHeight: window.innerWidth > 900 ? "100px" : "160px",
               /* Create the parallax 
         scrolling effect */
@@ -45,10 +56,10 @@ const HeaderNav = () => {
                 level={window.innerWidth > 900 ? 3 : 4}
                 style={{ color: "white", marginLeft: "10px" }}
               >
-                {" "}
                 {state.user.first_name.toUpperCase()}{" "}
               </Title>
             </Col>
+
             <Col
               style={{
                 paddingTop: "0px",
@@ -57,8 +68,21 @@ const HeaderNav = () => {
               xl={9}
               lg={12}
             >
-              <ListWells />
+              {location.pathname === "/formmultidata" ? (
+                <Button
+                  icon={<ArrowLeftOutlined />}
+                  style={{ marginTop: "10px" }}
+                  onClick={() => navigate("/")}
+                >
+                  Volver a Mi Pozo
+                </Button>
+              ) : (
+                <>
+                  <ListWells />
+                </>
+              )}
             </Col>
+
             <Col
               style={{ paddingTop: window.innerWidth < 900 && "30px" }}
               span={1}

@@ -33,16 +33,19 @@ const Home = () => {
         <Row align={"top"} justify={"center"}>
           {window.innerWidth > 900 && (
             <>
-              <Col span={3} style={{ paddingTop: "10px" }}>
-                <SiderRight />
-              </Col>
+              {location.pathname !== "/formmultidata" && (
+                <Col span={3} style={{ paddingTop: "10px" }}>
+                  <SiderRight />
+                </Col>
+              )}
             </>
           )}
           <Col
             span={
               window.innerWidth > 900
                 ? location.pathname !== "/graficos" &&
-                  location.pathname !== "/supp"
+                  location.pathname !== "/supp" &&
+                  location.pathname !== "/formmultidata"
                   ? 17
                   : 21
                 : 24
@@ -101,7 +104,8 @@ const Home = () => {
           {window.innerWidth > 900 && (
             <>
               {location.pathname !== "/graficos" &&
-                location.pathname !== "/supp" && (
+                location.pathname !== "/supp" &&
+                location.pathname !== "/formmultidata" && (
                   <Col
                     span={window.innerWidth > 900 ? 4 : 24}
                     style={{ paddingTop: "10px" }}
