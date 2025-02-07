@@ -6,7 +6,7 @@ const login = async (data) => {
     password: data.password,
   });
 
-  request.data.user.profile_data.sort(
+  request.data.user.catchment_points.sort(
     (a, b) => b.is_monitoring - a.is_monitoring
   );
 
@@ -27,7 +27,7 @@ const get_profile = async () => {
   const user = JSON.parse(localStorage.getItem("user") || null);
   const rq = await GET(`users/${user.username}/`);
 
-  rq.data.user.profile_data.forEach((item, index) => {
+  rq.data.user.catchment_points.forEach((item, index) => {
     item.key = index;
   });
 

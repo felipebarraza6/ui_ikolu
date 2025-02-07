@@ -13,6 +13,7 @@ export const appReducer = (state, action) => {
       };
 
     case "LOGIN":
+      console.log(action);
       localStorage.setItem(
         "token",
         JSON.stringify(action.payload.access_token)
@@ -20,35 +21,39 @@ export const appReducer = (state, action) => {
       localStorage.setItem("user", JSON.stringify(action.payload.user));
       localStorage.setItem(
         "profile_client",
-        JSON.stringify(action.payload.user.profile_data)
+        JSON.stringify(action.payload.user.catchment_points)
       );
       localStorage.setItem(
         "selected_profile",
-        JSON.stringify(action.payload.user.profile_data[0])
+        JSON.stringify(action.payload.user.catchment_points[0])
       );
+      console.log(action.payload.user);
 
       return {
         ...state,
         isAuth: true,
         token: action.payload.access_token,
         user: action.payload.user,
-        profile_client: action.payload.user.profile_data,
-        selected_profile: { ...action.payload.user.profile_data[0], key: 0 },
+        profile_client: action.payload.user.catchment_points,
+        selected_profile: {
+          ...action.payload.user.catchment_points[0],
+          key: 0,
+        },
       };
 
     case "UPDATE":
       localStorage.setItem("user", JSON.stringify(action.payload.user));
       localStorage.setItem(
         "profile_client",
-        JSON.stringify(action.payload.profile_data)
+        JSON.stringify(action.payload.catchment_points)
       );
 
       return {
         ...state,
         isAuth: true,
         user: action.payload.user,
-        profile_client: action.payload.profile_data,
-        selected_profile: action.payload.selected_profile,
+        profile_client: action.payload.catchment_points,
+        selected_profile: action.payload.catchment_points,
       };
 
     case "DEFAULT_LIST":

@@ -23,21 +23,20 @@ function App() {
   const updateApp = async () => {
     const token = JSON.parse(localStorage.getItem("token") || null);
     const user = JSON.parse(localStorage.getItem("user") || null);
-    const profile_client = JSON.parse(
-      localStorage.getItem("profile_client") || null
-    );
+
     const selected_profile = JSON.parse(
       localStorage.getItem("selected_profile") || null
     );
 
-    if (user && token && profile_client) {
+    if (user && token) {
       const rq = await sh.get_profile().then((x) => {
+        console.log(x);
         dispatch({
           type: "UPDATE",
           payload: {
             token: token,
             user: x.user,
-            profile_data: x.user.profile_data,
+            profile_data: x.user.catchment_points,
             selected_profile: selected_profile,
           },
         });

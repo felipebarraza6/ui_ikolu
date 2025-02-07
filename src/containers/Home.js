@@ -15,6 +15,7 @@ import Supp from "../components/home/Supp";
 
 import DocRes from "../components/docres/DocRes";
 import Alerts from "../components/alerts/Alerts";
+import Sma from "../components/Sma";
 
 import { AppContext } from "../App";
 import {} from "react-router-dom";
@@ -32,9 +33,7 @@ const Home = () => {
         <Row align={"top"} justify={"center"}>
           {window.innerWidth > 900 && (
             <>
-              <Col span={3} style={{ paddingTop: "10px" }}>
-                <SiderRight />
-              </Col>
+              <Col span={3} style={{ paddingTop: "10px" }}></Col>
             </>
           )}
           <Col
@@ -62,29 +61,7 @@ const Home = () => {
                       }}
                     >
                       <Routes>
-                        <Route exact path="/" element={<MyWell />} />
-
-                        <Route
-                          exact
-                          path="/graficos"
-                          element={<MyGraphics />}
-                        />
-                        <Route
-                          exact
-                          path="/indicadores"
-                          element={<Indicators />}
-                        />
-                        <Route exact path="/reportes" element={<Reports />} />
-                        <Route exact path="/dga" element={<Dga />} />
-
-                        <Route
-                          exact
-                          path="/docrespaldo"
-                          element={<DriveInternal />}
-                        />
-                        <Route exact path="/alert" element={<Alerts />} />
-                        <Route exact path="/doc" element={<DocRes />} />
-                        <Route exact path="/supp" element={<Supp />} />
+                        <Route path="/" element={<Sma />} />
                       </Routes>
                     </Card>
                   </Col>
@@ -99,9 +76,7 @@ const Home = () => {
                   <Col
                     span={window.innerWidth > 900 ? 4 : 24}
                     style={{ paddingTop: "10px" }}
-                  >
-                    <SiderLeft />
-                  </Col>
+                  ></Col>
                 )}
             </>
           )}

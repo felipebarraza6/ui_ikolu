@@ -56,9 +56,7 @@ const HeaderNav = () => {
               xs={9}
               xl={9}
               lg={12}
-            >
-              <ListWells />
-            </Col>
+            ></Col>
             <Col
               style={{ paddingTop: window.innerWidth < 900 && "30px" }}
               span={1}
