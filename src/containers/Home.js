@@ -29,58 +29,33 @@ const Home = () => {
       <Col span={24}>
         <HeaderNav />
       </Col>
-      <Col span={24}>
-        <Row align={"top"} justify={"center"}>
-          {window.innerWidth > 900 && (
-            <>
-              <Col span={3} style={{ paddingTop: "10px" }}></Col>
-            </>
-          )}
-          <Col
-            span={
-              window.innerWidth > 900
-                ? location.pathname !== "/graficos" &&
-                  location.pathname !== "/supp"
-                  ? 17
-                  : 21
-                : 24
-            }
-          >
-            <QueueAnim delay={400} duration={1200} type="bottom">
-              <div key="home">
-                <Row justify="center">
-                  <Col span={24}>
-                    <Card
-                      size={window.innerWidth > 900 ? "default" : "small"}
-                      bordered
-                      style={{
-                        margin: window.innerWidth > 900 && "15px",
-                        minHeight: "84vh",
-                        boxShadow:
-                          "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
-                      }}
-                    >
-                      <Routes>
-                        <Route path="/" element={<Sma />} />
-                      </Routes>
-                    </Card>
-                  </Col>
-                </Row>
-              </div>
-            </QueueAnim>
-          </Col>
-          {window.innerWidth > 900 && (
-            <>
-              {location.pathname !== "/graficos" &&
-                location.pathname !== "/supp" && (
-                  <Col
-                    span={window.innerWidth > 900 ? 4 : 24}
-                    style={{ paddingTop: "10px" }}
-                  ></Col>
-                )}
-            </>
-          )}
-        </Row>
+
+      <Col span={4}>
+        <SiderRight />
+      </Col>
+      <Col span={20}>
+        <QueueAnim delay={400} duration={1200} type="bottom">
+          <div key="home">
+            <Row justify="center">
+              <Col span={24}>
+                <Card
+                  size={window.innerWidth > 900 ? "default" : "small"}
+                  bordered
+                  style={{
+                    margin: window.innerWidth > 900 && "10px",
+                    minHeight: "84vh",
+                    boxShadow:
+                      "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
+                  }}
+                >
+                  <Routes>
+                    <Route path="/" element={<Sma />} />
+                  </Routes>
+                </Card>
+              </Col>
+            </Row>
+          </div>
+        </QueueAnim>
       </Col>
     </Row>
   );

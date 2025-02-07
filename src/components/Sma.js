@@ -1,7 +1,12 @@
 import React, { useContext, useState, useEffect } from "react";
 import { AppContext } from "../App";
-import { Table, Flex, Select, Card } from "antd";
-import moment from "moment";
+import { Table, Flex, Select, Card, Statistic } from "antd";
+import {
+  DatabaseFilled,
+  FilterFilled,
+  ArrowUpOutlined,
+  ArrowDownOutlined,
+} from "@ant-design/icons";
 
 const { Option } = Select;
 
@@ -41,13 +46,11 @@ const Sma = () => {
     ? selectedCatchmentPoint.modules.last_data_yesterday
     : null;
 
-  // Calcular el consumo de hoy restando el último dato de today con el primer dato de today
   const consumptionToday =
     firstDataToday && todayData.length > 0
       ? todayData[todayData.length - 1].total - firstDataToday.total
       : 0;
 
-  // Calcular el consumo de ayer restando el último dato de yesterday con el primer dato de yesterday
   const consumptionYesterday =
     lastDataYesterday && yesterdayData.length > 0
       ? lastDataYesterday.total - yesterdayData[0].total
@@ -55,23 +58,37 @@ const Sma = () => {
 
   return (
     <Flex vertical gap={"small"} justify="center">
-      <Flex style={{ width: "100%", justifyContent: "center" }}>
+      <Flex
+        style={{
+          width: "100%",
+          justifyContent: "start",
+          alignItems: "center",
+        }}
+        gap={"small"}
+      >
+        <span style={{ fontSize: "25px", fontWeight: 400, textAlign: "start" }}>
+          Telemetría: 1/min
+        </span>
         <Select
-          style={{ width: 200 }}
           value={selected}
+          placeholder="Selecciona un punto de captación"
           onChange={handleSelectChange}
+          icon={<FilterFilled />}
         >
           {catchment_points.map((point) => (
             <Option key={point.id} value={point.id}>
-              {point.title}
+              <DatabaseFilled /> {point.title}
             </Option>
           ))}
         </Select>
       </Flex>
-      <Flex style={{ width: "100%", justifyContent: "center" }} gap={"small"}>
+      <Flex
+        style={{ width: "100%", justifyContent: "space-evenly" }}
+        gap={"small"}
+      >
         <Table
           size="small"
-          title={() => "Telemetría Úlimos 48 Registros"}
+          title={() => "Telemetría Últimos 48 Registros"}
           style={{ width: "500px" }}
           bordered
           columns={[
@@ -105,16 +122,51 @@ const Sma = () => {
             },
           }}
         />
-        <Card
-          hoverable
-          title="Indicadores de Consumo"
-          style={{ width: 300, height: 200 }}
-        >
-          <p>Consumo Hoy: {consumptionToday} m³</p>
-          <p>Consumo Ayer: {consumptionYesterday} m³</p>
-        </Card>
+        <Flex vertical gap={"small"}>
+          <Card
+            hoverable
+            title={new Date().toLocaleDateString("es-ES", {
+              day: "numeric",
+              month: "short",
+            })}
+            style={{ width: 300 }}
+          >
+            <Statistic
+              value={consumptionToday}
+              suffix="m³"
+              valueStyle={{ fontSize: "24px" }}
+              prefix={
+                consumptionToday > consumptionYesterday ? (
+                  <ArrowUpOutlined style={{ fontSize: "24px" }} />
+                ) : (
+                  <ArrowDownOutlined style={{ fontSize: "24px" }} />
+                )
+              }
+            />
+          </Card>
+          <Card
+            hoverable
+            title={new Date(Date.now() - 86400000).toLocaleDateString("es-ES", {
+              day: "numeric",
+              month: "short",
+            })}
+            style={{ width: 300 }}
+          >
+            <Statistic
+              value={consumptionYesterday}
+              suffix="m³"
+              valueStyle={{ fontSize: "24px" }}
+              prefix={
+                consumptionYesterday >= consumptionToday ? (
+                  <ArrowUpOutlined style={{ fontSize: "24px" }} />
+                ) : (
+                  <ArrowDownOutlined style={{ fontSize: "24px" }} />
+                )
+              }
+            />
+          </Card>
+        </Flex>
       </Flex>
-      <Flex style={{ width: "100%", justifyContent: "center" }}></Flex>
     </Flex>
   );
 };
