@@ -20,14 +20,14 @@ const SiderRight = () => {
   return (
     <QueueAnim delay={200} duration={900} type="left">
       <div key="left">
-        <Affix offsetTop={50}>
+        <Affix offsetTop={0}>
           <Row
             style={{
-              backgroundColor: "#1F3461",
-              borderRadius: "20px",
-              minHeight: "85vh",
+              background:
+                "radial-gradient(circle, rgba(59,63,96,1) 0%, rgba(31,52,97,1) 100%)",
+              minHeight: "100vh",
               paddingTop: "10px",
-              marginLeft: "2px",
+              zIndex: 99,
             }}
             align={"space-around"}
           >
@@ -35,6 +35,10 @@ const SiderRight = () => {
               <Col span={24}>
                 <center>
                   <img src={logo} width="50px" style={{ marginTop: "10px" }} />
+                  <br />
+                  <span style={{ color: "white", fontSize: "20px" }}>
+                    Ikolu App
+                  </span>
                 </center>
               </Col>
               <Col span={24} style={{ minHeight: "300px" }}>
@@ -59,7 +63,7 @@ const SiderRight = () => {
                       block
                       icon={<DatabaseFilled />}
                     >
-                      SMA
+                      Telemetría
                     </Button>
                   </Col>
                 </Row>
@@ -94,7 +98,6 @@ const SiderRight = () => {
                   }}
                   style={{
                     borderColor: "#1F3461",
-                    borderRadius: "0px",
                     color:
                       location.pathname !== "/docrespaldo"
                         ? "#1F3461"
@@ -110,6 +113,9 @@ const SiderRight = () => {
 
               <Col span={24}>
                 <center>
+                  <span style={{ color: "white" }}>Un producto de:</span>
+                  <br />
+                  <br />
                   <img src={minLogo} width={"130px"} />
                 </center>
               </Col>

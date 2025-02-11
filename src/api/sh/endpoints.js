@@ -54,7 +54,7 @@ const createDataApiSh = async (data) => {
 
 const getDataApiSh = async (id_profile) => {
   const rq = await GET(
-    `interaction_detail_json/?profile_client=${id_profile}&hour=0`
+    `interaction_detail_json/?catchment_point=${id_profile}&hour=0`
   );
   return rq.data;
 };
@@ -65,7 +65,7 @@ const getDataApiShRangeDate = async (
   page
 ) => {
   const rq = await GET(
-    `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}&page=${page}`
+    `interaction_detail_json/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}&page=${page}`
   );
   return rq.data;
 };
@@ -77,7 +77,7 @@ const getDataApiShRangeDateAndHour = async (
   page
 ) => {
   const rq = await GET(
-    `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}&page=${page}&date_time_medition__hour=00`
+    `interaction_detail_json/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}&page=${page}&date_time_medition__hour=00`
   );
   return rq.data;
 };
@@ -88,7 +88,7 @@ const getDataApiShRangeDateGraphic = async (
   finishDate
 ) => {
   const rq = await GET(
-    `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}`
+    `interaction_detail_json/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}`
   );
   return rq.data;
 };

@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Row, Col, Card } from "antd";
+import { Row, Col, Card, Flex } from "antd";
 import HeaderNav from "../components/home/HeaderNav";
 import { useLocation, Routes, Route } from "react-router-dom";
 import SiderRight from "../components/home/SiderLeft";
@@ -21,43 +21,22 @@ import { AppContext } from "../App";
 import {} from "react-router-dom";
 
 const Home = () => {
-  const { state } = useContext(AppContext);
-  const location = useLocation();
-
   return (
-    <Row>
-      <Col span={24}>
-        <HeaderNav />
-      </Col>
-
-      <Col span={4}>
+    <div style={{ display: "flex" }}>
+      <div style={{ width: "180px" }}>
         <SiderRight />
-      </Col>
-      <Col span={20}>
+      </div>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        <HeaderNav />
         <QueueAnim delay={400} duration={1200} type="bottom">
-          <div key="home">
-            <Row justify="center">
-              <Col span={24}>
-                <Card
-                  size={window.innerWidth > 900 ? "default" : "small"}
-                  bordered
-                  style={{
-                    margin: window.innerWidth > 900 && "10px",
-                    minHeight: "84vh",
-                    boxShadow:
-                      "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
-                  }}
-                >
-                  <Routes>
-                    <Route path="/" element={<Sma />} />
-                  </Routes>
-                </Card>
-              </Col>
-            </Row>
+          <div key="home" style={{ flex: 1 }}>
+            <Routes>
+              <Route path="/" element={<Sma />} />
+            </Routes>
           </div>
         </QueueAnim>
-      </Col>
-    </Row>
+      </div>
+    </div>
   );
 };
 
