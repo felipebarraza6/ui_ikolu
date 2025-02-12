@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Row, Col, Card, Flex } from "antd";
+import { Row, Col, Card, Flex, Affix } from "antd";
 import HeaderNav from "../components/home/HeaderNav";
 import { useLocation, Routes, Route } from "react-router-dom";
 import SiderRight from "../components/home/SiderLeft";
@@ -24,14 +24,19 @@ const Home = () => {
   return (
     <div style={{ display: "flex" }}>
       <div style={{ width: "180px" }}>
-        <SiderRight />
+        <Affix>
+          <SiderRight />
+        </Affix>
       </div>
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <HeaderNav />
         <QueueAnim delay={400} duration={1200} type="bottom">
           <div key="home" style={{ flex: 1 }}>
             <Routes>
-              <Route path="/" element={<Sma />} />
+              <Route path="/" element={<MyWell />} />
+              <Route path="/dga" element={<Dga />} />
+              <Route path="/charts" element={<MyGraphics />} />
+              <Route path="/reports" element={<DriveInternal />} />
             </Routes>
           </div>
         </QueueAnim>

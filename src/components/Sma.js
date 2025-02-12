@@ -41,6 +41,10 @@ const Sma = () => {
 
   const handleSelectChange = (value) => {
     setSelect(value);
+    setDataSelected(catchment_points.filter((point) => point.id === value)[0]);
+    setData(
+      catchment_points.filter((point) => point.id === value)[0].modules.m2
+    );
   };
 
   const getResults = async () => {
@@ -77,13 +81,9 @@ const Sma = () => {
     setData(rq.results);
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // getResultsUpdate();
-    }, 60000); // 60000 ms = 1 min
+  const getUpdateData = async () => {};
 
-    return () => clearInterval(interval);
-  }, [selected, initialDate, finishDate, page]);
+  useEffect(() => {}, [selected, initialDate, finishDate, page]);
 
   return (
     <Flex vertical gap={"small"} align="center" style={{ padding: "20px" }}>
@@ -187,11 +187,14 @@ const Sma = () => {
                   style={{ width: "100%" }}
                   icon={<FilterFilled />}
                 >
-                  {catchment_points.map((point) => (
-                    <Option key={point.id} value={point.id}>
-                      <DatabaseFilled /> {point.title}
-                    </Option>
-                  ))}
+                  {catchment_points
+                    .sort((a, b) => a.title.localeCompare(b.title))
+                    .map((point) => (
+                      <Option key={point.id} value={point.id} disabled={false}>
+                        {console.log(point)}
+                        <DatabaseFilled /> {point.title}
+                      </Option>
+                    ))}
                 </Select>
               </Flex>
               <Form layout="inline" onFinish={getResults}>

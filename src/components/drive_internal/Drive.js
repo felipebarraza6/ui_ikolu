@@ -4,12 +4,13 @@ const { Title } = Typography;
 
 const DriveInternal = () => {
   return (
-    <Row>
+    <Row style={{ padding: "20px" }}>
       <Col span={24}>
         <Title level={3}>Documentación y Respaldo</Title>
       </Col>
-      <Col span={12}>
+      <Col span={12} style={{ paddingRight: "10px" }}>
         <Table
+          bordered
           columns={[{ title: "#" }, { title: "Nombre" }, { title: "Archivo" }]}
           title={() => "Documentación Cliente"}
           footer={() => (
@@ -32,6 +33,7 @@ const DriveInternal = () => {
       </Col>
       <Col span={12}>
         <Table
+          bordered
           columns={[{ title: "#" }, { title: "Nombre" }, { title: "Archivo" }]}
           title={() => "Documentación Smart Hydro"}
         ></Table>

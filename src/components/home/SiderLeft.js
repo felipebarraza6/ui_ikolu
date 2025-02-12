@@ -1,11 +1,13 @@
 import { Button, Card, Affix, Modal, Row, Col } from "antd";
 import React, { useContext } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AppContext } from "../../App";
 import {
   ArrowRightOutlined,
   MessageOutlined,
-  OrderedListOutlined,
+  BarChartOutlined,
+  HistoryOutlined,
+  FileFilled,
   DatabaseFilled,
 } from "@ant-design/icons";
 import logo from "../../assets/images/logozivo.png";
@@ -14,6 +16,7 @@ import QueueAnim from "rc-queue-anim";
 
 const SiderRight = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const { state } = useContext(AppContext);
 
@@ -34,38 +37,104 @@ const SiderRight = () => {
             <Row>
               <Col span={24}>
                 <center>
-                  <img src={logo} width="50px" style={{ marginTop: "10px" }} />
+                  <img
+                    src={logo}
+                    width="50px"
+                    style={{ marginTop: "10px", marginRight: "10px" }}
+                  />
+                  <img
+                    src={
+                      "https://veset.cl/wp-content/uploads/2022/01/LOGO-VESET-CON-%C2%AE.png"
+                    }
+                    style={{
+                      width: "100px",
+                      backgroundColor: "white",
+                      borderRadius: "10px",
+                    }}
+                  />
                   <br />
-                  <span style={{ color: "white", fontSize: "20px" }}>
-                    Ikolu App
-                  </span>
                 </center>
               </Col>
               <Col span={24} style={{ minHeight: "300px" }}>
                 <Row align={"top"}>
-                  <Col
-                    span={24}
+                  <Button
+                    type="link"
                     style={{
-                      backgroundColor:
-                        location.pathname == "/" ? "white" : "#1F3461",
+                      color: location.pathname == "/" ? "#1F3461" : "black",
+                      backgroundColor: "white",
+                      paddingLeft: "10px",
+                      borderRadius: "0px",
+                      marginBottom: "10px",
+                      width: "100%",
+                      paddingRight: "10px",
+                      textAlign: "left",
+                    }}
+                    icon={<DatabaseFilled style={{ color: "#1F3461" }} />}
+                    onClick={() => {
+                      navigate("/");
                     }}
                   >
-                    <Button
-                      type="link"
-                      style={{
-                        color:
-                          location.pathname == "/supp" ? "black" : "#1F3461",
-                        backgroundColor: "white",
-                        paddingLeft: "10px",
-                        borderRadius: "0px",
-                        paddingRight: "10px",
-                      }}
-                      block
-                      icon={<DatabaseFilled />}
-                    >
-                      Telemetría
-                    </Button>
-                  </Col>
+                    <div style={{ textAlign: "start" }}>Telemetría</div>
+                  </Button>
+
+                  <Button
+                    type="link"
+                    style={{
+                      color: location.pathname == "/dga" ? "black" : "#1F3461",
+                      backgroundColor: "white",
+                      paddingLeft: "10px",
+                      borderRadius: "0px",
+                      width: "100%",
+                      paddingRight: "10px",
+                      marginBottom: "10px",
+                      textAlign: "left",
+                    }}
+                    onClick={() => {
+                      navigate("/dga");
+                    }}
+                    icon={<HistoryOutlined />}
+                  >
+                    DGA
+                  </Button>
+                  <Button
+                    type="link"
+                    style={{
+                      color:
+                        location.pathname == "/charts" ? "black" : "#1F3461",
+                      backgroundColor: "white",
+                      paddingLeft: "10px",
+                      borderRadius: "0px",
+                      width: "100%",
+                      paddingRight: "10px",
+                      marginBottom: "10px",
+                      textAlign: "left",
+                    }}
+                    onClick={() => {
+                      navigate("/charts");
+                    }}
+                    icon={<BarChartOutlined />}
+                  >
+                    Gráficos e indicadores
+                  </Button>
+                  <Button
+                    type="link"
+                    style={{
+                      color:
+                        location.pathname == "/reports" ? "black" : "#1F3461",
+                      backgroundColor: "white",
+                      paddingLeft: "10px",
+                      borderRadius: "0px",
+                      width: "100%",
+                      paddingRight: "10px",
+                      textAlign: "left",
+                    }}
+                    onClick={() => {
+                      navigate("/reports");
+                    }}
+                    icon={<FileFilled />}
+                  >
+                    Documentación
+                  </Button>
                 </Row>
               </Col>
 
@@ -113,7 +182,9 @@ const SiderRight = () => {
 
               <Col span={24}>
                 <center>
-                  <span style={{ color: "white" }}>Un producto de:</span>
+                  <span style={{ color: "white", textAlign: "left" }}>
+                    Un producto de:
+                  </span>
                   <br />
                   <br />
                   <img src={minLogo} width={"130px"} />
