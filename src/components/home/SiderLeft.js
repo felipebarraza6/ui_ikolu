@@ -8,7 +8,10 @@ import {
   BarChartOutlined,
   HistoryOutlined,
   FileFilled,
+  FileDoneOutlined,
   DatabaseFilled,
+  OneToOneOutlined,
+  WifiOutlined,
 } from "@ant-design/icons";
 import logo from "../../assets/images/logozivo.png";
 import minLogo from "../../assets/images/logo-blanco.png";
@@ -19,6 +22,7 @@ const SiderRight = () => {
   const navigate = useNavigate();
 
   const { state } = useContext(AppContext);
+  console.log(state);
 
   return (
     <QueueAnim delay={200} duration={900} type="left">
@@ -41,100 +45,31 @@ const SiderRight = () => {
                     src={logo}
                     width="50px"
                     style={{ marginTop: "10px", marginRight: "10px" }}
+                    alt="logo"
                   />
-                  <img
-                    src={
-                      "https://veset.cl/wp-content/uploads/2022/01/LOGO-VESET-CON-%C2%AE.png"
-                    }
-                    style={{
-                      width: "100px",
-                      backgroundColor: "white",
-                      borderRadius: "10px",
-                    }}
-                  />
+
                   <br />
+                  <span style={{ color: "white", fontSize: "20px" }}>
+                    Ikolu App
+                  </span>
                 </center>
               </Col>
-              <Col span={24} style={{ minHeight: "300px" }}>
-                <Row align={"top"}>
+              <Col span={24} style={{ minHeight: "300px", padding: "10px" }}>
+                <Row align={"top"} gutter={[0, 10]}>
                   <Button
-                    type="link"
-                    style={{
-                      color: location.pathname == "/" ? "#1F3461" : "black",
-                      backgroundColor: "white",
-                      paddingLeft: "10px",
-                      borderRadius: "0px",
-                      marginBottom: "10px",
-                      width: "100%",
-                      paddingRight: "10px",
-                      textAlign: "left",
-                    }}
-                    icon={<DatabaseFilled style={{ color: "#1F3461" }} />}
+                    icon={<OneToOneOutlined />}
+                    type={location.pathname == "/" ? "primary" : "default"}
                     onClick={() => {
                       navigate("/");
                     }}
-                  >
-                    <div style={{ textAlign: "start" }}>Telemetría</div>
-                  </Button>
-
-                  <Button
-                    type="link"
-                    style={{
-                      color: location.pathname == "/dga" ? "black" : "#1F3461",
-                      backgroundColor: "white",
-                      paddingLeft: "10px",
-                      borderRadius: "0px",
-                      width: "100%",
-                      paddingRight: "10px",
-                      marginBottom: "10px",
-                      textAlign: "left",
-                    }}
-                    onClick={() => {
-                      navigate("/dga");
-                    }}
-                    icon={<HistoryOutlined />}
-                  >
-                    DGA
-                  </Button>
-                  <Button
-                    type="link"
-                    style={{
-                      color:
-                        location.pathname == "/charts" ? "black" : "#1F3461",
-                      backgroundColor: "white",
-                      paddingLeft: "10px",
-                      borderRadius: "0px",
-                      width: "100%",
-                      paddingRight: "10px",
-                      marginBottom: "10px",
-                      textAlign: "left",
-                    }}
-                    onClick={() => {
-                      navigate("/charts");
-                    }}
-                    icon={<BarChartOutlined />}
-                  >
-                    Gráficos e indicadores
-                  </Button>
-                  <Button
-                    type="link"
-                    style={{
-                      color:
-                        location.pathname == "/reports" ? "black" : "#1F3461",
-                      backgroundColor: "white",
-                      paddingLeft: "10px",
-                      borderRadius: "0px",
-                      width: "100%",
-                      paddingRight: "10px",
-                      textAlign: "left",
-                    }}
-                    onClick={() => {
-                      navigate("/reports");
-                    }}
-                    icon={<FileFilled />}
-                  >
-                    Documentación
-                  </Button>
+                    style={{ textAlign: "left" }}
+                    children={
+                      state.selected_profile.profile_ikolu.entry_by_form
+                        ? "Formulario"
+                        : "Telemetría"
+                    }
+                    block
+                  ></Button>
                 </Row>
               </Col>
 

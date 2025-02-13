@@ -27,7 +27,6 @@ export const appReducer = (state, action) => {
         "selected_profile",
         JSON.stringify(action.payload.user.catchment_points[0])
       );
-      console.log(action.payload.user);
 
       return {
         ...state,
@@ -47,13 +46,18 @@ export const appReducer = (state, action) => {
         "profile_client",
         JSON.stringify(action.payload.catchment_points)
       );
+      const storedProfile = localStorage.getItem("selected_profile");
+      const selected_profile = storedProfile
+        ? JSON.parse(storedProfile)
+        : action.payload.user.catchment_points[0];
+      console.log(selected_profile);
 
       return {
         ...state,
         isAuth: true,
         user: action.payload.user,
-        profile_client: action.payload.catchment_points,
-        selected_profile: action.payload.catchment_points,
+        profile_client: action.payload.user.catchment_points,
+        selected_profile: selected_profile,
       };
 
     case "DEFAULT_LIST":

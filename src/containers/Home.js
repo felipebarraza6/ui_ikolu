@@ -16,11 +16,13 @@ import Supp from "../components/home/Supp";
 import DocRes from "../components/docres/DocRes";
 import Alerts from "../components/alerts/Alerts";
 import Sma from "../components/Sma";
+import TableStandarVerySmall from "../components/mywell/TableStandarVerySmall";
 
 import { AppContext } from "../App";
-import {} from "react-router-dom";
 
 const Home = () => {
+  const { state } = useContext(AppContext);
+  console.log(state);
   return (
     <div style={{ display: "flex" }}>
       <div style={{ width: "180px" }}>
@@ -33,7 +35,17 @@ const Home = () => {
         <QueueAnim delay={400} duration={1200} type="bottom">
           <div key="home" style={{ flex: 1 }}>
             <Routes>
-              <Route path="/" element={<MyWell />} />
+              <Route
+                path="/"
+                element={
+                  state.selected_profile.dga.standard ===
+                  "CAUDALES_MUY_PEQUENOS" ? (
+                    <TableStandarVerySmall data={state.selected_profile} />
+                  ) : (
+                    <MyWell />
+                  )
+                }
+              />
               <Route path="/dga" element={<Dga />} />
               <Route path="/charts" element={<MyGraphics />} />
               <Route path="/reports" element={<DriveInternal />} />

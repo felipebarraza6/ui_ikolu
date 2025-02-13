@@ -6,9 +6,8 @@ import nivel_img from "../../assets/images/nivel.png";
 import acumulado_img from "../../assets/images/acumulado.png";
 import pozo1 from "../../assets/images/pozo1.png";
 import { AppContext } from "../../App";
-import sh from "../../api/sh/endpoints";
-import TableStandarVerySmall from "./TableStandarVerySmall";
 import QueueAnim from "rc-queue-anim";
+import TableStandardVeryWell from "./TableStandarVerySmall";
 const { Countdown } = Statistic;
 const { Title, Text } = Typography;
 
@@ -16,9 +15,13 @@ const numberForMiles = new Intl.NumberFormat("de-DE");
 
 const MyWell = () => {
   const { state } = useContext(AppContext);
-  const position_sensor_nivel = parseFloat(20);
+  console.log(state);
+  const selected = JSON.parse(localStorage.getItem("selected_profile"));
+  console.log(selected.modules.m1.water_table);
   const [frecuency, setFrecuency] = useState(60);
-  const [nivel, setNivel] = useState(0.0);
+
+  const [nivel, setNivel] = useState(0);
+  const [caudal, setCaudal] = useState(0);
   const [finishCounter, setFinishCounter] = useState(0);
   const [acumulado, setAcumulado] = useState(0);
   const [acumulado2, setAcumulado2] = useState(0);
@@ -52,6 +55,10 @@ const MyWell = () => {
     const deadline = new Date(
       now.getTime() + minutesUntilNextFrequency * miliseconds
     );
+    setLastCaption(state.selected_profile.modules.m1.date_time_medition);
+    setNivel(state.selected_profile.modules.m1.water_table);
+    setCaudal(state.selected_profile.modules.m1.flow);
+    setAcumulado(state.selected_profile.modules.m1.total);
     setDeadline(deadline);
   }, [state.selected_profile, finishCounter]);
 
@@ -68,7 +75,9 @@ const MyWell = () => {
                 >
                   Última medición
                   <br />
-                  <ClockCircleFilled /> 11/02/2023 15:00 hrs
+                  <ClockCircleFilled style={{ marginRight: "10px" }} />
+                  {""}
+                  {lastCaption} hrs
                 </Typography.Paragraph>
               )}
             </Col>
@@ -149,9 +158,7 @@ const MyWell = () => {
                         )}
 
                         {window.innerWidth > 900 ? (
-                          <Text style={styles.valueCard}>
-                            <b>1.2 (L/s)</b>
-                          </Text>
+                          <Text style={styles.valueCard}>{caudal} (L/s)</Text>
                         ) : (
                           <>
                             <center>
@@ -195,9 +202,7 @@ const MyWell = () => {
                         )}
 
                         {window.innerWidth > 900 ? (
-                          <Text style={styles.valueCard}>
-                            <b>2.5 (m)</b>
-                          </Text>
+                          <Text style={styles.valueCard}>{nivel} (m)</Text>
                         ) : (
                           <center>
                             <Tag color="#1F3461">Nivel Freático</Tag>
@@ -249,7 +254,7 @@ const MyWell = () => {
 
                         {window.innerWidth > 900 ? (
                           <Text style={styles.valueCard}>
-                            <b>1.200 (m³)</b>
+                            {numberForMiles.format(acumulado)} (m³)
                           </Text>
                         ) : (
                           <center>
@@ -298,7 +303,6 @@ const MyWell = () => {
                 />
               </Col>
             )}
-
             <Col xs={24} lg={12} xl={12}>
               <Row justify={"end"}>
                 <Col span={24}>
@@ -314,17 +318,19 @@ const MyWell = () => {
                   </QueueAnim>
                   <QueueAnim delay={400} duration={1200} type="scale">
                     <div key={"pozo2"}>
-                      <Text style={styles.textFlow}>1.2 (L/s)</Text>
+                      <Text style={styles.textFlow}>{caudal}(L/s)</Text>
                     </div>
                   </QueueAnim>
                   <QueueAnim delay={1000} duration={1200} type="scale">
                     <div key={"pozo2"}>
-                      <Text style={styles.textTotal}>1.200 (m³)</Text>
+                      <Text style={styles.textTotal}>
+                        {numberForMiles.format(acumulado)} (m³)
+                      </Text>
                     </div>
                   </QueueAnim>
                   <QueueAnim delay={800} duration={1200} type="scale">
                     <div key={"pozo2"}>
-                      <Text style={styles.textNivel}>2.5 (m)</Text>
+                      <Text style={styles.textNivel}>{nivel} (m)</Text>
                     </div>
                   </QueueAnim>
                 </Col>
@@ -393,7 +399,7 @@ const styles = {
     fontSize: window.innerWidth > 900 ? "17px" : "14px",
     marginTop: window.inner > 900 ? "100px" : "55%",
     padding: window.innerWidth > 900 ? "5px" : "5px",
-    marginLeft: window.innerWidth > 900 ? "58%" : "64%",
+    marginLeft: window.innerWidth > 900 ? "53%" : "64%",
     position: "absolute",
     borderRadius: "10px",
   },

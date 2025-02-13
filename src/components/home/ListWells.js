@@ -3,14 +3,17 @@ import { AppContext } from "../../App";
 import { Row, Col, Tag, Badge, Select, Flex } from "antd";
 import { useNavigate } from "react-router";
 import { SendOutlined, DatabaseFilled } from "@ant-design/icons";
+import { GiConsoleController } from "react-icons/gi";
 
 const ListWells = () => {
   const { state, dispatch } = useContext(AppContext);
-
+  const selected = JSON.parse(localStorage.getItem("selected_profile"));
+  console.log(selected.id);
   const navigate = useNavigate();
 
   const disabledWell = (well) => {
-    if (well.is_monitoring) {
+    console.log(well);
+    if (well.config_data.is_telemetry) {
       return false;
     } else if (well.standard === "CAUDALES_MUY_PEQUENOS") {
       return false;
@@ -39,23 +42,11 @@ const ListWells = () => {
       navigate("/");
     }
   };
+  console.log(state);
 
   return (
     <Row align={"middle"} justify={"start"}>
       <Col>
-        <Tag
-          color="rgb(31, 52, 97)"
-          style={{
-            marginBottom: "5px",
-            fontSize: "13px",
-            borderColor: "white",
-            padding: "2px",
-            paddingLeft: "5px",
-          }}
-        >
-          Puntos de captación ({state.user.profile_data.length})
-        </Tag>
-        <br />
         <Select
           style={{
             width: window.innerWidth > 900 ? "300px" : "100%",
@@ -63,51 +54,45 @@ const ListWells = () => {
             color: "black",
           }}
           placeholder="Punto de captación"
-          defaultValue={
-            state.selected_profile.id ? state.selected_profile.id : ""
-          }
+          defaultValue={selected.id}
           onSelect={(key) => {
             onSelectWell(key);
           }}
         >
-          {state.profile_client
-            .sort((a, b) => {
-              if (a.is_monitoring === b.is_monitoring) {
-                return a.title.localeCompare(b.title);
-              }
-              return a.is_monitoring ? -1 : 1;
-            })
-            .map((e) => (
-              <Select.Option key={e.id} disabled={disabledWell(e)} value={e.id}>
-                <Flex gap="large" justify="start">
-                  {e.is_monitoring ? (
-                    <Badge status="processing" />
-                  ) : (
-                    <Badge status="default" />
+          {state.profile_client.map((e) => (
+            <Select.Option key={e.id} disabled={disabledWell(e)} value={e.id}>
+              <Flex gap="large" justify="space-between">
+                <Flex gap="small">
+                  {console.log(
+                    state.selected_profile.profile_ikolu.entry_by_form
                   )}
-
-                  <Flex justify="space-around" gap={"large"}>
-                    <span>{e.title}</span>
-                    {!state.user.is_admin_view && (
-                      <Tag
-                        color={e.is_send_dga ? "green-inverse" : "blue"}
-                        style={{
-                          float: "right",
-                          marginTop: "4px",
-                          marginBottom: "4px",
-                          fontSize: "13px",
-                        }}
-                        icon={
-                          e.is_send_dga ? <SendOutlined /> : <DatabaseFilled />
-                        }
-                      >
-                        {e.code_dga_site}
-                      </Tag>
-                    )}
-                  </Flex>
+                  {e.config_data.is_telemetry ? (
+                    <Badge
+                      status={
+                        e.profile_ikolu.entry_by_form ? "success" : "processing"
+                      }
+                    />
+                  ) : (
+                    <Badge status="warning" />
+                  )}
+                  <span>{e.title}</span>
                 </Flex>
-              </Select.Option>
-            ))}
+
+                <Tag
+                  color={e.is_send_dga ? "green-inverse" : "blue"}
+                  style={{
+                    float: "right",
+                    marginTop: "4px",
+                    marginBottom: "4px",
+                    fontSize: "13px",
+                  }}
+                  icon={e.dga.send_dga ? <SendOutlined /> : <DatabaseFilled />}
+                >
+                  {e.dga.code_dga}
+                </Tag>
+              </Flex>
+            </Select.Option>
+          ))}
           {state.user.is_admin_view && (
             <Select.Option key="admin" value="admin">
               <Flex gap="large">

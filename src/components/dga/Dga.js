@@ -143,13 +143,7 @@ const Dga = () => {
   return (
     <div>
       <Row align="top" justify="space-between" style={{ padding: "20px" }}>
-        <Col span={24}>
-          <Title level={3}>
-            <span style={{ fontSize: "16px" }}>
-              Mediciones procesadas el 1 y 2 de enero
-            </span>
-          </Title>
-        </Col>
+        <Col span={24}></Col>
         <Col span={12}>
           <Table
             style={{ borderRadius: "20px" }}

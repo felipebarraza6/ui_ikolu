@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Row, Col, Typography, Button, Popconfirm, Affix } from "antd";
+import { Row, Col, Typography, Button, Popconfirm, Affix, List } from "antd";
 import wallpaper from "../../assets/images/wallssr.png";
 import { useLocation, Link } from "react-router-dom";
 import { AppContext } from "../../App";
@@ -14,9 +14,9 @@ const HeaderNav = () => {
   const { state, dispatch } = useContext(AppContext);
 
   return (
-    <QueueAnim delay={100} duration={900} type="top">
-      <div key="login">
-        <Affix>
+    <Affix>
+      <QueueAnim delay={100} duration={900} type="top">
+        <div key="login">
           <Row
             align={"middle"}
             justify={"space-between"}
@@ -35,9 +35,10 @@ const HeaderNav = () => {
                 level={window.innerWidth > 900 ? 3 : 4}
                 style={{ color: "white", marginLeft: "20px" }}
               >
-                {state.user.first_name.toUpperCase()}{" "}
+                {state.user.first_name.toUpperCase()}
               </Title>
             </Col>
+            <ListWells />
 
             <Col style={{ paddingRight: "10px" }}>
               <Popconfirm
@@ -63,9 +64,9 @@ const HeaderNav = () => {
               </Popconfirm>
             </Col>
           </Row>
-        </Affix>
-      </div>
-    </QueueAnim>
+        </div>
+      </QueueAnim>
+    </Affix>
   );
 };
 
