@@ -25,7 +25,7 @@ const Home = () => {
   console.log(state);
   return (
     <div style={{ display: "flex" }}>
-      <div style={{ width: "180px" }}>
+      <div style={{ width: "200px" }}>
         <Affix>
           <SiderRight />
         </Affix>
@@ -52,6 +52,9 @@ const Home = () => {
             </Routes>
           </div>
         </QueueAnim>
+      </div>
+      <div style={{ width: "200px", minHeight: "100vh" }}>
+        <SiderLeft />
       </div>
     </div>
   );

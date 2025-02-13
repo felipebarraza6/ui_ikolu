@@ -1,9 +1,9 @@
 import React, { useContext } from "react";
 import { Row, Col, Typography, Button, Popconfirm, Affix, List } from "antd";
-import wallpaper from "../../assets/images/wallssr.png";
-import { useLocation, Link } from "react-router-dom";
+import wallpaper from "../../assets/images/walldga.png";
+import { useLocation, useNavigate } from "react-router-dom";
 import { AppContext } from "../../App";
-import { LogoutOutlined, ArrowLeftOutlined } from "@ant-design/icons";
+import { LogoutOutlined, UserOutlined } from "@ant-design/icons";
 import ListWells from "./ListWells";
 import QueueAnim from "rc-queue-anim";
 
@@ -11,6 +11,7 @@ const { Title } = Typography;
 
 const HeaderNav = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { state, dispatch } = useContext(AppContext);
 
   return (
@@ -24,7 +25,7 @@ const HeaderNav = () => {
               backgroundImage: `url(${wallpaper})`,
               /* Create the parallax 
         scrolling effect */
-              backgroundPosition: "center center",
+              backgroundPosition: "left center",
               backgroundRepeat: "no-repeat",
               backgroundSize: "cover",
               marginLeft: "-2px",
@@ -41,6 +42,17 @@ const HeaderNav = () => {
             <ListWells />
 
             <Col style={{ paddingRight: "10px" }}>
+              <Button
+                type={location.pathname === "/profile" ? "primary" : "primary"}
+                icon={<UserOutlined />}
+                shape={"round"}
+                style={{ marginRight: "10px" }}
+                onClick={() => {
+                  //navigate("/profile");
+                }}
+              >
+                @{state.user.username}
+              </Button>
               <Popconfirm
                 cancelText="Volver"
                 okButtonProps

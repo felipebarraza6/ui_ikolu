@@ -5,19 +5,13 @@ import { AppContext } from "../../App";
 import {
   ArrowRightOutlined,
   MessageOutlined,
-  BarChartOutlined,
-  HistoryOutlined,
-  FileFilled,
-  FileDoneOutlined,
-  DatabaseFilled,
   OneToOneOutlined,
-  WifiOutlined,
 } from "@ant-design/icons";
 import logo from "../../assets/images/logozivo.png";
 import minLogo from "../../assets/images/logo-blanco.png";
 import QueueAnim from "rc-queue-anim";
 
-const SiderRight = () => {
+const SiderLeft = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -133,4 +127,4 @@ const SiderRight = () => {
   );
 };
 
-export default SiderRight;
+export default SiderLeft;

@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Row, Col, Typography, Statistic, Card, Tag, Table } from "antd";
+import { Row, Col, Typography, Statistic, Card, Tag, Table, Affix } from "antd";
 import { ClockCircleFilled } from "@ant-design/icons";
 import caudal_img from "../../assets/images/caudal.png";
 import nivel_img from "../../assets/images/nivel.png";
@@ -15,19 +15,14 @@ const numberForMiles = new Intl.NumberFormat("de-DE");
 
 const MyWell = () => {
   const { state } = useContext(AppContext);
-  console.log(state);
-  const selected = JSON.parse(localStorage.getItem("selected_profile"));
-  console.log(selected.modules.m1.water_table);
   const [frecuency, setFrecuency] = useState(60);
 
   const [nivel, setNivel] = useState(0);
   const [caudal, setCaudal] = useState(0);
   const [finishCounter, setFinishCounter] = useState(0);
   const [acumulado, setAcumulado] = useState(0);
-  const [acumulado2, setAcumulado2] = useState(0);
   const [deadline, setDeadline] = useState(null);
   const [lastCaption, setLastCaption] = useState(null);
-  const [dataSource, setDataSource] = useState([]);
 
   const onFinishCounter = (finishCounter) => {
     setFinishCounter(finishCounter + 1);
@@ -64,7 +59,7 @@ const MyWell = () => {
 
   return (
     <QueueAnim delay={500} duration={900} type="alpha">
-      <div key="mywell" style={{ padding: "20px" }}>
+      <div key="mywell" style={{ padding: "20px", position: "fixed" }}>
         <Row justify={window.innerWidth > 900 ? "center" : "start"}>
           <>
             <Col xl={12} lg={12} xs={6}>
@@ -270,39 +265,7 @@ const MyWell = () => {
                 </div>
               </QueueAnim>
             </Col>
-            {state.user.username === "lecheriavalleverde" && (
-              <Col span={12}>
-                <Table
-                  bordered
-                  title={() => "Telemetría"}
-                  size="small"
-                  dataSource={dataSource}
-                  pagination={false}
-                  columns={[
-                    {
-                      title: "Fecha",
-                      dataIndex: "date_time_medition",
-                      render: (date) => date.slice(0, 10),
-                    },
-                    {
-                      title: "Hora",
-                      dataIndex: "date_time_medition",
-                      render: (time) => time.slice(11, 16) + " hrs",
-                    },
-                    {
-                      title: "Caudal(lt/s)",
-                      dataIndex: "flow",
-                      render: (flow) => parseFloat(flow).toFixed(1),
-                    },
-                    {
-                      title: "Total (m³)",
-                      dataIndex: "total",
-                      render: (total) => processAcum(total),
-                    },
-                  ]}
-                />
-              </Col>
-            )}
+
             <Col xs={24} lg={12} xl={12}>
               <Row justify={"end"}>
                 <Col span={24}>

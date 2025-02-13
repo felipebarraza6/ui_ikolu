@@ -7,7 +7,7 @@ import QueueAnim from "rc-queue-anim";
 
 const { Title, Paragraph } = Typography;
 
-const SiderLeft = () => {
+const SiderRight = () => {
   const { state } = useContext(AppContext);
   let location = useLocation();
 
@@ -28,13 +28,13 @@ const SiderLeft = () => {
               >
                 {state.selected_profile.title}
               </Title>
-              {state.selected_profile.standard && (
+              {state.selected_profile.dga.standard && (
                 <div>
-                  <Tag color="green">
-                    {state.selected_profile.standard.toUpperCase() ===
+                  <Tag color="blue-inverse">
+                    {state.selected_profile.dga.standard.toUpperCase() ===
                     "CAUDALES_MUY_PEQUENOS"
-                      ? "CAUDALES MUY PEQUEÑOS"
-                      : state.selected_profile.standard.toUpperCase()}
+                      ? "CMP"
+                      : state.selected_profile.dga.standard.toUpperCase()}
                   </Tag>
                 </div>
               )}
@@ -44,80 +44,76 @@ const SiderLeft = () => {
           <Row align={"middle"} justify={"center"}>
             <QueueAnim delay={500} duration={2000} type="bottom">
               <div key="right" style={{ width: "100%" }}>
-                {state.selected_profile.flow_granted_dga && (
+                {state.selected_profile.dga.flow_granted_dga && (
                   <Col span={24}>
                     <div style={styles.element}>
-                      Caudal otorgado por la DGA:
+                      Caudal otorgado DGA:
                       <br />
                       <b>
                         <Typography.Paragraph style={{ fontSize: "16px" }}>
-                          {state.selected_profile.flow_granted_dga} lt/s
+                          {state.selected_profile.dga.flow_granted_dga} lt/s
                         </Typography.Paragraph>
                       </b>
                     </div>
                   </Col>
                 )}
 
-                {state.user.username === "demo" && (
+                {state.selected_profile.dga.total_granted_dga && (
                   <Col span={24}>
                     <div style={styles.element}>
-                      m³ anuales otorgado por la DGA:
+                      m³ anuales otorgado DGA:
                       <br />
                       <b>
                         <Typography.Paragraph style={{ fontSize: "16px" }}>
-                          1.000.000.000 m³
+                          {Number(
+                            state.selected_profile.dga.total_granted_dga
+                          ).toLocaleString()}{" "}
+                          m³
                         </Typography.Paragraph>
                       </b>
                     </div>
                   </Col>
                 )}
-                {state.selected_profile.date_report_api && (
+                {state.selected_profile.dga.date_start_compliance && (
+                  <Col span={24}>
+                    <div style={styles.element}>
+                      Inicio cumplimiento DGA:
+                      <br />
+                      <b>
+                        <Typography.Paragraph style={{ fontSize: "16px" }}>
+                          {state.selected_profile.dga.date_start_compliance}
+                        </Typography.Paragraph>
+                      </b>
+                    </div>
+                  </Col>
+                )}
+
+                {state.selected_profile.dga.shac && (
+                  <Col span={24}>
+                    <div style={styles.element}>
+                      SHAC:
+                      <br />
+                      <b>
+                        <Typography.Paragraph style={{ fontSize: "16px" }}>
+                          {state.selected_profile.dga.shac}
+                        </Typography.Paragraph>
+                      </b>
+                    </div>
+                  </Col>
+                )}
+                <hr style={{ marginBottom: "20px" }} />
+                {state.selected_profile.config_data.date_start_telemetry && (
                   <Col span={24}>
                     <div style={styles.element}>
                       Inicio transmision Ikolu:
                       <br />
                       <b>
                         <Typography.Paragraph style={{ fontSize: "16px" }}>
-                          {state.selected_profile.date_report_api}
+                          {
+                            state.selected_profile.config_data
+                              .date_start_telemetry
+                          }
                         </Typography.Paragraph>
-                      </b>
-                    </div>
-                  </Col>
-                )}
-
-                {state.selected_profile.date_code_dga && (
-                  <Col span={24}>
-                    <div style={styles.element}>
-                      Creacion codigo de obra:
-                      <br />
-                      <b>
-                        <Typography.Paragraph style={{ fontSize: "16px" }}>
-                          {state.selected_profile.date_code_dga}
-                        </Typography.Paragraph>
-                      </b>
-                    </div>
-                  </Col>
-                )}
-                {state.selected_profile.code_dga_site && (
-                  <Col span={24}>
-                    <div style={styles.element}>
-                      Inicio transmision DGA:
-                      <br />
-                      <b>
-                        {state.selected_profile.date_reporting_dga ? (
-                          <Typography.Paragraph style={{ fontSize: "16px" }}>
-                            {state.selected_profile.date_reporting_dga}
-                          </Typography.Paragraph>
-                        ) : (
-                          <>
-                            <Typography.Paragraph
-                              style={{ fontSize: "13px", color: "red" }}
-                            >
-                              PENDIENTE AUTORIZACION CLIENTE
-                              <br />
-                            </Typography.Paragraph>
-                          </>
-                        )}
                       </b>
                     </div>
                   </Col>
@@ -125,11 +121,14 @@ const SiderLeft = () => {
 
                 <Col span={24}>
                   <div style={styles.element}>
-                    Profundida del pozo:
+                    Profundidad:
                     <br />
                     <b>
                       <Typography.Paragraph style={{ fontSize: "16px" }}>
-                        {parseFloat(state.selected_profile.d1).toFixed(0)} mtrs
+                        {parseFloat(
+                          state.selected_profile.config_data.d1
+                        ).toFixed(2)}{" "}
+                        mtrs
                       </Typography.Paragraph>
                     </b>
                   </div>
@@ -141,7 +140,10 @@ const SiderLeft = () => {
                     <br />
                     <b>
                       <Typography.Paragraph style={{ fontSize: "16px" }}>
-                        {parseFloat(state.selected_profile.d2).toFixed(0)} mtrs
+                        {parseFloat(
+                          state.selected_profile.config_data.d2
+                        ).toFixed(2)}{" "}
+                        mtrs
                       </Typography.Paragraph>
                     </b>
                   </div>
@@ -153,7 +155,10 @@ const SiderLeft = () => {
                     <br />
                     <b>
                       <Typography.Paragraph style={{ fontSize: "16px" }}>
-                        {parseFloat(state.selected_profile.d3).toFixed(0)} mtrs
+                        {parseFloat(
+                          state.selected_profile.config_data.d3
+                        ).toFixed(2)}{" "}
+                        mtrs
                       </Typography.Paragraph>
                     </b>
                   </div>
@@ -165,7 +170,10 @@ const SiderLeft = () => {
                     <br />
                     <b>
                       <Typography.Paragraph style={{ fontSize: "16px" }}>
-                        {parseFloat(state.selected_profile.d4).toFixed(0)} pulg
+                        {parseFloat(
+                          state.selected_profile.config_data.d4
+                        ).toFixed(2)}{" "}
+                        pulg
                       </Typography.Paragraph>
                     </b>
                   </div>
@@ -177,7 +185,10 @@ const SiderLeft = () => {
                     <br />
                     <b>
                       <Typography.Paragraph style={{ fontSize: "16px" }}>
-                        {parseFloat(state.selected_profile.d5).toFixed(0)} pulg
+                        {parseFloat(
+                          state.selected_profile.config_data.d5
+                        ).toFixed(2)}{" "}
+                        pulg
                       </Typography.Paragraph>
                     </b>
                   </div>
@@ -193,11 +204,14 @@ const SiderLeft = () => {
 
 const styles = {
   card: {
-    backgroundColor: "#1F3461",
-    borderRadius: "20px",
+    background:
+      "radial-gradient(circle, rgba(59,63,96,1) 0%, rgba(31,52,97,1) 100%)",
     paddingLeft: "10px",
+
+    borderRadius: "0px",
     paddingRight: "10px",
-    minHeight: "85vh",
+    borderColor: "transparent",
+    minHeight: "100vh",
   },
   title: {
     color: "white",
@@ -206,15 +220,12 @@ const styles = {
   element: {
     textAlign: "center",
     paddingLeft: "4px",
-    paddingRight: "4px",
+    paddingdRight: "4px",
     backgroundColor: "white",
     borderRadius: "10px",
     marginLeft: "-10px",
     marginRight: "-10px",
-
-    background:
-      "linear-gradient(90deg, rgb(244, 244, 244) 0%, rgb(232, 229, 229) 49%, rgb(255, 255, 255) 100%)",
   },
 };
 
-export default SiderLeft;
+export default SiderRight;
