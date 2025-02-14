@@ -79,7 +79,7 @@ const ListWells = () => {
                 </Flex>
 
                 <Tag
-                  color={e.is_send_dga ? "green-inverse" : "blue"}
+                  color={e.is_send_dga ? "green-inverse" : "rgb(31, 52, 97)"}
                   style={{
                     float: "right",
                     marginTop: "4px",

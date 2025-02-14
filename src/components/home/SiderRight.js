@@ -4,6 +4,7 @@ import { Typography, Card, Tag, Affix, Row, Col, Badge, Flex } from "antd";
 import { useLocation } from "react-router-dom";
 import { MailOutlined } from "@ant-design/icons";
 import QueueAnim from "rc-queue-anim";
+import wall from "../../assets/images/walldga.png";
 
 const { Title, Paragraph } = Typography;
 
@@ -14,189 +15,131 @@ const SiderRight = () => {
   return (
     <QueueAnim delay={200} duration={900} type="right">
       <div key="right">
-        <Card
-          style={styles.card}
-          size="small"
-          hoverable
-          title={
-            <Flex justify="space-between" align="baseline">
-              <Title
-                style={{
-                  color: "white",
-                }}
-                level={5}
-              >
-                {state.selected_profile.title}
-              </Title>
-              {state.selected_profile.dga.standard && (
-                <div>
-                  <Tag color="blue-inverse">
-                    {state.selected_profile.dga.standard.toUpperCase() ===
-                    "CAUDALES_MUY_PEQUENOS"
-                      ? "CMP"
-                      : state.selected_profile.dga.standard.toUpperCase()}
-                  </Tag>
-                </div>
-              )}
-            </Flex>
-          }
-        >
-          <Row align={"middle"} justify={"center"}>
-            <QueueAnim delay={500} duration={2000} type="bottom">
+        <Row align={"top"} justify={"center"}>
+          <QueueAnim delay={500} duration={2000} type="bottom">
+            <Col span={24}>
               <div key="right" style={{ width: "100%" }}>
-                {state.selected_profile.dga.flow_granted_dga && (
+                <Flex
+                  direction="column"
+                  align="center"
+                  justify="space-around"
+                  style={{ marginTop: "10px", marginBottom: "10px" }}
+                >
+                  <Title
+                    style={{
+                      color: "white",
+                      textAlign: "center",
+                      margin: 0,
+                    }}
+                    level={3}
+                  >
+                    {state.selected_profile.title.toUpperCase()}
+                  </Title>
+                  <Tag color="green" style={{ marginTop: "0px" }}>
+                    {state.selected_profile.dga.standard.toUpperCase()}
+                  </Tag>
+                </Flex>
+                <Flex
+                  vertical
+                  style={{
+                    marginTop: "27px",
+                    marginLeft: "10px",
+                    marginRight: "10px",
+                  }}
+                >
+                  {state.selected_profile.config_data.date_start_telemetry && (
+                    <Col span={24}>
+                      <div style={styles.element}>
+                        INICIO TRANSMISION IKOLU:
+                        <br />
+                        <b>
+                          <Typography.Paragraph style={{ fontSize: "16px" }}>
+                            {state.selected_profile.config_data.date_start_telemetry.toUpperCase()}
+                          </Typography.Paragraph>
+                        </b>
+                      </div>
+                    </Col>
+                  )}
+
                   <Col span={24}>
                     <div style={styles.element}>
-                      Caudal otorgado DGA:
+                      PROFUNDIDAD:
                       <br />
                       <b>
                         <Typography.Paragraph style={{ fontSize: "16px" }}>
-                          {state.selected_profile.dga.flow_granted_dga} lt/s
+                          {parseFloat(state.selected_profile.config_data.d1)
+                            .toFixed(2)
+                            .toUpperCase()}{" "}
+                          MTRS
                         </Typography.Paragraph>
                       </b>
                     </div>
                   </Col>
-                )}
 
-                {state.selected_profile.dga.total_granted_dga && (
                   <Col span={24}>
                     <div style={styles.element}>
-                      m³ anuales otorgado DGA:
+                      POSICIONAMIENTO DE BOMBA:
                       <br />
                       <b>
                         <Typography.Paragraph style={{ fontSize: "16px" }}>
-                          {Number(
-                            state.selected_profile.dga.total_granted_dga
-                          ).toLocaleString()}{" "}
-                          m³
+                          {parseFloat(state.selected_profile.config_data.d2)
+                            .toFixed(2)
+                            .toUpperCase()}{" "}
+                          MTRS
                         </Typography.Paragraph>
                       </b>
                     </div>
                   </Col>
-                )}
-                {state.selected_profile.dga.date_start_compliance && (
+
                   <Col span={24}>
                     <div style={styles.element}>
-                      Inicio cumplimiento DGA:
+                      POSICIONAMIENTO DE SENSOR:
                       <br />
                       <b>
                         <Typography.Paragraph style={{ fontSize: "16px" }}>
-                          {state.selected_profile.dga.date_start_compliance}
+                          {parseFloat(state.selected_profile.config_data.d3)
+                            .toFixed(2)
+                            .toUpperCase()}{" "}
+                          MTRS
                         </Typography.Paragraph>
                       </b>
                     </div>
                   </Col>
-                )}
 
-                {state.selected_profile.dga.shac && (
                   <Col span={24}>
                     <div style={styles.element}>
-                      SHAC:
+                      DIAMETRO DUCTO DE SALIDA BOMBA
                       <br />
                       <b>
                         <Typography.Paragraph style={{ fontSize: "16px" }}>
-                          {state.selected_profile.dga.shac}
+                          {parseFloat(state.selected_profile.config_data.d4)
+                            .toFixed(2)
+                            .toUpperCase()}{" "}
+                          PULG
                         </Typography.Paragraph>
                       </b>
                     </div>
                   </Col>
-                )}
-                <hr style={{ marginBottom: "20px" }} />
-                {state.selected_profile.config_data.date_start_telemetry && (
+
                   <Col span={24}>
                     <div style={styles.element}>
-                      Inicio transmision Ikolu:
+                      DIAMETRO FLUJOMETRO
                       <br />
                       <b>
                         <Typography.Paragraph style={{ fontSize: "16px" }}>
-                          {
-                            state.selected_profile.config_data
-                              .date_start_telemetry
-                          }
+                          {parseFloat(state.selected_profile.config_data.d5)
+                            .toFixed(2)
+                            .toUpperCase()}{" "}
+                          PULG
                         </Typography.Paragraph>
                       </b>
                     </div>
                   </Col>
-                )}
-
-                <Col span={24}>
-                  <div style={styles.element}>
-                    Profundidad:
-                    <br />
-                    <b>
-                      <Typography.Paragraph style={{ fontSize: "16px" }}>
-                        {parseFloat(
-                          state.selected_profile.config_data.d1
-                        ).toFixed(2)}{" "}
-                        mtrs
-                      </Typography.Paragraph>
-                    </b>
-                  </div>
-                </Col>
-
-                <Col span={24}>
-                  <div style={styles.element}>
-                    Posicionamiento de bomba:
-                    <br />
-                    <b>
-                      <Typography.Paragraph style={{ fontSize: "16px" }}>
-                        {parseFloat(
-                          state.selected_profile.config_data.d2
-                        ).toFixed(2)}{" "}
-                        mtrs
-                      </Typography.Paragraph>
-                    </b>
-                  </div>
-                </Col>
-
-                <Col span={24}>
-                  <div style={styles.element}>
-                    Posicionamiento de sensor:
-                    <br />
-                    <b>
-                      <Typography.Paragraph style={{ fontSize: "16px" }}>
-                        {parseFloat(
-                          state.selected_profile.config_data.d3
-                        ).toFixed(2)}{" "}
-                        mtrs
-                      </Typography.Paragraph>
-                    </b>
-                  </div>
-                </Col>
-
-                <Col span={24}>
-                  <div style={styles.element}>
-                    Diámetro ducto de salida (bomba)
-                    <br />
-                    <b>
-                      <Typography.Paragraph style={{ fontSize: "16px" }}>
-                        {parseFloat(
-                          state.selected_profile.config_data.d4
-                        ).toFixed(2)}{" "}
-                        pulg
-                      </Typography.Paragraph>
-                    </b>
-                  </div>
-                </Col>
-
-                <Col span={24}>
-                  <div style={styles.element}>
-                    Diámetro flujometro
-                    <br />
-                    <b>
-                      <Typography.Paragraph style={{ fontSize: "16px" }}>
-                        {parseFloat(
-                          state.selected_profile.config_data.d5
-                        ).toFixed(2)}{" "}
-                        pulg
-                      </Typography.Paragraph>
-                    </b>
-                  </div>
-                </Col>
+                </Flex>
               </div>
-            </QueueAnim>
-          </Row>
-        </Card>
+            </Col>
+          </QueueAnim>
+        </Row>
       </div>
     </QueueAnim>
   );
@@ -204,27 +147,20 @@ const SiderRight = () => {
 
 const styles = {
   card: {
-    background:
-      "radial-gradient(circle, rgba(59,63,96,1) 0%, rgba(31,52,97,1) 100%)",
     paddingLeft: "10px",
-
+    borderColor: "transparent",
+    backgroundColor: "transparent",
     borderRadius: "0px",
     paddingRight: "10px",
-    borderColor: "transparent",
     minHeight: "100vh",
   },
   title: {
     color: "white",
-    marginBottom: "30px",
   },
   element: {
     textAlign: "center",
-    paddingLeft: "4px",
-    paddingdRight: "4px",
-    backgroundColor: "white",
     borderRadius: "10px",
-    marginLeft: "-10px",
-    marginRight: "-10px",
+    backgroundColor: "white",
   },
 };
 

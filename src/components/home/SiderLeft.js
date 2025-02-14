@@ -1,4 +1,4 @@
-import { Button, Card, Affix, Modal, Row, Col } from "antd";
+import { Button, Card, Affix, Modal, Row, Col, Typography } from "antd";
 import React, { useContext } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AppContext } from "../../App";
@@ -10,6 +10,7 @@ import {
 import logo from "../../assets/images/logozivo.png";
 import minLogo from "../../assets/images/logo-blanco.png";
 import QueueAnim from "rc-queue-anim";
+const { Title } = Typography;
 
 const SiderLeft = () => {
   const location = useLocation();
@@ -24,11 +25,11 @@ const SiderLeft = () => {
         <Affix offsetTop={0}>
           <Row
             style={{
-              background:
-                "radial-gradient(circle, rgba(59,63,96,1) 0%, rgba(31,52,97,1) 100%)",
               minHeight: "100vh",
               paddingTop: "10px",
               zIndex: 99,
+              position: "fixed",
+              width: "100%",
             }}
             align={"space-around"}
           >
@@ -48,6 +49,8 @@ const SiderLeft = () => {
                   </span>
                 </center>
               </Col>
+
+              <Col></Col>
               <Col span={24} style={{ minHeight: "300px", padding: "10px" }}>
                 <Row align={"top"} gutter={[0, 10]}>
                   <Button
@@ -70,46 +73,11 @@ const SiderLeft = () => {
               <Col
                 span={24}
                 style={{
-                  textAlign: "left",
+                  backgroundColor: "rgba(0, 0, 0, 0.5)",
+                  padding: "10px",
+                  height: "125px",
                 }}
               >
-                <Button
-                  block
-                  type="default"
-                  icon={<MessageOutlined />}
-                  onClick={() => {
-                    Modal.info({
-                      icon: <MessageOutlined />,
-                      content: (
-                        <>
-                          <p>
-                            Si surge cualquier inconveniente con el
-                            funcionamiento de la plataforma, no dudes en
-                            escribirnos directamente a: <br />
-                          </p>
-                          <p style={{ fontSize: "17px" }}>
-                            <b>soporte@smarthydro.cl</b>
-                          </p>
-                        </>
-                      ),
-                    });
-                  }}
-                  style={{
-                    borderColor: "#1F3461",
-                    color:
-                      location.pathname !== "/docrespaldo"
-                        ? "#1F3461"
-                        : "white",
-                  }}
-                >
-                  {location.pathname === "/docrespaldo" && (
-                    <ArrowRightOutlined />
-                  )}
-                  Soporte
-                </Button>
-              </Col>
-
-              <Col span={24}>
                 <center>
                   <span style={{ color: "white", textAlign: "left" }}>
                     Un producto de:

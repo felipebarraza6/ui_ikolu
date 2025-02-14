@@ -1,5 +1,6 @@
 import React, { createContext, useReducer, useEffect } from "react";
 import "./App.css";
+import wallpaper from "./assets/images/walldga.png";
 import { appReducer } from "./reducers/appReducer";
 import sh from "./api/sh/endpoints";
 import { BrowserRouter } from "react-router-dom";
