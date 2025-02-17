@@ -17,6 +17,7 @@ import DocRes from "../components/docres/DocRes";
 import Alerts from "../components/alerts/Alerts";
 import Sma from "../components/Sma";
 import TableStandarVerySmall from "../components/mywell/TableStandarVerySmall";
+import wallpaper from "../assets/images/walldga.png";
 
 import { AppContext } from "../App";
 
@@ -24,8 +25,14 @@ const Home = () => {
   const { state } = useContext(AppContext);
   console.log(state);
   return (
-    <div style={{ display: "flex" }}>
-      <div style={{ width: "200px" }}>
+    <div
+      style={{
+        display: "flex",
+        background: `url(${wallpaper})`,
+        backgroundSize: "cover",
+      }}
+    >
+      <div style={{ width: "150px" }}>
         <Affix>
           <SiderRight />
         </Affix>
@@ -33,7 +40,7 @@ const Home = () => {
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <HeaderNav />
         <QueueAnim delay={400} duration={1200} type="bottom">
-          <div key="home" style={{ flex: 1 }}>
+          <div key="home" style={{ backgroundColor: "white" }}>
             <Routes>
               <Route
                 path="/"
@@ -53,7 +60,7 @@ const Home = () => {
           </div>
         </QueueAnim>
       </div>
-      <div style={{ width: "200px", minHeight: "100vh" }}>
+      <div style={{ width: "250px", minHeight: "100vh" }}>
         <SiderLeft />
       </div>
     </div>
