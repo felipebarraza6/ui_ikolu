@@ -3,7 +3,7 @@ import { Row, Col, Typography, Button, Popconfirm, Affix, List } from "antd";
 import wallpaper from "../../assets/images/walldga.png";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AppContext } from "../../App";
-import { LogoutOutlined, UserOutlined } from "@ant-design/icons";
+import { LogoutOutlined, UserOutlined, BuildFilled } from "@ant-design/icons";
 import ListWells from "./ListWells";
 import QueueAnim from "rc-queue-anim";
 
@@ -21,37 +21,21 @@ const HeaderNav = () => {
           <Row
             align={"middle"}
             justify={"space-between"}
-            style={{
-              backgroundImage: `url(${wallpaper})`,
-              /* Create the parallax 
-        scrolling effect */
-              backgroundPosition: "left center",
-              backgroundRepeat: "no-repeat",
-              backgroundSize: "cover",
-              marginLeft: "-2px",
-            }}
+            style={{ marginTop: "10px", marginBottom: "10px" }}
           >
-            <Col>
-              <Title
-                level={window.innerWidth > 900 ? 3 : 4}
-                style={{ color: "white", marginLeft: "20px" }}
-              >
-                {state.user.first_name.toUpperCase()}
-              </Title>
-            </Col>
             <ListWells />
 
             <Col style={{ paddingRight: "10px" }}>
               <Button
                 type={location.pathname === "/profile" ? "primary" : "primary"}
-                icon={<UserOutlined />}
+                icon={<BuildFilled />}
                 shape={"round"}
-                style={{ marginRight: "10px" }}
+                style={{ marginRight: "10px", borderColor: "white" }}
                 onClick={() => {
                   //navigate("/profile");
                 }}
               >
-                @{state.user.username}
+                {state.user.first_name.toUpperCase()}
               </Button>
               <Popconfirm
                 cancelText="Volver"

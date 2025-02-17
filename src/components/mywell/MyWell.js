@@ -59,7 +59,16 @@ const MyWell = () => {
 
   return (
     <QueueAnim delay={500} duration={900} type="alpha">
-      <div key="mywell" style={{ padding: "20px", position: "fixed" }}>
+      <div
+        key="mywell"
+        style={{
+          padding: "20px",
+          borderRadius: "10px",
+          position: "fixed",
+          backgroundColor: "white",
+          height: "85vh",
+        }}
+      >
         <Row justify={window.innerWidth > 900 ? "center" : "start"}>
           <>
             <Col xl={12} lg={12} xs={6}>
@@ -123,7 +132,7 @@ const MyWell = () => {
               )}
             </Col>
 
-            <Col lg={10} xs={6} style={{ marginTop: "20px" }}>
+            <Col lg={12} xs={6} style={{ marginTop: "0px" }}>
               <QueueAnim delay={400} duration={1200} type="left">
                 <div key={"card"}>
                   <Card hoverable style={styles.cardValues} size="small">
@@ -267,7 +276,7 @@ const MyWell = () => {
             </Col>
 
             <Col xs={24} lg={12} xl={12}>
-              <Row justify={"end"}>
+              <Row justify={"end"} style={{ marginTop: "30px" }}>
                 <Col span={24}>
                   <QueueAnim delay={300} duration={1200} type="bottom">
                     <div key={"pozo1"}>
@@ -315,7 +324,6 @@ const styles = {
     padding: window.innerWidth > 900 ? "14px" : "0px",
     borderRadius: "15px",
     border: "0px solid #1F3461",
-    marginLeft: window.innerWidth > 900 && "30px",
     background:
       "linear-gradient(90deg, rgba(2,0,36,0.14189425770308128) 0%, rgba(255,255,255,1) 100%)",
     width: window.innerWidth > 900 ? "250px" : "100%",
