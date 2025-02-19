@@ -9,11 +9,14 @@ import {
   Badge,
   DatePicker,
   Button,
+  Typography,
   Form,
 } from "antd";
+import moment from "moment";
 import {
   DatabaseFilled,
   FilterFilled,
+  DownloadOutlined,
   RiseOutlined,
   FallOutlined,
   SearchOutlined,
@@ -22,11 +25,12 @@ import {
 } from "@ant-design/icons";
 import sh from "../api/sh/endpoints";
 
-const { Option } = Select;
+const { Title } = Typography;
 
 const Sma = () => {
   const { state } = useContext(AppContext);
   const [selected, setSelect] = useState(state.user.catchment_points[0].id);
+  const [loadingExcel, setLoadingExcel] = useState(false);
   const [dataSelected, setDataSelected] = useState(
     state.user.catchment_points[0]
   );
@@ -38,14 +42,6 @@ const Sma = () => {
   const [countApi, setCountApi] = useState(0);
 
   const catchment_points = state.user.catchment_points;
-
-  const handleSelectChange = (value) => {
-    setSelect(value);
-    setDataSelected(catchment_points.filter((point) => point.id === value)[0]);
-    setData(
-      catchment_points.filter((point) => point.id === value)[0].modules.m2
-    );
-  };
 
   const getResults = async () => {
     const formatDateTime = (date) => {
@@ -81,7 +77,23 @@ const Sma = () => {
     setData(rq.results);
   };
 
-  const getUpdateData = async () => {};
+  const downloadDataToExcel = async () => {
+    setLoadingExcel(true);
+    console.log(initialDate, finishDate);
+    var date_i = moment(initialDate).format("YYYY-MM-DD");
+    var date_f = moment(finishDate).format("YYYY-MM-DD");
+    console.log(date_i);
+    const rq = await sh
+      .get_data_sh_range_to_excel(
+        state.selected_profile.id,
+        date_i,
+        date_f,
+        state.selected_profile.title
+      )
+      .then((res) => {
+        setLoadingExcel(false);
+      });
+  };
 
   useEffect(() => {}, [selected, initialDate, finishDate, page]);
 
@@ -91,7 +103,11 @@ const Sma = () => {
         <Card
           hoverable
           title={"Última conexión Logger"}
-          style={{ width: 300 }}
+          style={{
+            width: 300,
+            background:
+              "linear-gradient(90deg, rgba(2,0,36,0.14189425770308128) 0%, rgba(255,255,255,1) 100%)",
+          }}
           extra={<Badge status="processing" text="" />}
           size="small"
         >
@@ -113,7 +129,11 @@ const Sma = () => {
             month: "long",
             day: "numeric",
           })}
-          style={{ width: 300 }}
+          style={{
+            width: 300,
+            background:
+              "linear-gradient(90deg, rgba(2,0,36,0.14189425770308128) 0%, rgba(255,255,255,1) 100%)",
+          }}
           extra={
             <CalendarOutlined style={{ fontSize: "15px", color: "#1f3461" }} />
           }
@@ -146,7 +166,11 @@ const Sma = () => {
             month: "long",
             day: "numeric",
           })}
-          style={{ width: 300 }}
+          style={{
+            width: 300,
+            background:
+              "linear-gradient(90deg, rgba(2,0,36,0.14189425770308128) 0%, rgba(255,255,255,1) 100%)",
+          }}
           extra={
             <CalendarOutlined style={{ fontSize: "15px", color: "#1f3461" }} />
           }
@@ -179,23 +203,7 @@ const Sma = () => {
           title={() => (
             <Flex justify="space-between" align="center">
               <Flex>
-                {" "}
-                <Select
-                  value={selected}
-                  placeholder="Selecciona un punto de captación"
-                  onChange={handleSelectChange}
-                  style={{ width: "100%" }}
-                  icon={<FilterFilled />}
-                >
-                  {catchment_points
-                    .sort((a, b) => a.title.localeCompare(b.title))
-                    .map((point) => (
-                      <Option key={point.id} value={point.id} disabled={false}>
-                        {console.log(point)}
-                        <DatabaseFilled /> {point.title}
-                      </Option>
-                    ))}
-                </Select>
+                <Title level={3}>Registros</Title>{" "}
               </Flex>
               <Form layout="inline" onFinish={getResults}>
                 <Form.Item
@@ -227,6 +235,19 @@ const Sma = () => {
                     Buscar registros
                   </Button>
                 </Form.Item>
+                <Form.Item>
+                  <Button
+                    loading={loadingExcel}
+                    type="primary"
+                    disabled={!initialDate || !finishDate}
+                    icon={<DownloadOutlined />}
+                    onClick={() => {
+                      downloadDataToExcel();
+                    }}
+                  >
+                    Descarga
+                  </Button>
+                </Form.Item>
               </Form>
             </Flex>
           )}
@@ -236,7 +257,23 @@ const Sma = () => {
             {
               title: "Fecha de Medición",
               dataIndex: "date_time_medition",
-              render: (date) => new Date(date).toLocaleString("es-ES"),
+
+              render: (date) => {
+                if (initialDate && finishDate) {
+                  var str_d =
+                    date.slice(8, 10) +
+                    "-" +
+                    date.slice(5, 7) +
+                    " / " +
+                    date.slice(11, 16) +
+                    " hrs";
+                  return str_d;
+                } else {
+                  var str_d2 =
+                    date.slice(5, 10) + " / " + date.slice(11, 16) + " hrs";
+                  return str_d2;
+                }
+              },
               key: "date_time_medition",
             },
             {

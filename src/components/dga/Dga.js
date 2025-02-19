@@ -22,7 +22,6 @@ const Dga = () => {
   return (
     <div>
       <Row align="top" justify="space-between" style={{ padding: "20px" }}>
-        <Col span={24}></Col>
         <Col span={12}>
           <Table
             style={{ borderRadius: "20px" }}
@@ -54,11 +53,7 @@ const Dga = () => {
         </Col>
         <Col span={12}>
           <Row justify={"center"}>
-            <Card
-              hoverable
-              title={"OB-123-123"}
-              extra={<Tag color="blue">Mayor</Tag>}
-            >
+            <Card hoverable title={"OB-123-123"}>
               <Countdown
                 title="Tiempo restante para enviar a DGA"
                 value={Date.now() + 1000 * 60 * 60}

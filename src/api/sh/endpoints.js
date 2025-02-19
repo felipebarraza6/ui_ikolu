@@ -37,7 +37,7 @@ const get_profile = async () => {
 const downloadFile = async (id_profile, initialDate, finishDate, title) => {
   const now_date = new Date();
   const rq = await DOWNLOAD(
-    `interaction_detail/?profile_client=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}`,
+    `interaction_detail/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}`,
     `${title}.xlsx`
   );
 };
@@ -66,6 +66,18 @@ const getDataApiShRangeDate = async (
 ) => {
   const rq = await GET(
     `interaction_detail_json/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}&page=${page}`
+  );
+  return rq.data;
+};
+
+const getDataApiShRangeDateToExcel = async (
+  id_profile,
+  initialDate,
+  finishDate,
+  page
+) => {
+  const rq = await GET(
+    `interaction_detail/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}&page=${page}`
   );
   return rq.data;
 };
@@ -200,6 +212,7 @@ const sh = {
   downloadFile: downloadFile,
   get_data_sh: getDataApiSh,
   get_data_sh_range: getDataApiShRangeDate,
+  get_data_sh_range_to_excel: downloadFile,
   get_data_sh_range_hour: getDataApiShRangeDateAndHour,
   get_data_send_dga: getDataApiShDgaSend,
   get_data_sh_range_graphic: getDataApiShRangeDateGraphic,

@@ -58,10 +58,7 @@ const TableStandarVerySmall = ({ data }) => {
     const remainingDaysWeek = days % weeks;
 
     return (
-      <Title
-        level={5}
-        style={{ fontSize: "12px", marginTop: "4px", textAlign: "left" }}
-      >
+      <Title level={5} style={{ fontSize: "12px", textAlign: "left" }}>
         Debes cargar datos antes del:{" "}
         <Tag color="blue-inverse">
           {state.selected_profile.dga.standard === "CAUDALES_MUY_PEQUENOS" && (
@@ -125,10 +122,7 @@ const TableStandarVerySmall = ({ data }) => {
   return (
     <QueueAnim delay={300} type="right">
       <div key="registers">
-        <Row
-          style={{ paddingLeft: "40px", marginTop: "70px" }}
-          justify={"middle"}
-        >
+        <Row style={{ padding: "20px" }}>
           <Col span={24}>
             <Form
               layout="inline"
@@ -303,7 +297,6 @@ const TableStandarVerySmall = ({ data }) => {
             <Row justify={"center"}>
               <Col>
                 <Tooltip
-                  style={{}}
                   color="#1F3461"
                   title={
                     <Text style={{ color: "white" }}>
@@ -324,7 +317,7 @@ const TableStandarVerySmall = ({ data }) => {
                       );
                     }}
                   >
-                    {state.selected_profile.dga.code_dga_site}
+                    {state.selected_profile.dga.code_dga}
                   </Button>
                 </Tooltip>
 
@@ -332,6 +325,7 @@ const TableStandarVerySmall = ({ data }) => {
                   {state.selected_profile.dga.code_dga ? (
                     <QRCode
                       errorLevel="H"
+                      style={{ marginTop: "10px" }}
                       color="#1F3461"
                       value={`https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.dga.code_dga}`}
                       icon={logo}

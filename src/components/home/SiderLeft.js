@@ -3,9 +3,9 @@ import React, { useContext } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AppContext } from "../../App";
 import {
-  ArrowRightOutlined,
-  MessageOutlined,
   OneToOneOutlined,
+  DatabaseOutlined,
+  CloudDownloadOutlined,
 } from "@ant-design/icons";
 import logo from "../../assets/images/logozivo.png";
 import minLogo from "../../assets/images/logo-blanco.png";
@@ -17,22 +17,12 @@ const SiderLeft = () => {
   const navigate = useNavigate();
 
   const { state } = useContext(AppContext);
-  console.log(state);
 
   return (
     <QueueAnim delay={200} duration={900} type="left">
       <div key="left">
         <Affix offsetTop={0}>
-          <Row
-            style={{
-              minHeight: "100vh",
-              paddingTop: "10px",
-              zIndex: 99,
-              position: "fixed",
-              width: "100%",
-            }}
-            align={"space-around"}
-          >
+          <Row>
             <Row>
               <Col span={24}>
                 <center>
@@ -50,7 +40,6 @@ const SiderLeft = () => {
                 </center>
               </Col>
 
-              <Col></Col>
               <Col span={24} style={{ minHeight: "300px", padding: "10px" }}>
                 <Row align={"top"} gutter={[0, 10]}>
                   <Button
@@ -60,13 +49,55 @@ const SiderLeft = () => {
                       navigate("/");
                     }}
                     style={{ textAlign: "left" }}
+                    block
                     children={
                       state.selected_profile.profile_ikolu.entry_by_form
                         ? "Formulario"
                         : "Telemetría"
                     }
-                    block
                   ></Button>
+                  {state.selected_profile.profile_ikolu.standard && (
+                    <Button
+                      block
+                      type={location.pathname == "/dga" ? "primary" : "default"}
+                      onClick={() => navigate("/dga")}
+                      icon={<DatabaseOutlined />}
+                    >
+                      DGA
+                    </Button>
+                  )}
+                  {state.user.username === "arrocerospti" && (
+                    <Button
+                      block
+                      type={
+                        location.pathname === "/registers_pti"
+                          ? "primary"
+                          : "default"
+                      }
+                      onClick={() => navigate("/registers_pti")}
+                      icon={<DatabaseOutlined />}
+                    >
+                      Registros
+                    </Button>
+                  )}
+
+                  {state.user.username !== "arrocerospti" &&
+                  state.user.username !== "lecheriavalleverde" ? (
+                    <Button
+                      icon={<CloudDownloadOutlined />}
+                      block
+                      type={
+                        location.pathname === "/extraction_data"
+                          ? "primary"
+                          : "default"
+                      }
+                      onClick={() => navigate("/extraction_data")}
+                    >
+                      Reportes
+                    </Button>
+                  ) : (
+                    ""
+                  )}
                 </Row>
               </Col>
 

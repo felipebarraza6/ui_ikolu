@@ -8,11 +8,9 @@ import { GiConsoleController } from "react-icons/gi";
 const ListWells = () => {
   const { state, dispatch } = useContext(AppContext);
   const selected = JSON.parse(localStorage.getItem("selected_profile"));
-  console.log(selected.id);
   const navigate = useNavigate();
 
   const disabledWell = (well) => {
-    console.log(well);
     if (well.config_data.is_telemetry) {
       return false;
     } else if (well.standard === "CAUDALES_MUY_PEQUENOS") {
@@ -49,7 +47,7 @@ const ListWells = () => {
       <Col>
         <Select
           style={{
-            width: window.innerWidth > 900 ? "300px" : "100%",
+            width: window.innerWidth > 900 ? "400px" : "100%",
             zIndex: 9999,
             color: "black",
           }}
