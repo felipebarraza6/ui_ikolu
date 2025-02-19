@@ -139,7 +139,7 @@ const TableStandarVerySmall = ({ data }) => {
                   ...values,
                   catchment_point: state.selected_profile.id,
                   flow: parseFloat(values.flow),
-                  nivel: parseFloat(values.nivel),
+                  water_table: parseFloat(values.water_table),
                   total: parseInt(values.total),
                   date_time_medition: values.date_time_medition.format(
                     "YYYY-MM-DD HH:mm:ss"
@@ -179,7 +179,7 @@ const TableStandarVerySmall = ({ data }) => {
                 <Col>
                   Nivel freático
                   <Form.Item
-                    name="nivel"
+                    name="water_table"
                     rules={[{ required: true, message: "Ingesa el nivel" }]}
                   >
                     <Input
