@@ -13,6 +13,7 @@ import Sma from "../components/Sma";
 import PrototypeUmi from "../components/prototype_umi/PrototypeUmi";
 import DataTable from "../components/prototype_umi/DataTable";
 import Reports from "../components/reports/Reports";
+import Well from "../components/mywell/Well";
 
 import TableStandarVerySmall from "../components/mywell/TableStandarVerySmall";
 import wallpaper from "../assets/images/walldga.png";
@@ -27,12 +28,13 @@ const Home = () => {
       justify="space-between"
       gap={"small"}
       style={{
-        background: `url(${wallpaper})`,
+        background: `url(${wallpaper}) no-repeat center center`,
         minHeight: "100vh",
+        height: "100%",
         backgroundSize: "cover",
       }}
     >
-      <Flex style={{ width: "10%" }}>
+      <Flex style={{ width: "13%", paddingLeft: "5px" }}>
         <Affix>
           <SiderRight />
         </Affix>
@@ -42,7 +44,7 @@ const Home = () => {
         style={{
           width:
             state.selected_profile.dga.type_dga === "SUBTERRANEO"
-              ? "70%"
+              ? "80%"
               : "90%",
         }}
       >
@@ -79,17 +81,17 @@ const Home = () => {
                 ))}
 
               <Route path="/extraction_data" element={<Reports />} />
-
               <Route path="/dga" element={<Dga />} />
               <Route path="/charts" element={<MyGraphics />} />
               <Route path="/reports" element={<DriveInternal />} />
               <Route path="/registers_pti" element={<DataTable />} />
+              <Route path="/well" element={<Well />} />
             </Routes>
           </div>
         </QueueAnim>
       </Flex>
       {state.selected_profile.dga.type_dga === "SUBTERRANEO" && (
-        <Flex style={{ width: "20%", paddingRight: "5px" }}>
+        <Flex style={{ width: "25%" }}>
           <SiderLeft />
         </Flex>
       )}

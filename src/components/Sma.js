@@ -80,9 +80,12 @@ const Sma = () => {
   const downloadDataToExcel = async () => {
     setLoadingExcel(true);
     console.log(initialDate, finishDate);
-    var date_i = moment(initialDate).format("YYYY-MM-DD");
-    var date_f = moment(finishDate).format("YYYY-MM-DD");
+    var date_i = new Date(initialDate).toISOString().split("T")[0];
+    var date_f = new Date(finishDate).toISOString().split("T")[0];
+
     console.log(date_i);
+
+    console.log(date_f);
     const rq = await sh
       .get_data_sh_range_to_excel(
         state.selected_profile.id,

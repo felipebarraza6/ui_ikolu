@@ -98,9 +98,13 @@ const Reports = () => {
   };
   console.log(state);
   return (
-    <QueueAnim type="top" delay={300} duration={1000}>
+    <QueueAnim type="scaleBig" delay={300} duration={1500}>
       <div key="1">
-        <Row style={{ marginTop: "0px", padding: "30px" }} justify={"center"}>
+        <Row
+          style={{ marginTop: "0px", padding: "0px", minHeight: "90vh" }}
+          justify={"center"}
+          align={"top"}
+        >
           {window.innerWidth > 900 ? (
             <>
               <Col
@@ -113,7 +117,6 @@ const Reports = () => {
                 <QueueAnim type="left" delay={500} duration={1000}>
                   <div key="2">
                     <Table
-                      bordered
                       title={() => (
                         <Row
                           justify={"space-around"}

@@ -8,7 +8,8 @@ import {
   ArrowLeftOutlined,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
-import wall from "../../assets/images/wallssr.png";
+
+const numberForMiles = new Intl.NumberFormat("de-DE");
 
 const MyLastRegisters = () => {
   const { state } = useContext(AppContext);
@@ -66,12 +67,17 @@ const MyLastRegisters = () => {
               },
               {
                 title: "Total(m³)",
-                dataIndex: "total",
+                render: (a) => {
+                  return numberForMiles.format(a.total);
+                },
               },
 
               {
                 title: "Consumo(m³)",
                 dataIndex: "total_diff",
+                render: (a) => {
+                  return numberForMiles.format(a);
+                },
               },
             ]}
           />

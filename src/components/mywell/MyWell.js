@@ -1,5 +1,14 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Row, Col, Typography, Statistic, Card, Tag, Descriptions } from "antd";
+import {
+  Row,
+  Col,
+  Typography,
+  Statistic,
+  Card,
+  Tag,
+  Descriptions,
+  Flex,
+} from "antd";
 import {
   CalendarOutlined,
   ClockCircleOutlined,
@@ -12,6 +21,8 @@ import pozo1 from "../../assets/images/pozo1.png";
 import { AppContext } from "../../App";
 import QueueAnim from "rc-queue-anim";
 import MyLastRegisters from "./MyLastRegisters";
+import { BsClockHistory } from "react-icons/bs";
+
 const { Countdown } = Statistic;
 const { Title, Text } = Typography;
 
@@ -91,12 +102,13 @@ const MyWell = () => {
         ? "linear-gradient(31deg, rgba(31,52,97,1) 0%, rgba(56,67,74,1) 100%)"
         : "#1F3461",
       border: "0px solid #1F3461",
-      fontSize: zoomCaudal ? "20px" : "17px",
-      marginTop: window.innerWidth > 900 ? "-320px" : "30%",
-      marginLeft: window.inner > 900 ? "68px" : "12%",
+      fontSize: zoomCaudal ? "17px" : "13px",
+      left: "-20px",
+      marginTop: window.innerWidth > 900 ? "-360px" : "23%",
       padding: window.innerWidth > 900 ? "5px" : "5px",
       position: "absolute",
       borderRadius: "10px",
+      transition: "all 0.3s ease-in-out",
     },
     textTotal: {
       color: "white",
@@ -104,12 +116,13 @@ const MyWell = () => {
         ? "linear-gradient(31deg, rgba(31,52,97,1) 0%, rgba(56,67,74,1) 100%)"
         : "#1F3461",
       border: "0px solid #1F3461",
-      fontSize: zoomAcumulado ? "20px" : "17px",
+      fontSize: zoomAcumulado ? "17px" : "13px",
       padding: window.innerWidth > 900 ? "5px" : "5px",
-      marginTop: window.innerWidth > 900 ? "-340px" : "23%",
+      marginTop: window.innerWidth > 900 ? "-400px" : "23%",
       marginLeft: "280px",
       position: "absolute",
       borderRadius: "10px",
+      transition: "all 0.3s ease-in-out",
     },
     textNivel: {
       color: "white",
@@ -117,18 +130,19 @@ const MyWell = () => {
         ? "linear-gradient(31deg, rgba(31,52,97,1) 0%, rgba(56,67,74,1) 100%)"
         : "#1F3461",
       border: "0px solid #1F3461",
-      fontSize: zoomNivel ? "20px" : "17px",
-      marginTop: window.innerWidth > 900 ? "-120px" : "30%",
-      marginLeft: "260px",
+      fontSize: zoomNivel ? "17px" : "13px",
+      marginTop: window.innerWidth > 900 ? "-220px" : "30%",
+      left: "230px",
       padding: window.innerWidth > 900 ? "5px" : "5px",
       position: "absolute",
       borderRadius: "10px",
+      transition: "all 0.3s ease-in-out",
     },
   };
 
   return (
-    <Row align={"middle"} style={{ padding: "20px" }}>
-      <Col lg={12} xs={6}>
+    <Flex justify="space-around" align="top" style={{ padding: "10px" }}>
+      <Flex vertical style={{ width: "100%" }}>
         <QueueAnim delay={400} duration={1200} type="left">
           <div key={"card"}>
             <Descriptions
@@ -145,22 +159,32 @@ const MyWell = () => {
               <Descriptions.Item
                 label={
                   <>
-                    <CalendarOutlined /> Consumo ayer
-                  </>
-                }
-                span={3}
-              >
-                {acumAyer} (m³)
-              </Descriptions.Item>
-              <Descriptions.Item
-                label={
-                  <>
-                    <CalendarOutlined /> Consumo hoy
+                    <CalendarOutlined style={{ marginRight: "5px" }} />
+                    {new Date().toLocaleDateString("es-ES", {
+                      day: "2-digit",
+                      month: "long",
+                    })}
                   </>
                 }
                 span={3}
               >
                 {acumDia} (m³)
+              </Descriptions.Item>
+              <Descriptions.Item
+                label={
+                  <>
+                    <CalendarOutlined style={{ marginRight: "5px" }} />
+                    {new Date(
+                      new Date().setDate(new Date().getDate() - 1)
+                    ).toLocaleDateString("es-ES", {
+                      day: "2-digit",
+                      month: "long",
+                    })}
+                  </>
+                }
+                span={3}
+              >
+                {acumAyer} (m³)
               </Descriptions.Item>
               <Descriptions.Item
                 label={
@@ -326,43 +350,58 @@ const MyWell = () => {
             >
               <Row
                 justify={window.innerWidth > 900 ? "space-around" : "center"}
+                align={"middle"}
               >
                 <Col xs={24} lg={6} xl={6}>
                   <center>
-                    <img
-                      src={acumulado_img}
-                      alt="caudal_img"
-                      width={window.innerWidth > 900 ? "100%" : "70%"}
-                      style={{
-                        marginBottom: window.innerWidth > 900 ? "0px" : "5px",
-                      }}
+                    <BsClockHistory
+                      style={{ fontSize: "48px", color: "#2E5E9C" }}
                     />
                   </center>
                 </Col>
                 <Col xs={24} lg={18} xl={18} style={styles.colCard}>
                   {window.innerWidth > 900 && (
                     <Title level={5} style={{ marginTop: "-10px" }}>
-                      Consumo {lastCaption && lastCaption.slice(11, 16)} hrs
+                      Última hora
                     </Title>
                   )}
                   <Text style={styles.valueCard}>
                     {numberForMiles.format(acumHora)} (m³)
+                  </Text>
+                  <br />
+                  <Text>
+                    {lastCaption && (
+                      <u>
+                        {lastCaption.slice(11, 13)}
+                        {":00 - "}
+                        {lastCaption.slice(11, 13) - 1}
+                        {":00 hrs"}
+                      </u>
+                    )}
                   </Text>
                 </Col>
               </Row>
             </Card>
           </div>
         </QueueAnim>
-      </Col>
-      <Col xs={24} lg={12} xl={12}>
+      </Flex>
+      <Flex
+        vertical
+        style={{ width: "100%", minHeight: "80vh" }}
+        align="space-around"
+        justify="space-between"
+        gap={"large"}
+      >
         <QueueAnim delay={200} duration={1200} type="bottom">
           <div key={"description_well"}>
             <Descriptions
               bordered
               size="small"
+              layout="vertical"
               style={{
                 marginBottom: "10px",
                 borderRadius: "10px",
+                width: "100%",
                 background:
                   "linear-gradient(90deg, rgba(2,0,36,0.14189425770308128) 0%, rgba(255,255,255,1) 100%)",
               }}
@@ -384,7 +423,7 @@ const MyWell = () => {
           </div>
         </QueueAnim>
         <QueueAnim delay={300} duration={1200} type="bottom">
-          <div key={"pozo1"}>
+          <div key={"pozo1"} style={{ position: "relative" }}>
             <img
               src={pozo1}
               width={window.innerWidth < 900 ? "100%" : "90%"}
@@ -410,8 +449,8 @@ const MyWell = () => {
             <Text style={styles.textNivel}>{nivel} (m)</Text>
           </div>
         </QueueAnim>
-      </Col>
-    </Row>
+      </Flex>
+    </Flex>
   );
 };
 

@@ -15,54 +15,52 @@ const HeaderNav = () => {
   const { state, dispatch } = useContext(AppContext);
 
   return (
-    <Affix>
-      <QueueAnim delay={100} duration={900} type="top">
-        <div key="login">
-          <Row
-            align={"middle"}
-            justify={"space-between"}
-            style={{ marginTop: "10px", marginBottom: "10px" }}
-          >
-            <ListWells />
+    <QueueAnim delay={100} duration={900} type="top">
+      <div key="login">
+        <Row
+          align={"middle"}
+          justify={"space-between"}
+          style={{ marginTop: "10px", marginBottom: "10px" }}
+        >
+          <ListWells />
 
-            <Col style={{ paddingRight: "10px" }}>
-              <Button
-                type={location.pathname === "/profile" ? "primary" : "primary"}
-                icon={<BuildFilled />}
-                shape={"round"}
-                style={{ marginRight: "10px", borderColor: "white" }}
-                onClick={() => {
-                  //navigate("/profile");
+          <Col style={{ paddingRight: "10px" }}>
+            <Button
+              type={location.pathname === "/profile" ? "primary" : "primary"}
+              icon={<BuildFilled />}
+              shape={"round"}
+              style={{ marginRight: "10px", borderColor: "white" }}
+              onClick={() => {
+                //navigate("/profile");
+              }}
+            >
+              {state.user.first_name.toUpperCase()}
+            </Button>
+            <Popconfirm
+              cancelText="Volver"
+              okButtonProps
+              okText="SALIR"
+              title="¿Estas seguro de querer cerrar la sesión?"
+              onConfirm={() => {
+                dispatch({ type: "LOGOUT" });
+                window.location.assign("/");
+              }}
+            >
+              <LogoutOutlined
+                style={{
+                  backgroundColor: "rgb(31, 52, 97)",
+                  color: "white",
+                  fontSize: "15px",
+                  border: "1px solid white",
+                  borderRadius: "100%",
+                  padding: "10px",
                 }}
-              >
-                {state.user.first_name.toUpperCase()}
-              </Button>
-              <Popconfirm
-                cancelText="Volver"
-                okButtonProps
-                okText="SALIR"
-                title="¿Estas seguro de querer cerrar la sesión?"
-                onConfirm={() => {
-                  dispatch({ type: "LOGOUT" });
-                  window.location.assign("/");
-                }}
-              >
-                <LogoutOutlined
-                  style={{
-                    backgroundColor: "rgb(31, 52, 97)",
-                    color: "white",
-                    fontSize: "15px",
-                    border: "1px solid white",
-                    borderRadius: "100%",
-                    padding: "10px",
-                  }}
-                />
-              </Popconfirm>
-            </Col>
-          </Row>
-        </div>
-      </QueueAnim>
-    </Affix>
+              />
+            </Popconfirm>
+          </Col>
+        </Row>
+      </div>
+    </QueueAnim>
   );
 };
 

@@ -1,0 +1,276 @@
+.pozo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+  .pozo {
+    position: relative;
+    width: 270px;
+    height: 500px;
+  }
+  
+  .tierra {
+    position: absolute;
+    width: 100%;
+    height: 80%;
+    margin-top: 5px;
+    background-color: #342012;
+    background-size: cover;
+  }
+  
+  .agua-inferior {
+    position: absolute;
+    bottom: 0;
+    border-radius: 0px 0px 10px 10px;
+    width: 100%;
+    height: 35%;
+    background-color: rgb(31, 52, 97);
+    background-size: cover;
+    overflow: hidden; /* Para mantener las burbujas dentro del contenedor */
+    animation: movimiento-agua 5s infinite linear;
+  }
+  
+  .burbuja {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border: 2px solid #1F5361; /* Línea blanca */
+    border-radius: 50%; /* Forma circular */
+    opacity: 0.7;
+    animation: flotacion-horizontal 10s infinite linear; /* Más lento */
+  }
+  
+  .burbuja-tubo {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border: 1px solid #fff; /* Línea blanca */
+    border-radius: 50%; /* Forma circular */
+    opacity: 0.7;
+    animation: flotacion-vertical 5s infinite linear; /* Animación vertical */
+  }
+  
+  @keyframes flotacion-horizontal {
+    0% {
+      left: -10%;
+      opacity: 0.7;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      left: 110%;
+      opacity: 0.7;
+    }
+  }
+  
+  @keyframes flotacion-vertical {
+    0% {
+      bottom: 0;
+      opacity: 0.7;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      bottom: calc(100% - 10px); /* Desaparecer 10px antes del límite superior */
+      opacity: 0;
+    }
+  }
+  
+  @keyframes movimiento-agua {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: 100% 0;
+    }
+  }
+  
+  .superficie {
+    position: absolute;
+    top: 48%;
+    width: 100%;
+    height: 10px;
+    background-color: #628157;
+  }
+  
+  .nivel-agua {
+    position: absolute;
+    top: 51%;
+    width: 100%;
+    height: 49%;
+    background-color: transparent;
+  }
+  
+  .tubo-pozo {
+    position: absolute;
+    border-left: 3px solid #a95628;
+    border-right: 3px solid #a95628;
+    border-bottom: 3px solid #a95628;
+    top: 0;
+    margin-top: -15px;
+    width: 50px;
+    border-radius: 0px 0px 10px 10px;
+    height: 90%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(to bottom, #36454a 70%, #8aafb1 30%);
+    overflow: hidden; /* Para mantener las burbujas dentro del tubo */
+  }
+  
+  .nivel {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 70%;
+    border-radius: 0px 0px 10px 10px;
+    background-color: #8aafb1;
+    background-image: url("https://www.publicdomainpictures.net/pictures/320000/velka/water-texture-1580567450UMU.jpg");
+    background-size: cover;
+    animation: ondulacion-nivel 2s infinite;
+  }
+  
+  .pavimento {
+    position: absolute;
+    top: 50%;
+    width: 100%;
+    height: 10px;
+    background-color: #9F9678; /* Color gris para el pavimento */
+  }
+  
+  .sensor {
+    width: 10px;
+    height: 200px;
+    background-color: #202b2c;
+    position: absolute;
+    top: 44%;
+    left: 54%;
+    transform: translateX(-50%);
+  }
+  
+  .punta {
+    width: 140%;
+    height: 50px;
+    right: -20%;
+    border-radius: 3px;
+    background-color: #475c61;
+    position: absolute;
+    bottom: 0;
+  }
+  
+  .linea-logger {
+    width: 95%;
+    height: 1.5px;
+    background-color: red;
+    position: absolute;
+    top: 43%;
+    right: 0px;
+    overflow: hidden; /* Para mantener el rectángulo dentro de la línea */
+  }
+  
+  @keyframes movimiento-datos {
+    0% {
+      left: 0;
+      opacity: 1;
+    }
+    100% {
+      left: 100%;
+      opacity: 1;
+    }
+  }
+  
+  .dato-movimiento {
+    width: 100%;
+    height: 10px;
+    background-color: rgb(31, 52, 97);
+    position: absolute;
+    top: 0;
+    left: 0;
+    animation: movimiento-datos 2s infinite;
+  }
+  
+  .linea-logger::before {
+    content: '';
+    display: block;
+    width: 25px;
+    height: 100px;
+    background-color:rgb(31, 52, 97) ;
+    position: absolute;
+    top: -2px;
+    left: 0;
+    animation: movimiento-datos 2s infinite;
+  }
+  
+  .linea-caudalimetro {
+    width: 133px;
+    height: 10px;
+    background-color: #222b2c;
+    position: absolute;
+    top: 44%;
+    left: 4%;
+  }
+  
+
+  
+  .datalogger {
+    width: 50px;
+    border-radius: 5px;
+    height: 18%;
+    background-color: #274881;
+    position: absolute;
+    top: 29%;
+    right: 0px;
+  }
+  
+  .datalogger .tablero {
+    width: 80%;
+    height: 90%;
+    background-color: #808080; /* Color gris para el tablero */
+    position: absolute;
+    top: 5%;
+    left: 10%;
+    border-radius: 5px;
+  }
+  
+  .datalogger .pata-izquierda,
+  .datalogger .pata-derecha {
+    width: 10px;
+    height: 10px;
+    background-color: #274881;
+    position: absolute;
+    bottom: -10px;
+  }
+  
+  .datalogger .pata-izquierda {
+    left: 5px;
+  }
+  
+  .datalogger .pata-derecha {
+    right: 5px;
+  }
+  
+  .caudalimetro {
+    width: 20px;
+    border-radius: 8px;
+    border: 2px solid #4b5c61;
+    height: 23px;
+    background-color: #637f84;
+    position: absolute;
+    top: 42%;
+    left: 0px;
+  }
+  
+  @keyframes ondulacion-nivel {
+    0% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-5px);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
