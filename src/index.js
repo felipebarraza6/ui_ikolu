@@ -22,6 +22,12 @@ const theme = {
     colorBgImage: `url(${wallpaper})`, // Added background image property
   },
   components: {
+    Tabs: {
+      colorBgContainer:
+        "radial-gradient(circle, rgba(30,48,85,1) 0%, rgba(43,46,51,1) 100%)",
+      itemSelectedColor: "white",
+      itemColor: "white",
+    },
     Badge: {
       colorInfo: "rgb(31, 52, 97)",
     },

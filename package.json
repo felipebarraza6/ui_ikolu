@@ -15,6 +15,8 @@
     "crypto": "^1.0.1",
     "crypto-browserify": "^3.12.0",
     "faker": "^6.6.6",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.0",
     "moment": "^2.29.4",
     "qrcode.react": "^3.1.0",
     "rc-queue-anim": "^2.0.0",

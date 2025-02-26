@@ -5,7 +5,7 @@ import { Routes, Route } from "react-router-dom";
 import SiderRight from "../components/home/SiderLeft";
 import SiderLeft from "../components/home/SiderRight";
 import MyWell from "../components/mywell/MyWell";
-import MyGraphics from "../components/graphics/MyGraphics";
+import GraphisNav from "../components/smart_data/GraphisNav";
 import DriveInternal from "../components/drive_internal/Drive";
 import QueueAnim from "rc-queue-anim";
 import Dga from "../components/dga/Dga";
@@ -14,6 +14,8 @@ import PrototypeUmi from "../components/prototype_umi/PrototypeUmi";
 import DataTable from "../components/prototype_umi/DataTable";
 import Reports from "../components/reports/Reports";
 import Well from "../components/mywell/Well";
+import GraphisNavDga from "../components/smart_data/GraphisNavDga";
+import { useLocation } from "react-router-dom";
 
 import TableStandarVerySmall from "../components/mywell/TableStandarVerySmall";
 import wallpaper from "../assets/images/walldga.png";
@@ -22,6 +24,16 @@ import { AppContext } from "../App";
 
 const Home = () => {
   const { state } = useContext(AppContext);
+  let location = useLocation();
+  var pathname = location.pathname;
+
+  const validateWidth = () => {
+    if (pathname !== "/dga" && pathname !== "/sys_data") {
+      return { width: "100%" };
+    } else {
+      return "98%";
+    }
+  };
 
   return (
     <Flex
@@ -39,21 +51,12 @@ const Home = () => {
           <SiderRight />
         </Affix>
       </Flex>
-      <Flex
-        vertical
-        style={{
-          width:
-            state.selected_profile.dga.type_dga === "SUBTERRANEO"
-              ? "80%"
-              : "90%",
-        }}
-      >
+      <Flex vertical style={{ width: "100%" }}>
         <QueueAnim delay={400} duration={1200} type="bottom">
           <HeaderNav />
           <div
             key="home"
             style={{
-              width: "100%",
               backgroundColor: "white",
               borderRadius: "10px",
               minHeight: "90vh",
@@ -82,17 +85,18 @@ const Home = () => {
 
               <Route path="/extraction_data" element={<Reports />} />
               <Route path="/dga" element={<Dga />} />
-              <Route path="/charts" element={<MyGraphics />} />
               <Route path="/reports" element={<DriveInternal />} />
               <Route path="/registers_pti" element={<DataTable />} />
               <Route path="/well" element={<Well />} />
+              <Route path="/sys_data" element={<GraphisNav />} />
+              <Route path="/sys_data_dga" element={<GraphisNavDga />} />
             </Routes>
           </div>
         </QueueAnim>
       </Flex>
       {state.selected_profile.dga.type_dga === "SUBTERRANEO" && (
         <Flex style={{ width: "25%" }}>
-          <SiderLeft />
+          {pathname !== "/dga" && pathname === "/" && <SiderLeft />}
         </Flex>
       )}
     </Flex>

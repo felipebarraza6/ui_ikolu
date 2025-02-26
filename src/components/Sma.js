@@ -31,17 +31,13 @@ const Sma = () => {
   const { state } = useContext(AppContext);
   const [selected, setSelect] = useState(state.user.catchment_points[0].id);
   const [loadingExcel, setLoadingExcel] = useState(false);
-  const [dataSelected, setDataSelected] = useState(
-    state.user.catchment_points[0]
-  );
+  const [dataSelected, setDataSelected] = useState(state.selected_profile);
   const [page, setPage] = useState(1);
   const [getter, setGetter] = useState(false);
   const [initialDate, setInitialDate] = useState(null);
   const [finishDate, setFinishDate] = useState(null);
-  const [data, setData] = useState(state.user.catchment_points[0].modules.m2);
+  const [data, setData] = useState(state.selected_profile.modules.today);
   const [countApi, setCountApi] = useState(0);
-
-  const catchment_points = state.user.catchment_points;
 
   const getResults = async () => {
     const formatDateTime = (date) => {
@@ -98,7 +94,12 @@ const Sma = () => {
       });
   };
 
-  useEffect(() => {}, [selected, initialDate, finishDate, page]);
+  useEffect(() => {
+    if (state.selected_profile) {
+      setDataSelected(state.selected_profile);
+      setData(state.selected_profile.modules.today);
+    }
+  }, [selected, initialDate, finishDate, page, state.selected_profile]);
 
   return (
     <Flex vertical gap={"small"} align="center" style={{ padding: "20px" }}>

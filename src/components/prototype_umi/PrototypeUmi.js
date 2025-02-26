@@ -8,7 +8,6 @@ import {
   Tag,
   Badge,
   Flex,
-  Table,
 } from "antd";
 import img_superficial from "../../assets/images/superficial.png";
 import img_nivel from "../../assets/images/nivel.png";
@@ -26,30 +25,31 @@ const PrototypeUmi = () => {
   const last_data = state.selected_profile.modules.m1;
   const yesterday_data = state.selected_profile.modules.yesterday;
 
-  const totalNivelYesterday = Object.values(yesterday_data).reduce(
-    (total, module) => {
+  const totalNivelYesterday =
+    Object.values(yesterday_data).reduce((total, module) => {
       const nivel = module.nivel;
       return total + parseFloat(nivel);
-    },
-    0
-  );
+    }, 0) / Object.values(yesterday_data).length;
 
-  const totalNivelToday = Object.values(today_data).reduce((total, module) => {
-    const nivel = module.nivel;
-    return total + parseFloat(nivel);
-  }, 0);
+  const totalNivelToday =
+    Object.values(today_data).reduce((total, module) => {
+      const nivel = module.nivel;
+      return total + parseFloat(nivel);
+    }, 0) / Object.values(today_data).length;
 
   console.log(totalNivelToday);
 
   const total = (nivel) => {
-    var nivel_c = nivel;
+    if (nivel <= 0) return "0";
+
     const vel_medium = 0.45;
     const area = 4.74;
     const rest_area = 0.53;
 
-    var total_m3 = vel_medium * (area * nivel_c - rest_area) * 1000;
+    var total_m3 = vel_medium * (area * nivel - rest_area) * 1000;
+    total_m3 = Math.max(0, total_m3); // Ensure no negative values
 
-    total_m3 = parseInt(total_m3).toLocaleString("de-DE");
+    total_m3 = parseInt(total_m3).toLocaleString("es-CL");
 
     return total_m3;
   };
@@ -97,7 +97,7 @@ const PrototypeUmi = () => {
                 )}`}</Text>
               }
             >
-              {total(totalNivelToday)}
+              {parseInt(total(totalNivelToday * 86400)).toLocaleString("es-CL")}
               {" (m³)"}
             </Descriptions.Item>
             <Descriptions.Item
@@ -111,7 +111,10 @@ const PrototypeUmi = () => {
               }
             >
               {" "}
-              {total(totalNivelYesterday)} {"(m³)"}
+              {parseInt(total(totalNivelYesterday * 86400)).toLocaleString(
+                "es-CL"
+              )}{" "}
+              {"(m³)"}
             </Descriptions.Item>
           </Descriptions>
           <Flex vertical justify="center">
@@ -173,6 +176,8 @@ const PrototypeUmi = () => {
             backgroundImage: `url(${img_superficial})`,
             backgroundRepeat: "no-repeat",
             backgroundSize: "cover",
+            marginTop: "20px",
+            height: "300px",
             borderRadius: "15px",
             backgroundPosition: "center",
           }}
@@ -192,7 +197,7 @@ const PrototypeUmi = () => {
               fontSize: "16px",
               position: "absolute",
               marginTop: "250px",
-              marginLeft: "89%",
+              marginLeft: "86%",
             }}
           >
             {nivel} (m)

@@ -23,6 +23,37 @@ const get_history_data_admin = async () => {
   return request.data;
 };
 
+const getDataDay = async (id_profile, initialDate, finishDate) => {
+  const rq = await GET(
+    `interaction_detail_override/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}`
+  );
+  return rq.data;
+};
+
+const getDataMonth = async (id_profile, initialDate, finishDate) => {
+  console.log(initialDate);
+  const rq = await GET(
+    `interaction_detail_override_month/?catchment_point=${id_profile}&date_time_medition__month=${initialDate.slice(
+      5,
+      7
+    )}&date_time_medition__year=${initialDate.slice(0, 4)}`
+  );
+  return rq.data;
+};
+
+const downloadDataMonthToExcel = async (
+  id_profile,
+  initialDate,
+  finishDate
+) => {
+  const rq = await DOWNLOAD(
+    `https://api.smarthydro.app/api/interaction_detail_override_month_xlsx/?catchment_point=${id_profile}&date_time_medition__month=${initialDate.slice(
+      5,
+      7
+    )}&date_time_medition__year=${initialDate.slice(0, 4)}`,
+    `data.xlsx`
+  );
+};
 const get_profile = async () => {
   const user = JSON.parse(localStorage.getItem("user") || null);
   const rq = await GET(`users/${user.username}/`);
@@ -38,6 +69,14 @@ const downloadFile = async (id_profile, initialDate, finishDate, title) => {
   const now_date = new Date();
   const rq = await DOWNLOAD(
     `interaction_detail/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}`,
+    `${title}.xlsx`
+  );
+};
+
+const downloadFileDga = async (id_profile, initialDate, finishDate, title) => {
+  const now_date = new Date();
+  const rq = await DOWNLOAD(
+    `interaction_detail_dga/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}`,
     `${title}.xlsx`
   );
 };
@@ -213,6 +252,7 @@ const sh = {
   get_data_sh: getDataApiSh,
   get_data_sh_range: getDataApiShRangeDate,
   get_data_sh_range_to_excel: downloadFile,
+  get_data_sh_range_to_excel_dga: downloadFileDga,
   get_data_sh_range_hour: getDataApiShRangeDateAndHour,
   get_data_send_dga: getDataApiShDgaSend,
   get_data_sh_range_graphic: getDataApiShRangeDateGraphic,
@@ -220,6 +260,9 @@ const sh = {
   get_data_structural_month: getDataApiShStructuralMonth,
   delete_data_sh: deleteDataApiSh,
   create_data_sh: createDataApiSh,
+  get_data_day: getDataDay,
+  get_data_month: getDataMonth,
+  downloadMonth: downloadDataMonthToExcel,
 };
 
 export default sh;

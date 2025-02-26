@@ -1,13 +1,10 @@
 import React, { useContext } from "react";
-import { Row, Col, Typography, Button, Popconfirm, Affix, List } from "antd";
-import wallpaper from "../../assets/images/walldga.png";
+import { Row, Col, Button, Popconfirm } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AppContext } from "../../App";
-import { LogoutOutlined, UserOutlined, BuildFilled } from "@ant-design/icons";
+import { LogoutOutlined, BuildFilled } from "@ant-design/icons";
 import ListWells from "./ListWells";
 import QueueAnim from "rc-queue-anim";
-
-const { Title } = Typography;
 
 const HeaderNav = () => {
   const location = useLocation();
@@ -26,12 +23,13 @@ const HeaderNav = () => {
 
           <Col style={{ paddingRight: "10px" }}>
             <Button
-              type={location.pathname === "/profile" ? "primary" : "primary"}
+              type={location.pathname === "/profile" ? "primary" : "default"}
               icon={<BuildFilled />}
               shape={"round"}
               style={{ marginRight: "10px", borderColor: "white" }}
+              disabled={true}
               onClick={() => {
-                //navigate("/profile");
+                navigate("/profile");
               }}
             >
               {state.user.first_name.toUpperCase()}

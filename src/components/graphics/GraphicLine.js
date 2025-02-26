@@ -226,7 +226,6 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
   return (
     <div>
       <Line {...configCaudal} />
-      <Line {...configAcumulado} />
     </div>
   );
 };

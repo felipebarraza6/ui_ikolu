@@ -11,23 +11,26 @@ const DataTable = () => {
   const sumByHour = today_data.reduce((acc, data) => {
     const hour = data.date_time_medition.slice(11, 13);
     const nivel = parseFloat(data.nivel);
-    acc[hour] = (acc[hour] || 0) + parseFloat(nivel);
+    acc[hour] = (acc[hour] || 0) + Math.max(0, nivel);
     return acc;
   }, {});
 
   console.log(sumByHour);
   const total = (nivel) => {
-    var nivel_c = nivel;
+    if (nivel <= 0) return "0";
+
     const vel_medium = 0.45;
     const area = 4.74;
     const rest_area = 0.53;
 
-    var total_m3 = vel_medium * (area * nivel_c - rest_area) * 1000;
+    var total_m3 = vel_medium * (area * nivel - rest_area) * 1000;
+    total_m3 = Math.max(0, total_m3); // Ensure no negative values
 
     total_m3 = parseInt(total_m3).toLocaleString("de-DE");
 
     return total_m3;
   };
+
   return (
     <Flex
       justify="center"
@@ -35,7 +38,7 @@ const DataTable = () => {
       style={{
         paddingTop: "30px",
         background:
-          "linear-gradient(31deg, rgba(146,146,146,1) 0%, rgba(103,162,190,0.03687412464985995) 100%)",
+          "linear-gradient(31deg, rgba(146,146,146,1) 0%, rgba(31,52,97,1) 100%)",
         minHeight: "87vh",
         borderRadius: "10px",
       }}

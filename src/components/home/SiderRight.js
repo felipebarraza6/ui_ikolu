@@ -65,7 +65,7 @@ const SiderRight = () => {
                         }}
                       />
                     </Flex>
-                    <Flex vertical style={{ width: "100%" }} justify="start">
+                    <Flex vertical justify="start">
                       <Text
                         copyable={{
                           text: state.selected_profile.dga.code_dga,
@@ -83,8 +83,8 @@ const SiderRight = () => {
                         }}
                         style={{
                           fontSize: "12px",
-                          textAlign: "center",
-                          border: "1px solid black",
+                          textAlign: "end",
+                          border: "1px solid rgb(31, 52, 97)",
                           borderRadius: "5px",
                           paddingLeft: "5px",
                           paddingRight: "5px",
@@ -96,31 +96,10 @@ const SiderRight = () => {
                       >
                         {state.selected_profile.dga.code_dga}
                       </Text>
-                      <Flex
-                        justify="space-between"
-                        style={{ marginLeft: "10px", marginTop: "5px" }}
-                      >
-                        <Text style={{ fontSize: "12px" }}>
-                          {state.selected_profile.dga.flow_granted_dga}
-                        </Text>
 
-                        <Text style={{ fontSize: "12px" }}>lt/s</Text>
-                      </Flex>
                       <Flex
                         justify="space-between"
-                        style={{ marginLeft: "10px" }}
-                      >
-                        <Text style={{ fontSize: "12px" }}>
-                          {state.selected_profile.dga.total_granted_dga > 0
-                            ? numberForMiles.format(
-                                state.selected_profile.dga.total_granted_dga
-                              )
-                            : "Sin registro"}
-                        </Text>
-                        <Text style={{ fontSize: "12px" }}>m³</Text>
-                      </Flex>
-                      <Flex
-                        justify="space-between"
+                        vertical
                         align="bottom"
                         style={{ marginLeft: "10px" }}
                       >
@@ -130,12 +109,12 @@ const SiderRight = () => {
                           {state.selected_profile.dga.standard &&
                           state.selected_profile.dga.standard ===
                             "CAUDALES_MUY_PEQUENOS"
-                            ? "muy pequeños"
-                            : state.selected_profile.dga.standard.toLowerCase()}
+                            ? "Muy Pequeños"
+                            : state.selected_profile.dga.standard.toUpperCase()}
                         </Text>
 
                         <Text style={{ fontSize: "12px" }}>
-                          {state.selected_profile.dga.type_dga.toLowerCase()}
+                          {state.selected_profile.dga.type_dga.toUpperCase()}
                         </Text>
                       </Flex>
                     </Flex>
@@ -270,7 +249,7 @@ const styles = {
       "linear-gradient(31deg, rgba(146,146,146,1) 0%, rgba(255,255,255,1) 100%)",
     backgroundColor: "white",
     borderRadius: "10px",
-    width: "90%",
+    width: "97%",
     textAlign: "end",
   },
 };
