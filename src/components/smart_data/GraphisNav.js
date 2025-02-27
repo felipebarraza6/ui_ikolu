@@ -204,7 +204,7 @@ const GraphisNav = () => {
               <Form layout="inline">
                 <Form.Item rules={[{ required: true }]}>
                   <DatePicker
-                    placeholder="Seleccionar una día"
+                    placeholder={dateSelected}
                     onChange={(date) => {
                       if (date) {
                         setDateSelected(date.format("YYYY-MM-DD"));
@@ -212,6 +212,8 @@ const GraphisNav = () => {
                     }}
                     style={{ width: "200px" }}
                     picker={dateType === "1" ? "date" : "month"}
+                    disabled={!activate}
+                    todayButton="Hoy"
                     disabledDate={(current) =>
                       current && current > moment().endOf("day")
                     }

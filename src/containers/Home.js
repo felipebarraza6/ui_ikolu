@@ -15,6 +15,7 @@ import DataTable from "../components/prototype_umi/DataTable";
 import Reports from "../components/reports/Reports";
 import Well from "../components/mywell/Well";
 import GraphisNavDga from "../components/smart_data/GraphisNavDga";
+import DocRes from "../components/docres/DocRes";
 import { useLocation } from "react-router-dom";
 
 import TableStandarVerySmall from "../components/mywell/TableStandarVerySmall";
@@ -51,7 +52,7 @@ const Home = () => {
           <SiderRight />
         </Affix>
       </Flex>
-      <Flex vertical style={{ width: "100%" }}>
+      <Flex vertical style={{ width: "100%", padding: " 5px" }}>
         <QueueAnim delay={400} duration={1200} type="bottom">
           <HeaderNav />
           <div
@@ -85,11 +86,11 @@ const Home = () => {
 
               <Route path="/extraction_data" element={<Reports />} />
               <Route path="/dga" element={<Dga />} />
-              <Route path="/reports" element={<DriveInternal />} />
               <Route path="/registers_pti" element={<DataTable />} />
               <Route path="/well" element={<Well />} />
               <Route path="/sys_data" element={<GraphisNav />} />
               <Route path="/sys_data_dga" element={<GraphisNavDga />} />
+              <Route path="/sys_docs" element={<DocRes />} />
             </Routes>
           </div>
         </QueueAnim>

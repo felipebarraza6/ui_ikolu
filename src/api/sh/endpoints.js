@@ -1,3 +1,4 @@
+import { upload } from "@testing-library/user-event/dist/upload";
 import { POST_LOGIN, GET, DOWNLOAD, DELETE, POST } from "./config";
 
 const login = async (data) => {
@@ -63,6 +64,24 @@ const get_profile = async () => {
   });
 
   return rq.data;
+};
+
+const deleteFile = async (id) => {
+  const rq = await DELETE(`file_catchment/${id}/`);
+  return rq.data;
+};
+
+const formUploadFile = async (values) => {
+  const formData = new FormData();
+  console.log(values.file);
+  formData.append("file", values.file.originFileObj);
+  formData.append("point_catchment", values.point_catchment);
+  formData.append("name", values.name);
+  formData.append("description", values.description);
+  formData.append("type_file", 2);
+
+  const rq = await POST("file_catchment/", formData);
+  console.log(rq);
 };
 
 const downloadFile = async (id_profile, initialDate, finishDate, title) => {
@@ -263,6 +282,8 @@ const sh = {
   get_data_day: getDataDay,
   get_data_month: getDataMonth,
   downloadMonth: downloadDataMonthToExcel,
+  uploadFile: formUploadFile,
+  deleteFile: deleteFile,
 };
 
 export default sh;

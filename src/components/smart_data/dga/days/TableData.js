@@ -1,6 +1,8 @@
 import React from "react";
-import { Table } from "antd";
+import { Table, Flex, Typography } from "antd";
 import { render } from "@testing-library/react";
+
+const { Text } = Typography;
 
 const TableData = ({ data }) => {
   console.log(data);
@@ -39,9 +41,49 @@ const TableData = ({ data }) => {
     },
     {
       title: "Comprobante MEE",
+      width: "30%",
       align: "end",
-
-      dataIndex: "n_voucher",
+      render: (obj) => {
+        if (obj.n_voucher) {
+          return (
+            <Flex vertical justify="center" align="center" gap="small">
+              <Text
+                hoverable
+                copyable
+                size="small"
+                style={{
+                  border: "1px solid rgb(0, 111, 179)",
+                  color: "rgb(0, 111, 179)",
+                  padding: "5px",
+                  textAlign: "center",
+                  fontSize: "12px",
+                  width: "100%",
+                  borderRadius: "5px",
+                  cursor: "pointer",
+                }}
+              >
+                {obj.n_voucher}
+              </Text>
+              <span
+                hoverable
+                size="small"
+                style={{
+                  backgroundColor: "rgb(0, 111, 179)",
+                  color: "white",
+                  padding: "5px",
+                  width: "100%",
+                  textAlign: "center",
+                  fontSize: "12px",
+                  borderRadius: "5px",
+                  cursor: "pointer",
+                }}
+              >
+                {obj.return_dga}
+              </span>
+            </Flex>
+          );
+        }
+      },
     },
   ];
   return (

@@ -209,13 +209,19 @@ const Registers = ({ dataDga }) => {
                   name={"initialDate"}
                   rules={[{ required: true, message: "" }]}
                 >
-                  <DatePicker placeholder="Desde" />
+                  <DatePicker
+                    placeholder="Desde"
+                    disabled={!profile_ikolu.m2}
+                  />
                 </Form.Item>
                 <Form.Item
                   name={"finishDate"}
                   rules={[{ required: true, message: "" }]}
                 >
-                  <DatePicker placeholder="Hasta" />
+                  <DatePicker
+                    placeholder="Hasta"
+                    disabled={!profile_ikolu.m2}
+                  />
                 </Form.Item>
                 <Form.Item>
                   <Button

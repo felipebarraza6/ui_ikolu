@@ -217,7 +217,6 @@ const SiderLeft = () => {
 
                     <Button
                       block
-                      disabled={true}
                       type={
                         location.pathname === "/sys_docs"
                           ? "primary"
@@ -238,7 +237,6 @@ const SiderLeft = () => {
                     </Button>
                     <Button
                       block
-                      disabled={true}
                       type={
                         location.pathname === "/sys_alerts"
                           ? "primary"
@@ -259,7 +257,6 @@ const SiderLeft = () => {
                     </Button>
                     <Button
                       block
-                      disabled={true}
                       type={
                         location.pathname === "/sys_support"
                           ? "primary"

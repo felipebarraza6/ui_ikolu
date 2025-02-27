@@ -77,8 +77,14 @@ export const FlowArea = ({ data, limitFlow }) => {
     },
     yAxis: {
       ...commonConfig.yAxis,
-      min: Math.min(...data.map((d) => d.flow)),
-      max: 100,
+      min: Math.min(
+        parseInt(limitFlow) * 0.99,
+        Math.min(...data.map((d) => d.flow))
+      ),
+      max: Math.max(
+        parseInt(limitFlow) * 1.01,
+        Math.max(...data.map((d) => d.flow))
+      ),
       title: {
         text: "Caudal (lt/s)",
         style: {
