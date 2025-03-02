@@ -27,7 +27,6 @@ const HeaderNav = () => {
               icon={<BuildFilled />}
               shape={"round"}
               style={{ marginRight: "10px", borderColor: "white" }}
-              disabled={true}
               onClick={() => {
                 navigate("/profile");
               }}

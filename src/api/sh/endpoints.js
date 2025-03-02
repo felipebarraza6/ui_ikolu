@@ -32,7 +32,6 @@ const getDataDay = async (id_profile, initialDate, finishDate) => {
 };
 
 const getDataMonth = async (id_profile, initialDate, finishDate) => {
-  console.log(initialDate);
   const rq = await GET(
     `interaction_detail_override_month/?catchment_point=${id_profile}&date_time_medition__month=${initialDate.slice(
       5,
@@ -73,7 +72,6 @@ const deleteFile = async (id) => {
 
 const formUploadFile = async (values) => {
   const formData = new FormData();
-  console.log(values.file);
   formData.append("file", values.file.originFileObj);
   formData.append("point_catchment", values.point_catchment);
   formData.append("name", values.name);
@@ -81,7 +79,7 @@ const formUploadFile = async (values) => {
   formData.append("type_file", 2);
 
   const rq = await POST("file_catchment/", formData);
-  console.log(rq);
+  return rq.data;
 };
 
 const downloadFile = async (id_profile, initialDate, finishDate, title) => {
@@ -262,6 +260,48 @@ const getDataApiShStructuralMonth = async (id_profile, year, month) => {
   return listFormat;
 };
 
+const createNotification = async (data) => {
+  const rq = await POST(`notifications_catchment/`, data);
+  return rq.data;
+};
+
+const getNotifications = async (id_point, page, type) => {
+  const rq = await GET(
+    `notifications_catchment/?point_catchment=${id_point}&page=${page}&type_notification=${type}`
+  );
+  return rq.data;
+};
+
+const getNotificationsActives = async (id_point, page, type) => {
+  const rq = await GET(
+    `notifications_catchment/?point_catchment=${id_point}&page=${page}&type_notification=${type}&is_active=true`
+  );
+  return rq.data;
+};
+
+const deleteNotification = async (id) => {
+  const rq = await DELETE(`notifications_catchment/${id}/`);
+  return rq.data;
+};
+
+const updateNotification = async (id, data) => {
+  const rq = await POST(`notifications_catchment/${id}/`, data);
+  return rq.data;
+};
+//response_notifications_catchment
+
+const getNotificationsResponse = async (id_notification, page) => {
+  const rq = await GET(
+    `response_notifications_catchment/?notification=${id_notification}&page=${page}`
+  );
+  return rq.data;
+};
+
+const createNotificationResponse = async (data) => {
+  const rq = await POST(`response_notifications_catchment/`, data);
+  return rq.data;
+};
+
 const sh = {
   authenticated: login,
   billing_data: get_history_data,
@@ -284,6 +324,17 @@ const sh = {
   downloadMonth: downloadDataMonthToExcel,
   uploadFile: formUploadFile,
   deleteFile: deleteFile,
+  notifications: {
+    create: createNotification,
+    get: getNotifications,
+    actives: getNotificationsActives,
+    delete: deleteNotification,
+    update: updateNotification,
+    responses: {
+      get: getNotificationsResponse,
+      create: createNotificationResponse,
+    },
+  },
 };
 
 export default sh;

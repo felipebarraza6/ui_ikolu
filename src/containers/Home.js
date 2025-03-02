@@ -6,17 +6,18 @@ import SiderRight from "../components/home/SiderLeft";
 import SiderLeft from "../components/home/SiderRight";
 import MyWell from "../components/mywell/MyWell";
 import GraphisNav from "../components/smart_data/GraphisNav";
-import DriveInternal from "../components/drive_internal/Drive";
 import QueueAnim from "rc-queue-anim";
 import Dga from "../components/dga/Dga";
 import Sma from "../components/Sma";
 import PrototypeUmi from "../components/prototype_umi/PrototypeUmi";
 import DataTable from "../components/prototype_umi/DataTable";
 import Reports from "../components/reports/Reports";
+import Dash from "../components/support/Dash";
 import Well from "../components/mywell/Well";
 import GraphisNavDga from "../components/smart_data/GraphisNavDga";
 import DocRes from "../components/docres/DocRes";
 import { useLocation } from "react-router-dom";
+import Alerts from "../components/alerts/Alerts";
 
 import TableStandarVerySmall from "../components/mywell/TableStandarVerySmall";
 import wallpaper from "../assets/images/walldga.png";
@@ -91,13 +92,15 @@ const Home = () => {
               <Route path="/sys_data" element={<GraphisNav />} />
               <Route path="/sys_data_dga" element={<GraphisNavDga />} />
               <Route path="/sys_docs" element={<DocRes />} />
+              <Route path="/sys_support" element={<Dash />} />
+              <Route path="/sys_alerts" element={<Alerts />} />
             </Routes>
           </div>
         </QueueAnim>
       </Flex>
       {state.selected_profile.dga.type_dga === "SUBTERRANEO" && (
         <Flex style={{ width: "25%" }}>
-          {pathname !== "/dga" && pathname === "/" && <SiderLeft />}
+          {pathname === "/" && <SiderLeft />}
         </Flex>
       )}
     </Flex>

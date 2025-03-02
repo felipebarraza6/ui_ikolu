@@ -1,24 +1,26 @@
 import React, { useContext } from "react";
 import { AppContext } from "../../App";
-import { Typography, Row, Descriptions, Flex, Affix, Tag } from "antd";
+import { Typography, Descriptions, Flex, Affix } from "antd";
 import caudal_img from "../../assets/images/caudal.png";
 import { useLocation } from "react-router-dom";
 import { CopyOutlined, CheckCircleFilled } from "@ant-design/icons";
 import QueueAnim from "rc-queue-anim";
-import wall from "../../assets/images/walldga.png";
+// import wall from "../../assets/images/walldga.png";
 import logo_dga from "../../assets/images/channels4_profile.jpg";
 
-const { Title, Paragraph, Text } = Typography;
+const { Text } = Typography;
 
 const SiderRight = () => {
   const { state } = useContext(AppContext);
-  let location = useLocation();
+  // let location = useLocation();
   const numberForMiles = new Intl.NumberFormat("de-DE");
+
+  const selected = state.selected_profile;
 
   return (
     <Affix>
       <QueueAnim delay={200} duration={900} type="right">
-        <div key="right">
+        <div key="data_pc">
           <Flex
             vertical
             style={{ width: "100%", minHeight: "100vh" }}
@@ -26,14 +28,13 @@ const SiderRight = () => {
             justify="center"
             gap="large"
           >
-            {state.selected_profile.dga.code_dga ? (
+            {state.selected_profile.dga.code_dga && (
               <Descriptions
                 style={{
                   paddingTop: "10px",
                   height: "110px",
                   ...styles.descriptions,
                 }}
-                key="right"
                 colon={false}
                 size={"small"}
                 labelStyle={{ color: "black" }}
@@ -70,14 +71,8 @@ const SiderRight = () => {
                         copyable={{
                           text: state.selected_profile.dga.code_dga,
                           icon: [
-                            <CopyOutlined
-                              key="copy-icon"
-                              style={{ color: "white" }}
-                            />,
-                            <CheckCircleFilled
-                              key="copied-icon"
-                              style={{ color: "white" }}
-                            />,
+                            <CopyOutlined style={{ color: "white" }} />,
+                            <CheckCircleFilled style={{ color: "white" }} />,
                           ],
                           color: "white",
                         }}
@@ -121,14 +116,11 @@ const SiderRight = () => {
                   </Flex>
                 }
               ></Descriptions>
-            ) : (
-              ""
             )}
             <Descriptions
               bordered
               style={styles.descriptions}
               labelStyle={{ fontSize: "13px", color: "black" }}
-              key="right"
               size={"small"}
             >
               <Descriptions.Item label="Nombre" span={3}>
@@ -148,7 +140,6 @@ const SiderRight = () => {
             <Descriptions
               bordered
               style={styles.descriptions}
-              key="right"
               size={"small"}
               labelStyle={{
                 width: "58%",
@@ -175,7 +166,6 @@ const SiderRight = () => {
             <Descriptions
               bordered
               style={styles.descriptions}
-              key="right"
               labelStyle={{
                 width: "58%",
                 fontSize: "13px",
@@ -202,7 +192,6 @@ const SiderRight = () => {
             <Descriptions
               style={styles.descriptions}
               bordered
-              key="right"
               labelStyle={{
                 fontSize: "13px",
                 color: "black",
