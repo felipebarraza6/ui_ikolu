@@ -179,7 +179,7 @@ const Container = ({ data }) => {
                 }
               >
                 <Card hoverable style={styles.card}>
-                  <span style={{ color: "white" }}>
+                  <span style={{ color: "black" }}>
                     {total_flow && (
                       <Flex vertical>
                         <Flex>
@@ -506,7 +506,7 @@ const styles = {
     borderRadius: "0px 0px 10px 10px",
     width: "100%",
     background:
-      "radial-gradient(circle, rgba(15,105,180,1) 0%, rgba(27,51,71,1) 100%)",
+      "linear-gradient(31deg, rgba(255,255,255,1) 0%, rgba(26,60,89,0.2889749649859944) 100%)",
   },
   cardData: {
     marginTop: "-16px",

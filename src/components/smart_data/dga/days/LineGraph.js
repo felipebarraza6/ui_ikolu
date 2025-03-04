@@ -9,7 +9,7 @@ const commonConfig = {
         return time;
       },
       style: {
-        fill: "#FFFFFF", // Color blanco para el texto
+        fill: "#000000", // Color blanco para el texto
       },
     },
     title: {
@@ -17,7 +17,7 @@ const commonConfig = {
       style: {
         fontSize: 14,
         fontWeight: "bold",
-        fill: "#FFFFFF", // Color blanco para el texto
+        fill: "#000000", // Color blanco para el texto
       },
     },
   },
@@ -25,14 +25,14 @@ const commonConfig = {
     label: {
       formatter: (text) => parseFloat(text).toLocaleString("es-CL"),
       style: {
-        fill: "#FFFFFF", // Color blanco para el texto
+        fill: "#000000", // Color blanco para el texto
       },
     },
     title: {
       style: {
         fontSize: 14,
         fontWeight: "bold",
-        fill: "#FFFFFF", // Color blanco para el texto
+        fill: "#000000", // Color blanco para el texto
       },
     },
   },
@@ -40,7 +40,7 @@ const commonConfig = {
     position: "top-right",
     itemName: {
       style: {
-        fill: "#FFFFFF", // Color blanco para el texto
+        fill: "#000000", // Color blanco para el texto
       },
     },
   },
@@ -121,6 +121,7 @@ export const TotalLine = ({ data, limitTotal }) => {
     item.total = parseInt(item.total);
     item.percentage_diff = ((item.total / limitTotal) * 100).toFixed(2);
   });
+  console.log(data);
   const config = {
     ...commonConfig,
     data: data,
@@ -133,13 +134,16 @@ export const TotalLine = ({ data, limitTotal }) => {
       date_time_medition: { alias: "Fecha/hora medición" },
     },
     tooltip: {
-      formatter: (datum) => ({
-        name: "Acumulado",
-        value: `${datum.total.toLocaleString("es-CL")} m³ (${
-          datum.percentage_diff
-        }%)`,
-        title: `${datum.date_time_medition.slice(11, 16)} hrs`,
-      }),
+      formatter: (datum) => {
+        console.log(datum);
+        return {
+          name: "Acumulado",
+          value: `${datum.total.toLocaleString("es-CL")} m³ (${parseFloat(
+            (parseInt(datum.total) / parseInt(limitTotal)) * 100
+          ).toFixed(2)}%)`,
+          title: `${datum.date_time_medition.slice(11, 16)} hrs`,
+        };
+      },
     },
     yAxis: {
       ...commonConfig.yAxis,
