@@ -82,9 +82,10 @@ export const FlowArea = ({ data, limitFlow }) => {
         Math.min(...data.map((d) => d.flow))
       ),
       max: Math.max(
-        parseInt(limitFlow) * 1.01,
+        parseInt(limitFlow) * 1.0001,
         Math.max(...data.map((d) => d.flow))
       ),
+
       title: {
         text: "Caudal (lt/s)",
         style: {
@@ -121,7 +122,6 @@ export const TotalLine = ({ data, limitTotal }) => {
     item.total = parseInt(item.total);
     item.percentage_diff = ((item.total / limitTotal) * 100).toFixed(2);
   });
-  console.log(data);
   const config = {
     ...commonConfig,
     data: data,
@@ -146,9 +146,11 @@ export const TotalLine = ({ data, limitTotal }) => {
       },
     },
     yAxis: {
-      ...commonConfig.yAxis,
-      min: Math.min(...data.map((d) => d.total)),
-      max: Math.max(...data.map((d) => d.total)),
+      max: Math.max(...data.map((d) => d.total)) + 1,
+      min:
+        Math.min(...data.map((d) => d.total)) > 0
+          ? Math.min(...data.map((d) => d.total)) - 1
+          : Math.min(...data.map((d) => d.total)),
       title: {
         text: "Acumulado (m³)",
         style: {
@@ -156,6 +158,7 @@ export const TotalLine = ({ data, limitTotal }) => {
         },
       },
     },
+    color: "rgb(31, 52, 97)", // Azul color agua
   };
   return <Line {...config} />;
 };

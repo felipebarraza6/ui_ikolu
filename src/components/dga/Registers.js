@@ -56,7 +56,13 @@ const Registers = ({ dataDga }) => {
         );
       },
     },
-    { title: "Total(m³)", dataIndex: "total", key: "total", align: "end" },
+    {
+      title: "Total(m³)",
+      dataIndex: "total",
+      key: "total",
+      align: "end",
+      render: (total) => parseInt(total).toLocaleString("es-CL"),
+    },
     {
       title: "Nivel Freático(m)",
       dataIndex: "water_table",

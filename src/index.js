@@ -6,6 +6,7 @@ import AppStore from "./App";
 import wallpaper from "./assets/images/walldga.png";
 import reportWebVitals from "./reportWebVitals";
 import es_ES from "antd/lib/locale/es_ES";
+import { hover } from "@testing-library/user-event/dist/hover";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 const theme = {
@@ -26,6 +27,7 @@ const theme = {
       colorBgContainer:
         "radial-gradient(circle, rgba(30,48,85,1) 0%, rgba(43,46,51,1) 100%)",
       itemSelectedColor: "white",
+      itemHoverColor: "white",
       itemColor: "white",
     },
     Badge: {

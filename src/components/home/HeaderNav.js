@@ -27,9 +27,6 @@ const HeaderNav = () => {
               icon={<BuildFilled />}
               shape={"round"}
               style={{ marginRight: "10px", borderColor: "white" }}
-              onClick={() => {
-                navigate("/profile");
-              }}
             >
               {state.user.first_name.toUpperCase()}
             </Button>

@@ -48,6 +48,7 @@ const Container = ({ data }) => {
   const [nivelMin, setNivelMin] = useState(0);
 
   const { state } = useContext(AppContext);
+  const configProfile = state.selected_profile.config_data;
   const activate = state.selected_profile.profile_ikolu.m4;
   const flow_dga = state.selected_profile.dga.flow_granted_dga;
   const total_flow = state.selected_profile.dga.total_granted_dga;
@@ -133,8 +134,6 @@ const Container = ({ data }) => {
     }
   }, [data]);
 
-  const voucherCount = data.filter((item) => item.n_voucher).length;
-
   return (
     <QueueAnim delay={300} duration={900} type="alpha">
       <div key="login">
@@ -170,7 +169,7 @@ const Container = ({ data }) => {
                         filter:
                           activeKey === "1"
                             ? "brightness(0) invert(1)"
-                            : "none",
+                            : "brightness(0) invert(1)",
                       }}
                       src={img_total}
                     />
@@ -187,7 +186,11 @@ const Container = ({ data }) => {
                           {data.length > 0 ? (
                             <b style={{ marginLeft: "5px" }}>
                               {" "}
-                              {data[0].total.toLocaleString("es-CL")} m³
+                              {(
+                                parseInt(configProfile.d6) +
+                                parseInt(data[0].total)
+                              ).toLocaleString("es-CL")}{" "}
+                              m³
                             </b>
                           ) : (
                             ""
@@ -199,9 +202,12 @@ const Container = ({ data }) => {
                             <b>
                               {total_flow && data.length > 0 && (
                                 <b>
-                                  {((data[0].total / total_flow) * 100).toFixed(
-                                    2
-                                  )}
+                                  {(
+                                    ((parseInt(configProfile.d6) +
+                                      parseInt(data[0].total)) /
+                                      total_flow) *
+                                    100
+                                  ).toFixed(2)}
                                   %
                                 </b>
                               )}
@@ -228,7 +234,7 @@ const Container = ({ data }) => {
                         filter:
                           activeKey === "4"
                             ? "brightness(0) invert(1)"
-                            : "none",
+                            : "brightness(0) invert(1)",
                       }}
                       src={img_caudal}
                     />
@@ -252,7 +258,7 @@ const Container = ({ data }) => {
                         filter:
                           activeKey === "5"
                             ? "brightness(0) invert(1)"
-                            : "none",
+                            : "brightness(0) invert(1)",
                       }}
                       src={img_nivel}
                     />

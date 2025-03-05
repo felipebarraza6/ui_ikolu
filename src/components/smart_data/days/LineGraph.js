@@ -114,8 +114,8 @@ export const TotalLine = ({ data }) => {
     },
     yAxis: {
       ...commonConfig.yAxis,
-      min: Math.min(...data.map((d) => d.total)),
-      max: Math.max(...data.map((d) => d.total)),
+      max: Math.max(...data.map((d) => d.total)) + 3,
+      min: Math.min(...data.map((d) => d.total)) - 3,
       title: {
         text: "Acumulado (m³)",
         style: {
@@ -152,7 +152,7 @@ export const TotalHour = ({ data }) => {
     yAxis: {
       ...commonConfig.yAxis,
       min: Math.min(...data.map((d) => d.total_diff)),
-      max: Math.max(...data.map((d) => d.total_diff)),
+      max: Math.max(...data.map((d) => d.total_diff)) + 5,
       title: {
         text: "Consumo (m³/h)",
         style: {
@@ -189,7 +189,7 @@ export const TotalDay = ({ data }) => {
     yAxis: {
       ...commonConfig.yAxis,
       min: Math.min(...data.map((d) => d.total_today_diff)),
-      max: Math.max(...data.map((d) => d.total_today_diff)),
+      max: Math.max(...data.map((d) => d.total_today_diff)) + 5,
       title: {
         text: "Consumo (m³/d)",
         style: {

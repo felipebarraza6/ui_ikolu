@@ -34,6 +34,8 @@ const CodeQR = ({ dataProfile }) => {
       ? state.selected_profile.modules.m2[0]
       : null;
 
+  const configProfile = state.selected_profile.config_data;
+
   const premium_dga = state.selected_profile.profile_ikolu.m2;
 
   var last_data = 0;
@@ -59,7 +61,11 @@ const CodeQR = ({ dataProfile }) => {
 
   const percentage =
     dataDga && total_granted_dga
-      ? parseFloat((dataDga.total / total_granted_dga) * 100).toFixed(2)
+      ? parseFloat(
+          ((parseInt(dataDga.total) + parseInt(configProfile.d6)) /
+            total_granted_dga) *
+            100
+        ).toFixed(2)
       : 0;
   console.log(typeof total_granted_dga);
 
@@ -235,6 +241,21 @@ const CodeQR = ({ dataProfile }) => {
                   </Text>
                 </Descriptions.Item>
                 <Descriptions.Item
+                  label="Total puesta en marcha"
+                  style={{ color: "white" }}
+                  span={3}
+                >
+                  <Text style={{ color: "white" }}>
+                    {configProfile ? (
+                      <Text style={{ color: "white" }}>
+                        {configProfile.d6.toLocaleString("es-CL")} m³
+                      </Text>
+                    ) : (
+                      "Sin registro"
+                    )}
+                  </Text>
+                </Descriptions.Item>
+                <Descriptions.Item
                   label="SHAC"
                   style={{ color: "white" }}
                   span={3}
@@ -301,8 +322,10 @@ const CodeQR = ({ dataProfile }) => {
                     <Text>Has consumido:</Text>
                     <br />
                     <Text>
-                      {parseInt(dataDga.total).toLocaleString("es-CL")} /{" "}
-                      {total_granted_dga.toLocaleString("es-CL")} m³
+                      {(
+                        parseInt(dataDga.total) + parseInt(configProfile.d6)
+                      ).toLocaleString("es-CL")}{" "}
+                      / {total_granted_dga.toLocaleString("es-CL")} m³
                     </Text>
                     <Progress
                       trailColor="rgb(0, 111, 179, 0.5)"

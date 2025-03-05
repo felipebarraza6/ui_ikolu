@@ -21,6 +21,7 @@ import pozo1 from "../../assets/images/pozo1.png";
 import { AppContext } from "../../App";
 import QueueAnim from "rc-queue-anim";
 import MyLastRegisters from "./MyLastRegisters";
+import sh from "../../api/sh/endpoints";
 import { BsClockHistory } from "react-icons/bs";
 
 const { Countdown } = Statistic;
@@ -29,7 +30,7 @@ const { Title, Text } = Typography;
 const numberForMiles = new Intl.NumberFormat("de-DE");
 
 const MyWell = () => {
-  const { state } = useContext(AppContext);
+  const { state, dispatch } = useContext(AppContext);
   const [frecuency, setFrecuency] = useState(60);
 
   const [nivel, setNivel] = useState(0);
@@ -40,15 +41,35 @@ const MyWell = () => {
   const [acumDia, setAcumDia] = useState(0);
   const [deadline, setDeadline] = useState(null);
   const [lastCaption, setLastCaption] = useState(null);
-  const [yesterdayDate, setYesterdayDate] = useState(null);
   const [acumAyer, setAcumAyer] = useState(0);
 
   const [zoomNivel, setZoomNivel] = useState(false);
   const [zoomCaudal, setZoomCaudal] = useState(false);
   const [zoomAcumulado, setZoomAcumulado] = useState(false);
 
-  const onFinishCounter = (finishCounter) => {
+  const onFinishCounter = async () => {
     setFinishCounter(finishCounter + 1);
+
+    const token = localStorage.getItem("token");
+
+    const selected_profile = state.selected_profile;
+
+    const rq = await sh.get_profile().then((x) => {
+      console.log(x);
+      const profile_data = x.user.catchment_points;
+      const selected_profile_data =
+        profile_data.find((profile) => profile.id === selected_profile?.id) ||
+        profile_data[0];
+      dispatch({
+        type: "UPDATE",
+        payload: {
+          token: token,
+          user: x.user,
+          profile_data: profile_data,
+          selected_profile: selected_profile_data,
+        },
+      });
+    });
   };
 
   useEffect(() => {
@@ -140,10 +161,14 @@ const MyWell = () => {
     },
   };
 
+  const onDeadLine = (deadline) => {
+    setDeadline(deadline + 1);
+  };
+
   return (
     <Flex justify="space-around" align="top" style={{ padding: "10px" }}>
       <Flex vertical style={{ width: "100%" }}>
-        <QueueAnim delay={400} duration={1200} type="left">
+        <QueueAnim delay={200} duration={1200} type="left">
           <div key={"card"}>
             <Descriptions
               size="small"
@@ -197,6 +222,52 @@ const MyWell = () => {
                 <MyLastRegisters />
               </Descriptions.Item>
             </Descriptions>
+          </div>
+        </QueueAnim>
+        <QueueAnim delay={400} duration={1200} type="left">
+          <div key={"card3"}>
+            <Card
+              hoverable
+              bordered={false}
+              style={styles.cardValues}
+              size="small"
+            >
+              <Row
+                justify={window.innerWidth > 900 ? "space-around" : "center"}
+                align={"middle"}
+              >
+                <Col xs={24} lg={6} xl={6}>
+                  <center>
+                    <BsClockHistory
+                      style={{ fontSize: "48px", color: "#2E5E9C" }}
+                    />
+                  </center>
+                </Col>
+                <Col xs={24} lg={18} xl={18} style={styles.colCard}>
+                  {window.innerWidth > 900 && (
+                    <Title level={5} style={{ marginTop: "-10px" }}>
+                      Última hora
+                    </Title>
+                  )}
+                  <Text style={styles.valueCard}>
+                    {numberForMiles.format(acumHora)} (m³)
+                  </Text>
+                  <br />
+                  <Text>
+                    {lastCaption && (
+                      <u>
+                        {lastCaption.slice(11, 13)}
+                        {":00 hrs "}
+                      </u>
+                    )}
+                  </Text>
+                </Col>
+              </Row>
+            </Card>
+          </div>
+        </QueueAnim>
+        <QueueAnim delay={600} duration={1200} type="left">
+          <div key={"card1"}>
             <Card
               hoverable
               style={styles.cardValues}
@@ -234,6 +305,7 @@ const MyWell = () => {
             </Card>
           </div>
         </QueueAnim>
+
         <QueueAnim delay={800} duration={1200} type="left">
           <div key={"card2"}>
             <Card
@@ -335,50 +407,6 @@ const MyWell = () => {
                       </Tag>
                     </center>
                   )}
-                </Col>
-              </Row>
-            </Card>
-          </div>
-        </QueueAnim>
-        <QueueAnim delay={1200} duration={1200} type="left">
-          <div key={"card3"}>
-            <Card
-              hoverable
-              bordered={false}
-              style={styles.cardValues}
-              size="small"
-            >
-              <Row
-                justify={window.innerWidth > 900 ? "space-around" : "center"}
-                align={"middle"}
-              >
-                <Col xs={24} lg={6} xl={6}>
-                  <center>
-                    <BsClockHistory
-                      style={{ fontSize: "48px", color: "#2E5E9C" }}
-                    />
-                  </center>
-                </Col>
-                <Col xs={24} lg={18} xl={18} style={styles.colCard}>
-                  {window.innerWidth > 900 && (
-                    <Title level={5} style={{ marginTop: "-10px" }}>
-                      Última hora
-                    </Title>
-                  )}
-                  <Text style={styles.valueCard}>
-                    {numberForMiles.format(acumHora)} (m³)
-                  </Text>
-                  <br />
-                  <Text>
-                    {lastCaption && (
-                      <u>
-                        {lastCaption.slice(11, 13)}
-                        {":00 - "}
-                        {lastCaption.slice(11, 13) - 1}
-                        {":00 hrs"}
-                      </u>
-                    )}
-                  </Text>
                 </Col>
               </Row>
             </Card>
