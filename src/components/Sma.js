@@ -38,6 +38,8 @@ const Sma = () => {
   const [finishDate, setFinishDate] = useState(null);
   const [data, setData] = useState(state.selected_profile.modules.today);
   const [countApi, setCountApi] = useState(0);
+  const activate = state.selected_profile.profile_ikolu.m3;
+  console.log(activate);
 
   const getResults = async () => {
     const formatDateTime = (date) => {
@@ -117,7 +119,15 @@ const Sma = () => {
         >
           <Statistic
             value={
-              dataSelected ? dataSelected.modules.m1.date_time_medition : 0
+              dataSelected
+                ? `${dataSelected.modules.m1.date_time_medition.slice(
+                    5,
+                    10
+                  )} / ${dataSelected.modules.m1.date_time_medition.slice(
+                    11,
+                    16
+                  )}`
+                : 0
             }
             valueStyle={{ fontSize: "20px" }}
             suffix="hrs"
@@ -219,6 +229,7 @@ const Sma = () => {
                   <DatePicker
                     placeholder="Desde"
                     onChange={(date) => setInitialDate(date)}
+                    disabled={!activate}
                   />
                 </Form.Item>
                 <Form.Item
@@ -228,6 +239,7 @@ const Sma = () => {
                   <DatePicker
                     placeholder="Hasta"
                     onChange={(date) => setFinishDate(date)}
+                    disabled={!activate}
                   />
                 </Form.Item>
                 <Form.Item>
@@ -235,6 +247,7 @@ const Sma = () => {
                     type="primary"
                     icon={<SearchOutlined />}
                     htmlType="submit"
+                    disabled={!activate}
                   >
                     Buscar registros
                   </Button>
@@ -243,7 +256,7 @@ const Sma = () => {
                   <Button
                     loading={loadingExcel}
                     type="primary"
-                    disabled={!initialDate || !finishDate}
+                    disabled={!initialDate || !finishDate || !activate}
                     icon={<DownloadOutlined />}
                     onClick={() => {
                       downloadDataToExcel();

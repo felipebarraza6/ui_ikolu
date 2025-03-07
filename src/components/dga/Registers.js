@@ -24,11 +24,32 @@ const { Text } = Typography;
 const Registers = ({ dataDga }) => {
   const { state } = useContext(AppContext);
   const [loading, setLoading] = useState(false);
+  console.log(state);
 
   const selected = state.selected_profile.id;
   const profile_ikolu = state.selected_profile.profile_ikolu;
   const profile_dga = state.selected_profile.dga;
-  console.log(profile_ikolu);
+  if (state.user.id === 59) {
+    dataDga = dataDga.map((record) => {
+      let totalSum = 0;
+      state.profile_client.forEach((client) => {
+        if (
+          client.id !== state.selected_profile.id &&
+          client.modules &&
+          client.modules.m3
+        ) {
+          client.modules.m3.forEach((module) => {
+            const moduleTotal = parseInt(module.total);
+            if (!isNaN(moduleTotal)) {
+              totalSum += moduleTotal;
+            }
+          });
+        }
+      });
+      record.total = totalSum;
+      return record;
+    });
+  }
 
   const columns = [
     {
@@ -58,10 +79,9 @@ const Registers = ({ dataDga }) => {
     },
     {
       title: "Total(m³)",
-      dataIndex: "total",
       key: "total",
       align: "end",
-      render: (total) => parseInt(total).toLocaleString("es-CL"),
+      render: (record) => record.total,
     },
     {
       title: "Nivel Freático(m)",
