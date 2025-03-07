@@ -17,6 +17,7 @@ import {
   LoadingOutlined,
   CopyOutlined,
   CloudDownloadOutlined,
+  ConsoleSqlOutlined,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
 import sh from "../../api/sh/endpoints";
@@ -24,31 +25,37 @@ const { Text } = Typography;
 const Registers = ({ dataDga }) => {
   const { state } = useContext(AppContext);
   const [loading, setLoading] = useState(false);
-  console.log(state);
 
   const selected = state.selected_profile.id;
   const profile_ikolu = state.selected_profile.profile_ikolu;
   const profile_dga = state.selected_profile.dga;
+  const catchment_points = state.profile_client;
+
+  let summedRecords = new Array(catchment_points.length).fill(0);
+  let combinedRecords = {};
+
   if (state.user.id === 59) {
-    dataDga = dataDga.map((record) => {
-      let totalSum = 0;
-      state.profile_client.forEach((client) => {
-        if (
-          client.id !== state.selected_profile.id &&
-          client.modules &&
-          client.modules.m3
-        ) {
-          client.modules.m3.forEach((module) => {
-            const moduleTotal = parseInt(module.total);
-            if (!isNaN(moduleTotal)) {
-              totalSum += moduleTotal;
-            }
-          });
+    catchment_points.forEach((profile) => {
+      profile.modules.today.forEach((unit, index) => {
+        if (!combinedRecords[unit.date_time_medition]) {
+          combinedRecords[unit.date_time_medition] = 0;
         }
+        combinedRecords[unit.date_time_medition] += unit.total;
       });
-      record.total = totalSum;
-      return record;
     });
+
+    console.log(combinedRecords);
+
+    dataDga.forEach((record) => {
+      const date = record.date_time_medition;
+      if (combinedRecords[date]) {
+        record.total = combinedRecords[date];
+      } else {
+        record.total = 0;
+      }
+    });
+
+    dataDga = dataDga.slice(0, new Date().getHours());
   }
 
   const columns = [
@@ -57,6 +64,14 @@ const Registers = ({ dataDga }) => {
       dataIndex: "date_time_medition",
       key: "date",
       align: "center",
+      render: (date) => {
+        return (
+          <Text>
+            {date.slice(5, 10)} {date.slice(11, 16)}
+            {" / hrs "}
+          </Text>
+        );
+      },
     },
     {
       title: (
@@ -81,15 +96,15 @@ const Registers = ({ dataDga }) => {
       title: "Total(m³)",
       key: "total",
       align: "end",
-      render: (record) => record.total,
+      render: (record) => record.total.toLocaleString("es-CL"),
     },
     {
       title: "Nivel Freático(m)",
+      hidden: state.user.id === 59,
       dataIndex: "water_table",
       key: "water_table",
       align: "end",
     },
-
     {
       title: "Cumplimiento MEE",
       align: "end",
@@ -143,7 +158,7 @@ const Registers = ({ dataDga }) => {
         } else {
           return (
             <Flex gap={"small"}>
-              <LoadingOutlined style={{ color: "rgb(31, 52, 97), " }} /> En cola
+              <LoadingOutlined style={{ color: "rgb(31, 52, 97)" }} /> En cola
               de envío a DGA
               <Tooltip
                 popupVisible={true}
@@ -187,7 +202,6 @@ const Registers = ({ dataDga }) => {
         profile_dga.code_dga
       )
       .then((res) => {
-        console.log(res);
         setLoading(false);
       })
       .then(() => {

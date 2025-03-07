@@ -42,7 +42,6 @@ const CodeQR = ({ dataProfile }) => {
   if (state.selected_profile.modules.m2.length > 0) {
     last_data = state.selected_profile.modules.m2[0];
   }
-  console.log(last_data);
   var {
     send_dga,
     type_dga,
@@ -67,7 +66,6 @@ const CodeQR = ({ dataProfile }) => {
             100
         ).toFixed(2)
       : 0;
-  console.log(typeof total_granted_dga);
 
   return (
     <QueueAnim delay={500} type={["right", "left"]}>

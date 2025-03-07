@@ -304,6 +304,7 @@ const Sma = () => {
               dataIndex: "total",
               align: "center",
               key: "total",
+              render: (value) => parseInt(value).toLocaleString("es-CL"),
             },
             {
               title: "Consumo(m³)",

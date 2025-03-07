@@ -24,8 +24,6 @@ const ListWells = () => {
 
   const onSelectWell = (key) => {
     if (key === "admin") {
-      console.log(state.profile_client);
-
       navigate("/supp");
     } else {
       const selectedProfile = state.profile_client.find(
@@ -40,7 +38,6 @@ const ListWells = () => {
       navigate("/");
     }
   };
-  console.log(state);
 
   return (
     <Row align={"middle"} justify={"start"}>
@@ -61,9 +58,6 @@ const ListWells = () => {
             <Select.Option key={e.id} disabled={disabledWell(e)} value={e.id}>
               <Flex gap="large" justify="space-between">
                 <Flex gap="small">
-                  {console.log(
-                    state.selected_profile.profile_ikolu.entry_by_form
-                  )}
                   {e.config_data.is_telemetry ? (
                     <Badge
                       status={

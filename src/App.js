@@ -31,7 +31,6 @@ function App() {
 
     if (user && token) {
       const rq = await sh.get_profile().then((x) => {
-        console.log(x);
         const profile_data = x.user.catchment_points;
         const selected_profile_data =
           profile_data.find((profile) => profile.id === selected_profile?.id) ||

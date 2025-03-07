@@ -10,7 +10,6 @@ const Dga = () => {
 
   const dataDga = state.selected_profile.modules.m2;
   const profileDga = state.selected_profile.dga;
-  console.log(profileDga);
   useEffect(() => {}, []);
 
   return (
