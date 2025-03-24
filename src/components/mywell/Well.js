@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./Well.css";
+import { Tag } from "antd";
+import logo from "../../assets/images/logo-blanco.png";
 
 const generateRandomBubbles = () => {
   const bubbles = [];
@@ -87,7 +89,14 @@ const Well = () => {
         <div className="linea-logger"></div>
         <div className="linea-caudalimetro"></div>
         <div className="datalogger">
-          <div className="tablero"></div>
+          <div>
+            <img
+              src={logo}
+              alt="Logo"
+              className="logo"
+              style={{ width: "100%" }}
+            />
+          </div>
           <div className="pata-izquierda"></div>
           <div className="pata-derecha"></div>
         </div>
