@@ -31,33 +31,6 @@ const Registers = ({ dataDga }) => {
   const profile_dga = state.selected_profile.dga;
   const catchment_points = state.profile_client;
 
-  let summedRecords = new Array(catchment_points.length).fill(0);
-  let combinedRecords = {};
-
-  if (state.user.id === 59) {
-    catchment_points.forEach((profile) => {
-      profile.modules.today.forEach((unit, index) => {
-        if (!combinedRecords[unit.date_time_medition]) {
-          combinedRecords[unit.date_time_medition] = 0;
-        }
-        combinedRecords[unit.date_time_medition] += unit.total;
-      });
-    });
-
-    console.log(combinedRecords);
-
-    dataDga.forEach((record) => {
-      const date = record.date_time_medition;
-      if (combinedRecords[date]) {
-        record.total = combinedRecords[date];
-      } else {
-        record.total = 0;
-      }
-    });
-
-    dataDga = dataDga.slice(0, new Date().getHours());
-  }
-
   const columns = [
     {
       title: "Fecha/hora medición",
@@ -110,7 +83,7 @@ const Registers = ({ dataDga }) => {
       align: "end",
       key: "proof",
       render: (obj) => {
-        if (obj.n_voucher) {
+        if (obj.n_voucher !== "No se pudo obtener el comprobante") {
           return (
             <div
               hoverable
@@ -163,15 +136,15 @@ const Registers = ({ dataDga }) => {
               <Tooltip
                 popupVisible={true}
                 title={<span style={{ color: "black" }}>{obj.return_dga}</span>}
-                color="rgb(254, 101, 101)"
+                color="#fa8c16"
               >
                 <Button
                   size="small"
                   type="primary"
                   icon={<WarningFilled />}
                   style={{
-                    backgroundColor: "rgb(254, 101, 101)",
-                    borderColor: "rgb(254, 101, 101)",
+                    backgroundColor: "#fa8c16",
+                    borderColor: "#fa8c16",
                   }}
                 >
                   estado
