@@ -40,7 +40,7 @@ const GraphisNavDga = () => {
   const [nivelMin, setNivelMin] = useState(0);
 
   const { state } = useContext(AppContext);
-  const [data, setData] = useState(state.selected_profile.modules.m22);
+  const [data, setData] = useState(state.selected_profile.modules.m2);
   const [dataMonth, setDataMonth] = useState([]);
   const activate = state.selected_profile.profile_ikolu.m2;
   console.log(activate);
