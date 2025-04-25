@@ -23,6 +23,7 @@ import QueueAnim from "rc-queue-anim";
 import MyLastRegisters from "./MyLastRegisters";
 import sh from "../../api/sh/endpoints";
 import { BsClockHistory } from "react-icons/bs";
+import Well from "./Well";
 
 const { Countdown } = Statistic;
 const { Title, Text } = Typography;
@@ -115,6 +116,7 @@ const MyWell = () => {
     },
     well: {
       paddingLeft: window.innerWidth < 900 && "0px",
+      marginTop: "30px",
       marginLeft: window.innerWidth > 900 ? "-5px" : "0px",
     },
     textFlow: {
@@ -139,7 +141,7 @@ const MyWell = () => {
       border: "0px solid #1F3461",
       fontSize: zoomAcumulado ? "17px" : "13px",
       padding: window.innerWidth > 900 ? "5px" : "5px",
-      marginTop: window.innerWidth > 900 ? "-400px" : "23%",
+      marginTop: window.innerWidth > 900 ? "-350px" : "23%",
       marginLeft: "280px",
       position: "absolute",
       borderRadius: "10px",
@@ -161,69 +163,9 @@ const MyWell = () => {
     },
   };
 
-  const onDeadLine = (deadline) => {
-    setDeadline(deadline + 1);
-  };
-
   return (
     <Flex justify="space-around" align="top" style={{ padding: "10px" }}>
       <Flex vertical style={{ width: "100%" }}>
-        <QueueAnim delay={200} duration={1200} type="left">
-          <div key={"card"}>
-            <Descriptions
-              size="small"
-              bordered
-              style={{
-                marginBottom: "10px",
-                width: "370px",
-                borderRadius: "10px",
-                background:
-                  "linear-gradient(90deg, rgba(2,0,36,0.14189425770308128) 0%, rgba(255,255,255,1) 100%)",
-              }}
-            >
-              <Descriptions.Item
-                label={
-                  <>
-                    <CalendarOutlined style={{ marginRight: "5px" }} />
-                    {new Date().toLocaleDateString("es-ES", {
-                      day: "2-digit",
-                      month: "long",
-                    })}
-                  </>
-                }
-                span={3}
-              >
-                {acumDia} (m³)
-              </Descriptions.Item>
-              <Descriptions.Item
-                label={
-                  <>
-                    <CalendarOutlined style={{ marginRight: "5px" }} />
-                    {new Date(
-                      new Date().setDate(new Date().getDate() - 1)
-                    ).toLocaleDateString("es-ES", {
-                      day: "2-digit",
-                      month: "long",
-                    })}
-                  </>
-                }
-                span={3}
-              >
-                {acumAyer} (m³)
-              </Descriptions.Item>
-              <Descriptions.Item
-                label={
-                  <>
-                    <HistoryOutlined /> Historial{" "}
-                    {new Date().toLocaleDateString()}
-                  </>
-                }
-              >
-                <MyLastRegisters />
-              </Descriptions.Item>
-            </Descriptions>
-          </div>
-        </QueueAnim>
         <QueueAnim delay={400} duration={1200} type="left">
           <div key={"card3"}>
             <Card
@@ -412,24 +354,80 @@ const MyWell = () => {
             </Card>
           </div>
         </QueueAnim>
+        <QueueAnim delay={1200} duration={1200} type="left">
+          <div key={"card"}>
+            <Descriptions
+              size="small"
+              bordered
+              style={{
+                marginBottom: "10px",
+                width: "370px",
+                borderRadius: "10px",
+                background:
+                  "linear-gradient(90deg, rgba(2,0,36,0.14189425770308128) 0%, rgba(255,255,255,1) 100%)",
+              }}
+            >
+              <Descriptions.Item
+                label={
+                  <>
+                    <CalendarOutlined style={{ marginRight: "5px" }} />
+                    {new Date().toLocaleDateString("es-ES", {
+                      day: "2-digit",
+                      month: "long",
+                    })}
+                  </>
+                }
+                span={3}
+              >
+                {acumDia} (m³)
+              </Descriptions.Item>
+              <Descriptions.Item
+                label={
+                  <>
+                    <CalendarOutlined style={{ marginRight: "5px" }} />
+                    {new Date(
+                      new Date().setDate(new Date().getDate() - 1)
+                    ).toLocaleDateString("es-ES", {
+                      day: "2-digit",
+                      month: "long",
+                    })}
+                  </>
+                }
+                span={3}
+              >
+                {acumAyer} (m³)
+              </Descriptions.Item>
+              <Descriptions.Item
+                label={
+                  <>
+                    <HistoryOutlined /> Historial{" "}
+                    {new Date().toLocaleDateString()}
+                  </>
+                }
+              >
+                <MyLastRegisters />
+              </Descriptions.Item>
+            </Descriptions>
+          </div>
+        </QueueAnim>
       </Flex>
-      <Flex
-        vertical
-        style={{ width: "100%", minHeight: "80vh" }}
-        align="space-around"
-        justify="space-between"
-        gap={"large"}
-      >
-        <QueueAnim delay={200} duration={1200} type="bottom">
+      <Flex vertical style={{ width: "80%", minHeight: "80vh" }}>
+        <Well
+          total={acumulado}
+          nivel={nivel}
+          caudal={caudal}
+          profW={state.selected_profile.config_data.d1}
+        />
+
+        <QueueAnim delay={1200} duration={1200} type="bottom">
           <div key={"description_well"}>
             <Descriptions
               bordered
               size="small"
               layout="vertical"
               style={{
-                marginBottom: "10px",
                 borderRadius: "10px",
-                width: "100%",
+                width: "85%",
                 background:
                   "linear-gradient(90deg, rgba(2,0,36,0.14189425770308128) 0%, rgba(255,255,255,1) 100%)",
               }}
@@ -448,33 +446,6 @@ const MyWell = () => {
                 )}
               </Descriptions.Item>
             </Descriptions>
-          </div>
-        </QueueAnim>
-        <QueueAnim delay={300} duration={1200} type="bottom">
-          <div key={"pozo1"} style={{ position: "relative" }}>
-            <img
-              src={pozo1}
-              width={window.innerWidth < 900 ? "100%" : "90%"}
-              alt="pozo"
-              style={styles.well}
-            />
-          </div>
-        </QueueAnim>
-        <QueueAnim delay={400} duration={1200} type="scale">
-          <div key={"flow_text"}>
-            <Text style={styles.textFlow}>{caudal}(L/s)</Text>
-          </div>
-        </QueueAnim>
-        <QueueAnim delay={1000} duration={1200} type="scale">
-          <div key={"acum_text"}>
-            <Text style={styles.textTotal}>
-              {numberForMiles.format(acumulado)} (m³)
-            </Text>
-          </div>
-        </QueueAnim>
-        <QueueAnim delay={800} duration={1200} type="scale">
-          <div key={"nivel_text"}>
-            <Text style={styles.textNivel}>{nivel} (m)</Text>
           </div>
         </QueueAnim>
       </Flex>
