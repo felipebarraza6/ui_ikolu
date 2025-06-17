@@ -11,7 +11,8 @@ import {
   notification,
   Tag,
   Form,
-  Tabs,
+  Tabs, // Added Tabs for the 'main' branch logic, but will be removed if 'ikolu_sma' is chosen
+  Tooltip, // Added missing Tooltip import
 } from "antd";
 import { AppContext } from "../../App";
 import dayjs from "dayjs";
@@ -29,9 +30,9 @@ const { Title } = Typography;
 const Reports = () => {
   const { state } = useContext(AppContext);
   const status_module = state.selected_profile.profile_ikolu.m3;
-  console.log(status_module);
+  // console.log(status_module); // Removed console.log
   const [data, setData] = useState([]);
-  const [data2, setData2] = useState([]);
+  const [data2, setData2] = useState([]); // This state is not used in the ikolu_sma branch
   const [loadingTab1, setLoadingTab1] = useState(false);
   const [initialDate, setInitialDate] = useState("");
   const [finishDate, setFinishDate] = useState("");
@@ -43,53 +44,159 @@ const Reports = () => {
 
   const [form] = Form.useForm();
 
+  // The following functions (processLevel, processFlow, processAccumulated)
+  // are part of a merge conflict and are commented out to prioritize
+  // the 'ikolu_sma' branch's data fetching logic.
+  // If these processing steps are needed, they should be carefully
+  // re-integrated and tested.
+
+  // const processLevel = (level_response) => {
+  //   if (level_response > 0.0 && level_response < position_sensor_nivel) {
+  //     return parseFloat(position_sensor_nivel - level_response).toFixed(1);
+  //   } else if (level_response > position_sensor_nivel || level_response < 0.0) {
+  //     level_response = 50.0;
+  //     return parseFloat(position_sensor_nivel - level_response).toFixed(1);
+  //   } else {
+  //     level_response = 0.0;
+  //     return parseFloat(position_sensor_nivel - level_response).toFixed(1);
+  //   }
+  // };
+
+  // const processFlow = (flow) => {
+  //   const flowValue = parseFloat(flow).toFixed(1);
+  //   if (flowValue > 0.5) {
+  //     return flowValue;
+  //   } else if (flowValue < 0.0) {
+  //     return 0.0;
+  //   } else {
+  //     return parseFloat(0.0).toFixed(1);
+  //   }
+  // };
+
+  // const processAccumulated = (accumulated, last_total) => {
+  //   console.log(last_total);
+  //   const accumulatedValue = parseInt(accumulated);
+  //   if (accumulatedValue > 0) {
+  //     return accumulatedValue;
+  //   } else {
+  //     return last_total;
+  //   }
+  // };
+
   const downloadDataToExcel = async () => {
     setLoadingExcel(true);
-    const rq = await sh
-      .get_data_sh_range_to_excel(
+    try {
+      await sh.get_data_sh_range_to_excel(
         state.selected_profile.id,
         initialDate,
         finishDate,
         state.selected_profile.title
-      )
-      .then((res) => {
-        setLoadingExcel(false);
+      );
+    } catch (error) {
+      notification.error({
+        message: "Error al descargar el archivo",
+        description: "Hubo un problema al intentar descargar el reporte Excel.",
       });
-    console.log(rq);
+      console.error("Error downloading excel:", error);
+    } finally {
+      setLoadingExcel(false);
+    }
   };
 
   const getData = async () => {
     setLoadingTab1(true);
+    try {
+      // Get the data for the requested page
+      const rq = await sh.get_data_sh_range(
+        state.selected_profile.id,
+        initialDate,
+        finishDate,
+        page
+      );
+      setData(rq.results);
+      setTotal(rq.count);
 
-    // Get the data for the requested page
-    const rq = await sh.get_data_sh_range(
-      state.selected_profile.id,
-      initialDate,
-      finishDate,
-      page
-    );
+      // The following data processing logic was present in the 'main' branch
+      // but is excluded here to resolve the merge conflict and adhere to 'ikolu_sma'.
+      // If this processing is required, it should be re-implemented and tested.
+      // const updatedResults = rq.results.map((item, index) => {
+      //   const nextTotal = rq.results[index + 1] ? rq.results[index + 1].total : 0;
+      //   const previusTotal = rq.results[index - 1]
+      //     ? rq.results[index - 1].total
+      //     : 0;
+      //   var currentTotal = item.total;
+      //   if (currentTotal < 0) {
+      //     currentTotal = previusTotal;
+      //   } else {
+      //     currentTotal = item.total;
+      //   }
 
-    setLoadingTab1(false);
-    setData(rq.results);
-    setTotal(rq.count);
+      //   var total_hora = currentTotal - nextTotal;
+
+      //   if (total_hora > item.total) {
+      //     total_hora = 0;
+      //   }
+
+      //   return {
+      //     ...item,
+      //     date_time_medition_hour: item.date_time_medition.slice(11, 16),
+      //     level: processLevel(item.level),
+      //     flow: processFlow(item.flow),
+      //     total: processAccumulated(item.total, previusTotal),
+      //     total_hora: index === rq.results.length - 1 ? 0 : total_hora,
+      //     date_time_medition: item.date_time_medition.slice(0, 10),
+      //   };
+      // });
+
+      // const sumTotal = updatedResults.reduce((acc, item) => {
+      //   const currentDate = item.date_time_medition.slice(0, 10);
+      //   const existingItem = acc.find((el) => el.date === currentDate);
+
+      //   if (existingItem) {
+      //     existingItem.total_hora += item.total_hora;
+      //   } else {
+      //     acc.push({
+      //       ...item,
+      //       total_hora: item.total_hora,
+      //       date: currentDate,
+      //     });
+      //   }
+
+      //   return acc;
+      // }, []);
+    } catch (error) {
+      notification.error({
+        message: "Error al cargar datos",
+        description: "Hubo un problema al intentar obtener los datos del reporte.",
+      });
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoadingTab1(false);
+    }
   };
 
   useEffect(() => {
-    getData(page);
-  }, [state.selected_profile, page]);
+    // Only fetch data if initialDate and finishDate are set,
+    // or if the component just mounted for an initial load if no dates are pre-selected.
+    // If no dates are selected, the table will be empty until selected.
+    if (initialDate && finishDate) {
+      getData();
+    } else if (state.selected_profile) {
+      // Potentially fetch some default data on profile change if no dates are set
+      // For now, it will wait for date selection.
+    }
+  }, [state.selected_profile, page, initialDate, finishDate]); // Added initialDate and finishDate to dependencies
 
   const disabledDownload = () => {
     if (!initialDate || !finishDate) {
       return true;
     } else {
-      if (status_module) {
-        return false;
-      } else {
-        return true;
-      }
+      // Assuming status_module indicates whether the feature is enabled for the profile
+      return !status_module;
     }
   };
-  console.log(state);
+  // console.log(state); // Removed console.log
+
   return (
     <QueueAnim type="scaleBig" delay={300} duration={1500}>
       <div key="1">
@@ -124,16 +231,11 @@ const Reports = () => {
                                 disabledDate={(current) =>
                                   current && current >= moment().endOf("day")
                                 }
-                                disabledTime={(current) =>
-                                  current && current.isSame(moment(), "day")
-                                }
                                 onChange={(x) => {
                                   if (x) {
-                                    setInitialDate(
-                                      dayjs(x).format("YYYY-MM-DD")
-                                    );
+                                    setInitialDate(dayjs(x).format("YYYY-MM-DD"));
                                   } else {
-                                    form.resetFields();
+                                    form.resetFields(["initialDate", "finishDate"]); // Reset specific fields
                                     setInitialDate("");
                                     setFinishDate("");
                                     setData([]);
@@ -146,34 +248,25 @@ const Reports = () => {
                               <DatePicker
                                 style={{ width: "100%" }}
                                 placeholder="Hasta"
-                                disabled={initialDate ? false : true}
+                                disabled={!initialDate} // Disable if initialDate is not set
                                 disabledDate={(current) =>
-                                  current && current >= moment().endOf("day")
-                                }
-                                disabledTime={(current) =>
-                                  current && current.isSame(moment(), "day")
+                                  current && (current >= moment().endOf("day") || current < moment(initialDate).startOf('day')) // Disable dates before initial date
                                 }
                                 onChange={(x) => {
-                                  if (
-                                    initialDate &&
-                                    dayjs(x).format("YYYY-MM-DD") < initialDate
-                                  ) {
-                                    notification.error({
-                                      message:
-                                        "La fecha final no puede ser menor a la fecha inicial",
-                                    });
-                                    setFinishDate("");
-                                  } else {
-                                    if (x) {
-                                      setFinishDate(
-                                        dayjs(x).format("YYYY-MM-DD")
-                                      );
-                                    } else {
-                                      form.resetFields();
-                                      setInitialDate("");
+                                  if (x) {
+                                    if (initialDate && dayjs(x).format("YYYY-MM-DD") < initialDate) {
+                                      notification.error({
+                                        message:
+                                          "La fecha final no puede ser menor a la fecha inicial",
+                                      });
                                       setFinishDate("");
-                                      setData([]);
+                                      form.setFieldsValue({ finishDate: null }); // Clear the DatePicker value
+                                    } else {
+                                      setFinishDate(dayjs(x).format("YYYY-MM-DD"));
                                     }
+                                  } else {
+                                    setFinishDate("");
+                                    setData([]);
                                   }
                                 }}
                               />
@@ -203,15 +296,15 @@ const Reports = () => {
                           <Button
                             icon={<ClearOutlined />}
                             type="primary"
-                            disabled={!initialDate || !finishDate}
+                            disabled={!initialDate && !finishDate && data.length === 0} // Disable if nothing to clear
                             style={{
                               textAlign: "left",
                               backgroundColor:
-                                !initialDate || !finishDate
+                                (!initialDate && !finishDate && data.length === 0)
                                   ? "#D9D9D9"
                                   : "#1F3461",
                               color:
-                                !initialDate || !finishDate
+                                (!initialDate && !finishDate && data.length === 0)
                                   ? "#1F3461"
                                   : "white",
                               borderColor: "#1F3461",
@@ -223,7 +316,7 @@ const Reports = () => {
                               form.resetFields();
                               setData([]);
                               setTotal(0);
-                              setData2([]);
+                              // setData2([]); // data2 is not used in this branch
                             }}
                           >
                             Limpiar
@@ -237,13 +330,9 @@ const Reports = () => {
                             style={{
                               textAlign: "left",
                               backgroundColor:
-                                !initialDate || !finishDate
-                                  ? "#D9D9D9"
-                                  : "#1F3461",
+                                disabledDownload() ? "#D9D9D9" : "#1F3461",
                               color:
-                                !initialDate || !finishDate
-                                  ? "#1F3461"
-                                  : "white",
+                                disabledDownload() ? "#1F3461" : "white",
                               borderColor: "#1F3461",
                             }}
                             onClick={downloadDataToExcel}
@@ -265,7 +354,7 @@ const Reports = () => {
                       pagination={{
                         total: total,
                         showSizeChanger: false,
-                        disabled: !status_module,
+                        disabled: !status_module || !initialDate || !finishDate, // Disable if no dates or module not active
                         pageSize: 10,
                         onChange: (page) => {
                           setPage(page);
@@ -279,9 +368,7 @@ const Reports = () => {
                             return moment(date).format("YYYY-MM-DD HH:mm");
                           },
                         },
-
                         { title: "Caudal (L/s)", dataIndex: "flow" },
-
                         {
                           title: "Acumulado (m³)",
                           dataIndex: "total",
@@ -309,8 +396,8 @@ const Reports = () => {
               </Col>
             </>
           ) : (
+            // Mobile View
             <>
-              {" "}
               <Col xs={24} style={{ paddingLeft: "10px" }}>
                 <Row justify={"center"} align={"top"}>
                   <Col>
@@ -326,9 +413,6 @@ const Reports = () => {
                             disabledDate={(current) =>
                               current && current >= moment().endOf("day")
                             }
-                            disabledTime={(current) =>
-                              current && current.isSame(moment(), "day")
-                            }
                             onSelect={(x) => {
                               setInitialDate(dayjs(x).format("YYYY-MM-DD"));
                             }}
@@ -340,12 +424,9 @@ const Reports = () => {
                           <DatePicker
                             style={{ width: "100%" }}
                             placeholder="Selecciona una fecha final"
-                            defaultValue={initialDate}
+                            disabled={!initialDate}
                             disabledDate={(current) =>
-                              current && current >= moment().endOf("day")
-                            }
-                            disabledTime={(current) =>
-                              current && current.isSame(moment(), "day")
+                              current && (current >= moment().endOf("day") || current < moment(initialDate).startOf('day'))
                             }
                             onSelect={(x) => {
                               if (
@@ -354,13 +435,14 @@ const Reports = () => {
                               ) {
                                 notification.error({
                                   placement:
-                                    window.innerWidth < 900 && "bottom",
+                                    window.innerWidth < 900 ? "bottom" : "topRight", // Defaulting to topRight for larger screens
                                   style: { zIndex: 1000000 },
                                   closeIcon: <></>,
                                   message:
                                     "La fecha final no puede ser menor o igual a la fecha inicial",
                                 });
                                 setFinishDate("");
+                                form.setFieldsValue({ finishDate: null });
                               } else {
                                 setFinishDate(dayjs(x).format("YYYY-MM-DD"));
                               }
@@ -371,17 +453,13 @@ const Reports = () => {
                     </Form>
                   </Col>
                   <Col style={{ paddingTop: "0px", paddingLeft: "0px" }}>
-                    desde: <b>{initialDate ? initialDate : "YYYY-MM-DD"} </b>
-                    hasta: <b>{finishDate ? finishDate : "YYYY-MM-DD"} </b>
+                    desde: <b>{initialDate || "YYYY-MM-DD"} </b>
+                    hasta: <b>{finishDate || "YYYY-MM-DD"} </b>
                     {finishDate && (
                       <>
                         Visualización:{" "}
                         <b>
-                          {moment(finishDate) &&
-                            moment(finishDate).diff(
-                              moment(initialDate),
-                              "days"
-                            ) + 1}{" "}
+                          {moment(finishDate).diff(moment(initialDate), "days") + 1}{" "}
                           día/s
                         </b>
                       </>
@@ -412,14 +490,14 @@ const Reports = () => {
                     <Button
                       icon={<ClearOutlined />}
                       type="primary"
-                      disabled={!initialDate || !finishDate}
+                      disabled={!initialDate && !finishDate && data.length === 0}
                       style={{
                         width: "100%",
                         textAlign: "left",
                         backgroundColor:
-                          !initialDate || !finishDate ? "#D9D9D9" : "#1F3461",
+                          (!initialDate && !finishDate && data.length === 0) ? "#D9D9D9" : "#1F3461",
                         color:
-                          !initialDate || !finishDate ? "#1F3461" : "white",
+                          (!initialDate && !finishDate && data.length === 0) ? "#1F3461" : "white",
                         borderColor: "#1F3461",
                       }}
                       block={false}
@@ -429,7 +507,7 @@ const Reports = () => {
                         form.resetFields();
                         setData([]);
                         setTotal(0);
-                        setData2([]);
+                        // setData2([]); // data2 is not used in this branch
                       }}
                     >
                       Limpiar
@@ -468,43 +546,60 @@ const Reports = () => {
                   paddingRight: "10px",
                 }}
               >
-                <Tabs type="card">
-                  <Tabs.TabPane tab="Datos" key="1" icon={<TableOutlined />}>
-                    <Table
-                      title={() => "a"}
-                      bordered
-                      size={"small"}
-                      loading={loadingTab1}
-                      pagination={{
-                        total: total,
-                        pageSize: 10,
-                        showSizeChanger: false,
-                        current: page,
-                        disabled: !status_module,
-                        onChange: (page) => {
-                          console.log(page);
-                          setPage(page);
-                        },
-                      }}
-                      columns={[
-                        {
-                          title: "Fecha",
-                          dataIndex: "date_time_medition",
-                        },
-                        {
-                          title: "Hora",
-                          dataIndex: "date_time_medition_hour",
-                        },
-
-                        { title: "(l/s)", dataIndex: "flow" },
-                        { title: "m", dataIndex: "nivel" },
-                        { title: "m³", dataIndex: "total" },
-                        { title: "m³/hora", dataIndex: "total_hora" },
-                      ]}
-                      dataSource={data}
-                    />
-                  </Tabs.TabPane>
-                </Tabs>
+                {/* Tabs are removed here as they were part of the 'main' branch conflict and not present in the 'ikolu_sma' table structure */}
+                <Table
+                  title={() => "Datos del Reporte"} {/* More meaningful title */}
+                  bordered
+                  size={"small"}
+                  loading={loadingTab1}
+                  pagination={{
+                    total: total,
+                    pageSize: 10,
+                    showSizeChanger: false,
+                    current: page,
+                    disabled: !status_module || !initialDate || !finishDate,
+                    onChange: (page) => {
+                      setPage(page);
+                    },
+                  }}
+                  columns={[
+                    {
+                      title: "Fecha",
+                      dataIndex: "date_time_medition",
+                      render: (date) => {
+                        // Assuming date_time_medition still contains full timestamp, if not,
+                        // this render will need adjustment based on the actual data format from API
+                        return moment(date).format("YYYY-MM-DD HH:mm");
+                      },
+                    },
+                    {
+                      title: "Caudal (L/s)",
+                      dataIndex: "flow",
+                      render: (a) => parseFloat(a).toFixed(2), // Ensure consistent formatting
+                    },
+                    {
+                      title: "Acumulado (m³)",
+                      dataIndex: "total",
+                      render: (a) => numberForMiles.format(a),
+                    },
+                    {
+                      title: "Acumulado/hora (m³)",
+                      dataIndex: "total_diff",
+                      render: (a) => numberForMiles.format(a),
+                    },
+                    {
+                      title: "Contador diario (m³)",
+                      dataIndex: "total_today_diff",
+                      render: (a) => numberForMiles.format(a),
+                    },
+                    {
+                      title: "Nivel Freático (m)",
+                      dataIndex: "water_table",
+                      render: (a) => parseFloat(a).toFixed(2), // Ensure consistent formatting
+                    },
+                  ]}
+                  dataSource={data}
+                />
               </Col>
             </>
           )}

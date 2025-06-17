@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { AppContext } from "../../App";
-import { Row, Col, Tag, Badge, Select, Flex } from "antd";
+import { Row, Col, Tag, Badge, Select, Flex, Button } from "antd";
 import { useNavigate } from "react-router";
 import { SendOutlined, DatabaseFilled } from "@ant-design/icons";
 import { GiConsoleController } from "react-icons/gi";
@@ -40,7 +40,7 @@ const ListWells = () => {
   };
 
   return (
-    <Row align={"middle"} justify={"start"}>
+    <Row align={"bottom"} justify={"start"}>
       <Col>
         <Select
           style={{
@@ -104,6 +104,15 @@ const ListWells = () => {
             </Select.Option>
           )}
         </Select>
+      </Col>
+      <Col>
+        <Button
+          type={"primary"}
+          style={{ marginLeft: "10px" }}
+          onClick={() => navigate("formmultidata")}
+        >
+          MODULO B
+        </Button>
       </Col>
     </Row>
   );
