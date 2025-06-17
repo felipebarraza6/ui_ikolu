@@ -7,7 +7,9 @@ import { GiConsoleController } from "react-icons/gi";
 
 const ListWells = () => {
   const { state, dispatch } = useContext(AppContext);
-  const selected = JSON.parse(localStorage.getItem("selected_profile"));
+  const selected = JSON.parse(
+    localStorage.getItem("selected_profile") || "null"
+  );
   const navigate = useNavigate();
 
   const disabledWell = (well) => {
@@ -44,12 +46,13 @@ const ListWells = () => {
       <Col>
         <Select
           style={{
-            width: window.innerWidth > 900 ? "400px" : "100%",
+            width: window.innerWidth > 900 ? "300px" : "100%",
             zIndex: 9999,
             color: "black",
+            marginRight: 12,
           }}
           placeholder="Punto de captación"
-          defaultValue={selected.id}
+          defaultValue={selected && selected.id ? selected.id : undefined}
           onSelect={(key) => {
             onSelectWell(key);
           }}
@@ -105,15 +108,18 @@ const ListWells = () => {
           )}
         </Select>
       </Col>
-      <Col>
-        <Button
-          type={"primary"}
-          style={{ marginLeft: "10px" }}
-          onClick={() => navigate("formmultidata")}
-        >
-          MODULO B
-        </Button>
-      </Col>
+
+      {state.user.username === "demosmart" && (
+        <Col>
+          <Button
+            type={"primary"}
+            style={{ marginTop: "10px", marginRight: 12 }}
+            onClick={() => navigate("formmultidata")}
+          >
+            MODULO B
+          </Button>
+        </Col>
+      )}
     </Row>
   );
 };

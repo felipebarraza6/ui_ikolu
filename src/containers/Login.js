@@ -8,22 +8,23 @@ import sh from "../api/sh/endpoints";
 import logoSmart from "../assets/images/logo-blanco.png";
 import QueueAnim from "rc-queue-anim";
 import { AppContext } from "../App";
+import { useNavigate } from "react-router-dom";
 const { Title } = Typography;
 const Login = () => {
   const { dispatch } = useContext(AppContext);
   const [form] = Form.useForm();
   const containerRef = useRef(null);
+  const navigate = useNavigate();
 
   const finishLogin = async (values) => {
     const request = await sh
       .authenticated(values)
       .then((res) => {
-        console.log(res);
-
         dispatch({
           type: "LOGIN",
           payload: res,
         });
+        navigate("/");
       })
       .catch((err) => {
         console.log(err);

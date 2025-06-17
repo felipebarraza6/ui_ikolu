@@ -1,70 +1,41 @@
-import React, { createContext, useReducer, useEffect } from "react";
-import "./App.css";
-import wallpaper from "./assets/images/walldga.png";
+import React, { createContext, useReducer } from "react";
+import AppRouter from "./AppRouter";
 import { appReducer } from "./reducers/appReducer";
-import sh from "./api/sh/endpoints";
-import { BrowserRouter } from "react-router-dom";
-import Login from "./containers/Login";
-import Home from "./containers/Home";
+
 export const AppContext = createContext();
 
-function App() {
-  const initialState = {
-    isAuth: false,
-    token: null,
-    user: null,
-    profile_client: null,
-    selected_profile: null,
-    list_default: [],
-    type_graph: null,
+function getInitialState() {
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const token = JSON.parse(localStorage.getItem("token") || "null");
+  const profile_client = JSON.parse(
+    localStorage.getItem("profile_client") || "[]"
+  );
+  const selected_profile = JSON.parse(
+    localStorage.getItem("selected_profile") || "null"
+  );
+
+  return {
+    isAuth: !!user && !!token,
+    token: token,
+    user: user || {},
+    profile_client: profile_client || [],
+    selected_profile: selected_profile || {
+      dga: {},
+      config_data: {},
+      modules: {},
+      profile_ikolu: {},
+    },
   };
+}
 
-  const [state, dispatch] = useReducer(appReducer, initialState);
-
-  const updateApp = async () => {
-    const token = JSON.parse(localStorage.getItem("token") || null);
-    const user = JSON.parse(localStorage.getItem("user") || null);
-
-    const selected_profile = JSON.parse(
-      localStorage.getItem("selected_profile") || null
-    );
-
-    if (user && token) {
-      const rq = await sh.get_profile().then((x) => {
-        const profile_data = x.user.catchment_points;
-        const selected_profile_data =
-          profile_data.find((profile) => profile.id === selected_profile?.id) ||
-          profile_data[0];
-
-        dispatch({
-          type: "UPDATE",
-          payload: {
-            token: token,
-            user: x.user,
-            profile_data: profile_data,
-            selected_profile: selected_profile_data,
-          },
-        });
-      });
-      return rq;
-    }
-  };
-
-  useEffect(() => {
-    updateApp();
-  }, []);
+const App = () => {
+  const [state, dispatch] = useReducer(appReducer, {}, getInitialState);
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>
-      {state.isAuth ? (
-        <BrowserRouter>
-          <Home />
-        </BrowserRouter>
-      ) : (
-        <Login />
-      )}
+      <AppRouter />
     </AppContext.Provider>
   );
-}
+};
 
 export default App;

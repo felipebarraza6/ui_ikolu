@@ -6,6 +6,7 @@ import AppStore from "./App";
 import wallpaper from "./assets/images/walldga.png";
 import reportWebVitals from "./reportWebVitals";
 import es_ES from "antd/lib/locale/es_ES";
+import { BrowserRouter } from "react-router-dom";
 import { hover } from "@testing-library/user-event/dist/hover";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
@@ -44,7 +45,9 @@ root.render(
   <React.StrictMode>
     <App>
       <ConfigProvider locale={es_ES} theme={theme}>
-        <AppStore />
+        <BrowserRouter>
+          <AppStore />
+        </BrowserRouter>
       </ConfigProvider>
     </App>
   </React.StrictMode>

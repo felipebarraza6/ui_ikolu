@@ -223,9 +223,39 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
     },
   };
 
+  if (!data || data.length === 0) {
+    return (
+      <div
+        style={{
+          width: "100%",
+          minHeight: 200,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#f5f5f5",
+          borderRadius: 8,
+          color: "#888",
+          fontSize: 18,
+          margin: "20px 0",
+        }}
+      >
+        No hay datos para mostrar en este periodo.
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <Line {...configCaudal} />
+    <div
+      style={{
+        width: "100%",
+        overflowX: "auto",
+        padding: window.innerWidth < 900 ? 0 : 10,
+      }}
+    >
+      <Line
+        {...configCaudal}
+        style={{ minWidth: 600, height: window.innerWidth < 900 ? 250 : 350 }}
+      />
     </div>
   );
 };

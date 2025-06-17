@@ -56,14 +56,33 @@ const MyGraphics = () => {
 
   return (
     <QueueAnim delay={500} duration={900} type="alpha">
-      <div key="graphic" style={{ padding: "20px" }}>
-        <Row justify={"space-between"} align="middle">
-          <Col xs={10} lg={3} xl={6}>
+      <div
+        key="graphic"
+        style={{
+          padding: window.innerWidth < 900 ? "5px" : "20px",
+          width: "100%",
+        }}
+      >
+        <Row
+          justify={window.innerWidth < 900 ? "start" : "space-between"}
+          align="middle"
+          style={{ width: "100%" }}
+        >
+          <Col
+            xs={24}
+            lg={6}
+            xl={6}
+            style={{ marginBottom: window.innerWidth < 900 ? 10 : 0 }}
+          >
             <Button
               type={option === 2 ? "primary" : "default"}
               onClick={() => handleOption(1)}
-              size="small"
-              style={styles.btnOption}
+              size={window.innerWidth < 900 ? "middle" : "small"}
+              style={{
+                ...styles.btnOption,
+                width: window.innerWidth < 900 ? "100%" : "auto",
+                marginBottom: window.innerWidth < 900 ? 8 : 0,
+              }}
               icon={<ClockCircleOutlined />}
             >
               Registro 24 horas
@@ -71,14 +90,23 @@ const MyGraphics = () => {
             <Button
               type={option === 1 ? "primary" : "default"}
               onClick={() => handleOption(2)}
-              size="small"
-              style={styles.btnOption}
+              size={window.innerWidth < 900 ? "middle" : "small"}
+              style={{
+                ...styles.btnOption,
+                width: window.innerWidth < 900 ? "100%" : "auto",
+              }}
               icon={<CalendarOutlined />}
             >
               Mensual
             </Button>
           </Col>
-          <Col span={24} style={styles.container}>
+          <Col
+            span={24}
+            style={{
+              ...styles.container,
+              padding: window.innerWidth < 900 ? 0 : 20,
+            }}
+          >
             <GraphicLine />
           </Col>
         </Row>

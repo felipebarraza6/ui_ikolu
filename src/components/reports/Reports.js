@@ -167,7 +167,8 @@ const Reports = () => {
     } catch (error) {
       notification.error({
         message: "Error al cargar datos",
-        description: "Hubo un problema al intentar obtener los datos del reporte.",
+        description:
+          "Hubo un problema al intentar obtener los datos del reporte.",
       });
       console.error("Error fetching data:", error);
     } finally {
@@ -233,9 +234,14 @@ const Reports = () => {
                                 }
                                 onChange={(x) => {
                                   if (x) {
-                                    setInitialDate(dayjs(x).format("YYYY-MM-DD"));
+                                    setInitialDate(
+                                      dayjs(x).format("YYYY-MM-DD")
+                                    );
                                   } else {
-                                    form.resetFields(["initialDate", "finishDate"]); // Reset specific fields
+                                    form.resetFields([
+                                      "initialDate",
+                                      "finishDate",
+                                    ]); // Reset specific fields
                                     setInitialDate("");
                                     setFinishDate("");
                                     setData([]);
@@ -249,12 +255,20 @@ const Reports = () => {
                                 style={{ width: "100%" }}
                                 placeholder="Hasta"
                                 disabled={!initialDate} // Disable if initialDate is not set
-                                disabledDate={(current) =>
-                                  current && (current >= moment().endOf("day") || current < moment(initialDate).startOf('day')) // Disable dates before initial date
+                                disabledDate={
+                                  (current) =>
+                                    current &&
+                                    (current >= moment().endOf("day") ||
+                                      current <
+                                        moment(initialDate).startOf("day")) // Disable dates before initial date
                                 }
                                 onChange={(x) => {
                                   if (x) {
-                                    if (initialDate && dayjs(x).format("YYYY-MM-DD") < initialDate) {
+                                    if (
+                                      initialDate &&
+                                      dayjs(x).format("YYYY-MM-DD") <
+                                        initialDate
+                                    ) {
                                       notification.error({
                                         message:
                                           "La fecha final no puede ser menor a la fecha inicial",
@@ -262,7 +276,9 @@ const Reports = () => {
                                       setFinishDate("");
                                       form.setFieldsValue({ finishDate: null }); // Clear the DatePicker value
                                     } else {
-                                      setFinishDate(dayjs(x).format("YYYY-MM-DD"));
+                                      setFinishDate(
+                                        dayjs(x).format("YYYY-MM-DD")
+                                      );
                                     }
                                   } else {
                                     setFinishDate("");
@@ -296,15 +312,17 @@ const Reports = () => {
                           <Button
                             icon={<ClearOutlined />}
                             type="primary"
-                            disabled={!initialDate && !finishDate && data.length === 0} // Disable if nothing to clear
+                            disabled={
+                              !initialDate && !finishDate && data.length === 0
+                            } // Disable if nothing to clear
                             style={{
                               textAlign: "left",
                               backgroundColor:
-                                (!initialDate && !finishDate && data.length === 0)
+                                !initialDate && !finishDate && data.length === 0
                                   ? "#D9D9D9"
                                   : "#1F3461",
                               color:
-                                (!initialDate && !finishDate && data.length === 0)
+                                !initialDate && !finishDate && data.length === 0
                                   ? "#1F3461"
                                   : "white",
                               borderColor: "#1F3461",
@@ -329,10 +347,10 @@ const Reports = () => {
                             disabled={disabledDownload()}
                             style={{
                               textAlign: "left",
-                              backgroundColor:
-                                disabledDownload() ? "#D9D9D9" : "#1F3461",
-                              color:
-                                disabledDownload() ? "#1F3461" : "white",
+                              backgroundColor: disabledDownload()
+                                ? "#D9D9D9"
+                                : "#1F3461",
+                              color: disabledDownload() ? "#1F3461" : "white",
                               borderColor: "#1F3461",
                             }}
                             onClick={downloadDataToExcel}
@@ -426,7 +444,9 @@ const Reports = () => {
                             placeholder="Selecciona una fecha final"
                             disabled={!initialDate}
                             disabledDate={(current) =>
-                              current && (current >= moment().endOf("day") || current < moment(initialDate).startOf('day'))
+                              current &&
+                              (current >= moment().endOf("day") ||
+                                current < moment(initialDate).startOf("day"))
                             }
                             onSelect={(x) => {
                               if (
@@ -435,7 +455,9 @@ const Reports = () => {
                               ) {
                                 notification.error({
                                   placement:
-                                    window.innerWidth < 900 ? "bottom" : "topRight", // Defaulting to topRight for larger screens
+                                    window.innerWidth < 900
+                                      ? "bottom"
+                                      : "topRight", // Defaulting to topRight for larger screens
                                   style: { zIndex: 1000000 },
                                   closeIcon: <></>,
                                   message:
@@ -459,7 +481,10 @@ const Reports = () => {
                       <>
                         Visualización:{" "}
                         <b>
-                          {moment(finishDate).diff(moment(initialDate), "days") + 1}{" "}
+                          {moment(finishDate).diff(
+                            moment(initialDate),
+                            "days"
+                          ) + 1}{" "}
                           día/s
                         </b>
                       </>
@@ -490,14 +515,20 @@ const Reports = () => {
                     <Button
                       icon={<ClearOutlined />}
                       type="primary"
-                      disabled={!initialDate && !finishDate && data.length === 0}
+                      disabled={
+                        !initialDate && !finishDate && data.length === 0
+                      }
                       style={{
                         width: "100%",
                         textAlign: "left",
                         backgroundColor:
-                          (!initialDate && !finishDate && data.length === 0) ? "#D9D9D9" : "#1F3461",
+                          !initialDate && !finishDate && data.length === 0
+                            ? "#D9D9D9"
+                            : "#1F3461",
                         color:
-                          (!initialDate && !finishDate && data.length === 0) ? "#1F3461" : "white",
+                          !initialDate && !finishDate && data.length === 0
+                            ? "#1F3461"
+                            : "white",
                         borderColor: "#1F3461",
                       }}
                       block={false}
@@ -548,7 +579,7 @@ const Reports = () => {
               >
                 {/* Tabs are removed here as they were part of the 'main' branch conflict and not present in the 'ikolu_sma' table structure */}
                 <Table
-                  title={() => "Datos del Reporte"} {/* More meaningful title */}
+                  title={() => "Datos del Reporte"}
                   bordered
                   size={"small"}
                   loading={loadingTab1}

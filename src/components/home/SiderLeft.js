@@ -210,8 +210,7 @@ const SiderLeft = () => {
                         style={{ width: "100%" }}
                       >
                         <CloudDownloadOutlined style={{ fontSize: "18px" }} />
-                        Descarga de <br />
-                        Mediciones
+                        Descarga
                       </Flex>
                     </Button>
 
