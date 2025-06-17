@@ -56,47 +56,8 @@ const MyGraphics = () => {
 
   return (
     <QueueAnim delay={500} duration={900} type="alpha">
-      <div key="graphic">
+      <div key="graphic" style={{ padding: "20px" }}>
         <Row justify={"space-between"} align="middle">
-          <Col xs={8} lg={3} xl={3}>
-            {option && (
-              <>
-                {option === 1 && (
-                  <DatePicker
-                    style={styles.datePicker}
-                    size="small"
-                    allowEmpty={true}
-                    onSelect={(date) => {
-                      onSelectDate(date, "initial");
-                    }}
-                    defaultValue={option === 1 && dayjs().subtract(1, "day")}
-                    showToday={false}
-                    disabledDate={disabledDate}
-                    placeholder="Selecciona un dia"
-                    locale={es_ES}
-                  />
-                )}
-                {option === 2 && (
-                  <>
-                    <DatePicker
-                      style={styles.datePicker}
-                      size="small"
-                      showToday={false}
-                      defaultValue={option === 2 && dayjs()}
-                      allowEmpty={true}
-                      onSelect={(date) => {
-                        onSelectDate(date, "initial");
-                      }}
-                      disabledDate={disabledDateMonth}
-                      picker="month"
-                      placeholder="Selecciona un mes"
-                      locale={es_ES}
-                    />
-                  </>
-                )}
-              </>
-            )}
-          </Col>
           <Col xs={10} lg={3} xl={6}>
             <Button
               type={option === 2 ? "primary" : "default"}
@@ -118,14 +79,7 @@ const MyGraphics = () => {
             </Button>
           </Col>
           <Col span={24} style={styles.container}>
-            {onGetFilter && (
-              <GraphicLine
-                option={option}
-                initialDate={initialDate}
-                id_profile={state.selected_profile.id}
-                monthSelect={monthSelect}
-              />
-            )}
+            <GraphicLine />
           </Col>
         </Row>
       </div>

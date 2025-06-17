@@ -11,6 +11,7 @@ export const Axios = axios.create({
 
 export const POST_LOGIN = async (endpoint, data) => {
   const request = await Axios.post(endpoint, data);
+  console.log(request);
   return request;
 };
 

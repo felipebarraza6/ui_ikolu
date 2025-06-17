@@ -1,208 +1,113 @@
-import React, { useState } from "react";
-import {
-  Row,
-  Col,
-  Table,
-  Input,
-  Statistic,
-  Card,
-  Progress,
-  Checkbox,
-} from "antd";
-import { Pie } from "@ant-design/plots";
+import React, { useState, useEffect, useContext } from "react";
+import { Layout, Menu, Flex, Card, Tag, Alert } from "antd";
+import FormAlert from "./FormAlert";
+import TableAlerts from "./TableAlerts";
+import { PlusCircleFilled, OrderedListOutlined } from "@ant-design/icons";
+import sh from "../../api/sh/endpoints";
+import { AppContext } from "../../App";
+
+const { Header, Content, Footer } = Layout;
 
 const Alerts = () => {
-  const config = {
-    data: [
-      { type: "Total m³", value: 550000000 },
-      { type: "DGA m³", value: 550000000 },
-    ],
-    angleField: "value",
-    colorField: "type",
-    tooltip: {
-      visible: true,
-      formatter: (datum) => {
-        return {
-          name: datum.type,
-          value: datum.value.toLocaleString("es-ES") + " m³",
-        };
-      },
-    },
-    label: {
-      text: "value",
-      position: "outside",
-      style: {
-        fontWeight: "bold",
-        color: "#fff",
-      },
-    },
-    legend: {
-      color: {
-        position: "left-top",
-        rowPadding: 2,
-      },
-    },
+  const { state } = useContext(AppContext);
+  const [update, setUpdate] = useState(false);
+  const selected_id = state.selected_profile.id;
+  const [selectedMenu, setSelectedMenu] = useState("1");
+  const [pageActive, setPageActve] = useState(1);
+  const [pageOld, setPageOld] = useState(1);
+  const [tickets, setTickets] = useState([]);
+  const [ticketsActives, setTicketsActives] = useState([]);
+
+  const getTickets = async () => {
+    const rq = await sh.notifications
+      .get(selected_id, pageOld, "ALERT")
+      .then((res) => {
+        setTickets(res.results);
+      });
   };
+
+  const getActiveTickets = async () => {
+    const rq = await sh.notifications
+      .actives(selected_id, pageActive, "ALERT")
+      .then((res) => {
+        setTicketsActives(res.results);
+      });
+  };
+
+  const handleMenuClick = (e) => {
+    setSelectedMenu(e.key);
+  };
+  console.log(tickets);
+
+  useEffect(() => {
+    getActiveTickets();
+    getTickets();
+  }, [update]);
+
   return (
-    <Row>
-      <Col span={24}>
-        <h1>Alertas</h1>
-      </Col>
-      <Col span={7}>
-        <Card
-          bordered
-          hoverable
-          extra="SEMANA ANTERIOR"
-          title="CAUDAL"
-          style={{ width: "98%" }}
-        >
-          Mayor al caudal autorizado por DGA
-          <hr />
-          <Statistic
-            value={"10,7"}
-            title={<b>01-01-2024 10:00 hrs</b>}
-            suffix="lt/s"
-            valueStyle={{ color: "red" }}
-          />
-          <Statistic
-            extra="01-01-2024"
-            value={"12,2"}
-            title={<b>03-01-2024 10:00 hrs</b>}
-            suffix="lt/s"
-            valueStyle={{ color: "red" }}
-          />
-          <Statistic
-            extra="26-01-2024"
-            value={"11,3"}
-            title={<b>06-01-2024 10:00 hrs</b>}
-            suffix="lt/s"
-            valueStyle={{ color: "red" }}
-          />
-        </Card>
-      </Col>
-      <Col span={8}>
-        <Card bordered hoverable extra="SEMANA ANTERIOR" title="NIVEL FREÁTICO">
-          Nivel riesgoso(cercano al posicionamiento de la bomba)
-          <hr />
-          <Statistic
-            value={"20,7"}
-            title={<b>01-01-2024 10:00 hrs</b>}
-            suffix="m"
-            valueStyle={{ color: "red" }}
-          />
-          <Statistic
-            extra="01-01-2024"
-            value={"24,2"}
-            title={<b>12-01-2024 10:00 hrs</b>}
-            suffix="m"
-            valueStyle={{ color: "red" }}
-          />
-          <Statistic
-            extra="26-01-2024"
-            value={"21,3"}
-            title={<b>01-01-2024 10:00 hrs</b>}
-            suffix="m"
-            valueStyle={{ color: "red" }}
-          />
-        </Card>
-      </Col>
-      <Col span={9} style={{ paddingLeft: "6px" }}>
-        <Card bordered hoverable extra="ANUAL" title="TOTALIZADO">
-          El consumo anual m³ autorizado por la DGA
-          <hr />
-          <Statistic
-            value={"1.000.000.000"}
-            title={<b>Desde 01/01/24 - 31/12/24</b>}
-            suffix="m³"
-            valueStyle={{ color: "black" }}
-          />
-          <Row justify={"start"} style={{ marginTop: "10px" }}>
-            <Col span={24}>
-              <Row>
-                <Col span={22}>
-                  <Progress
-                    percent={52}
-                    percentPosition={{
-                      align: "end",
-                      type: "inner",
-                    }}
-                    size={[300, 20]}
-                    format={(percent) => `490.000.000 m³/ 1.000.000.000 m³`}
-                    status="active"
-                    strokeColor={{
-                      "0%": "#108ee9",
-                      "50%": "#108ee9",
-                      "100%": "#87d068",
-                    }}
-                  />
-                </Col>
-                <Col span={2}>60%</Col>
-              </Row>
-              <Checkbox style={{ marginTop: "10px" }}>
-                Activar notificación al{" "}
-                <Input
-                  size={"small"}
-                  type={"number"}
-                  style={{ width: "70px" }}
-                  suffix={"%"}
-                  step={10}
+    <Layout className="layout" style={{ borderRadius: "10px" }}>
+      <Content
+        style={{
+          borderRadius: "10px 10px 10px 10px",
+          background:
+            "linear-gradient(39deg, rgba(222,222,222,1) 0%, rgba(217,221,230,1) 77%)",
+        }}
+      >
+        {selectedMenu === "1" ? (
+          <Flex
+            gap="large"
+            align="top"
+            style={{
+              minHeight: "90vh",
+              padding: "10px",
+            }}
+            justify="space-evenly"
+          >
+            <Card
+              hoverable
+              style={{ width: "400px" }}
+              title="Crear Alerta"
+              extra={
+                <PlusCircleFilled
+                  style={{ fontSize: "15px", color: "#1f3461" }}
                 />
-              </Checkbox>
-              <Checkbox style={{ marginTop: "10px" }}>
-                Activar notificación al{" "}
-                <Input
-                  size={"small"}
-                  type={"number"}
-                  style={{ width: "70px" }}
-                  suffix={"%"}
-                  step={10}
-                />
-              </Checkbox>
-              <Checkbox style={{ marginTop: "10px" }}>
-                Activar notificación al{" "}
-                <Input
-                  size={"small"}
-                  type={"number"}
-                  style={{ width: "70px" }}
-                  suffix={"%"}
-                  step={10}
-                />
-              </Checkbox>
-            </Col>
-          </Row>
-        </Card>
-      </Col>
-      <Col span={24}>
-        <Table
-          title={() => "Gestión de notificaciones"}
-          pagination={false}
-          bordered
-          size="small"
-          columns={[
-            { title: "Nombre", dataIndex: "name" },
-            { title: "Email", dataIndex: "email" },
-            { title: "Teléfono", dataIndex: "phone" },
-            { title: "Cargo", dataIndex: "position" },
-          ]}
-          dataSource={[
-            {
-              key: "1",
-              name: "Juan Perez",
-              email: "juan@gmail.com",
-              phone: "+569 12345678",
-              position: "Administrador",
-            },
-            {
-              key: "1",
-              name: "Luis Soto",
-              email: "luisoto@gmail.com",
-              phone: "+569 83422678",
-              position: "Operador",
-            },
-          ]}
-        />
-      </Col>
-    </Row>
+              }
+            >
+              <Alert
+                description="Las alertas operan bajo el último dato almacenado."
+                type="info"
+                closable
+                style={{ marginBottom: "10px", padding: "10px" }}
+                showIcon
+              />
+              <FormAlert update={update} setUpdate={setUpdate} />
+            </Card>
+            <Card
+              title="Alertas"
+              size="small"
+              style={{ width: "80%" }}
+              extra={<Tag color="#1f3461">tus alertas</Tag>}
+            >
+              {" "}
+              <TableAlerts data={tickets} />
+            </Card>
+          </Flex>
+        ) : (
+          <Flex
+            gap="large"
+            align="top"
+            style={{ minHeight: "72vh" }}
+            justify="space-evenly"
+          >
+            <Card
+              style={{ width: "100%" }}
+              title="En está sección visualizara los tickets completados y su historial. "
+              size="small"
+            ></Card>
+          </Flex>
+        )}
+      </Content>
+    </Layout>
   );
 };
 

@@ -15,17 +15,23 @@ const Login = () => {
   const containerRef = useRef(null);
 
   const finishLogin = async (values) => {
-    try {
-      const request = await sh.authenticated(values);
-      dispatch({
-        type: "LOGIN",
-        payload: request,
-      });
+    const request = await sh
+      .authenticated(values)
+      .then((res) => {
+        console.log(res);
 
-      return request;
-    } catch (error) {
-      notification.error({ message: "contraseña incorrecta" });
-    }
+        dispatch({
+          type: "LOGIN",
+          payload: res,
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+        notification.error({ message: "contraseña incorrecta" });
+      });
+    console.log(request);
+
+    return request;
   };
 
   return (

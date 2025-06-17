@@ -1,41 +1,43 @@
 import React, { useContext } from "react";
-import { Row, Col, Typography, Button, Popconfirm, Affix } from "antd";
-import wallpaper from "../../assets/images/wallssr.png";
-import wallpaper0 from "../../assets/images/walldga.png";
-import { useLocation, Link, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { AppContext } from "../../App";
 import {
   LogoutOutlined,
+  BuildFilled,
   ArrowLeftOutlined,
-  LeftCircleFilled,
 } from "@ant-design/icons";
+
+import { Row, Col, Typography, Button, Popconfirm, Affix } from "antd";
+import wallpaper from "../../assets/images/wallssr.png";
+import wallpaper0 from "../../assets/images/walldga.png";
+
 import ListWells from "./ListWells";
 import QueueAnim from "rc-queue-anim";
 
-const { Title } = Typography;
+const { Title } = Typography; // Destructure Title from Typography
 
 const HeaderNav = () => {
   const location = useLocation();
-  const { state, dispatch } = useContext(AppContext);
-  const { pathname } = useLocation();
   const navigate = useNavigate();
+  const { state, dispatch } = useContext(AppContext);
+  const { pathname } = location; // Use location.pathname for clarity
+
   console.log(pathname);
 
   return (
     <QueueAnim delay={100} duration={900} type="top">
-      <div key="login">
+      <div key="header-nav"> {/* Changed key for better semantics */}
         <Affix>
           <Row
             align={"middle"}
             justify={window.innerWidth > 900 ? "start" : "space-evenly"}
             style={{
               backgroundImage:
-                pathname == "/formmultidata"
+                pathname === "/formmultidata"
                   ? `url(${wallpaper0})`
                   : `url(${wallpaper})`,
               minHeight: window.innerWidth > 900 ? "100px" : "160px",
-              /* Create the parallax 
-        scrolling effect */
+              /* Create the parallax scrolling effect */
               backgroundAttachment: "fixed",
               backgroundPosition: "center bottom",
               backgroundColor: "rgb(255,255,255,0,0.7)",
@@ -68,7 +70,7 @@ const HeaderNav = () => {
               xl={9}
               lg={12}
             >
-              {location.pathname === "/formmultidata" ? (
+              {pathname === "/formmultidata" ? (
                 <Button
                   icon={<ArrowLeftOutlined />}
                   style={{ marginTop: "10px" }}
@@ -77,9 +79,7 @@ const HeaderNav = () => {
                   Volver a Mi Pozo
                 </Button>
               ) : (
-                <>
-                  <ListWells />
-                </>
+                <ListWells />
               )}
             </Col>
 
@@ -88,11 +88,23 @@ const HeaderNav = () => {
               span={1}
               offset={window.innerWidth > 900 ? 8 : 0}
             >
+              <Button
+                type={pathname === "/profile" ? "primary" : "default"}
+                icon={<BuildFilled />}
+                shape={"round"}
+                style={{
+                  marginRight: "10px",
+                  borderColor: "white",
+                  backgroundColor: pathname === "/profile" ? undefined : "rgb(31, 52, 97)", // Set background color for default button
+                  color: "white" // Ensure text color is white
+                }}
+              >
+                {state.user.first_name.toUpperCase()}
+              </Button>
               <Popconfirm
                 cancelText="Volver"
-                okButtonProps
                 okText="SALIR"
-                title="¿Estas seguro de querer cerrar la sesión?"
+                title="¿Estás seguro de querer cerrar la sesión?"
                 onConfirm={() => {
                   dispatch({ type: "LOGOUT" });
                   window.location.assign("/");
@@ -110,76 +122,6 @@ const HeaderNav = () => {
                 />
               </Popconfirm>
             </Col>
-            {window.innerWidth < 900 && (
-              <Col span={24}>
-                <Row justify={"space-around"}>
-                  <Col>
-                    {state.selected_profile.module_1 && (
-                      <Link to="/">
-                        <Button
-                          disabled={state.selected_profile.module1}
-                          type="primary"
-                          style={{
-                            backgroundColor: "rgb(31, 52, 97)",
-                            borderColor: location.pathname === "/" && "white",
-                          }}
-                        >
-                          Mi Pozo
-                        </Button>
-                      </Link>
-                    )}
-                  </Col>
-                  <Col>
-                    {state.selected_profile.module_2 && (
-                      <Link to="/dga">
-                        <Button
-                          type="primary"
-                          style={{
-                            backgroundColor: "rgb(31, 52, 97)",
-                            borderColor:
-                              location.pathname === "/dga" && "white",
-                          }}
-                        >
-                          DGA
-                        </Button>
-                      </Link>
-                    )}
-                  </Col>
-                  <Col>
-                    {state.selected_profile.module_3 && (
-                      <Link to="/reportes">
-                        <Button
-                          type="primary"
-                          style={{
-                            backgroundColor: "rgb(31, 52, 97)",
-                            borderColor:
-                              location.pathname === "/reportes" && "white",
-                          }}
-                        >
-                          Reportes
-                        </Button>
-                      </Link>
-                    )}
-                  </Col>
-                  <Col>
-                    {state.selected_profile.module_4 && (
-                      <Link to="/graficos">
-                        <Button
-                          type="primary"
-                          style={{
-                            backgroundColor: "rgb(31, 52, 97)",
-                            borderColor:
-                              location.pathname === "/graficos" && "white",
-                          }}
-                        >
-                          Gráficos
-                        </Button>
-                      </Link>
-                    )}
-                  </Col>
-                </Row>
-              </Col>
-            )}
           </Row>
         </Affix>
       </div>

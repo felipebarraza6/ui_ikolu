@@ -1,5 +1,6 @@
 import React, { createContext, useReducer, useEffect } from "react";
 import "./App.css";
+import wallpaper from "./assets/images/walldga.png";
 import { appReducer } from "./reducers/appReducer";
 import sh from "./api/sh/endpoints";
 import { BrowserRouter } from "react-router-dom";
@@ -23,22 +24,25 @@ function App() {
   const updateApp = async () => {
     const token = JSON.parse(localStorage.getItem("token") || null);
     const user = JSON.parse(localStorage.getItem("user") || null);
-    const profile_client = JSON.parse(
-      localStorage.getItem("profile_client") || null
-    );
+
     const selected_profile = JSON.parse(
       localStorage.getItem("selected_profile") || null
     );
 
-    if (user && token && profile_client) {
+    if (user && token) {
       const rq = await sh.get_profile().then((x) => {
+        const profile_data = x.user.catchment_points;
+        const selected_profile_data =
+          profile_data.find((profile) => profile.id === selected_profile?.id) ||
+          profile_data[0];
+
         dispatch({
           type: "UPDATE",
           payload: {
             token: token,
             user: x.user,
-            profile_data: x.user.profile_data,
-            selected_profile: selected_profile,
+            profile_data: profile_data,
+            selected_profile: selected_profile_data,
           },
         });
       });

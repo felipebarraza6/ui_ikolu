@@ -8,25 +8,19 @@ import {
   Table,
   Button,
   DatePicker,
-  Tooltip,
-  Alert,
-  Card,
   notification,
   Tag,
   Form,
-  Tabs,
+  Tabs, // Added Tabs for the 'main' branch logic, but will be removed if 'ikolu_sma' is chosen
+  Tooltip, // Added missing Tooltip import
 } from "antd";
 import { AppContext } from "../../App";
 import dayjs from "dayjs";
-import * as XLSX from "xlsx";
 
 import {
   TableOutlined,
   FileExcelFilled,
   ClearOutlined,
-  InfoCircleFilled,
-  FallOutlined,
-  RiseOutlined,
 } from "@ant-design/icons";
 import sh from "../../api/sh/endpoints";
 import QueueAnim from "rc-queue-anim";
@@ -35,481 +29,254 @@ const { Title } = Typography;
 
 const Reports = () => {
   const { state } = useContext(AppContext);
-  const position_sensor_nivel = parseFloat(state.selected_profile.d3);
+  const status_module = state.selected_profile.profile_ikolu.m3;
+  // console.log(status_module); // Removed console.log
   const [data, setData] = useState([]);
-  const [data2, setData2] = useState([]);
-  const [loadingTab2, setLoadingTab2] = useState(false);
+  const [data2, setData2] = useState([]); // This state is not used in the ikolu_sma branch
   const [loadingTab1, setLoadingTab1] = useState(false);
   const [initialDate, setInitialDate] = useState("");
   const [finishDate, setFinishDate] = useState("");
+
+  const [loadingExcel, setLoadingExcel] = useState(false);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const numberForMiles = new Intl.NumberFormat("de-DE");
 
   const [form] = Form.useForm();
 
-  const processLevel = (level_response) => {
-    if (level_response > 0.0 && level_response < position_sensor_nivel) {
-      return parseFloat(position_sensor_nivel - level_response).toFixed(1);
-    } else if (level_response > position_sensor_nivel || level_response < 0.0) {
-      level_response = 50.0;
-      return parseFloat(position_sensor_nivel - level_response).toFixed(1);
-    } else {
-      level_response = 0.0;
-      return parseFloat(position_sensor_nivel - level_response).toFixed(1);
-    }
-  };
+  // The following functions (processLevel, processFlow, processAccumulated)
+  // are part of a merge conflict and are commented out to prioritize
+  // the 'ikolu_sma' branch's data fetching logic.
+  // If these processing steps are needed, they should be carefully
+  // re-integrated and tested.
 
-  const processFlow = (flow) => {
-    const flowValue = parseFloat(flow).toFixed(1);
-    if (flowValue > 0.5) {
-      return flowValue;
-    } else if (flowValue < 0.0) {
-      return 0.0;
-    } else {
-      return parseFloat(0.0).toFixed(1);
-    }
-  };
+  // const processLevel = (level_response) => {
+  //   if (level_response > 0.0 && level_response < position_sensor_nivel) {
+  //     return parseFloat(position_sensor_nivel - level_response).toFixed(1);
+  //   } else if (level_response > position_sensor_nivel || level_response < 0.0) {
+  //     level_response = 50.0;
+  //     return parseFloat(position_sensor_nivel - level_response).toFixed(1);
+  //   } else {
+  //     level_response = 0.0;
+  //     return parseFloat(position_sensor_nivel - level_response).toFixed(1);
+  //   }
+  // };
 
-  const processAccumulated = (accumulated, last_total) => {
-    console.log(last_total);
-    const accumulatedValue = parseInt(accumulated);
-    if (accumulatedValue > 0) {
-      return accumulatedValue;
-    } else {
-      return last_total;
-    }
-  };
+  // const processFlow = (flow) => {
+  //   const flowValue = parseFloat(flow).toFixed(1);
+  //   if (flowValue > 0.5) {
+  //     return flowValue;
+  //   } else if (flowValue < 0.0) {
+  //     return 0.0;
+  //   } else {
+  //     return parseFloat(0.0).toFixed(1);
+  //   }
+  // };
+
+  // const processAccumulated = (accumulated, last_total) => {
+  //   console.log(last_total);
+  //   const accumulatedValue = parseInt(accumulated);
+  //   if (accumulatedValue > 0) {
+  //     return accumulatedValue;
+  //   } else {
+  //     return last_total;
+  //   }
+  // };
 
   const downloadDataToExcel = async () => {
-    // Convertir los datos en el formato deseado para el archivo Excel
-    const filteredData = data.map((item) => ({
-      Fecha: item.date_time_medition,
-      Hora: item.date_time_medition_hour,
-      "Acumulado (m³)": item.total,
-      "Nivel (m)": item.nivel,
-      "Caudal (l/s)": item.flow,
-      "Acumulado (m³)/ hora": item.total_hora,
-    }));
-
-    const filteredData2 = data2.map((item) => ({
-      Fecha: item.date_time_medition,
-      "Acumulado (m³)/ día": item.total_hora,
-    }));
-
-    // Crear el archivo Excel y descargarlo
-    const worksheet = XLSX.utils.json_to_sheet(filteredData);
-    const worksheet2 = XLSX.utils.json_to_sheet(filteredData2);
-
-    // Set column widths based on the length of the title text
-    const columnWidths = Object.keys(worksheet).reduce((widths, cell) => {
-      const column = cell.replace(/[0-9]/g, "");
-      const value = worksheet[cell].v;
-      const length = value ? value.toString().length : 10; // Default width if value is empty
-      widths[column] = Math.max(widths[column] || 0, length);
-      return widths;
-    }, {});
-
-    const columnWidths2 = Object.keys(worksheet2).reduce((widths, cell) => {
-      const column = cell.replace(/[0-9]/g, "");
-      const value = worksheet2[cell].v;
-      const length = value ? value.toString().length : 10; // Default width if value is empty
-      widths[column] = Math.max(widths[column] || 0, length);
-      return widths;
-    }, {});
-
-    // Apply column widths to the worksheets
-    worksheet["!cols"] = Object.keys(columnWidths).map((column) => ({
-      wch: columnWidths[column],
-    }));
-    worksheet2["!cols"] = Object.keys(columnWidths2).map((column) => ({
-      wch: columnWidths2[column],
-    }));
-
-    const workbook = XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Detalle");
-    XLSX.utils.book_append_sheet(workbook, worksheet2, "Resumen diario");
-
-    // Función para aplicar estilos a las celdas
-    const applyStyles = (worksheet, range, style) => {
-      const { s, e } = XLSX.utils.decode_range(range);
-      for (let row = s.r; row <= e.r; row++) {
-        for (let col = s.c; col <= e.c; col++) {
-          const cell = XLSX.utils.encode_cell({ r: row, c: col });
-          if (!worksheet[cell]) {
-            worksheet[cell] = {};
-          }
-          worksheet[cell].s = style;
-        }
-      }
-    };
-
-    // Crear estilos para las celdas
-    const borderStyle = {
-      border: {
-        top: { style: "thin", color: { rgb: "00000000" } },
-        bottom: { style: "thin", color: { rgb: "00000000" } },
-        left: { style: "thin", color: { rgb: "00000000" } },
-        right: { style: "thin", color: { rgb: "00000000" } },
-      },
-    };
-
-    const headerStyle = {
-      fill: { fgColor: { rgb: "00000000" } },
-      font: { color: { rgb: "FFFFFFFF" } },
-    };
-
-    // Aplicar estilos a las celdas con datos
-    applyStyles(worksheet, "A1:Z1000", borderStyle);
-
-    // Aplicar estilo a la primera fila
-    applyStyles(worksheet, "A1:Z1", headerStyle);
-
-    XLSX.writeFile(
-      workbook,
-      `${state.user.username}_${state.selected_profile.title}.xlsx`
-    );
+    setLoadingExcel(true);
+    try {
+      await sh.get_data_sh_range_to_excel(
+        state.selected_profile.id,
+        initialDate,
+        finishDate,
+        state.selected_profile.title
+      );
+    } catch (error) {
+      notification.error({
+        message: "Error al descargar el archivo",
+        description: "Hubo un problema al intentar descargar el reporte Excel.",
+      });
+      console.error("Error downloading excel:", error);
+    } finally {
+      setLoadingExcel(false);
+    }
   };
 
   const getData = async () => {
     setLoadingTab1(true);
-    setLoadingTab2(true);
+    try {
+      // Get the data for the requested page
+      const rq = await sh.get_data_sh_range(
+        state.selected_profile.id,
+        initialDate,
+        finishDate,
+        page
+      );
+      setData(rq.results);
+      setTotal(rq.count);
 
-    // Get the data for the requested page
-    const rq = await sh.get_data_sh_range(
-      state.selected_profile.id,
-      initialDate,
-      finishDate,
-      page
-    );
+      // The following data processing logic was present in the 'main' branch
+      // but is excluded here to resolve the merge conflict and adhere to 'ikolu_sma'.
+      // If this processing is required, it should be re-implemented and tested.
+      // const updatedResults = rq.results.map((item, index) => {
+      //   const nextTotal = rq.results[index + 1] ? rq.results[index + 1].total : 0;
+      //   const previusTotal = rq.results[index - 1]
+      //     ? rq.results[index - 1].total
+      //     : 0;
+      //   var currentTotal = item.total;
+      //   if (currentTotal < 0) {
+      //     currentTotal = previusTotal;
+      //   } else {
+      //     currentTotal = item.total;
+      //   }
 
-    const updatedResults = rq.results.map((item, index) => {
-      const nextTotal = rq.results[index + 1] ? rq.results[index + 1].total : 0;
-      const previusTotal = rq.results[index - 1]
-        ? rq.results[index - 1].total
-        : 0;
-      var currentTotal = item.total;
-      if (currentTotal < 0) {
-        currentTotal = previusTotal;
-      } else {
-        currentTotal = item.total;
-      }
+      //   var total_hora = currentTotal - nextTotal;
 
-      var total_hora = currentTotal - nextTotal;
+      //   if (total_hora > item.total) {
+      //     total_hora = 0;
+      //   }
 
-      if (total_hora > item.total) {
-        total_hora = 0;
-      }
+      //   return {
+      //     ...item,
+      //     date_time_medition_hour: item.date_time_medition.slice(11, 16),
+      //     level: processLevel(item.level),
+      //     flow: processFlow(item.flow),
+      //     total: processAccumulated(item.total, previusTotal),
+      //     total_hora: index === rq.results.length - 1 ? 0 : total_hora,
+      //     date_time_medition: item.date_time_medition.slice(0, 10),
+      //   };
+      // });
 
-      return {
-        ...item,
-        date_time_medition_hour: item.date_time_medition.slice(11, 16),
-        level: processLevel(item.level),
-        flow: processFlow(item.flow),
-        total: processAccumulated(item.total, previusTotal),
-        total_hora: index === rq.results.length - 1 ? 0 : total_hora,
-        date_time_medition: item.date_time_medition.slice(0, 10),
-      };
-    });
+      // const sumTotal = updatedResults.reduce((acc, item) => {
+      //   const currentDate = item.date_time_medition.slice(0, 10);
+      //   const existingItem = acc.find((el) => el.date === currentDate);
 
-    const sumTotal = updatedResults.reduce((acc, item) => {
-      const currentDate = item.date_time_medition.slice(0, 10);
-      const existingItem = acc.find((el) => el.date === currentDate);
+      //   if (existingItem) {
+      //     existingItem.total_hora += item.total_hora;
+      //   } else {
+      //     acc.push({
+      //       ...item,
+      //       total_hora: item.total_hora,
+      //       date: currentDate,
+      //     });
+      //   }
 
-      if (existingItem) {
-        existingItem.total_hora += item.total_hora;
-      } else {
-        acc.push({
-          ...item,
-          total_hora: item.total_hora,
-          date: currentDate,
-        });
-      }
-
-      return acc;
-    }, []);
-    console.log(rq.count);
-
-    setLoadingTab1(false);
-    setLoadingTab2(false);
-    setData(updatedResults);
-
-    setData2(sumTotal);
-    setTotal(rq.count);
+      //   return acc;
+      // }, []);
+    } catch (error) {
+      notification.error({
+        message: "Error al cargar datos",
+        description: "Hubo un problema al intentar obtener los datos del reporte.",
+      });
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoadingTab1(false);
+    }
   };
-  console.log(page);
-  useEffect(() => {
-    getData(page);
-  }, [state.selected_profile, page]);
 
-  console.log(state);
+  useEffect(() => {
+    // Only fetch data if initialDate and finishDate are set,
+    // or if the component just mounted for an initial load if no dates are pre-selected.
+    // If no dates are selected, the table will be empty until selected.
+    if (initialDate && finishDate) {
+      getData();
+    } else if (state.selected_profile) {
+      // Potentially fetch some default data on profile change if no dates are set
+      // For now, it will wait for date selection.
+    }
+  }, [state.selected_profile, page, initialDate, finishDate]); // Added initialDate and finishDate to dependencies
+
+  const disabledDownload = () => {
+    if (!initialDate || !finishDate) {
+      return true;
+    } else {
+      // Assuming status_module indicates whether the feature is enabled for the profile
+      return !status_module;
+    }
+  };
+  // console.log(state); // Removed console.log
+
   return (
-    <QueueAnim type="top" delay={300} duration={1000}>
+    <QueueAnim type="scaleBig" delay={300} duration={1500}>
       <div key="1">
-        <Row style={{ padding: "0px", marginTop: "-20px" }} justify={"center"}>
-          <Col xl={24} lg={24} xs={24}>
-            <Title
-              level={4}
-              style={{ textAlign: window.innerWidth < 900 && "center" }}
-            >
-              Datos y reportes
-            </Title>
-          </Col>
+        <Row
+          style={{ marginTop: "0px", padding: "0px", minHeight: "90vh" }}
+          justify={"center"}
+          align={"top"}
+        >
           {window.innerWidth > 900 ? (
             <>
-              {" "}
               <Col
-                span={18}
+                span={24}
                 style={{
                   marginTop: "0px",
                   marginBottom: "0px",
-                  paddingRight: "30px",
                 }}
               >
                 <QueueAnim type="left" delay={500} duration={1000}>
                   <div key="2">
-                    <Tabs type="line" size="small">
-                      <Tabs.TabPane
-                        tab="Datos"
-                        key="1"
-                        icon={<TableOutlined />}
-                      >
-                        <Table
-                          bordered
-                          size={"small"}
-                          loading={loadingTab1}
-                          pagination={{
-                            total: total,
-                            pageSize: 10,
-                            onChange: (page) => {
-                              setPage(page);
-                            },
-                          }}
-                          columns={[
-                            {
-                              title: "Fecha",
-                              dataIndex: "date_time_medition",
-                            },
-                            {
-                              title: "Hora",
-                              dataIndex: "date_time_medition_hour",
-                            },
-                            { title: "Caudal (L/s)", dataIndex: "flow" },
-                            {
-                              hidden: state.user.id === 43,
-                              title: () => (
-                                <Tooltip title="Nivel Freático (m)">
-                                  Nivel...
-                                </Tooltip>
-                              ),
-                              dataIndex: "nivel",
-                            },
-                            {
-                              title: "Acumulado (m³)",
-                              dataIndex: "total",
-                              render: (a) => numberForMiles.format(a),
-                            },
-                            {
-                              title:
-                                state.user.id === 43
-                                  ? "Acumulado (lt/h)"
-                                  : "Acumulado (m³)",
-
-                              dataIndex: "total_hora",
-                              render: (a) =>
-                                state.user.id === 43
-                                  ? parseFloat(
-                                      numberForMiles.format(a * 1000) > 0
-                                        ? numberForMiles.format(a * 1000)
-                                        : 0
-                                    )
-                                  : numberForMiles.format(a),
-                            },
-                          ]}
-                          dataSource={data}
-                        />
-                      </Tabs.TabPane>
-                      {total > 0 && (
-                        <Tabs.TabPane
-                          tab={
-                            <>
-                              Detalle:{" "}
-                              {moment(finishDate) &&
-                                moment(finishDate).diff(
-                                  moment(initialDate),
-                                  "days"
-                                ) + 1}{" "}
-                              día/s ({initialDate.slice(5, 12)} /{" "}
-                              {finishDate.slice(5, 12)})
-                            </>
-                          }
-                          key="2"
+                    <Table
+                      title={() => (
+                        <Row
+                          justify={"space-around"}
+                          align={"top"}
+                          style={{ marginTop: "25px", marginBottom: "20px" }}
                         >
-                          <Table
-                            bordered
-                            size={"small"}
-                            loading={loadingTab2}
-                            pagination={{ simple: true }}
-                            columns={[
-                              {
-                                title: "Fecha",
-                                dataIndex: "date_time_medition",
-                              },
-                              {
-                                title: "Acumulado/día (m³)",
-                                dataIndex: "total_hora",
-                                render: (text, record) => {
-                                  const max = data2.reduce((prev, current) =>
-                                    prev.total_hora > current.total_hora
-                                      ? prev
-                                      : current
-                                  );
-
-                                  const min = data2.reduce((prev, current) =>
-                                    prev.total_hora < current.total_hora
-                                      ? prev
-                                      : current
-                                  );
-
-                                  return record.total_hora ===
-                                    max.total_hora ? (
-                                    <Tag
-                                      color="blue-inverse"
-                                      icon={<RiseOutlined />}
-                                      style={{ fontSize: "15px" }}
-                                    >
-                                      {text}
-                                    </Tag>
-                                  ) : record.total_hora === min.total_hora ? (
-                                    <Tag
-                                      color="volcano-inverse"
-                                      icon={<FallOutlined />}
-                                      style={{ fontSize: "15px" }}
-                                    >
-                                      {text}
-                                    </Tag>
-                                  ) : (
-                                    text
-                                  );
-                                },
-                              },
-                            ]}
-                            dataSource={data2}
-                          />
-                        </Tabs.TabPane>
-                      )}
-                    </Tabs>
-                  </div>
-                </QueueAnim>
-              </Col>
-              <Col span={6}>
-                <QueueAnim type="scale" delay={500} duration={1000}>
-                  <div key="3">
-                    <Card
-                      size="small"
-                      style={{
-                        marginTop: "0px",
-                        paddingBottom: "20px",
-                        border: "2px solid #1F3461",
-                        background:
-                          "radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(161,181,199,0.4150035014005602) 100%)",
-                      }}
-                      hoverable
-                    >
-                      <Row justify={"center"} align={"top"}>
-                        <Col span={24}>
-                          <Title level={5} style={{ textAlign: "center" }}>
-                            Selecciona un rango de tiempo a visualizar
-                          </Title>
-                          <Form form={form} layout="vertical">
-                            <Col span={24}></Col>
-                            <Col span={24} style={{ paddingTop: "20px" }}>
-                              <Form.Item name="initialDate">
-                                <DatePicker
-                                  style={{ width: "100%" }}
-                                  placeholder="Selecciona una fecha inicial"
-                                  disabledDate={(current) =>
-                                    current && current >= moment().endOf("day")
+                          <Form form={form} layout="inline">
+                            <Form.Item name="initialDate">
+                              <DatePicker
+                                style={{ width: "100%" }}
+                                placeholder="Desde"
+                                disabledDate={(current) =>
+                                  current && current >= moment().endOf("day")
+                                }
+                                onChange={(x) => {
+                                  if (x) {
+                                    setInitialDate(dayjs(x).format("YYYY-MM-DD"));
+                                  } else {
+                                    form.resetFields(["initialDate", "finishDate"]); // Reset specific fields
+                                    setInitialDate("");
+                                    setFinishDate("");
+                                    setData([]);
                                   }
-                                  disabledTime={(current) =>
-                                    current && current.isSame(moment(), "day")
-                                  }
-                                  onChange={(x) => {
-                                    setInitialDate(
-                                      dayjs(x).format("YYYY-MM-DD")
-                                    );
-                                  }}
-                                  locale="es"
-                                />
-                              </Form.Item>
-                            </Col>
-                            <Col span={24} style={{ paddingTop: "-20px" }}>
-                              <Form.Item name="finishDate">
-                                <DatePicker
-                                  style={{ width: "100%" }}
-                                  placeholder="Selecciona una fecha final"
-                                  disabled={initialDate ? false : true}
-                                  disabledDate={(current) =>
-                                    current && current >= moment().endOf("day")
-                                  }
-                                  disabledTime={(current) =>
-                                    current && current.isSame(moment(), "day")
-                                  }
-                                  onChange={(x) => {
-                                    if (
-                                      initialDate &&
-                                      dayjs(x).format("YYYY-MM-DD") <
-                                        initialDate
-                                    ) {
+                                }}
+                                locale="es"
+                              />
+                            </Form.Item>
+                            <Form.Item name="finishDate">
+                              <DatePicker
+                                style={{ width: "100%" }}
+                                placeholder="Hasta"
+                                disabled={!initialDate} // Disable if initialDate is not set
+                                disabledDate={(current) =>
+                                  current && (current >= moment().endOf("day") || current < moment(initialDate).startOf('day')) // Disable dates before initial date
+                                }
+                                onChange={(x) => {
+                                  if (x) {
+                                    if (initialDate && dayjs(x).format("YYYY-MM-DD") < initialDate) {
                                       notification.error({
                                         message:
                                           "La fecha final no puede ser menor a la fecha inicial",
                                       });
                                       setFinishDate("");
+                                      form.setFieldsValue({ finishDate: null }); // Clear the DatePicker value
                                     } else {
-                                      setFinishDate(
-                                        dayjs(x).format("YYYY-MM-DD")
-                                      );
+                                      setFinishDate(dayjs(x).format("YYYY-MM-DD"));
                                     }
-                                  }}
-                                />
-                              </Form.Item>
-                            </Col>
+                                  } else {
+                                    setFinishDate("");
+                                    setData([]);
+                                  }
+                                }}
+                              />
+                            </Form.Item>
                           </Form>
-                        </Col>
-                        <Col
-                          span={24}
-                          style={{ paddingTop: "0px", paddingLeft: "0px" }}
-                        >
-                          desde:{" "}
-                          <b>{initialDate ? initialDate : "YYYY-MM-DD"} </b>
-                          <br />
-                          hasta:{" "}
-                          <b>{finishDate ? finishDate : "YYYY-MM-DD"} </b>
-                          {finishDate && (
-                            <>
-                              <br />
-                              <br />
-                              Visualización:{" "}
-                              <b>
-                                {moment(finishDate) &&
-                                  moment(finishDate).diff(
-                                    moment(initialDate),
-                                    "days"
-                                  ) + 1}{" "}
-                                día/s
-                              </b>
-                            </>
-                          )}
-                          <br />
-                          <br />
                           <Button
                             type="primary"
                             icon={<TableOutlined />}
                             disabled={!initialDate || !finishDate}
                             style={{
-                              width: "100%",
                               textAlign: "left",
                               backgroundColor:
                                 !initialDate || !finishDate
@@ -525,24 +292,19 @@ const Reports = () => {
                           >
                             Previsualizar reporte
                           </Button>
-                        </Col>
-                        <Col
-                          span={24}
-                          style={{ paddingTop: "10px", paddingLeft: "0px" }}
-                        >
+
                           <Button
                             icon={<ClearOutlined />}
                             type="primary"
-                            disabled={!initialDate || !finishDate}
+                            disabled={!initialDate && !finishDate && data.length === 0} // Disable if nothing to clear
                             style={{
-                              width: "100%",
                               textAlign: "left",
                               backgroundColor:
-                                !initialDate || !finishDate
+                                (!initialDate && !finishDate && data.length === 0)
                                   ? "#D9D9D9"
                                   : "#1F3461",
                               color:
-                                !initialDate || !finishDate
+                                (!initialDate && !finishDate && data.length === 0)
                                   ? "#1F3461"
                                   : "white",
                               borderColor: "#1F3461",
@@ -554,58 +316,96 @@ const Reports = () => {
                               form.resetFields();
                               setData([]);
                               setTotal(0);
-                              setData2([]);
+                              // setData2([]); // data2 is not used in this branch
                             }}
                           >
                             Limpiar
                           </Button>
-                        </Col>
-                        <Col
-                          span={24}
-                          style={{ paddingTop: "10px", paddingLeft: "0px" }}
-                        >
-                          {state.user.id !== 43 && (
-                            <Button
-                              icon={<FileExcelFilled />}
-                              type="primary"
-                              disabled={!initialDate || !finishDate}
-                              style={{
-                                width: "100%",
-                                textAlign: "left",
-                                backgroundColor:
-                                  !initialDate || !finishDate
-                                    ? "#D9D9D9"
-                                    : "#1F3461",
-                                color:
-                                  !initialDate || !finishDate
-                                    ? "#1F3461"
-                                    : "white",
-                                borderColor: "#1F3461",
-                              }}
-                              block={false}
-                              onClick={downloadDataToExcel}
-                            >
-                              Descargar reporte (.xlsx)
-                            </Button>
-                          )}
-                        </Col>
-                      </Row>
-                    </Card>
+
+                          <Button
+                            icon={<FileExcelFilled />}
+                            type="primary"
+                            loading={loadingExcel}
+                            disabled={disabledDownload()}
+                            style={{
+                              textAlign: "left",
+                              backgroundColor:
+                                disabledDownload() ? "#D9D9D9" : "#1F3461",
+                              color:
+                                disabledDownload() ? "#1F3461" : "white",
+                              borderColor: "#1F3461",
+                            }}
+                            onClick={downloadDataToExcel}
+                          >
+                            Descargar reporte (.xlsx)
+                          </Button>
+                          <Col
+                            style={{ paddingTop: "10px", paddingLeft: "0px" }}
+                          ></Col>
+                        </Row>
+                      )}
+                      footer={() =>
+                        total > 0 && (
+                          <Tag color={"rgb(31, 52, 97)"}>{total} registros</Tag>
+                        )
+                      }
+                      size={"small"}
+                      loading={loadingTab1}
+                      pagination={{
+                        total: total,
+                        showSizeChanger: false,
+                        disabled: !status_module || !initialDate || !finishDate, // Disable if no dates or module not active
+                        pageSize: 10,
+                        onChange: (page) => {
+                          setPage(page);
+                        },
+                      }}
+                      columns={[
+                        {
+                          title: "Fecha",
+                          dataIndex: "date_time_medition",
+                          render: (date) => {
+                            return moment(date).format("YYYY-MM-DD HH:mm");
+                          },
+                        },
+                        { title: "Caudal (L/s)", dataIndex: "flow" },
+                        {
+                          title: "Acumulado (m³)",
+                          dataIndex: "total",
+                          render: (a) => numberForMiles.format(a),
+                        },
+                        {
+                          title: "Acumulado/hora (m³)",
+                          dataIndex: "total_diff",
+                          render: (a) => numberForMiles.format(a),
+                        },
+                        {
+                          title: "Contador diario (m³)",
+                          dataIndex: "total_today_diff",
+                          render: (a) => numberForMiles.format(a),
+                        },
+                        {
+                          title: () => "Nivel Freático (m)",
+                          dataIndex: "water_table",
+                        },
+                      ]}
+                      dataSource={data}
+                    />
                   </div>
                 </QueueAnim>
               </Col>
             </>
           ) : (
+            // Mobile View
             <>
-              {" "}
               <Col xs={24} style={{ paddingLeft: "10px" }}>
                 <Row justify={"center"} align={"top"}>
-                  <Col span={24}>
+                  <Col>
                     <Title level={4} style={{ textAlign: "center" }}>
                       Selecciona un rango de tiempo a visualizar
                     </Title>
                     <Form form={form} layout="vertical">
-                      <Col span={24} style={{ paddingTop: "20px" }}>
+                      <Col style={{ paddingTop: "20px" }}>
                         <Form.Item name="initialDate">
                           <DatePicker
                             style={{ width: "100%" }}
@@ -613,26 +413,20 @@ const Reports = () => {
                             disabledDate={(current) =>
                               current && current >= moment().endOf("day")
                             }
-                            disabledTime={(current) =>
-                              current && current.isSame(moment(), "day")
-                            }
                             onSelect={(x) => {
                               setInitialDate(dayjs(x).format("YYYY-MM-DD"));
                             }}
                           />
                         </Form.Item>
                       </Col>
-                      <Col span={24} style={{ paddingTop: "-20px" }}>
+                      <Col style={{ paddingTop: "-20px" }}>
                         <Form.Item name="finishDate">
                           <DatePicker
                             style={{ width: "100%" }}
                             placeholder="Selecciona una fecha final"
-                            defaultValue={initialDate}
+                            disabled={!initialDate}
                             disabledDate={(current) =>
-                              current && current >= moment().endOf("day")
-                            }
-                            disabledTime={(current) =>
-                              current && current.isSame(moment(), "day")
+                              current && (current >= moment().endOf("day") || current < moment(initialDate).startOf('day'))
                             }
                             onSelect={(x) => {
                               if (
@@ -641,13 +435,14 @@ const Reports = () => {
                               ) {
                                 notification.error({
                                   placement:
-                                    window.innerWidth < 900 && "bottom",
+                                    window.innerWidth < 900 ? "bottom" : "topRight", // Defaulting to topRight for larger screens
                                   style: { zIndex: 1000000 },
                                   closeIcon: <></>,
                                   message:
                                     "La fecha final no puede ser menor o igual a la fecha inicial",
                                 });
                                 setFinishDate("");
+                                form.setFieldsValue({ finishDate: null });
                               } else {
                                 setFinishDate(dayjs(x).format("YYYY-MM-DD"));
                               }
@@ -657,30 +452,18 @@ const Reports = () => {
                       </Col>
                     </Form>
                   </Col>
-                  <Col
-                    span={24}
-                    style={{ paddingTop: "0px", paddingLeft: "0px" }}
-                  >
-                    desde: <b>{initialDate ? initialDate : "YYYY-MM-DD"} </b>
-                    <br />
-                    hasta: <b>{finishDate ? finishDate : "YYYY-MM-DD"} </b>
+                  <Col style={{ paddingTop: "0px", paddingLeft: "0px" }}>
+                    desde: <b>{initialDate || "YYYY-MM-DD"} </b>
+                    hasta: <b>{finishDate || "YYYY-MM-DD"} </b>
                     {finishDate && (
                       <>
-                        <br />
-                        <br />
                         Visualización:{" "}
                         <b>
-                          {moment(finishDate) &&
-                            moment(finishDate).diff(
-                              moment(initialDate),
-                              "days"
-                            ) + 1}{" "}
+                          {moment(finishDate).diff(moment(initialDate), "days") + 1}{" "}
                           día/s
                         </b>
                       </>
                     )}
-                    <br />
-                    <br />
                     <Button
                       type="primary"
                       icon={<TableOutlined />}
@@ -707,14 +490,14 @@ const Reports = () => {
                     <Button
                       icon={<ClearOutlined />}
                       type="primary"
-                      disabled={!initialDate || !finishDate}
+                      disabled={!initialDate && !finishDate && data.length === 0}
                       style={{
                         width: "100%",
                         textAlign: "left",
                         backgroundColor:
-                          !initialDate || !finishDate ? "#D9D9D9" : "#1F3461",
+                          (!initialDate && !finishDate && data.length === 0) ? "#D9D9D9" : "#1F3461",
                         color:
-                          !initialDate || !finishDate ? "#1F3461" : "white",
+                          (!initialDate && !finishDate && data.length === 0) ? "#1F3461" : "white",
                         borderColor: "#1F3461",
                       }}
                       block={false}
@@ -724,7 +507,7 @@ const Reports = () => {
                         form.resetFields();
                         setData([]);
                         setTotal(0);
-                        setData2([]);
+                        // setData2([]); // data2 is not used in this branch
                       }}
                     >
                       Limpiar
@@ -763,107 +546,60 @@ const Reports = () => {
                   paddingRight: "10px",
                 }}
               >
-                <Tabs type="card">
-                  <Tabs.TabPane tab="Datos" key="1" icon={<TableOutlined />}>
-                    <Table
-                      bordered
-                      size={"small"}
-                      loading={loadingTab1}
-                      pagination={{
-                        total: total,
-                        pageSize: 10,
-                        current: page,
-
-                        onChange: (page) => {
-                          console.log(page);
-                          setPage(page);
-                        },
-                      }}
-                      columns={[
-                        {
-                          title: "Fecha",
-                          dataIndex: "date_time_medition",
-                        },
-                        {
-                          title: "Hora",
-                          dataIndex: "date_time_medition_hour",
-                        },
-
-                        { title: "(l/s)", dataIndex: "flow" },
-                        { title: "m", dataIndex: "nivel" },
-                        { title: "m³", dataIndex: "total" },
-                        { title: "m³/hora", dataIndex: "total_hora" },
-                      ]}
-                      dataSource={data}
-                    />
-                  </Tabs.TabPane>
-                  {total > 0 && (
-                    <Tabs.TabPane
-                      tab={
-                        <>
-                          Detalle:{" "}
-                          {moment(finishDate) &&
-                            moment(finishDate).diff(
-                              moment(initialDate),
-                              "days"
-                            ) + 1}{" "}
-                          día/s ({initialDate.slice(5, 12)} /{" "}
-                          {finishDate.slice(5, 12)})
-                        </>
-                      }
-                      key="2"
-                    >
-                      <Table
-                        bordered
-                        loading={loadingTab2}
-                        size={"small"}
-                        pagination={{ simple: true, pageSize: 10 }}
-                        columns={[
-                          {
-                            title: "Fecha",
-                            dataIndex: "date_time_medition",
-                          },
-                          {
-                            title: "m³/día",
-                            dataIndex: "total_hora",
-                            render: (text, record) => {
-                              const max = data2.reduce((prev, current) =>
-                                prev.total_hora > current.total_hora
-                                  ? prev
-                                  : current
-                              );
-                              const min = data2.reduce((prev, current) =>
-                                prev.total_hora < current.total_hora
-                                  ? prev
-                                  : current
-                              );
-                              return record.total_hora === max.total_hora ? (
-                                <Tag
-                                  color="blue-inverse"
-                                  icon={<RiseOutlined />}
-                                  style={{ fontSize: "15px" }}
-                                >
-                                  {text}
-                                </Tag>
-                              ) : record.total_hora === min.total_hora ? (
-                                <Tag
-                                  color="volcano-inverse"
-                                  icon={<FallOutlined />}
-                                  style={{ fontSize: "15px" }}
-                                >
-                                  {text}
-                                </Tag>
-                              ) : (
-                                text
-                              );
-                            },
-                          },
-                        ]}
-                        dataSource={data2}
-                      />
-                    </Tabs.TabPane>
-                  )}
-                </Tabs>
+                {/* Tabs are removed here as they were part of the 'main' branch conflict and not present in the 'ikolu_sma' table structure */}
+                <Table
+                  title={() => "Datos del Reporte"} {/* More meaningful title */}
+                  bordered
+                  size={"small"}
+                  loading={loadingTab1}
+                  pagination={{
+                    total: total,
+                    pageSize: 10,
+                    showSizeChanger: false,
+                    current: page,
+                    disabled: !status_module || !initialDate || !finishDate,
+                    onChange: (page) => {
+                      setPage(page);
+                    },
+                  }}
+                  columns={[
+                    {
+                      title: "Fecha",
+                      dataIndex: "date_time_medition",
+                      render: (date) => {
+                        // Assuming date_time_medition still contains full timestamp, if not,
+                        // this render will need adjustment based on the actual data format from API
+                        return moment(date).format("YYYY-MM-DD HH:mm");
+                      },
+                    },
+                    {
+                      title: "Caudal (L/s)",
+                      dataIndex: "flow",
+                      render: (a) => parseFloat(a).toFixed(2), // Ensure consistent formatting
+                    },
+                    {
+                      title: "Acumulado (m³)",
+                      dataIndex: "total",
+                      render: (a) => numberForMiles.format(a),
+                    },
+                    {
+                      title: "Acumulado/hora (m³)",
+                      dataIndex: "total_diff",
+                      render: (a) => numberForMiles.format(a),
+                    },
+                    {
+                      title: "Contador diario (m³)",
+                      dataIndex: "total_today_diff",
+                      render: (a) => numberForMiles.format(a),
+                    },
+                    {
+                      title: "Nivel Freático (m)",
+                      dataIndex: "water_table",
+                      render: (a) => parseFloat(a).toFixed(2), // Ensure consistent formatting
+                    },
+                  ]}
+                  dataSource={data}
+                />
               </Col>
             </>
           )}
