@@ -19,6 +19,7 @@ const { TabPane } = Tabs;
 
 const Container = ({ data }) => {
   const [activeKey, setActiveKey] = useState("1");
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   const [maxConsumoHora, setMaxConsumoHora] = useState({
     hour: "00:00",
@@ -134,17 +135,27 @@ const Container = ({ data }) => {
     }
   }, [data]);
 
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <QueueAnim delay={300} duration={900} type="alpha">
-      <div key="login">
-        <Flex vertical gap="small" style={{ width: "100%" }}>
+      <div key="login" style={{ paddingTop: isMobile ? "0px" : "20px" }}>
+        <Flex
+          vertical
+          gap={isMobile ? "small" : "small"}
+          style={{ width: "100%" }}
+        >
           <>
             <Tabs
               activeKey={activeKey}
               onChange={handleTabChange}
               size="small"
               type="card"
-              style={{ width: "100%" }}
+              style={{ width: "100%", marginTop: isMobile ? "5px" : "0px" }}
               tabBarStyle={{
                 paddingTop: "5px",
                 position: "flex",
@@ -153,27 +164,26 @@ const Container = ({ data }) => {
                 paddingRight: "5px",
                 width: "100%",
                 borderRadius: "10px 10px 0px 0px",
-                background:
-                  "radial-gradient(circle, rgba(15,105,180,1) 0%, rgba(27,51,71,1) 100%)",
+                marginBottom: isMobile ? "5px" : "16px",
               }}
+              tabBarGutter={isMobile ? 2 : 4}
             >
               <TabPane
                 key="1"
                 tab={
-                  <Flex gap={"small"}>
+                  <Flex gap={isMobile ? "4px" : "small"} align="center">
                     <img
                       alt="nivel"
                       style={{
-                        width: "30px",
+                        width: isMobile ? "20px" : "30px",
                         color: "white",
-                        filter:
-                          activeKey === "1"
-                            ? "brightness(0) invert(1)"
-                            : "brightness(0) invert(1)",
+                        filter: activeKey === "1" && "brightness(0) invert(1)",
                       }}
                       src={img_total}
                     />
-                    Acumulado(m³)
+                    <span style={{ fontSize: isMobile ? "12px" : "14px" }}>
+                      Acumulado(m³)
+                    </span>
                   </Flex>
                 }
               >
@@ -226,19 +236,68 @@ const Container = ({ data }) => {
 
               <TabPane
                 tab={
-                  <Flex gap={"small"}>
+                  <Flex gap={isMobile ? "4px" : "small"} align="center">
+                    <img
+                      alt="nivel"
+                      style={{
+                        width: isMobile ? "20px" : "30px",
+                        filter:
+                          activeKey === "2"
+                            ? "brightness(0) invert(1)"
+                            : "none",
+                      }}
+                      src={img_total}
+                    />
+                    <span style={{ fontSize: isMobile ? "12px" : "14px" }}>
+                      Consumo Hora(m³/h)
+                    </span>
+                  </Flex>
+                }
+                key="2"
+              >
+                <Card hoverable style={styles.card}>
+                  <FlowArea data={data} limitFlow={flow_dga} />
+                </Card>
+              </TabPane>
+              <TabPane
+                key="3"
+                tab={
+                  <Flex gap={isMobile ? "4px" : "small"} align="center">
+                    <img
+                      alt="nivel"
+                      style={{
+                        width: isMobile ? "20px" : "30px",
+                        filter:
+                          activeKey === "3"
+                            ? "brightness(0) invert(1)"
+                            : "none",
+                      }}
+                      src={img_total}
+                    />
+                    <span style={{ fontSize: isMobile ? "12px" : "14px" }}>
+                      Consumo día(m³/d)
+                    </span>
+                  </Flex>
+                }
+              >
+                <Card hoverable style={styles.card}>
+                  <WaterTableBar data={data} />
+                </Card>
+              </TabPane>
+              <TabPane
+                tab={
+                  <Flex gap={isMobile ? "4px" : "small"} align="center">
                     <img
                       alt="caudal"
                       style={{
-                        width: "40px",
-                        filter:
-                          activeKey === "4"
-                            ? "brightness(0) invert(1)"
-                            : "brightness(0) invert(1)",
+                        width: isMobile ? "25px" : "40px",
+                        filter: activeKey === "4" && "brightness(0) invert(1)",
                       }}
                       src={img_caudal}
                     />
-                    Caudal(lt/s)
+                    <span style={{ fontSize: isMobile ? "12px" : "14px" }}>
+                      Caudal(L/s)
+                    </span>
                   </Flex>
                 }
                 key="4"
@@ -250,19 +309,18 @@ const Container = ({ data }) => {
               <TabPane
                 key="5"
                 tab={
-                  <Flex gap={"small"}>
+                  <Flex gap={isMobile ? "4px" : "small"} align="center">
                     <img
                       alt="nivel"
                       style={{
-                        width: "25px",
-                        filter:
-                          activeKey === "5"
-                            ? "brightness(0) invert(1)"
-                            : "brightness(0) invert(1)",
+                        width: isMobile ? "18px" : "25px",
+                        filter: activeKey === "5" && "brightness(0) invert(1)",
                       }}
                       src={img_nivel}
                     />
-                    Nivel freático (m)
+                    <span style={{ fontSize: isMobile ? "12px" : "14px" }}>
+                      Nivel freático (m)
+                    </span>
                   </Flex>
                 }
               >
@@ -270,13 +328,26 @@ const Container = ({ data }) => {
                   <WaterTableBar data={data} />
                 </Card>
               </TabPane>
-              <TabPane tab={"Datos"} key="6" icon={<DatabaseOutlined />}>
+              <TabPane
+                tab={
+                  <Flex gap={isMobile ? "4px" : "small"} align="center">
+                    <DatabaseOutlined
+                      style={{ fontSize: isMobile ? "14px" : "16px" }}
+                    />
+                    <span style={{ fontSize: isMobile ? "12px" : "14px" }}>
+                      Datos
+                    </span>
+                  </Flex>
+                }
+                key="6"
+                icon={<DatabaseOutlined />}
+              >
                 <Card hoverable style={styles.cardData}>
                   <TableData data={data} />
                 </Card>
               </TabPane>
             </Tabs>
-            <Flex justify="center" gap="small">
+            <Flex justify="center" gap="small" vertical={isMobile}>
               <Card
                 size="small"
                 style={styles.cardStat}
@@ -286,7 +357,6 @@ const Container = ({ data }) => {
                 <Flex vertical gap="small">
                   <p
                     style={{
-                      color: "#577D37",
                       marginTop: -11,
                       borderRadius: "0px 0px 15px 15px",
                       fontWeight: "500",
@@ -320,33 +390,27 @@ const Container = ({ data }) => {
                         >
                           Caudal
                         </Tag>
-                        <Tag color="rgb(30, 48, 85)">
+                        <Tag color="#1F3461">
                           {data.length > 0
                             ? `${acumulado.first.flow} lt/s`
                             : "0"}
                         </Tag>
                       </Flex>
                       <Flex vertical>
-                        <Tag
-                          color="rgb(30, 48, 85)"
-                          style={{ marginBottom: "2px" }}
-                        >
+                        <Tag color="#1F3461" style={{ marginBottom: "2px" }}>
                           Acumulado
                         </Tag>
-                        <Tag color="rgb(30, 48, 85)">
+                        <Tag color="#1F3461">
                           {data.length > 0
                             ? `${acumulado.first.value} m³`
                             : "0"}
                         </Tag>
                       </Flex>
                       <Flex vertical>
-                        <Tag
-                          color="rgb(30, 48, 85)"
-                          style={{ marginBottom: "2px" }}
-                        >
+                        <Tag color="#1F3461" style={{ marginBottom: "2px" }}>
                           Nivel Freático
                         </Tag>
-                        <Tag color="rgb(30, 48, 85)">
+                        <Tag color="#1F3461">
                           {data.length > 0 ? `${acumulado.first.nivel} m` : "0"}
                         </Tag>
                       </Flex>
@@ -366,7 +430,6 @@ const Container = ({ data }) => {
                     title={
                       <p
                         style={{
-                          color: "#577D37",
                           marginTop: -11,
                           borderRadius: "0px 0px 15px 15px",
                           fontWeight: "500",
@@ -409,7 +472,6 @@ const Container = ({ data }) => {
                     title={
                       <p
                         style={{
-                          color: "#577D37",
                           marginTop: -11,
                           borderRadius: "0px 0px 15px 15px",
                           fontWeight: "500",
@@ -452,7 +514,6 @@ const Container = ({ data }) => {
                     title={
                       <p
                         style={{
-                          color: "#577D37",
                           marginTop: -11,
                           borderRadius: "0px 0px 15px 15px",
                           fontWeight: "500",
@@ -495,12 +556,11 @@ const Container = ({ data }) => {
 const styles = {
   cardStat: {
     width: "100%",
-    background:
-      "linear-gradient(39deg, rgba(15,105,180,1) 0%, rgba(27,51,71,1) 100%)",
+    background: "#1F3461",
     header: {
       color: "white",
       fontWeight: "700",
-      background: "#eb3c46",
+      background: "#1F3461",
       textAlign: "center",
       borderRadius: "5px 5px 0px 0px",
       borderColor: "transparent",
@@ -508,16 +568,16 @@ const styles = {
   },
 
   card: {
-    marginTop: "-16px",
+    marginTop: window.innerWidth > 900 ? "-16px" : "-6px",
     borderRadius: "0px 0px 10px 10px",
     width: "100%",
-    background:
-      "linear-gradient(31deg, rgba(255,255,255,1) 0%, rgba(26,60,89,0.2889749649859944) 100%)",
+    background: "white",
   },
   cardData: {
     marginTop: "-16px",
     borderRadius: "0px",
     width: "100%",
+    background: "white",
   },
 };
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Layout, Menu, Flex, Card, Tag, Alert } from "antd";
+import { Menu, Flex, Card, Tag, Alert, Row, Col, Button } from "antd";
 import FormSupport from "./FormSupport";
 import TableSupport from "./TableSupport";
 import { PlusCircleFilled, OrderedListOutlined } from "@ant-design/icons";
@@ -7,17 +7,28 @@ import ActiveTickets from "./ActiveTickets";
 import sh from "../../api/sh/endpoints";
 import { AppContext } from "../../App";
 
-const { Header, Content, Footer } = Layout;
-
 const Dash = () => {
   const { state } = useContext(AppContext);
   const [update, setUpdate] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const selected_id = state.selected_profile.id;
   const [selectedMenu, setSelectedMenu] = useState("1");
   const [pageActive, setPageActve] = useState(1);
   const [pageOld, setPageOld] = useState(1);
   const [tickets, setTickets] = useState([]);
   const [ticketsActives, setTicketsActives] = useState([]);
+
+  // Detectar si es móvil
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const getTickets = async () => {
     const rq = await sh.notifications
@@ -38,7 +49,6 @@ const Dash = () => {
   const handleMenuClick = (e) => {
     setSelectedMenu(e.key);
   };
-  console.log(tickets);
 
   useEffect(() => {
     getActiveTickets();
@@ -46,100 +56,239 @@ const Dash = () => {
   }, [update]);
 
   return (
-    <Layout className="layout" style={{ borderRadius: "10px" }}>
-      <Header
+    <div
+      style={{
+        minHeight: "90vh",
+        padding: isMobile ? "10px" : "20px",
+      }}
+    >
+      {/* Header con navegación */}
+      <div
         style={{
-          borderRadius: "10px 10px 0px 0px",
-          background:
-            "linear-gradient(39deg, rgba(31,52,97,1) 0%, rgba(217,221,230,1) 77%)",
+          marginBottom: "20px",
+          backgroundColor: "#1F3461",
+          borderRadius: "10px",
+          padding: isMobile ? "10px" : "15px",
         }}
       >
-        <div className="logo" />
-        <Menu
-          theme="dark"
-          mode="horizontal"
-          defaultSelectedKeys={["1"]}
-          style={{
-            background: "transparent",
-          }}
-          onClick={handleMenuClick}
-        >
-          <Menu.Item icon={<PlusCircleFilled />} key="1">
-            Nuevo Ticket
-          </Menu.Item>
-          <Menu.Item key="2" icon={<OrderedListOutlined />}>
-            Tickets
-          </Menu.Item>
-        </Menu>
-      </Header>
-      <Content
-        style={{
-          borderRadius: "0px 0px 10px 10px",
-          background:
-            "linear-gradient(39deg, rgba(222,222,222,1) 0%, rgba(217,221,230,1) 77%)",
-        }}
-      >
-        {selectedMenu === "1" ? (
-          <Flex
-            gap="large"
-            align="top"
-            style={{
-              minHeight: "72vh",
-              padding: "10px",
-            }}
-            justify="space-evenly"
-          >
-            <Card
-              hoverable
-              style={{ width: "400px" }}
-              title="Crear Ticket"
-              extra="soporte@smarthydro.cl"
-            >
-              <Alert
-                description="Nuestro equipo evaluara su caso en menos de 24 horas para planificar una solución."
-                type="warning"
-                closable
-                style={{ marginBottom: "10px", padding: "10px" }}
-                showIcon
-              />
-              <FormSupport update={update} setUpdate={setUpdate} />
-            </Card>
-            <Card
-              title="Tickets"
-              size="small"
-              style={{ width: "80%" }}
-              extra={<Tag color="#1f3461">activos</Tag>}
-            >
-              <ActiveTickets data={ticketsActives} />
-            </Card>
-          </Flex>
+        {isMobile ? (
+          <Row gutter={8}>
+            <Col span={12}>
+              <Button
+                type={selectedMenu === "1" ? "primary" : "default"}
+                icon={<PlusCircleFilled />}
+                onClick={() => setSelectedMenu("1")}
+                style={{
+                  width: "100%",
+                  backgroundColor:
+                    selectedMenu === "1" ? "#FF6B35" : "transparent",
+                  borderColor: selectedMenu === "1" ? "#FF6B35" : "white",
+                  color: selectedMenu === "1" ? "white" : "white",
+                }}
+                size="small"
+              >
+                Nuevo
+              </Button>
+            </Col>
+            <Col span={12}>
+              <Button
+                type={selectedMenu === "2" ? "primary" : "default"}
+                icon={<OrderedListOutlined />}
+                onClick={() => setSelectedMenu("2")}
+                style={{
+                  width: "100%",
+                  backgroundColor:
+                    selectedMenu === "2" ? "#FF6B35" : "transparent",
+                  borderColor: selectedMenu === "2" ? "#FF6B35" : "white",
+                  color: selectedMenu === "2" ? "white" : "white",
+                }}
+                size="small"
+              >
+                Historial
+              </Button>
+            </Col>
+          </Row>
         ) : (
-          <Flex
-            gap="large"
-            align="top"
-            style={{ minHeight: "72vh" }}
-            justify="space-evenly"
+          <Menu
+            theme="dark"
+            mode="horizontal"
+            selectedKeys={[selectedMenu]}
+            style={{
+              backgroundColor: "transparent",
+              borderBottom: "none",
+            }}
+            onClick={handleMenuClick}
           >
-            <Card
-              style={{ width: "100%" }}
-              title="En está sección visualizara los tickets completados y su historial. "
-              size="small"
+            <Menu.Item
+              icon={<PlusCircleFilled />}
+              key="1"
+              style={{
+                backgroundColor:
+                  selectedMenu === "1" ? "#FF6B35" : "transparent",
+                borderRadius: "6px",
+                margin: "0 5px",
+              }}
             >
-              <TableSupport data={tickets} />
-            </Card>
-          </Flex>
+              Nuevo Ticket
+            </Menu.Item>
+            <Menu.Item
+              key="2"
+              icon={<OrderedListOutlined />}
+              style={{
+                backgroundColor:
+                  selectedMenu === "2" ? "#FF6B35" : "transparent",
+                borderRadius: "6px",
+                margin: "0 5px",
+              }}
+            >
+              Tickets Completados
+            </Menu.Item>
+          </Menu>
         )}
-      </Content>
-      <Footer
-        style={{
-          textAlign: "center",
-          backgroundColor: "white",
-          borderRadius: "0px 0px 10px 10px",
-        }}
-      >
-        Canal Oficial de soporte 2024 - Ikolu / Smart Hydro
-      </Footer>
-    </Layout>
+      </div>
+
+      {/* Contenido principal */}
+      {selectedMenu === "1" ? (
+        <Row gutter={[16, 16]}>
+          {/* Formulario de crear ticket */}
+          <Col xs={24} sm={24} md={10} lg={8} xl={8}>
+            <div
+              style={{
+                backgroundColor: "white",
+                borderRadius: "10px",
+                padding: isMobile ? "16px" : "24px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                height: "fit-content",
+              }}
+            >
+              <div
+                style={{
+                  marginBottom: "16px",
+                  borderBottom: "2px solid #FF6B35",
+                  paddingBottom: "12px",
+                }}
+              >
+                <h3
+                  style={{
+                    margin: 0,
+                    color: "#1F3461",
+                    fontSize: isMobile ? "16px" : "18px",
+                    fontWeight: "600",
+                  }}
+                >
+                  Crear Ticket
+                </h3>
+                <p
+                  style={{
+                    margin: "4px 0 0 0",
+                    color: "#666",
+                    fontSize: "14px",
+                  }}
+                >
+                  soporte@smarthydro.cl
+                </p>
+              </div>
+
+              <Alert
+                description="Nuestro equipo evaluará su caso en menos de 24 horas para planificar una solución."
+                type="info"
+                showIcon
+                style={{
+                  marginBottom: "16px",
+                  borderColor: "#FF6B35",
+                  backgroundColor: "#FFF8F0",
+                }}
+              />
+
+              <FormSupport update={update} setUpdate={setUpdate} />
+            </div>
+          </Col>
+
+          {/* Tickets activos */}
+          <Col xs={24} sm={24} md={14} lg={16} xl={16}>
+            <div
+              style={{
+                backgroundColor: "white",
+                borderRadius: "10px",
+                padding: isMobile ? "16px" : "24px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              }}
+            >
+              <div
+                style={{
+                  marginBottom: "16px",
+                  borderBottom: "2px solid #1F3461",
+                  paddingBottom: "12px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <h3
+                  style={{
+                    margin: 0,
+                    color: "#1F3461",
+                    fontSize: isMobile ? "16px" : "18px",
+                    fontWeight: "600",
+                  }}
+                >
+                  Tickets Activos
+                </h3>
+                <Tag color="#FF6B35" style={{ fontWeight: "500" }}>
+                  {ticketsActives.length} activos
+                </Tag>
+              </div>
+
+              <ActiveTickets data={ticketsActives} />
+            </div>
+          </Col>
+        </Row>
+      ) : (
+        <Row>
+          <Col span={24}>
+            <div
+              style={{
+                backgroundColor: "white",
+                borderRadius: "10px",
+                padding: isMobile ? "16px" : "24px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              }}
+            >
+              <div
+                style={{
+                  marginBottom: "16px",
+                  borderBottom: "2px solid #1F3461",
+                  paddingBottom: "12px",
+                }}
+              >
+                <h3
+                  style={{
+                    margin: 0,
+                    color: "#1F3461",
+                    fontSize: isMobile ? "16px" : "18px",
+                    fontWeight: "600",
+                  }}
+                >
+                  Historial de Tickets
+                </h3>
+                <p
+                  style={{
+                    margin: "4px 0 0 0",
+                    color: "#666",
+                    fontSize: "14px",
+                  }}
+                >
+                  En esta sección visualizará los tickets completados y su
+                  historial
+                </p>
+              </div>
+
+              <TableSupport data={tickets} />
+            </div>
+          </Col>
+        </Row>
+      )}
+    </div>
   );
 };
 

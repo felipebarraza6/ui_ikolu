@@ -1,62 +1,77 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Table, Flex, Typography } from "antd";
-import { render } from "@testing-library/react";
+import {
+  formatFlow,
+  formatInteger,
+  formatLevel,
+} from "../../../../utils/numberFormatter";
 
 const { Text } = Typography;
 
 const TableData = ({ data }) => {
-  console.log(data);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const columns = [
     {
       title: "Hora",
       dataIndex: "date_time_medition",
       key: "date",
       align: "center",
+      width: 80,
+      fixed: isMobile ? "left" : false,
       render: (date_time_medition) => {
-        return <div>{date_time_medition.slice(11, 18)} hrs</div>;
+        return <div>{date_time_medition.slice(11, 16)}</div>;
       },
     },
     {
-      title: "Caudal (lt/s)",
+      title: "Caudal (L/s)",
       dataIndex: "flow",
       key: "flow",
-      align: "end",
+      align: "center",
+      width: 100,
       render: (flow) => {
-        return <div>{flow}</div>;
+        return <div>{formatFlow(flow)}</div>;
       },
     },
     {
-      title: "Total(m³)",
+      title: "Total (m³)",
       dataIndex: "total",
       key: "total",
-      align: "end",
-      render: (total) => total.toLocaleString("es-CL"),
+      align: "center",
+      width: 120,
+      render: (total) => formatInteger(total),
     },
-
     {
-      title: "Nivel freático(m)",
+      title: "Nivel freático (m)",
       dataIndex: "water_table",
       key: "water_table",
-      align: "end",
+      align: "center",
+      width: 130,
+      render: (water_table) => formatLevel(water_table),
     },
     {
       title: "Comprobante MEE",
-      width: "30%",
-      align: "end",
+      width: 200,
+      align: "center",
       render: (obj) => {
         if (obj.n_voucher) {
           return (
             <Flex vertical justify="center" align="center" gap="small">
               <Text
-                hoverable
                 copyable
                 size="small"
                 style={{
-                  border: "1px solid rgb(0, 111, 179)",
-                  color: "rgb(0, 111, 179)",
-                  padding: "5px",
+                  border: "1px solid #1F3461",
+                  color: "#1F3461",
+                  padding: isMobile ? "3px" : "5px",
                   textAlign: "center",
-                  fontSize: "12px",
+                  fontSize: isMobile ? "10px" : "12px",
                   width: "100%",
                   borderRadius: "5px",
                   cursor: "pointer",
@@ -65,15 +80,13 @@ const TableData = ({ data }) => {
                 {obj.n_voucher}
               </Text>
               <span
-                hoverable
-                size="small"
                 style={{
-                  backgroundColor: "rgb(0, 111, 179)",
+                  backgroundColor: "#1F3461",
                   color: "white",
-                  padding: "5px",
+                  padding: isMobile ? "3px" : "5px",
                   width: "100%",
                   textAlign: "center",
-                  fontSize: "12px",
+                  fontSize: isMobile ? "10px" : "12px",
                   borderRadius: "5px",
                   cursor: "pointer",
                 }}
@@ -83,17 +96,52 @@ const TableData = ({ data }) => {
             </Flex>
           );
         }
+        return (
+          <span style={{ color: "#999", fontSize: "12px" }}>
+            Sin comprobante
+          </span>
+        );
       },
     },
   ];
+
   return (
-    <Table
-      dataSource={data}
-      columns={columns}
-      bordered
-      size="small"
-      pagination={{ pageSize: 7 }}
-    />
+    <>
+      {/* CSS para ocultar scrollbar pero mantener funcionalidad */}
+      <style>{`
+        .ant-table-body::-webkit-scrollbar {
+          display: none;
+        }
+        .ant-table-body {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
+
+      <Table
+        dataSource={data}
+        columns={columns}
+        bordered
+        size="small"
+        pagination={{
+          pageSize: isMobile ? 5 : 10,
+          showSizeChanger: false,
+          showQuickJumper: false,
+          showTotal: (total, range) =>
+            `${range[0]}-${range[1]} de ${total} registros`,
+        }}
+        scroll={
+          isMobile
+            ? {
+                x: 630, // Solo scroll horizontal en móvil
+                y: 300,
+              }
+            : {
+                y: 400, // Solo scroll vertical en desktop
+              }
+        }
+      />
+    </>
   );
 };
 

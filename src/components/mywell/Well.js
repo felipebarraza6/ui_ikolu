@@ -83,82 +83,80 @@ const Well = ({ total, nivel, caudal, profW }) => {
   console.log(prof);
 
   return (
-    <div className="pozo-container">
-      <div className="pozo">
-        <div className="superficie"></div>
-        <div className="pavimento"></div>
-        <div className="nivel-agua">
-          <div className="tierra"></div>
-          <div className="agua-inferior">
-            <QueueAnim type={["bottom", "top"]} duration={1000}>
-              {bubbles.map((bubble, index) => (
+    <div className="pozo">
+      <div className="superficie"></div>
+      <div className="pavimento"></div>
+      <div className="nivel-agua">
+        <div className="tierra"></div>
+        <div className="agua-inferior">
+          <QueueAnim type={["bottom", "top"]} duration={1000}>
+            {bubbles.map((bubble, index) => (
+              <div
+                key={index}
+                className="burbuja"
+                style={{
+                  width: bubble.size,
+                  height: bubble.size,
+                  top: bubble.top,
+                  left: bubble.left,
+                  animationDuration: bubble.animationDuration,
+                  animationDelay: bubble.animationDelay,
+                }}
+              ></div>
+            ))}
+          </QueueAnim>
+        </div>
+        <div className="tubo-pozo">
+          <QueueAnim type={["bottom", "top"]} duration={1000}>
+            <div style={styles.nivel} className="nivel" key="nivel">
+              {tubeBubbles.map((bubble, index) => (
                 <div
                   key={index}
-                  className="burbuja"
+                  className="burbuja-tubo"
                   style={{
                     width: bubble.size,
                     height: bubble.size,
-                    top: bubble.top,
                     left: bubble.left,
                     animationDuration: bubble.animationDuration,
                     animationDelay: bubble.animationDelay,
                   }}
                 ></div>
               ))}
-            </QueueAnim>
-          </div>
-          <div className="tubo-pozo">
-            <QueueAnim type={["bottom", "top"]} duration={1000}>
-              <div style={styles.nivel} className="nivel" key="nivel">
-                {tubeBubbles.map((bubble, index) => (
-                  <div
-                    key={index}
-                    className="burbuja-tubo"
-                    style={{
-                      width: bubble.size,
-                      height: bubble.size,
-                      left: bubble.left,
-                      animationDuration: bubble.animationDuration,
-                      animationDelay: bubble.animationDelay,
-                    }}
-                  ></div>
-                ))}
-              </div>
-            </QueueAnim>
-          </div>
+            </div>
+          </QueueAnim>
         </div>
-        <div className="sensor">
-          <div className="punta">
-            <Text style={{ color: "white" }}>
-              {nivel && parseFloat(nivel).toFixed(2)} m
-            </Text>
-          </div>
-        </div>
-        <div className="linea-logger"></div>
-        <div className="linea-caudalimetro"></div>
-        <div className="datalogger">
-          <div className="tablero">
-            <center>
-              <Text
-                style={{
-                  color: "black",
-                  fontWeight: "500",
-                  fontSize: "1.0em",
-                }}
-              >
-                {total && total.toLocaleString("es-CL")} m³
-              </Text>
-            </center>
-          </div>
-          <div className="pata-izquierda"></div>
-          <div className="pata-derecha"></div>
-        </div>
-
-        <div className="caudalimetro">
-          <Text style={{ textAlign: "center", color: "white" }}>
-            {caudal && parseFloat(caudal).toFixed(2)} lt/s
+      </div>
+      <div className="sensor">
+        <div className="punta">
+          <Text style={{ color: "white" }}>
+            {nivel && parseFloat(nivel).toFixed(2)} m
           </Text>
         </div>
+      </div>
+      <div className="linea-logger"></div>
+      <div className="linea-caudalimetro"></div>
+      <div className="datalogger">
+        <div className="tablero">
+          <center>
+            <Text
+              style={{
+                color: "black",
+                fontWeight: "500",
+                fontSize: "1.0em",
+              }}
+            >
+              {total && total.toLocaleString("es-CL")} m³
+            </Text>
+          </center>
+        </div>
+        <div className="pata-izquierda"></div>
+        <div className="pata-derecha"></div>
+      </div>
+
+      <div className="caudalimetro">
+        <Text style={{ textAlign: "center", color: "white" }}>
+          {caudal && parseFloat(caudal).toFixed(2)} lt/s
+        </Text>
       </div>
     </div>
   );

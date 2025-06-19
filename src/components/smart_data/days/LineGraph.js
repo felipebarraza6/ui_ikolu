@@ -8,41 +8,28 @@ const commonConfig = {
         var time = `${text.slice(11, 16)} hrs`;
         return time;
       },
-      style: {
-        fill: "#FFFFFF", // Color blanco para el texto
-      },
     },
     title: {
       text: "Hora",
       style: {
         fontSize: 14,
         fontWeight: "bold",
-        fill: "#FFFFFF", // Color blanco para el texto
       },
     },
   },
   yAxis: {
     label: {
       formatter: (text) => parseFloat(text).toLocaleString("es-CL"),
-      style: {
-        fill: "#FFFFFF", // Color blanco para el texto
-      },
     },
     title: {
       style: {
         fontSize: 14,
         fontWeight: "bold",
-        fill: "#FFFFFF", // Color blanco para el texto
       },
     },
   },
   legend: {
     position: "top-right",
-    itemName: {
-      style: {
-        fill: "#FFFFFF", // Color blanco para el texto
-      },
-    },
   },
   point: {
     size: 4,
@@ -64,6 +51,7 @@ export const FlowArea = ({ data }) => {
     yField: "flow",
     seriesField: "flow",
     smooth: true,
+    color: "rgb(31, 52, 97)",
     meta: {
       flow: { alias: "Caudal (lt/s)" },
       date_time_medition: { alias: "Fecha/hora medición" },
@@ -81,9 +69,7 @@ export const FlowArea = ({ data }) => {
       max: Math.max(...data.map((d) => d.flow)),
       title: {
         text: "Caudal (lt/s)",
-        style: {
-          fill: "#FFFFFF", // Color blanco para el texto
-        },
+        style: {},
       },
     },
   };
@@ -101,6 +87,7 @@ export const TotalLine = ({ data }) => {
     yField: "total",
     seriesField: "total",
     smooth: true,
+    color: "rgb(31, 52, 97)",
     meta: {
       flow: { alias: "Acumulado (m³)" },
       date_time_medition: { alias: "Fecha/hora medición" },
@@ -118,9 +105,6 @@ export const TotalLine = ({ data }) => {
       min: Math.min(...data.map((d) => d.total)) - 3,
       title: {
         text: "Acumulado (m³)",
-        style: {
-          fill: "#FFFFFF", // Color blanco para el texto
-        },
       },
     },
   };
@@ -138,6 +122,7 @@ export const TotalHour = ({ data }) => {
     yField: "total_diff",
     seriesField: "total_diff",
     smooth: true,
+    color: "rgb(31, 52, 97)",
     meta: {
       flow: { alias: "Consumo (m³/h)" },
       date_time_medition: { alias: "Fecha/hora medición" },
@@ -155,9 +140,6 @@ export const TotalHour = ({ data }) => {
       max: Math.max(...data.map((d) => d.total_diff)) + 5,
       title: {
         text: "Consumo (m³/h)",
-        style: {
-          fill: "#FFFFFF", // Color blanco para el texto
-        },
       },
     },
   };
@@ -175,6 +157,7 @@ export const TotalDay = ({ data }) => {
     yField: "total_today_diff",
     seriesField: "total_today_diff",
     smooth: true,
+    color: "rgb(31, 52, 97)",
     meta: {
       flow: { alias: "Consumo (m³/d)" },
       date_time_medition: { alias: "Fecha/hora medición" },
@@ -192,9 +175,6 @@ export const TotalDay = ({ data }) => {
       max: Math.max(...data.map((d) => d.total_today_diff)) + 5,
       title: {
         text: "Consumo (m³/d)",
-        style: {
-          fill: "#FFFFFF", // Color blanco para el texto
-        },
       },
     },
   };
@@ -228,13 +208,10 @@ export const WaterTableBar = ({ data }) => {
       max: Math.max(...data.map((d) => d.water_table)),
       title: {
         text: "Nivel freático (m)",
-        style: {
-          fill: "#FFFFFF", // Color blanco para el texto
-        },
       },
       inverse: true, // Invertir el eje Y
     },
-    color: "rgb(0, 123, 255)", // Azul color agua
+    color: "rgb(31, 52, 97)",
   };
   return <Area {...config} />;
 };

@@ -13,7 +13,61 @@ code {
     monospace;
 }
 
+/* 🔧 SOLUCIÓN CRÍTICA PARA SIDEBAR EN MÓVIL */
+@media (max-width: 992px) {
+  /* Ocultar completamente el sidebar en móvil */
+  .ant-layout-sider {
+    display: none !important;
+    width: 0 !important;
+    max-width: 0 !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Forzar que el contenido use toda la pantalla */
+  .ant-layout-content {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Layout principal sin margen */
+  .ant-layout {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+  }
+  
+  /* Evitar scroll horizontal */
+  body, html, #root {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Ocultar cualquier menú hamburger problemático */
+  .ant-layout-sider-trigger {
+    display: none !important;
+  }
+}
 
+/* Asegurar que el layout sea responsivo */
+.ant-layout {
+  transition: margin-left 0.2s ease;
+}
+
+/* Para móviles muy pequeños */
+@media (max-width: 576px) {
+  .ant-layout-content {
+    padding: 8px !important;
+    margin: 0 !important;
+  }
+  
+  .ant-layout-header {
+    padding: 0 8px !important;
+  }
+}
 
 .ant-carousel .slick-prev,
 .ant-carousel .slick-next,

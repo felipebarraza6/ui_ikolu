@@ -13,17 +13,26 @@ import {
   Form,
   Tabs, // Added Tabs for the 'main' branch logic, but will be removed if 'ikolu_sma' is chosen
   Tooltip, // Added missing Tooltip import
+  ConfigProvider,
 } from "antd";
 import { AppContext } from "../../App";
 import dayjs from "dayjs";
+import locale from "antd/locale/es_ES";
+import "dayjs/locale/es";
 
 import {
   TableOutlined,
   FileExcelFilled,
   ClearOutlined,
+  CalendarOutlined,
 } from "@ant-design/icons";
 import sh from "../../api/sh/endpoints";
 import QueueAnim from "rc-queue-anim";
+import {
+  formatVolume,
+  formatFlow,
+  formatLevel,
+} from "../../utils/numberFormatter";
 
 const { Title } = Typography;
 
@@ -40,7 +49,8 @@ const Reports = () => {
   const [loadingExcel, setLoadingExcel] = useState(false);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const numberForMiles = new Intl.NumberFormat("de-DE");
+  // Removido: const numberForMiles = new Intl.NumberFormat("de-DE");
+  // Ahora usamos las funciones globales de formateo
 
   const [form] = Form.useForm();
 
@@ -177,14 +187,9 @@ const Reports = () => {
   };
 
   useEffect(() => {
-    // Only fetch data if initialDate and finishDate are set,
-    // or if the component just mounted for an initial load if no dates are pre-selected.
-    // If no dates are selected, the table will be empty until selected.
+    // Cargar datos automáticamente cuando se seleccionen ambas fechas
     if (initialDate && finishDate) {
       getData();
-    } else if (state.selected_profile) {
-      // Potentially fetch some default data on profile change if no dates are set
-      // For now, it will wait for date selection.
     }
   }, [state.selected_profile, page, initialDate, finishDate]); // Added initialDate and finishDate to dependencies
 
@@ -199,7 +204,7 @@ const Reports = () => {
   // console.log(state); // Removed console.log
 
   return (
-    <QueueAnim type="scaleBig" delay={300} duration={1500}>
+    <QueueAnim type="alpha" delay={300} duration={1500}>
       <div key="1">
         <Row
           style={{ marginTop: "0px", padding: "0px", minHeight: "90vh" }}
@@ -226,88 +231,76 @@ const Reports = () => {
                         >
                           <Form form={form} layout="inline">
                             <Form.Item name="initialDate">
-                              <DatePicker
-                                style={{ width: "100%" }}
-                                placeholder="Desde"
-                                disabledDate={(current) =>
-                                  current && current >= moment().endOf("day")
-                                }
-                                onChange={(x) => {
-                                  if (x) {
-                                    setInitialDate(
-                                      dayjs(x).format("YYYY-MM-DD")
-                                    );
-                                  } else {
-                                    form.resetFields([
-                                      "initialDate",
-                                      "finishDate",
-                                    ]); // Reset specific fields
-                                    setInitialDate("");
-                                    setFinishDate("");
-                                    setData([]);
+                              <ConfigProvider locale={locale}>
+                                <DatePicker
+                                  style={{ width: "100%" }}
+                                  placeholder="Desde"
+                                  value={
+                                    initialDate ? dayjs(initialDate) : null
                                   }
-                                }}
-                                locale="es"
-                              />
+                                  disabledDate={(current) =>
+                                    current && current >= dayjs().endOf("day")
+                                  }
+                                  onChange={(date) => {
+                                    if (date) {
+                                      setInitialDate(date.format("YYYY-MM-DD"));
+                                    } else {
+                                      form.resetFields([
+                                        "initialDate",
+                                        "finishDate",
+                                      ]);
+                                      setInitialDate("");
+                                      setFinishDate("");
+                                      setData([]);
+                                    }
+                                  }}
+                                  format="DD/MM/YYYY"
+                                />
+                              </ConfigProvider>
                             </Form.Item>
                             <Form.Item name="finishDate">
-                              <DatePicker
-                                style={{ width: "100%" }}
-                                placeholder="Hasta"
-                                disabled={!initialDate} // Disable if initialDate is not set
-                                disabledDate={
-                                  (current) =>
+                              <ConfigProvider locale={locale}>
+                                <DatePicker
+                                  style={{ width: "100%" }}
+                                  placeholder="Hasta"
+                                  value={finishDate ? dayjs(finishDate) : null}
+                                  disabled={!initialDate}
+                                  disabledDate={(current) =>
                                     current &&
-                                    (current >= moment().endOf("day") ||
+                                    (current >= dayjs().endOf("day") ||
                                       current <
-                                        moment(initialDate).startOf("day")) // Disable dates before initial date
-                                }
-                                onChange={(x) => {
-                                  if (x) {
-                                    if (
-                                      initialDate &&
-                                      dayjs(x).format("YYYY-MM-DD") <
-                                        initialDate
-                                    ) {
-                                      notification.error({
-                                        message:
-                                          "La fecha final no puede ser menor a la fecha inicial",
-                                      });
-                                      setFinishDate("");
-                                      form.setFieldsValue({ finishDate: null }); // Clear the DatePicker value
-                                    } else {
-                                      setFinishDate(
-                                        dayjs(x).format("YYYY-MM-DD")
-                                      );
-                                    }
-                                  } else {
-                                    setFinishDate("");
-                                    setData([]);
+                                        dayjs(initialDate).startOf("day"))
                                   }
-                                }}
-                              />
+                                  onChange={(date) => {
+                                    if (date) {
+                                      if (
+                                        initialDate &&
+                                        date.format("YYYY-MM-DD") < initialDate
+                                      ) {
+                                        notification.error({
+                                          message:
+                                            "La fecha final no puede ser menor a la fecha inicial",
+                                        });
+                                        setFinishDate("");
+                                        form.setFieldsValue({
+                                          finishDate: null,
+                                        });
+                                      } else {
+                                        setFinishDate(
+                                          date.format("YYYY-MM-DD")
+                                        );
+                                        // Los datos se cargarán automáticamente por el useEffect
+                                      }
+                                    } else {
+                                      setFinishDate("");
+                                      setData([]);
+                                    }
+                                  }}
+                                  format="DD/MM/YYYY"
+                                />
+                              </ConfigProvider>
                             </Form.Item>
                           </Form>
-                          <Button
-                            type="primary"
-                            icon={<TableOutlined />}
-                            disabled={!initialDate || !finishDate}
-                            style={{
-                              textAlign: "left",
-                              backgroundColor:
-                                !initialDate || !finishDate
-                                  ? "#D9D9D9"
-                                  : "#1F3461",
-                              color:
-                                !initialDate || !finishDate
-                                  ? "#1F3461"
-                                  : "white",
-                              borderColor: "#1F3461",
-                            }}
-                            onClick={getData}
-                          >
-                            Previsualizar reporte
-                          </Button>
 
                           <Button
                             icon={<ClearOutlined />}
@@ -390,17 +383,17 @@ const Reports = () => {
                         {
                           title: "Acumulado (m³)",
                           dataIndex: "total",
-                          render: (a) => numberForMiles.format(a),
+                          render: (a) => formatVolume(a),
                         },
                         {
                           title: "Acumulado/hora (m³)",
                           dataIndex: "total_diff",
-                          render: (a) => numberForMiles.format(a),
+                          render: (a) => formatVolume(a),
                         },
                         {
                           title: "Contador diario (m³)",
                           dataIndex: "total_today_diff",
-                          render: (a) => numberForMiles.format(a),
+                          render: (a) => formatVolume(a),
                         },
                         {
                           title: () => "Nivel Freático (m)",
@@ -425,51 +418,64 @@ const Reports = () => {
                     <Form form={form} layout="vertical">
                       <Col style={{ paddingTop: "20px" }}>
                         <Form.Item name="initialDate">
-                          <DatePicker
-                            style={{ width: "100%" }}
-                            placeholder="Selecciona una fecha inicial"
-                            disabledDate={(current) =>
-                              current && current >= moment().endOf("day")
-                            }
-                            onSelect={(x) => {
-                              setInitialDate(dayjs(x).format("YYYY-MM-DD"));
-                            }}
-                          />
+                          <ConfigProvider locale={locale}>
+                            <DatePicker
+                              style={{ width: "100%" }}
+                              placeholder="Selecciona una fecha inicial"
+                              value={initialDate ? dayjs(initialDate) : null}
+                              disabledDate={(current) =>
+                                current && current >= dayjs().endOf("day")
+                              }
+                              onChange={(date) => {
+                                if (date) {
+                                  setInitialDate(date.format("YYYY-MM-DD"));
+                                }
+                              }}
+                              format="DD/MM/YYYY"
+                            />
+                          </ConfigProvider>
                         </Form.Item>
                       </Col>
                       <Col style={{ paddingTop: "-20px" }}>
                         <Form.Item name="finishDate">
-                          <DatePicker
-                            style={{ width: "100%" }}
-                            placeholder="Selecciona una fecha final"
-                            disabled={!initialDate}
-                            disabledDate={(current) =>
-                              current &&
-                              (current >= moment().endOf("day") ||
-                                current < moment(initialDate).startOf("day"))
-                            }
-                            onSelect={(x) => {
-                              if (
-                                initialDate &&
-                                dayjs(x).format("YYYY-MM-DD") <= initialDate
-                              ) {
-                                notification.error({
-                                  placement:
-                                    window.innerWidth < 900
-                                      ? "bottom"
-                                      : "topRight", // Defaulting to topRight for larger screens
-                                  style: { zIndex: 1000000 },
-                                  closeIcon: <></>,
-                                  message:
-                                    "La fecha final no puede ser menor o igual a la fecha inicial",
-                                });
-                                setFinishDate("");
-                                form.setFieldsValue({ finishDate: null });
-                              } else {
-                                setFinishDate(dayjs(x).format("YYYY-MM-DD"));
+                          <ConfigProvider locale={locale}>
+                            <DatePicker
+                              style={{ width: "100%" }}
+                              placeholder="Selecciona una fecha final"
+                              value={finishDate ? dayjs(finishDate) : null}
+                              disabled={!initialDate}
+                              disabledDate={(current) =>
+                                current &&
+                                (current >= dayjs().endOf("day") ||
+                                  current < dayjs(initialDate).startOf("day"))
                               }
-                            }}
-                          />
+                              onChange={(date) => {
+                                if (date) {
+                                  if (
+                                    initialDate &&
+                                    date.format("YYYY-MM-DD") <= initialDate
+                                  ) {
+                                    notification.error({
+                                      placement:
+                                        window.innerWidth < 900
+                                          ? "bottom"
+                                          : "topRight",
+                                      style: { zIndex: 1000000 },
+                                      closeIcon: <></>,
+                                      message:
+                                        "La fecha final no puede ser menor o igual a la fecha inicial",
+                                    });
+                                    setFinishDate("");
+                                    form.setFieldsValue({ finishDate: null });
+                                  } else {
+                                    setFinishDate(date.format("YYYY-MM-DD"));
+                                    // Los datos se cargarán automáticamente por el useEffect
+                                  }
+                                }
+                              }}
+                              format="DD/MM/YYYY"
+                            />
+                          </ConfigProvider>
                         </Form.Item>
                       </Col>
                     </Form>
@@ -489,24 +495,6 @@ const Reports = () => {
                         </b>
                       </>
                     )}
-                    <Button
-                      type="primary"
-                      icon={<TableOutlined />}
-                      block={false}
-                      disabled={!initialDate || !finishDate}
-                      style={{
-                        width: "100%",
-                        textAlign: "left",
-                        backgroundColor:
-                          !initialDate || !finishDate ? "#D9D9D9" : "#1F3461",
-                        color:
-                          !initialDate || !finishDate ? "#1F3461" : "white",
-                        borderColor: "#1F3461",
-                      }}
-                      onClick={getData}
-                    >
-                      Previsualizar reporte
-                    </Button>
                   </Col>
                   <Col
                     span={24}
@@ -577,12 +565,13 @@ const Reports = () => {
                   paddingRight: "10px",
                 }}
               >
-                {/* Tabs are removed here as they were part of the 'main' branch conflict and not present in the 'ikolu_sma' table structure */}
+                {/* Tabla con scroll horizontal solo en móvil */}
                 <Table
                   title={() => "Datos del Reporte"}
                   bordered
                   size={"small"}
                   loading={loadingTab1}
+                  scroll={{ x: 800 }} // Scroll horizontal solo para móvil
                   pagination={{
                     total: total,
                     pageSize: 10,
@@ -597,35 +586,41 @@ const Reports = () => {
                     {
                       title: "Fecha",
                       dataIndex: "date_time_medition",
+                      width: 120,
                       render: (date) => {
                         // Assuming date_time_medition still contains full timestamp, if not,
                         // this render will need adjustment based on the actual data format from API
-                        return moment(date).format("YYYY-MM-DD HH:mm");
+                        return moment(date).format("DD/MM HH:mm");
                       },
                     },
                     {
                       title: "Caudal (L/s)",
                       dataIndex: "flow",
+                      width: 100,
                       render: (a) => parseFloat(a).toFixed(2), // Ensure consistent formatting
                     },
                     {
                       title: "Acumulado (m³)",
                       dataIndex: "total",
-                      render: (a) => numberForMiles.format(a),
+                      width: 120,
+                      render: (a) => formatVolume(a),
                     },
                     {
-                      title: "Acumulado/hora (m³)",
+                      title: "Acum./hora (m³)",
                       dataIndex: "total_diff",
-                      render: (a) => numberForMiles.format(a),
+                      width: 120,
+                      render: (a) => formatVolume(a),
                     },
                     {
-                      title: "Contador diario (m³)",
+                      title: "Cont. diario (m³)",
                       dataIndex: "total_today_diff",
-                      render: (a) => numberForMiles.format(a),
+                      width: 130,
+                      render: (a) => formatVolume(a),
                     },
                     {
                       title: "Nivel Freático (m)",
                       dataIndex: "water_table",
+                      width: 130,
                       render: (a) => parseFloat(a).toFixed(2), // Ensure consistent formatting
                     },
                   ]}

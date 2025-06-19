@@ -5,12 +5,21 @@ import {
   MessageFilled,
   ClearOutlined,
   CheckCircleOutlined,
+  CalendarOutlined,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
 import sh from "../../api/sh/endpoints";
 const TableSupport = ({ data }) => {
   const { state } = useContext(AppContext);
   const selected = state.selected_profile;
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  // Detectar si es móvil
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const GetComments = ({ id }) => {
     const DrawerComments = ({ id }) => {
@@ -105,13 +114,21 @@ const TableSupport = ({ data }) => {
                 type="primary"
                 htmlType="submit"
                 icon={<MessageFilled />}
-                style={{ marginRight: "10px" }}
+                style={{
+                  marginRight: "10px",
+                  backgroundColor: "#FF6B35",
+                  borderColor: "#FF6B35",
+                }}
               >
                 Enviar
               </Button>
               <Button
                 onClick={() => form.resetFields()}
                 icon={<ClearOutlined />}
+                style={{
+                  borderColor: "#1F3461",
+                  color: "#1F3461",
+                }}
               >
                 Limpiar
               </Button>
@@ -120,8 +137,14 @@ const TableSupport = ({ data }) => {
           <Button
             type="primary"
             icon={<MessageFilled />}
+            size="small"
             onClick={() => {
               setVisible(true);
+            }}
+            style={{
+              backgroundColor: "#1F3461",
+              borderColor: "#1F3461",
+              borderRadius: "20px",
             }}
           >
             comentarios ({countComments})
@@ -140,17 +163,58 @@ const TableSupport = ({ data }) => {
   return (
     <Table
       bordered
+      scroll={isMobile ? { x: 600 } : undefined}
+      size={isMobile ? "small" : "middle"}
       columns={[
+        {
+          title: "Creado",
+          dataIndex: "created",
+          key: "created",
+          width: isMobile ? 150 : undefined,
+          render: (text, record) => {
+            const date = new Date(record.created);
+            return (
+              <Flex align="center" gap="small">
+                <CalendarOutlined
+                  style={{ color: "#1F3461", fontSize: "16px" }}
+                />
+                <div style={{ fontSize: "12px", color: "#666" }}>
+                  {date.toLocaleDateString()}
+                  <br />
+                  {date.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </div>
+              </Flex>
+            );
+          },
+        },
         {
           title: "Ticket",
           dataIndex: "id",
           key: "id",
+          width: isMobile ? 150 : undefined,
           render: (text, record) => (
             <Flex gap="small" align="center">
               <CheckCircleFilled style={{ color: "green" }} />
-              {selected.title.slice(0, 3).toUpperCase()}SUP
-              {record.id}
-              <h3 style={{ marginLeft: "10px" }}>{record.title}</h3>
+              <div
+                style={{
+                  backgroundColor: "#52C41A",
+                  color: "white",
+                  padding: "4px 12px",
+                  borderRadius: "20px",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  textAlign: "center",
+                  boxShadow: "0 2px 4px rgba(82, 196, 26, 0.3)",
+                }}
+              >
+                {selected.title.slice(0, 3).toUpperCase()}SUP{record.id}
+              </div>
+              {!isMobile && (
+                <h3 style={{ marginLeft: "10px" }}>{record.title}</h3>
+              )}
             </Flex>
           ),
         },
@@ -158,31 +222,14 @@ const TableSupport = ({ data }) => {
           title: "Requerimiento",
           dataIndex: "message",
           key: "Mensaje",
+          width: isMobile ? 250 : undefined,
           render: (text, record) => (
             <Flex gap="small" vertical>
-              <p>{record.message}</p>
+              <p style={{ fontSize: isMobile ? "12px" : "14px" }}>
+                {record.message}
+              </p>
               <GetComments id={record.id} />
             </Flex>
-          ),
-        },
-        {
-          title: "Creado",
-          dataIndex: "created",
-          key: "created",
-          render: (text, record) => {
-            const date = new Date(record.created);
-            return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}`;
-          },
-        },
-        {
-          title: "Finalizado",
-          dataIndex: "status",
-          key: "status",
-          render: (text, record) => (
-            <Tag color="green-inverse">{record.end_date}</Tag>
           ),
         },
       ]}

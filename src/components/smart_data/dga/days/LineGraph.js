@@ -8,41 +8,20 @@ const commonConfig = {
         var time = `${text.slice(11, 16)} hrs`;
         return time;
       },
-      style: {
-        fill: "#000000", // Color blanco para el texto
-      },
     },
     title: {
       text: "Hora",
-      style: {
-        fontSize: 14,
-        fontWeight: "bold",
-        fill: "#000000", // Color blanco para el texto
-      },
     },
   },
   yAxis: {
     label: {
       formatter: (text) => parseFloat(text).toLocaleString("es-CL"),
-      style: {
-        fill: "#000000", // Color blanco para el texto
-      },
     },
-    title: {
-      style: {
-        fontSize: 14,
-        fontWeight: "bold",
-        fill: "#000000", // Color blanco para el texto
-      },
-    },
+    title: {},
   },
   legend: {
     position: "top-right",
-    itemName: {
-      style: {
-        fill: "#000000", // Color blanco para el texto
-      },
-    },
+    itemName: {},
   },
   point: {
     size: 4,
@@ -88,9 +67,6 @@ export const FlowArea = ({ data, limitFlow }) => {
 
       title: {
         text: "Caudal (lt/s)",
-        style: {
-          fill: "#FFFFFF", // Color blanco para el texto
-        },
       },
     },
     annotations: [
@@ -106,13 +82,14 @@ export const FlowArea = ({ data, limitFlow }) => {
           content: `Caudal autorizado: ${limitFlow} lt/s`,
           position: "center",
           style: {
-            fill: "#eb3c46",
+            fill: "rgb(31, 52, 97)",
             fontSize: 12,
             fontWeight: "bold",
           },
         },
       },
     ],
+    color: "rgb(31, 52, 97)",
   };
   return <Area {...config} />;
 };
@@ -129,6 +106,7 @@ export const TotalLine = ({ data, limitTotal }) => {
     yField: "total",
     seriesField: "total",
     smooth: true,
+    color: "rgb(31, 52, 97)",
     meta: {
       flow: { alias: "Acumulado (m³)" },
       date_time_medition: { alias: "Fecha/hora medición" },
@@ -153,12 +131,8 @@ export const TotalLine = ({ data, limitTotal }) => {
           : Math.min(...data.map((d) => d.total)),
       title: {
         text: "Acumulado (m³)",
-        style: {
-          fill: "#FFFFFF", // Color blanco para el texto
-        },
       },
     },
-    color: "rgb(31, 52, 97)", // Azul color agua
   };
   return <Line {...config} />;
 };
@@ -174,6 +148,7 @@ export const TotalHour = ({ data }) => {
     yField: "total_diff",
     seriesField: "total_diff",
     smooth: true,
+    color: "rgb(31, 52, 97)",
     meta: {
       flow: { alias: "Consumo (m³/h)" },
       date_time_medition: { alias: "Fecha/hora medición" },
@@ -188,12 +163,9 @@ export const TotalHour = ({ data }) => {
     yAxis: {
       ...commonConfig.yAxis,
       min: Math.min(...data.map((d) => d.total_diff)),
-      max: Math.max(...data.map((d) => d.total_diff)),
+      max: Math.max(...data.map((d) => d.total_diff)) + 5,
       title: {
         text: "Consumo (m³/h)",
-        style: {
-          fill: "#FFFFFF", // Color blanco para el texto
-        },
       },
     },
   };
@@ -270,7 +242,7 @@ export const WaterTableBar = ({ data }) => {
       },
       inverse: true, // Invertir el eje Y
     },
-    color: "rgb(0, 123, 255)", // Azul color agua
+    color: "rgb(31, 52, 97)", // Azul color agua
   };
   return <Area {...config} />;
 };

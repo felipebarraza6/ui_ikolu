@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {
   Tag,
   Table,
@@ -10,6 +10,8 @@ import {
   Upload,
   Form,
   message,
+  Row,
+  Col,
 } from "antd";
 import {
   ClearOutlined,
@@ -29,12 +31,25 @@ import { type } from "@testing-library/user-event/dist/type";
 
 const DocRes = () => {
   const { state } = useContext(AppContext);
+  const [isMobile, setIsMobile] = useState(false);
 
   const [form] = Form.useForm();
   const selected = state.selected_profile;
   const [files, setFiles] = useState(selected.modules.files);
   console.log(selected.profile_ikolu.m5);
   const activate = selected.profile_ikolu.m5;
+
+  // Detectar si es móvil
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const onDelete = async (id) => {
     const rq = await sh.deleteFile(id).then((res) => {
@@ -66,57 +81,41 @@ const DocRes = () => {
   };
 
   return (
-    <Flex
-      justify={"start"}
-      align="start"
-      gap={"small"}
+    <div
       style={{
         minHeight: "90vh",
-        borderRadius: "8px",
-        background:
-          "radial-gradient(circle, rgba(31,36,45,1) 0%, rgba(53,73,110,1) 100%)",
+        padding: isMobile ? "10px" : "20px",
+        backgroundColor: "#f5f5f5",
       }}
     >
-      <Flex
-        gap="large"
-        vertical
-        align="center"
-        justify="center"
-        style={{ width: "100%", paddingLeft: "10px", paddingRight: "10px" }}
-      >
-        <Flex
-          hoverable
-          style={{
-            borderRadius: "0px 0px 10px 10px",
-            paddingBottom: "10px",
-            paddingLeft: "10px",
-            background:
-              "linear-gradient(39deg, rgba(222,222,222,1) 0%, rgba(217,221,230,1) 77%)",
-            paddingTop: "10px",
-
-            transition: "transform 0.3s ease-in-out",
-            hover: {
-              transform: "scale(1.05)",
-            },
-          }}
-        >
-          <Flex vertical>
-            <span
-              style={{ color: "#4d628c", fontSize: "18px", fontWeight: "500" }}
-            >
-              Subir archivo
-            </span>
+      <Row gutter={[16, 16]} justify="center">
+        {/* Formulario de subida */}
+        <Col xs={24} sm={24} md={8} lg={8} xl={6}>
+          <Card
+            style={{
+              borderRadius: "10px",
+              background: "white",
+              height: "fit-content",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            }}
+            bodyStyle={{ padding: isMobile ? "16px" : "24px" }}
+          >
+            <div style={{ marginBottom: "16px" }}>
+              <span
+                style={{
+                  color: "#4d628c",
+                  fontSize: isMobile ? "16px" : "18px",
+                  fontWeight: "500",
+                }}
+              >
+                Subir archivo
+              </span>
+            </div>
             <Form
               form={form}
               onFinish={onCreate}
-              layout="inline"
-              style={{
-                width: "100%",
-                flex: 1,
-
-                borderRadius: "8px",
-                padding: "8px",
-              }}
+              layout="vertical"
+              style={{ width: "100%" }}
             >
               <Form.Item
                 name="name"
@@ -126,17 +125,20 @@ const DocRes = () => {
               >
                 <Input
                   addonBefore={<FileAddOutlined style={{ color: "#4d628c" }} />}
-                  size="large"
+                  size={isMobile ? "middle" : "large"}
                   placeholder="Nombre archivo"
+                  style={{ width: "100%" }}
                 />
               </Form.Item>
+
               <Form.Item name="description">
                 <Input.TextArea
                   placeholder="Descripción del archivo"
-                  rows={2}
-                  cols={25}
+                  rows={3}
+                  style={{ width: "100%" }}
                 />
               </Form.Item>
+
               <Form.Item
                 name="file"
                 rules={[{ required: true, message: "Archivo requerido" }]}
@@ -151,13 +153,14 @@ const DocRes = () => {
                         alignItems: "center",
                         backgroundColor: "#f0f0f0",
                         borderRadius: "4px",
-                        width: "117px",
+                        width: "100%",
                         marginTop: "8px",
+                        padding: "8px",
                       }}
                     >
-                      <span style={{ flex: 1, fontSize: "11px" }}>
-                        {file.name.length > 15
-                          ? `${file.name.slice(0, 15)}...`
+                      <span style={{ flex: 1, fontSize: "12px" }}>
+                        {file.name.length > 20
+                          ? `${file.name.slice(0, 20)}...`
                           : file.name}
                       </span>
                       <Button
@@ -166,7 +169,7 @@ const DocRes = () => {
                         onClick={() => actions.remove(file)}
                         icon={
                           <DeleteOutlined
-                            style={{ fontSize: "11px", color: "red" }}
+                            style={{ fontSize: "12px", color: "red" }}
                           />
                         }
                       />
@@ -185,64 +188,83 @@ const DocRes = () => {
                     size="small"
                     style={{
                       width: "100%",
-                      background:
-                        "linear-gradient(39deg, rgba(112,133,172,1) 0%, rgba(77,98,140,1) 77%)",
+                      backgroundColor: "#1F3461",
+                      cursor: "pointer",
+                      border: "none",
                     }}
+                    bodyStyle={{ padding: "12px", textAlign: "center" }}
                   >
-                    <Button size="small" style={{ color: "white" }} type="link">
-                      <Flex gap="small" align="center">
-                        <PaperClipOutlined />
-                        <span>Adjuntar</span>
-                      </Flex>
-                    </Button>
+                    <Flex gap="small" align="center" justify="center">
+                      <PaperClipOutlined style={{ color: "white" }} />
+                      <span style={{ color: "white" }}>Adjuntar</span>
+                    </Flex>
                   </Card>
                 </Upload>
               </Form.Item>
-              <Form.Item>
-                <Flex vertical gap="small">
-                  <Button
-                    type="primary"
-                    icon={<CloudSyncOutlined />}
-                    htmlType="submit"
-                    disabled={files.length >= 3}
-                    size="small"
-                  >
-                    Aceptar
-                  </Button>
-                  <Button
-                    type="default"
-                    onClick={() => form.resetFields()}
-                    size="small"
-                    icon={<ClearOutlined />}
-                  >
-                    Limpiar
-                  </Button>
-                </Flex>
+
+              <Form.Item style={{ marginBottom: 0 }}>
+                <Row gutter={8}>
+                  <Col span={12}>
+                    <Button
+                      type="primary"
+                      icon={<CloudSyncOutlined />}
+                      htmlType="submit"
+                      disabled={files.length >= 3}
+                      size={isMobile ? "middle" : "small"}
+                      style={{
+                        width: "100%",
+                        backgroundColor: "#1F3461",
+                        borderColor: "#1F3461",
+                      }}
+                    >
+                      Aceptar
+                    </Button>
+                  </Col>
+                  <Col span={12}>
+                    <Button
+                      type="default"
+                      onClick={() => form.resetFields()}
+                      size={isMobile ? "middle" : "small"}
+                      icon={<ClearOutlined />}
+                      style={{ width: "100%" }}
+                    >
+                      Limpiar
+                    </Button>
+                  </Col>
+                </Row>
               </Form.Item>
             </Form>
-          </Flex>
-        </Flex>
-        <Flex vertical gap="small" style={{ width: "70%" }}>
-          <Card
-            title={`Documentación ${selected.title} `}
-            style={{
-              width: "100%",
-              background:
-                "linear-gradient(39deg, rgba(31,36,45,0.06206232492997199) 0%, rgba(100,104,111,1) 100%)",
-            }}
-            headStyle={{ color: "white" }}
-            extra={
-              <span style={{ color: "white" }}>
-                {files.length} Documentos cargados
-              </span>
-            }
-          >
-            <Flex gap={"small"} style={{ width: "100%" }}>
-              <Flex style={{ width: "100%" }}>
+          </Card>
+        </Col>
+
+        {/* Documentos cargados */}
+        <Col xs={24} sm={24} md={16} lg={16} xl={18}>
+          <Row gutter={[16, 16]}>
+            {/* Documentación del usuario */}
+            <Col span={24}>
+              <Card
+                title={`Documentación ${selected.title}`}
+                style={{
+                  width: "100%",
+                  backgroundColor: "#1F3461",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                }}
+                headStyle={{
+                  color: "white",
+                  borderBottom: "1px solid rgba(255,255,255,0.2)",
+                }}
+                bodyStyle={{ backgroundColor: "white" }}
+                extra={
+                  <span style={{ color: "white" }}>
+                    {files.length} Documentos cargados
+                  </span>
+                }
+              >
                 <Table
                   size="small"
                   pagination={false}
                   style={{ width: "100%" }}
+                  scroll={isMobile ? { x: 600 } : undefined}
                   dataSource={files.filter(
                     (file) => file.type_file.name === "General"
                   )}
@@ -250,14 +272,22 @@ const DocRes = () => {
                     {
                       title: "#",
                       dataIndex: "title",
+                      width: 40,
                       render: () => <FileOutlined />,
                     },
-                    { title: "Nombre", dataIndex: "name" },
+                    {
+                      title: "Nombre",
+                      dataIndex: "name",
+                      width: isMobile ? 120 : undefined,
+                      ellipsis: true,
+                    },
                     {
                       title: "Descripción",
                       dataIndex: "description",
+                      width: isMobile ? 150 : undefined,
+                      ellipsis: true,
                       render: (description) => {
-                        if (description === "undefined") {
+                        if (description === "undefined" || !description) {
                           return "Sin descripción";
                         } else {
                           return description;
@@ -265,8 +295,10 @@ const DocRes = () => {
                       },
                     },
                     {
+                      title: "Acciones",
+                      width: isMobile ? 180 : undefined,
                       render: (obj) => (
-                        <Flex gap="small">
+                        <Flex gap="small" wrap>
                           <Button
                             type="primary"
                             shape="round"
@@ -278,8 +310,12 @@ const DocRes = () => {
                               )
                             }
                             size="small"
+                            style={{
+                              backgroundColor: "#1F3461",
+                              borderColor: "#1F3461",
+                            }}
                           >
-                            Descargar
+                            {isMobile ? "" : "Descargar"}
                           </Button>
                           <Popconfirm
                             title="¿Estás seguro?"
@@ -292,7 +328,7 @@ const DocRes = () => {
                               shape="round"
                               icon={<DeleteOutlined />}
                             >
-                              Eliminar
+                              {isMobile ? "" : "Eliminar"}
                             </Button>
                           </Popconfirm>
                         </Flex>
@@ -300,51 +336,83 @@ const DocRes = () => {
                     },
                   ]}
                 />
-              </Flex>
-              <Flex vertical gap="small"></Flex>
-            </Flex>
-          </Card>
+              </Card>
+            </Col>
 
-          <Card
-            title={`Gestión Documental Smart Hydro `}
-            style={{
-              width: "100%",
-              background:
-                "linear-gradient(12deg, rgba(31,36,45,0.4) 0%, rgba(53,73,110,1) 100%)",
-              marginBottom: "30px",
-            }}
-            headStyle={{ color: "white" }}
-            extra={<img src={logo} style={{ width: "100px" }} />}
-          >
-            <Table
-              size="small"
-              pagination={false}
-              dataSource={files.filter(
-                (file) => file.type_file.name === "Internos"
-              )}
-              columns={[
-                {
-                  title: "#",
-                  dataIndex: "title",
-                  render: () => <FileOutlined />,
-                },
-                { title: "Nombre", dataIndex: "name" },
-
-                {
-                  title: "Descripción",
-                  dataIndex: "description",
-                  render: (description) => description || "Sin descripción",
-                },
-                {
-                  dataIndex: "file",
-                  render: () => <Button>Descargar</Button>,
-                },
-              ]}
-            />
-          </Card>
-        </Flex>
-      </Flex>
-    </Flex>
+            {/* Gestión Documental Smart Hydro */}
+            <Col span={24}>
+              <Card
+                title="Gestión Documental Smart Hydro"
+                style={{
+                  width: "100%",
+                  backgroundColor: "rgba(31, 52, 97, 0.7)",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                }}
+                headStyle={{
+                  color: "white",
+                  borderBottom: "1px solid rgba(255,255,255,0.2)",
+                }}
+                bodyStyle={{ backgroundColor: "white" }}
+                extra={
+                  <img
+                    src={logo}
+                    style={{ width: isMobile ? "80px" : "100px" }}
+                    alt="Smart Hydro Logo"
+                  />
+                }
+              >
+                <Table
+                  size="small"
+                  pagination={false}
+                  scroll={isMobile ? { x: 500 } : undefined}
+                  dataSource={files.filter(
+                    (file) => file.type_file.name === "Internos"
+                  )}
+                  columns={[
+                    {
+                      title: "#",
+                      dataIndex: "title",
+                      width: 40,
+                      render: () => <FileOutlined />,
+                    },
+                    {
+                      title: "Nombre",
+                      dataIndex: "name",
+                      width: isMobile ? 120 : undefined,
+                      ellipsis: true,
+                    },
+                    {
+                      title: "Descripción",
+                      dataIndex: "description",
+                      width: isMobile ? 150 : undefined,
+                      ellipsis: true,
+                      render: (description) => description || "Sin descripción",
+                    },
+                    {
+                      title: "Acciones",
+                      dataIndex: "file",
+                      width: isMobile ? 100 : undefined,
+                      render: () => (
+                        <Button
+                          size="small"
+                          style={{
+                            backgroundColor: "#1F3461",
+                            borderColor: "#1F3461",
+                            color: "white",
+                          }}
+                        >
+                          Descargar
+                        </Button>
+                      ),
+                    },
+                  ]}
+                />
+              </Card>
+            </Col>
+          </Row>
+        </Col>
+      </Row>
+    </div>
   );
 };
 

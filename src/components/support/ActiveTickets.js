@@ -23,7 +23,13 @@ import sh from "../../api/sh/endpoints";
 const ActiveTickets = ({ data }) => {
   const { state } = useContext(AppContext);
   const selected = state.selected_profile;
-  console.log(state);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const GetComments = ({ id }) => {
     const DrawerComments = ({ id }) => {
@@ -83,7 +89,7 @@ const ActiveTickets = ({ data }) => {
                         gap="small"
                         justify="space-between"
                         style={{
-                          backgroundColor: "#1f3461",
+                          backgroundColor: "#1F3461",
                           color: "white",
                           paddingLeft: "10px",
                           borderRadius: "5px 5px 0px 0px",
@@ -98,7 +104,7 @@ const ActiveTickets = ({ data }) => {
 
                       <Flex
                         style={{
-                          border: "1px solid #1f3461",
+                          border: "1px solid #1F3461",
                           padding: "15px",
                           borderRadius: "0px 0px 5px 5px",
                         }}
@@ -118,13 +124,21 @@ const ActiveTickets = ({ data }) => {
                 type="primary"
                 htmlType="submit"
                 icon={<MessageFilled />}
-                style={{ marginRight: "10px" }}
+                style={{
+                  marginRight: "10px",
+                  backgroundColor: "#FF6B35",
+                  borderColor: "#FF6B35",
+                }}
               >
                 Enviar
               </Button>
               <Button
                 onClick={() => form.resetFields()}
                 icon={<ClearOutlined />}
+                style={{
+                  borderColor: "#1F3461",
+                  color: "#1F3461",
+                }}
               >
                 Limpiar
               </Button>
@@ -133,8 +147,14 @@ const ActiveTickets = ({ data }) => {
           <Button
             type="primary"
             icon={<MessageFilled />}
+            size="small"
             onClick={() => {
               setVisible(true);
+            }}
+            style={{
+              backgroundColor: "#1F3461",
+              borderColor: "#1F3461",
+              borderRadius: "20px",
             }}
           >
             comentarios ({countComments})
@@ -154,15 +174,28 @@ const ActiveTickets = ({ data }) => {
     <Table
       dataSource={data}
       size="small"
+      scroll={isMobile ? { x: 700 } : undefined}
+      pagination={false}
       columns={[
         {
           title: "Ticket",
+          width: isMobile ? 120 : undefined,
           render: (text, record) => (
             <Flex gap="small">
-              <Tag color="blue-inverse">
-                {selected.title.slice(0, 3).toUpperCase()}SUP
-                {record.id}
-              </Tag>
+              <div
+                style={{
+                  backgroundColor: "#FF6B35",
+                  color: "white",
+                  padding: "4px 12px",
+                  borderRadius: "20px",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  textAlign: "center",
+                  boxShadow: "0 2px 4px rgba(255, 107, 53, 0.3)",
+                }}
+              >
+                {selected.title.slice(0, 3).toUpperCase()}SUP{record.id}
+              </div>
             </Flex>
           ),
         },
@@ -170,10 +203,12 @@ const ActiveTickets = ({ data }) => {
           title: "Información",
           dataIndex: "title",
           key: "title",
+          width: isMobile ? 200 : undefined,
           render: (text, record) => (
             <Flex gap="small" vertical>
               <Button
                 icon={<FileTextFilled />}
+                size="small"
                 onClick={() => {
                   Modal.info({
                     title: "Mensaje",
@@ -185,8 +220,14 @@ const ActiveTickets = ({ data }) => {
                     onOk() {},
                   });
                 }}
+                style={{
+                  backgroundColor: "#F0F2F5",
+                  borderColor: "#D9D9D9",
+                  color: "#1F3461",
+                  borderRadius: "6px",
+                }}
               >
-                Mensaje adjunto
+                {isMobile ? "Ver" : "Mensaje adjunto"}
               </Button>
               <GetComments id={record.id} />
             </Flex>
@@ -194,38 +235,86 @@ const ActiveTickets = ({ data }) => {
         },
         {
           title: "Creado",
+          width: isMobile ? 120 : undefined,
           render: (text, record) => {
             const date = new Date(record.created);
-            return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}`;
+            return (
+              <div style={{ fontSize: "12px", color: "#666" }}>
+                {date.toLocaleDateString()}
+                <br />
+                {date.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </div>
+            );
           },
         },
         {
           title: "Status",
           dataIndex: "status",
-          align: "end",
+          align: "center",
           key: "status",
+          width: isMobile ? 150 : undefined,
           render: (text, record) => (
-            <Flex>
+            <Flex justify="center">
               {record.is_read ? (
                 <>
                   {record.is_wait ? (
-                    <Tag color="geekblue-inverse">
-                      Esperando retroalimentación
-                    </Tag>
+                    <div
+                      style={{
+                        backgroundColor: "#722ED1",
+                        color: "white",
+                        padding: "4px 8px",
+                        borderRadius: "12px",
+                        fontSize: "11px",
+                        fontWeight: "500",
+                        textAlign: "center",
+                        boxShadow: "0 2px 4px rgba(114, 46, 209, 0.3)",
+                      }}
+                    >
+                      {isMobile ? "Esperando" : "Esperando retroalimentación"}
+                    </div>
                   ) : (
-                    <Tag icon={<FileFilled />} color="green-inverse">
-                      Desarrollando solución
-                    </Tag>
+                    <div
+                      style={{
+                        backgroundColor: "#52C41A",
+                        color: "white",
+                        padding: "4px 8px",
+                        borderRadius: "12px",
+                        fontSize: "11px",
+                        fontWeight: "500",
+                        textAlign: "center",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        boxShadow: "0 2px 4px rgba(82, 196, 26, 0.3)",
+                      }}
+                    >
+                      <FileFilled />
+                      {isMobile ? "En desarrollo" : "Desarrollando solución"}
+                    </div>
                   )}
                 </>
               ) : (
-                <Tag color="blue">
-                  <LoadingOutlined style={{ marginRight: "10px" }} /> en
-                  revisión
-                </Tag>
+                <div
+                  style={{
+                    backgroundColor: "#1F3461",
+                    color: "white",
+                    padding: "4px 8px",
+                    borderRadius: "12px",
+                    fontSize: "11px",
+                    fontWeight: "500",
+                    textAlign: "center",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    boxShadow: "0 2px 4px rgba(31, 52, 97, 0.3)",
+                  }}
+                >
+                  <LoadingOutlined />
+                  {isMobile ? "Revisión" : "En revisión"}
+                </div>
               )}
             </Flex>
           ),

@@ -23,6 +23,17 @@ const MyLastRegisters = () => {
           background:
             "radial-gradient(circle, rgba(31,52,97,1) 0%, rgba(31,52,97,0.8267900910364145) 100%)",
         }}
+        styles={{
+          wrapper: {
+            zIndex: 99999,
+          },
+          mask: {
+            zIndex: 99998,
+          },
+          content: {
+            zIndex: 99999,
+          },
+        }}
         width={700}
         onClose={() => setVisible(false)}
         closeIcon={<CloseCircleFilled style={{ color: "white" }} />}
@@ -35,7 +46,11 @@ const MyLastRegisters = () => {
           <Table
             dataSource={state.selected_profile.modules.today}
             key={"id"}
+            scroll={{ x: 1000 }}
             bordered
+            style={{
+              borderRadius: "10px",
+            }}
             pagination={{
               pageSize: 10,
               nextIcon: <ArrowRightOutlined style={{ color: "white" }} />,

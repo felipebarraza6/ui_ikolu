@@ -142,6 +142,14 @@ const TableSupport = ({ data }) => {
       bordered
       columns={[
         {
+          title: "Finalizado",
+          dataIndex: "status",
+          key: "status",
+          render: (text, record) => (
+            <Tag color="green-inverse">{record.end_date}</Tag>
+          ),
+        },
+        {
           title: "Ticket",
           dataIndex: "id",
           key: "id",
@@ -176,14 +184,6 @@ const TableSupport = ({ data }) => {
               minute: "2-digit",
             })}`;
           },
-        },
-        {
-          title: "Finalizado",
-          dataIndex: "status",
-          key: "status",
-          render: (text, record) => (
-            <Tag color="green-inverse">{record.end_date}</Tag>
-          ),
         },
       ]}
       dataSource={data}

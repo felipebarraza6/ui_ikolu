@@ -25,11 +25,10 @@ const theme = {
   },
   components: {
     Tabs: {
-      colorBgContainer:
-        "radial-gradient(circle, rgba(30,48,85,1) 0%, rgba(43,46,51,1) 100%)",
+      colorBgContainer: " rgb(31, 52, 97)",
       itemSelectedColor: "white",
-      itemHoverColor: "white",
-      itemColor: "white",
+      itemHoverColor: "rgb(31, 52, 97)",
+      itemColor: "rgb(31, 52, 97)",
     },
     Badge: {
       colorInfo: "rgb(31, 52, 97)",

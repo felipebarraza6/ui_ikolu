@@ -1,10 +1,16 @@
-
-
 .pozo {
   position: relative;
-  width: 270px;
-  top:-100px;
+  width: 290px;
+  top: -100px;
   height: 500px;
+}
+
+/* Estilos para móvil - media query fuera del selector */
+@media (max-width: 768px) {
+  .pozo {
+    top: -150px;
+    margin-bottom: -100px;
+  }
 }
 
 .tierra {
@@ -117,8 +123,6 @@
   overflow: hidden; /* Para mantener las burbujas dentro del tubo */
 }
 
-
-
 .pavimento {
   position: absolute;
   top: 50%;
@@ -207,7 +211,7 @@
 }
 
 .linea-caudalimetro {
-  width: 140px;
+  width: 150px;
   height: 10px;
   background-color: #222b2c;
   border-radius: 5px;

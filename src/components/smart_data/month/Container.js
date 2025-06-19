@@ -19,6 +19,7 @@ const { TabPane } = Tabs;
 
 const Container = ({ data, dateSelected }) => {
   const [activeKey, setActiveKey] = useState("1");
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   const [maxConsumoHora, setMaxConsumoHora] = useState({
     hour: "00:00",
@@ -162,17 +163,27 @@ const Container = ({ data, dateSelected }) => {
     }
   }, [data]);
 
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <QueueAnim delay={300} duration={900} type="alpha">
-      <div key="login">
-        <Flex vertical gap="small" style={{ width: "100%" }}>
+      <div key="login" style={{ paddingTop: isMobile ? "0px" : "20px" }}>
+        <Flex
+          vertical
+          gap={isMobile ? "small" : "small"}
+          style={{ width: "100%" }}
+        >
           <>
             <Tabs
               activeKey={activeKey}
               onChange={handleTabChange}
               size="small"
               type="card"
-              style={{ width: "100%" }}
+              style={{ width: "100%", marginTop: isMobile ? "5px" : "0px" }}
               tabBarStyle={{
                 paddingTop: "5px",
                 position: "flex",
@@ -181,8 +192,7 @@ const Container = ({ data, dateSelected }) => {
                 paddingRight: "5px",
                 width: "100%",
                 borderRadius: "10px 10px 0px 0px",
-                background:
-                  "linear-gradient(90deg, rgba(89,128,55,0.40940126050420167) 0%, rgba(30,48,85,0.7763480392156863)",
+                marginBottom: isMobile ? "5px" : "16px",
               }}
             >
               <TabPane
@@ -316,7 +326,7 @@ const Container = ({ data, dateSelected }) => {
                 </Card>
               </TabPane>
             </Tabs>
-            <Flex justify="center" gap="small">
+            <Flex justify="center" gap="small" vertical={isMobile}>
               <Card
                 size="small"
                 style={styles.cardStat}

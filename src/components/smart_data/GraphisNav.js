@@ -9,6 +9,7 @@ import {
   Form,
   Button,
   Tag,
+  ConfigProvider,
 } from "antd";
 import {
   FlowArea,
@@ -30,12 +31,19 @@ import sh from "../../api/sh/endpoints";
 import ContainerDays from "./days/Container";
 import ContainerMonth from "./month/Container";
 import { type } from "@testing-library/user-event/dist/type";
+import dayjs from "dayjs";
+import locale from "antd/locale/es_ES";
+import "dayjs/locale/es";
+
+// Configurar dayjs para español
+dayjs.locale("es");
 
 const { TabPane } = Tabs;
 
 const GraphisNav = () => {
   const [activeKey, setActiveKey] = useState("1");
   const [dateType, setDateType] = useState("1");
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   const [monthMode, setMonthMode] = useState(false);
 
@@ -172,28 +180,35 @@ const GraphisNav = () => {
     }
   }, [data, monthMode]);
 
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <QueueAnim delay={300} duration={900} type="alpha">
-      <div key="login">
+      <div key="login" style={{ paddingTop: isMobile ? "0px" : "0px" }}>
         <Card
           style={{ width: "100%" }}
           headStyle={{
             borderColor: "transparent",
-            background:
-              "linear-gradient(90deg, rgba(202,215,222,1) 0%, rgba(229,236,240,1) 35%, rgba(202,215,222,1) 100%)",
+            paddingTop: isMobile ? "8px" : "16px",
+            paddingBottom: isMobile ? "8px" : "16px",
           }}
           title={
             <Flex
               gap="small"
               justify="space-between"
               style={{
-                marginTop: "8px",
-                marginBottom: "8px",
+                marginTop: isMobile ? "4px" : "8px",
+                marginBottom: isMobile ? "4px" : "8px",
               }}
+              vertical={isMobile}
             >
               <Select
                 placeholder="Tipo"
-                style={{ width: "200px" }}
+                style={{ width: isMobile ? "100%" : "200px" }}
                 defaultValue={"1"}
                 onChange={handleDateTypeChange}
                 disabled={!activate}
@@ -201,31 +216,38 @@ const GraphisNav = () => {
                 <Select.Option value="1">Diario</Select.Option>
                 <Select.Option value="2">Mensual</Select.Option>
               </Select>
-              <Form layout="inline">
-                <Form.Item rules={[{ required: true }]}>
-                  <DatePicker
-                    placeholder={dateSelected}
-                    onChange={(date) => {
-                      if (date) {
-                        setDateSelected(date.format("YYYY-MM-DD"));
+              <Form layout={isMobile ? "vertical" : "inline"}>
+                <Form.Item
+                  rules={[{ required: true }]}
+                  style={{ marginBottom: isMobile ? "8px" : "0px" }}
+                >
+                  <ConfigProvider locale={locale}>
+                    <DatePicker
+                      placeholder="Seleccionar fecha"
+                      value={dateSelected ? dayjs(dateSelected) : null}
+                      onChange={(date) => {
+                        if (date) {
+                          setDateSelected(date.format("YYYY-MM-DD"));
+                        }
+                      }}
+                      style={{ width: isMobile ? "100%" : "200px" }}
+                      picker={dateType === "1" ? "date" : "month"}
+                      disabled={!activate}
+                      disabledDate={(current) =>
+                        current && current > dayjs().endOf("day")
                       }
-                    }}
-                    style={{ width: "200px" }}
-                    picker={dateType === "1" ? "date" : "month"}
-                    disabled={!activate}
-                    todayButton="Hoy"
-                    disabledDate={(current) =>
-                      current && current > moment().endOf("day")
-                    }
-                  />
+                      format={dateType === "1" ? "DD/MM/YYYY" : "MM/YYYY"}
+                    />
+                  </ConfigProvider>
                 </Form.Item>
-                <Form.Item>
+                <Form.Item style={{ marginBottom: "0px" }}>
                   <Button
                     type="primary"
                     htmlType="submit"
                     icon={<PiAtomLight />}
                     onClick={getData}
                     disabled={!activate}
+                    style={{ width: isMobile ? "100%" : "auto" }}
                   >
                     Analizar {dateType === "1" ? "Día" : "Mes"}
                   </Button>

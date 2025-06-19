@@ -17,8 +17,9 @@ import QueueAnim from "rc-queue-anim";
 
 const { TabPane } = Tabs;
 
-const Container = ({ data }) => {
+const Container = ({ data, dateSelected }) => {
   const [activeKey, setActiveKey] = useState("1");
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   const [maxConsumoHora, setMaxConsumoHora] = useState({
     hour: "00:00",
@@ -162,9 +163,15 @@ const Container = ({ data }) => {
     }
   }, [data]);
 
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <QueueAnim delay={300} duration={900} type="alpha">
-      <div key="login">
+      <div key="login" style={{ paddingTop: isMobile ? "80px" : "20px" }}>
         <Flex vertical gap="small" style={{ width: "100%" }}>
           <>
             <Tabs
@@ -181,8 +188,7 @@ const Container = ({ data }) => {
                 paddingRight: "5px",
                 width: "100%",
                 borderRadius: "10px 10px 0px 0px",
-                background:
-                  "linear-gradient(90deg, rgba(89,128,55,0.40940126050420167) 0%, rgba(30,48,85,0.7763480392156863)",
+                background: "linear-gradient(135deg, #1F3461 0%, #2E4A7A 100%)",
               }}
             >
               <TabPane
@@ -316,7 +322,7 @@ const Container = ({ data }) => {
                 </Card>
               </TabPane>
             </Tabs>
-            <Flex justify="center" gap="small">
+            <Flex justify="center" gap="small" vertical={isMobile}>
               <Card
                 size="small"
                 style={styles.cardStat}
