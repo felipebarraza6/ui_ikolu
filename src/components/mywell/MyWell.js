@@ -25,6 +25,7 @@ import MyLastRegisters from "./MyLastRegisters";
 import sh from "../../api/sh/endpoints";
 import { BsClockHistory } from "react-icons/bs";
 import Well from "./Well";
+import dateConverter from "xlsx-populate/lib/dateConverter";
 
 const { Countdown } = Statistic;
 const { Title, Text } = Typography;
@@ -194,13 +195,14 @@ const MyWell = () => {
     onMouseEnter,
     onMouseLeave,
   }) => (
-    <Card
+    <div
       size="small"
       hoverable
       style={{
         borderRadius: "12px",
         overflow: "hidden",
         margin: "4px",
+        padding: "0px",
         boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
         height: "80px",
         transition: "all 0.3s ease",
@@ -212,13 +214,12 @@ const MyWell = () => {
       {/* Cabecera con título */}
       <div
         style={{
-          backgroundColor: "#1F3461",
-          color: "white",
-          padding: "4px 8px",
           fontSize: "11px",
           fontWeight: "600",
           textAlign: "center",
           display: "flex",
+          backgroundColor: "#1F3461",
+          color: "white",
           alignItems: "center",
           justifyContent: "center",
         }}
@@ -230,7 +231,6 @@ const MyWell = () => {
       {/* Contenido: valor centrado */}
       <div
         style={{
-          padding: "6px",
           height: "52px",
           display: "flex",
           alignItems: "center",
@@ -240,22 +240,18 @@ const MyWell = () => {
         <div style={{ textAlign: "center" }}>
           <div
             style={{
-              backgroundColor: "#1F3461",
-              color: "white",
               padding: "6px 12px",
-              borderRadius: "6px",
               fontSize: "12px",
               fontWeight: "700",
               display: "inline-block",
               minWidth: "70px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
             }}
           >
             {value} {unit}
           </div>
         </div>
       </div>
-    </Card>
+    </div>
   );
 
   if (isMobile) {
@@ -269,8 +265,18 @@ const MyWell = () => {
                 <MobileMetricCard
                   icon={<CalendarOutlined style={{ fontSize: "10px" }} />}
                   title="Última hora"
-                  value={numberForMiles.format(acumHora)}
-                  unit="(m³)"
+                  value={
+                    <Flex vertical>
+                      <Text>
+                        {lastCaption
+                          ? `${lastCaption.slice(11, 13)} ${lastCaption.slice(
+                              14,
+                              16
+                            )} hrs`
+                          : "No hay datos"}
+                      </Text>
+                    </Flex>
+                  }
                 />
               </div>
             </QueueAnim>
@@ -534,7 +540,7 @@ const MyWell = () => {
                     Última hora
                   </Title>
                   <Text style={styles.valueCard}>
-                    {numberForMiles.format(acumHora)} (m³)
+                    {lastCaption ? lastCaption.slice(0, 10) : "No hay datos"}
                   </Text>
                   <br />
                   <Text>

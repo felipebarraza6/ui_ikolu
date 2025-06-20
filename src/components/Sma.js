@@ -11,6 +11,8 @@ import {
   Button,
   Typography,
   Form,
+  Row,
+  Col,
 } from "antd";
 import moment from "moment";
 import {
@@ -22,13 +24,16 @@ import {
   SearchOutlined,
   CalendarFilled,
   CalendarOutlined,
+  WifiOutlined,
 } from "@ant-design/icons";
 import sh from "../api/sh/endpoints";
+import { useResponsive } from "../hooks/useResponsive";
 
 const { Title } = Typography;
 
 const Sma = () => {
   const { state } = useContext(AppContext);
+  const { isMobile, getSpacing, getColSpan, getTableScroll } = useResponsive();
   const [selected, setSelect] = useState(state.user.catchment_points[0].id);
   const [loadingExcel, setLoadingExcel] = useState(false);
   const [dataSelected, setDataSelected] = useState(state.selected_profile);
@@ -39,7 +44,6 @@ const Sma = () => {
   const [data, setData] = useState(state.selected_profile.modules.today);
   const [countApi, setCountApi] = useState(0);
   const activate = state.selected_profile.profile_ikolu.m3;
-  console.log(activate);
 
   const getResults = async () => {
     const formatDateTime = (date) => {
@@ -70,20 +74,15 @@ const Sma = () => {
       formatDateTime(finishDate),
       page
     );
-    console.log(rq);
     setCountApi(rq.count);
     setData(rq.results);
   };
 
   const downloadDataToExcel = async () => {
     setLoadingExcel(true);
-    console.log(initialDate, finishDate);
     var date_i = new Date(initialDate).toISOString().split("T")[0];
     var date_f = new Date(finishDate).toISOString().split("T")[0];
 
-    console.log(date_i);
-
-    console.log(date_f);
     const rq = await sh
       .get_data_sh_range_to_excel(
         state.selected_profile.id,
@@ -103,219 +102,499 @@ const Sma = () => {
     }
   }, [selected, initialDate, finishDate, page, state.selected_profile]);
 
+  // Configuración de estilos responsivos
+  const cardStyle = {
+    borderRadius: 16,
+    border: "2px solid #1f3461",
+    background: "#ffffff",
+    boxShadow: "0 8px 24px rgba(31, 52, 97, 0.12)",
+    transition: "all 0.3s ease",
+  };
+
+  const cardHoverStyle = {
+    transform: "translateY(-4px)",
+    boxShadow: "0 12px 32px rgba(31, 52, 97, 0.18)",
+    borderColor: "#1f3461",
+  };
+
+  const primaryColor = "#1f3461";
+  const successColor = "#52c41a";
+  const errorColor = "#f5222d";
+
   return (
-    <Flex vertical gap={"small"} align="center" style={{ padding: "20px" }}>
-      <Flex gap={"large"} justify="space-between" style={{ width: "100%" }}>
-        <Card
-          hoverable
-          title={"Última conexión Logger"}
+    <div
+      style={{
+        padding: getSpacing(12, 24),
+        background: "#f0f2f5",
+        minHeight: "100vh",
+      }}
+    >
+      {/* Header del módulo */}
+      <div
+        style={{
+          background: primaryColor,
+          color: "white",
+          padding: getSpacing(16, 24),
+          borderRadius: "16px 16px 0 0",
+          marginBottom: 24,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 12,
+        }}
+      >
+        <Title
+          level={isMobile ? 4 : 2}
           style={{
-            width: 300,
-            background:
-              "linear-gradient(90deg, rgba(2,0,36,0.14189425770308128) 0%, rgba(255,255,255,1) 100%)",
+            color: "white",
+            margin: 0,
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
           }}
-          extra={<Badge status="processing" text="" />}
-          size="small"
         >
-          <Statistic
-            value={
-              dataSelected
-                ? `${dataSelected.modules.m1.date_time_medition.slice(
-                    5,
-                    10
-                  )} / ${dataSelected.modules.m1.date_time_medition.slice(
-                    11,
-                    16
-                  )}`
-                : 0
-            }
-            valueStyle={{ fontSize: "20px" }}
-            suffix="hrs"
-            prefix={
-              <CalendarFilled style={{ fontSize: "17px", marginTop: "0px" }} />
-            }
-          />
-        </Card>
-        <Card
-          size="small"
-          hoverable
-          title={new Date().toLocaleDateString("es-ES", {
-            month: "long",
-            day: "numeric",
-          })}
+          <DatabaseFilled />
+          Smart Analytics
+        </Title>
+        <div
           style={{
-            width: 300,
-            background:
-              "linear-gradient(90deg, rgba(2,0,36,0.14189425770308128) 0%, rgba(255,255,255,1) 100%)",
+            background: "rgba(255,255,255,0.2)",
+            padding: "8px 16px",
+            borderRadius: 8,
+            fontSize: isMobile ? 12 : 14,
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
           }}
-          extra={
-            <CalendarOutlined style={{ fontSize: "15px", color: "#1f3461" }} />
-          }
         >
-          <Statistic
-            value={
-              dataSelected
-                ? (
-                    dataSelected.modules.total_consumed_today * 1000
-                  ).toLocaleString("es-ES")
-                : 0
-            }
-            suffix="lt/d"
-            valueStyle={{ fontSize: "24px" }}
-            prefix={
-              dataSelected &&
-              dataSelected.modules.total_consumed_today * 1000 >
-                dataSelected.modules.total_consumed_yesterday * 1000 ? (
-                <RiseOutlined style={{ fontSize: "24px", color: "green" }} />
-              ) : (
-                <FallOutlined style={{ fontSize: "24px", color: "red" }} />
-              )
-            }
-          />
-        </Card>
-        <Card
-          size="small"
-          hoverable
-          title={new Date(Date.now() - 86400000).toLocaleDateString("es-ES", {
-            month: "long",
-            day: "numeric",
-          })}
-          style={{
-            width: 300,
-            background:
-              "linear-gradient(90deg, rgba(2,0,36,0.14189425770308128) 0%, rgba(255,255,255,1) 100%)",
-          }}
-          extra={
-            <CalendarOutlined style={{ fontSize: "15px", color: "#1f3461" }} />
-          }
-        >
-          <Statistic
-            value={
-              dataSelected
-                ? (
-                    dataSelected.modules.total_consumed_yesterday * 1000
-                  ).toLocaleString("es-ES")
-                : 0
-            }
-            suffix="lt/d"
-            valueStyle={{ fontSize: "24px" }}
-            prefix={
-              dataSelected &&
-              dataSelected.modules.total_consumed_yesterday * 1000 >=
-                dataSelected.modules.total_consumed_today * 1000 ? (
-                <RiseOutlined style={{ fontSize: "24px", color: "green" }} />
-              ) : (
-                <FallOutlined style={{ fontSize: "24px", color: "red" }} />
-              )
-            }
-          />
-        </Card>
-      </Flex>
-      <Flex style={{ width: "100%" }} justify="center">
+          <WifiOutlined />
+          {dataSelected?.title || "MÓDULO"}
+        </div>
+      </div>
+
+      {/* Cards de estadísticas */}
+      <Row
+        gutter={[getSpacing(12, 16), getSpacing(12, 16)]}
+        style={{ marginBottom: 24 }}
+      >
+        <Col span={getColSpan(24, 12, 8)}>
+          <Card
+            hoverable
+            style={cardStyle}
+            bodyStyle={{ padding: getSpacing(16, 20) }}
+            onMouseEnter={(e) => Object.assign(e.target.style, cardHoverStyle)}
+            onMouseLeave={(e) => Object.assign(e.target.style, cardStyle)}
+          >
+            <div style={{ textAlign: "center" }}>
+              <div
+                style={{
+                  background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`,
+                  color: "white",
+                  padding: "12px",
+                  borderRadius: "50%",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 12,
+                  fontSize: 24,
+                }}
+              >
+                <CalendarFilled />
+              </div>
+              <Title
+                level={5}
+                style={{ margin: "0 0 8px 0", color: primaryColor }}
+              >
+                Última Conexión
+              </Title>
+              <Statistic
+                value={
+                  dataSelected
+                    ? `${dataSelected.modules.m1.date_time_medition.slice(
+                        5,
+                        10
+                      )} / ${dataSelected.modules.m1.date_time_medition.slice(
+                        11,
+                        16
+                      )}`
+                    : "---"
+                }
+                suffix="hrs"
+                valueStyle={{
+                  fontSize: isMobile ? 18 : 20,
+                  fontWeight: 600,
+                  color: primaryColor,
+                }}
+              />
+              <Badge
+                status="processing"
+                text="En línea"
+                style={{ color: successColor, fontWeight: 500 }}
+              />
+            </div>
+          </Card>
+        </Col>
+
+        <Col span={getColSpan(24, 12, 8)}>
+          <Card
+            hoverable
+            style={cardStyle}
+            bodyStyle={{ padding: getSpacing(16, 20) }}
+            onMouseEnter={(e) => Object.assign(e.target.style, cardHoverStyle)}
+            onMouseLeave={(e) => Object.assign(e.target.style, cardStyle)}
+          >
+            <div style={{ textAlign: "center" }}>
+              <div
+                style={{
+                  background:
+                    dataSelected &&
+                    dataSelected.modules.total_consumed_today * 1000 >
+                      dataSelected.modules.total_consumed_yesterday * 1000
+                      ? successColor
+                      : errorColor,
+                  color: "white",
+                  padding: "12px",
+                  borderRadius: "50%",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 12,
+                  fontSize: 24,
+                }}
+              >
+                {dataSelected &&
+                dataSelected.modules.total_consumed_today * 1000 >
+                  dataSelected.modules.total_consumed_yesterday * 1000 ? (
+                  <RiseOutlined />
+                ) : (
+                  <FallOutlined />
+                )}
+              </div>
+              <Title
+                level={5}
+                style={{ margin: "0 0 8px 0", color: primaryColor }}
+              >
+                Hoy -{" "}
+                {new Date().toLocaleDateString("es-ES", {
+                  month: "short",
+                  day: "numeric",
+                })}
+              </Title>
+              <Statistic
+                value={
+                  dataSelected
+                    ? (
+                        dataSelected.modules.total_consumed_today * 1000
+                      ).toLocaleString("es-ES")
+                    : 0
+                }
+                suffix="lt/d"
+                valueStyle={{
+                  fontSize: isMobile ? 18 : 22,
+                  fontWeight: 600,
+                  color:
+                    dataSelected &&
+                    dataSelected.modules.total_consumed_today * 1000 >
+                      dataSelected.modules.total_consumed_yesterday * 1000
+                      ? successColor
+                      : errorColor,
+                }}
+              />
+            </div>
+          </Card>
+        </Col>
+
+        <Col span={getColSpan(24, 12, 8)}>
+          <Card
+            hoverable
+            style={cardStyle}
+            bodyStyle={{ padding: getSpacing(16, 20) }}
+            onMouseEnter={(e) => Object.assign(e.target.style, cardHoverStyle)}
+            onMouseLeave={(e) => Object.assign(e.target.style, cardStyle)}
+          >
+            <div style={{ textAlign: "center" }}>
+              <div
+                style={{
+                  background:
+                    dataSelected &&
+                    dataSelected.modules.total_consumed_yesterday * 1000 >=
+                      dataSelected.modules.total_consumed_today * 1000
+                      ? successColor
+                      : errorColor,
+                  color: "white",
+                  padding: "12px",
+                  borderRadius: "50%",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 12,
+                  fontSize: 24,
+                }}
+              >
+                {dataSelected &&
+                dataSelected.modules.total_consumed_yesterday * 1000 >=
+                  dataSelected.modules.total_consumed_today * 1000 ? (
+                  <RiseOutlined />
+                ) : (
+                  <FallOutlined />
+                )}
+              </div>
+              <Title
+                level={5}
+                style={{ margin: "0 0 8px 0", color: primaryColor }}
+              >
+                Ayer -{" "}
+                {new Date(Date.now() - 86400000).toLocaleDateString("es-ES", {
+                  month: "short",
+                  day: "numeric",
+                })}
+              </Title>
+              <Statistic
+                value={
+                  dataSelected
+                    ? (
+                        dataSelected.modules.total_consumed_yesterday * 1000
+                      ).toLocaleString("es-ES")
+                    : 0
+                }
+                suffix="lt/d"
+                valueStyle={{
+                  fontSize: isMobile ? 18 : 22,
+                  fontWeight: 600,
+                  color:
+                    dataSelected &&
+                    dataSelected.modules.total_consumed_yesterday * 1000 >=
+                      dataSelected.modules.total_consumed_today * 1000
+                      ? successColor
+                      : errorColor,
+                }}
+              />
+            </div>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Tabla de registros */}
+      <Card
+        style={{
+          ...cardStyle,
+          borderRadius: "0 0 16px 16px",
+        }}
+        bodyStyle={{ padding: 0 }}
+      >
         <Table
-          size="small"
+          size={isMobile ? "small" : "middle"}
           title={() => (
-            <Flex justify="space-between" align="center">
-              <Flex>
-                <Title level={3}>Registros</Title>{" "}
+            <div
+              style={{
+                padding: getSpacing(16, 24),
+                background: "#fafafa",
+                borderBottom: "1px solid #f0f0f0",
+              }}
+            >
+              <Flex
+                justify="space-between"
+                align="center"
+                wrap="wrap"
+                gap={isMobile ? 16 : 24}
+              >
+                <Title
+                  level={isMobile ? 4 : 3}
+                  style={{
+                    margin: 0,
+                    color: primaryColor,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  <DatabaseFilled />
+                  Registros de Medición
+                </Title>
+
+                <Form
+                  layout={isMobile ? "vertical" : "inline"}
+                  onFinish={getResults}
+                  style={{ width: isMobile ? "100%" : "auto" }}
+                >
+                  <Row gutter={[8, 8]} style={{ width: "100%" }}>
+                    <Col span={isMobile ? 24 : 6}>
+                      <Form.Item
+                        name="initialDate"
+                        label={isMobile ? "Fecha inicial" : ""}
+                        rules={[
+                          {
+                            required: true,
+                            message: "Fecha inicial requerida",
+                          },
+                        ]}
+                        style={{ marginBottom: isMobile ? 12 : 0 }}
+                      >
+                        <DatePicker
+                          placeholder="Desde"
+                          onChange={(date) => setInitialDate(date)}
+                          disabled={!activate}
+                          style={{ width: "100%" }}
+                          size={isMobile ? "large" : "middle"}
+                        />
+                      </Form.Item>
+                    </Col>
+
+                    <Col span={isMobile ? 24 : 6}>
+                      <Form.Item
+                        name="finishDate"
+                        label={isMobile ? "Fecha final" : ""}
+                        rules={[
+                          { required: true, message: "Fecha final requerida" },
+                        ]}
+                        style={{ marginBottom: isMobile ? 12 : 0 }}
+                      >
+                        <DatePicker
+                          placeholder="Hasta"
+                          onChange={(date) => setFinishDate(date)}
+                          disabled={!activate}
+                          style={{ width: "100%" }}
+                          size={isMobile ? "large" : "middle"}
+                        />
+                      </Form.Item>
+                    </Col>
+
+                    <Col span={isMobile ? 12 : 6}>
+                      <Form.Item style={{ marginBottom: 0 }}>
+                        <Button
+                          type="primary"
+                          icon={<SearchOutlined />}
+                          htmlType="submit"
+                          disabled={!activate}
+                          style={{
+                            width: "100%",
+                            height: isMobile ? 44 : 32,
+                            borderRadius: 8,
+                            background: primaryColor,
+                            borderColor: primaryColor,
+                            fontWeight: 600,
+                          }}
+                        >
+                          {isMobile ? "Buscar" : "Buscar registros"}
+                        </Button>
+                      </Form.Item>
+                    </Col>
+
+                    <Col span={isMobile ? 12 : 6}>
+                      <Form.Item style={{ marginBottom: 0 }}>
+                        <Button
+                          loading={loadingExcel}
+                          type="default"
+                          disabled={!initialDate || !finishDate || !activate}
+                          icon={<DownloadOutlined />}
+                          onClick={() => downloadDataToExcel()}
+                          style={{
+                            width: "100%",
+                            height: isMobile ? 44 : 32,
+                            borderRadius: 8,
+                            borderColor: primaryColor,
+                            color: primaryColor,
+                            fontWeight: 600,
+                          }}
+                        >
+                          {isMobile ? "Excel" : "Descarga"}
+                        </Button>
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                </Form>
               </Flex>
-              <Form layout="inline" onFinish={getResults}>
-                <Form.Item
-                  name="initialDate"
-                  rules={[
-                    { required: true, message: "Fecha inicial requerida" },
-                  ]}
-                >
-                  <DatePicker
-                    placeholder="Desde"
-                    onChange={(date) => setInitialDate(date)}
-                    disabled={!activate}
-                  />
-                </Form.Item>
-                <Form.Item
-                  name="finishDate"
-                  rules={[{ required: true, message: "Fecha final requerida" }]}
-                >
-                  <DatePicker
-                    placeholder="Hasta"
-                    onChange={(date) => setFinishDate(date)}
-                    disabled={!activate}
-                  />
-                </Form.Item>
-                <Form.Item>
-                  <Button
-                    type="primary"
-                    icon={<SearchOutlined />}
-                    htmlType="submit"
-                    disabled={!activate}
-                  >
-                    Buscar registros
-                  </Button>
-                </Form.Item>
-                <Form.Item>
-                  <Button
-                    loading={loadingExcel}
-                    type="primary"
-                    disabled={!initialDate || !finishDate || !activate}
-                    icon={<DownloadOutlined />}
-                    onClick={() => {
-                      downloadDataToExcel();
-                    }}
-                  >
-                    Descarga
-                  </Button>
-                </Form.Item>
-              </Form>
-            </Flex>
+            </div>
           )}
-          style={{ width: "100%" }}
-          bordered
+          style={{
+            borderRadius: "0 0 16px 16px",
+            overflow: "hidden",
+          }}
+          bordered={false}
+          scroll={getTableScroll()}
           columns={[
             {
               title: "Fecha de Medición",
               dataIndex: "date_time_medition",
-
+              fixed: isMobile ? "left" : false,
+              width: isMobile ? 140 : 180,
               render: (date) => {
                 if (initialDate && finishDate) {
-                  var str_d =
-                    date.slice(8, 10) +
-                    "-" +
-                    date.slice(5, 7) +
-                    " / " +
-                    date.slice(11, 16) +
-                    " hrs";
-                  return str_d;
+                  return (
+                    <div style={{ fontWeight: 500, color: primaryColor }}>
+                      <div>
+                        {date.slice(8, 10)}-{date.slice(5, 7)}
+                      </div>
+                      <div style={{ fontSize: 12, color: "#666" }}>
+                        {date.slice(11, 16)} hrs
+                      </div>
+                    </div>
+                  );
                 } else {
-                  var str_d2 =
-                    date.slice(5, 10) + " / " + date.slice(11, 16) + " hrs";
-                  return str_d2;
+                  return (
+                    <div style={{ fontWeight: 500, color: primaryColor }}>
+                      <div>{date.slice(5, 10)}</div>
+                      <div style={{ fontSize: 12, color: "#666" }}>
+                        {date.slice(11, 16)} hrs
+                      </div>
+                    </div>
+                  );
                 }
               },
               key: "date_time_medition",
             },
             {
-              title: "Caudal(lt/s)",
+              title: "Caudal",
               dataIndex: "flow",
               align: "center",
+              width: isMobile ? 80 : 120,
+              render: (value) => (
+                <div style={{ fontWeight: 600, color: primaryColor }}>
+                  {value}
+                  <div style={{ fontSize: 11, color: "#999" }}>lt/s</div>
+                </div>
+              ),
               key: "flow",
             },
             {
-              title: "Total(m³)",
+              title: "Total",
               dataIndex: "total",
               align: "center",
+              width: isMobile ? 100 : 140,
+              render: (value) => (
+                <div style={{ fontWeight: 600, color: successColor }}>
+                  {parseInt(value).toLocaleString("es-CL")}
+                  <div style={{ fontSize: 11, color: "#999" }}>m³</div>
+                </div>
+              ),
               key: "total",
-              render: (value) => parseInt(value).toLocaleString("es-CL"),
             },
             {
-              title: "Consumo(m³)",
+              title: "Consumo",
               dataIndex: "total_diff",
-              align: "end",
+              align: "center",
+              width: isMobile ? 100 : 120,
+              render: (value) => (
+                <div style={{ fontWeight: 600, color: "#1890ff" }}>
+                  {value}
+                  <div style={{ fontSize: 11, color: "#999" }}>m³</div>
+                </div>
+              ),
               key: "total_diff",
             },
             {
-              title: "Acumulado Diario(m³)",
-              align: "end",
+              title: "Acumulado Diario",
+              align: "center",
               dataIndex: "total_today_diff",
+              width: isMobile ? 120 : 150,
+              render: (value) => (
+                <div style={{ fontWeight: 600, color: "#722ed1" }}>
+                  {value}
+                  <div style={{ fontSize: 11, color: "#999" }}>m³</div>
+                </div>
+              ),
               key: "total_today_diff",
             },
           ]}
@@ -335,10 +614,18 @@ const Sma = () => {
             total: countApi,
             current: page,
             showSizeChanger: false,
+            pageSize: isMobile ? 8 : 10,
+            showQuickJumper: !isMobile,
+            simple: isMobile,
+            size: isMobile ? "small" : "default",
+            showTotal: (total, range) =>
+              isMobile
+                ? `${range[0]}-${range[1]} de ${total}`
+                : `Mostrando ${range[0]}-${range[1]} de ${total} registros`,
           }}
         />
-      </Flex>
-    </Flex>
+      </Card>
+    </div>
   );
 };
 

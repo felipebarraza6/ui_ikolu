@@ -184,16 +184,23 @@ const HeaderNav = () => {
         {/* 📱 DRAWER NAVEGACIÓN MÓVIL */}
         <Drawer
           title={
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <img src={logo} alt="Logo" style={{ height: 24 }} />
-              <span style={{ color: "#1f3461", fontWeight: "bold" }}>
+            <Flex align="center" gap={12}>
+              <img src={logo} alt="Logo" style={{ height: 50 }} />
+              <span
+                style={{
+                  color: "#1f3461",
+                  fontWeight: "bold",
+                  marginTop: "20px",
+                }}
+              >
                 Ikolu App
               </span>
-            </div>
+            </Flex>
           }
           placement="left"
           onClose={() => setDrawerVisible(false)}
           open={drawerVisible}
+          closable={false}
           width={280}
           height="100vh"
           bodyStyle={{
