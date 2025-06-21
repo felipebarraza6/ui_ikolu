@@ -21,7 +21,7 @@ const Dga = () => {
           </Flex>
           <Flex
             style={{
-              width: "40%",
+              width: "30%",
               backgroundColor: "rgb(0, 111, 179)",
               borderRadius: "0px 10px 10px 0px",
             }}

@@ -240,15 +240,6 @@ const Registers = ({ dataDga }) => {
     <QueueAnim delay={500} type={["top", "bottom"]}>
       <div key={"registers"} style={{ width: "100%" }}>
         {/* CSS para ocultar scrollbar pero mantener funcionalidad */}
-        <style>{`
-          .ant-table-body::-webkit-scrollbar {
-            display: none;
-          }
-          .ant-table-body {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-          }
-        `}</style>
 
         <Table
           style={{
@@ -263,32 +254,6 @@ const Registers = ({ dataDga }) => {
               style={{ width: "100%", height: "100%" }}
               gap={isMobile ? "8px" : "small"}
             >
-              <Alert
-                size="small"
-                style={{
-                  padding: isMobile ? "4px" : "5px",
-                  width: isMobile ? "100%" : "50%",
-                  fontSize: isMobile ? "11px" : "12px",
-                }}
-                closable
-                description={
-                  <span style={{ fontSize: isMobile ? "11px" : "12px" }}>
-                    Las extracciones MEE deben ser registradas por un datalogger
-                    según la normativa, por lo que se ignorará cualquier consumo
-                    previo a nuestra instalación.
-                  </span>
-                }
-                type="warning"
-                icon={
-                  <WarningFilled
-                    style={{
-                      color: "rgb(254, 101, 101)",
-                      fontSize: isMobile ? "12px" : "15px",
-                    }}
-                  />
-                }
-                showIcon
-              />
               <Form
                 layout={isMobile ? "vertical" : "inline"}
                 style={{ width: "100%" }}
@@ -351,6 +316,7 @@ const Registers = ({ dataDga }) => {
           )}
           size="small"
           dataSource={dataDga}
+          bordered
           columns={columns}
           pagination={{
             defaultPageSize: isMobile ? 5 : 10,
@@ -368,6 +334,7 @@ const Registers = ({ dataDga }) => {
                 }
               : {
                   y: 400, // Solo scroll vertical en desktop
+                  x: 520,
                 }
           }
         />

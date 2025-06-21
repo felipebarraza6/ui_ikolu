@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useCallback } from "react";
 import {
   Tabs,
   Card,
@@ -34,6 +34,7 @@ import { type } from "@testing-library/user-event/dist/type";
 import dayjs from "dayjs";
 import locale from "antd/locale/es_ES";
 import "dayjs/locale/es";
+import { useResponsive } from "../../hooks/useResponsive";
 
 // Configurar dayjs para español
 dayjs.locale("es");
@@ -41,73 +42,60 @@ dayjs.locale("es");
 const { TabPane } = Tabs;
 
 const GraphisNav = () => {
+  const { state } = useContext(AppContext);
+  const { isMobile } = useResponsive();
+
   const [activeKey, setActiveKey] = useState("1");
   const [dateType, setDateType] = useState("1");
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-
   const [monthMode, setMonthMode] = useState(false);
-
-  const [maxConsumoHora, setMaxConsumoHora] = useState({
-    hour: "00:00",
-    value: 0,
-  });
-  const [minConsumoHora, setMinConsumoHora] = useState({
-    hour: "00:00",
-    value: 0,
-  });
-  const [acumulado, setAcumulado] = useState({
-    first: {
-      hour: "00:00",
-      value: 0,
-    },
-    last: {
-      hour: "00:00",
-      value: 0,
-    },
-  });
-
-  const [caudalMax, setCaudalMax] = useState(0);
-  const [caudalMin, setCaudalMin] = useState(0);
-
-  const [nivelMax, setNivelMax] = useState(0);
-  const [nivelMin, setNivelMin] = useState(0);
-
-  const { state } = useContext(AppContext);
   const [data, setData] = useState(state.selected_profile.modules.today);
   const [dataMonth, setDataMonth] = useState([]);
   const activate = state.selected_profile.profile_ikolu.m4;
-  console.log(activate);
-  const [dateSelected, setDateSelected] = useState(
-    moment().format("YYYY-MM-DD")
-  );
+  const [dateSelected, setDateSelected] = useState(dayjs());
 
-  const getData = async () => {
-    if (!monthMode) {
-      const response = await sh
-        .get_data_day(state.selected_profile.id, dateSelected, dateSelected)
-        .then((response) => {
-          setData(response || []);
-        });
-    } else {
-      const response = await sh
-        .get_data_month(state.selected_profile.id, dateSelected, dateSelected)
-        .then((response) => {
-          setDataMonth(response || []);
-        });
+  const [stats, setStats] = useState({
+    maxConsumoHora: { hour: "00:00", value: 0 },
+    minConsumoHora: { hour: "00:00", value: 0 },
+    acumulado: {
+      first: { hour: "00:00", value: 0 },
+      last: { hour: "00:00", value: 0 },
+    },
+    caudalMax: { hour: "00:00", value: 0 },
+    caudalMin: { hour: "00:00", value: 0 },
+    nivelMax: { hour: "00:00", value: 0 },
+    nivelMin: { hour: "00:00", value: 0 },
+  });
+
+  const getData = useCallback(async () => {
+    const formattedDate = dateSelected.format("YYYY-MM-DD");
+    try {
+      if (monthMode) {
+        const response = await sh.get_data_month(
+          state.selected_profile.id,
+          formattedDate,
+          formattedDate
+        );
+        setDataMonth(response || []);
+      } else {
+        const response = await sh.get_data_day(
+          state.selected_profile.id,
+          formattedDate,
+          formattedDate
+        );
+        setData(response || []);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
     }
-  };
+  }, [dateSelected, monthMode, state.selected_profile.id]);
 
   const handleDateTypeChange = (value) => {
     setDateType(value);
-    if (value === "2") {
-      setMonthMode(true);
-    } else {
-      setMonthMode(false);
-    }
+    setMonthMode(value === "2");
   };
 
   useEffect(() => {
-    if (data.length > 0) {
+    if (data && data.length > 0) {
       let caudalMax = data.reduce((prev, current) =>
         prev.flow > current.flow ? prev : current
       );
@@ -117,22 +105,28 @@ const GraphisNav = () => {
         return prev.flow < current.flow && prev.flow !== 0 ? prev : current;
       });
 
-      setCaudalMax({
-        hour: caudalMax.date_time_medition.slice(11, 16),
-        value: caudalMax.flow,
-      });
-      setCaudalMin({
-        hour: caudalMin.date_time_medition.slice(11, 16),
-        value: caudalMin.flow,
+      setStats({
+        ...stats,
+        caudalMax: {
+          hour: caudalMax.date_time_medition.slice(11, 16),
+          value: caudalMax.flow,
+        },
+        caudalMin: {
+          hour: caudalMin.date_time_medition.slice(11, 16),
+          value: caudalMin.flow,
+        },
       });
 
       let nivelMax = data.reduce((prev, current) =>
         prev.water_table > current.water_table ? prev : current
       );
 
-      setNivelMax({
-        hour: nivelMax.date_time_medition.slice(11, 16),
-        value: nivelMax.flow,
+      setStats({
+        ...stats,
+        nivelMax: {
+          hour: nivelMax.date_time_medition.slice(11, 16),
+          value: nivelMax.flow,
+        },
       });
 
       let nivelMin = data.reduce((prev, current) => {
@@ -142,18 +136,24 @@ const GraphisNav = () => {
           : current;
       });
 
-      setNivelMin({
-        hour: nivelMin.date_time_medition.slice(11, 16),
-        value: nivelMin.flow,
+      setStats({
+        ...stats,
+        nivelMin: {
+          hour: nivelMin.date_time_medition.slice(11, 16),
+          value: nivelMin.flow,
+        },
       });
 
       let max = data.reduce((prev, current) =>
         prev.total_diff > current.total_diff ? prev : current
       );
       console.log(max.date_time_medition.slice(11, 16));
-      setMaxConsumoHora({
-        hour: max.date_time_medition.slice(11, 16),
-        value: max.total_diff,
+      setStats({
+        ...stats,
+        maxConsumoHora: {
+          hour: max.date_time_medition.slice(11, 16),
+          value: max.total_diff,
+        },
       });
 
       let min = data.reduce((prev, current) => {
@@ -163,73 +163,60 @@ const GraphisNav = () => {
           : current;
       });
 
-      setMinConsumoHora({
-        hour: min.date_time_medition.slice(11, 16),
-        value: min.total_diff,
-      });
-      setAcumulado({
-        first: {
-          hour: data[0].date_time_medition.slice(11, 16),
-          value: parseInt(data[0].total).toLocaleString("es-CL"),
+      setStats({
+        ...stats,
+        minConsumoHora: {
+          hour: min.date_time_medition.slice(11, 16),
+          value: min.total_diff,
         },
-        last: {
-          hour: data[data.length - 1].date_time_medition.slice(11, 16),
-          value: parseInt(data[data.length - 1].total).toLocaleString("es-CL"),
+      });
+      setStats({
+        ...stats,
+        acumulado: {
+          first: {
+            hour: data[0].date_time_medition.slice(11, 16),
+            value: parseInt(data[0].total).toLocaleString("es-CL"),
+          },
+          last: {
+            hour: data[data.length - 1].date_time_medition.slice(11, 16),
+            value: parseInt(data[data.length - 1].total).toLocaleString(
+              "es-CL"
+            ),
+          },
         },
       });
     }
-  }, [data, monthMode]);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }, [data]);
 
   return (
     <QueueAnim delay={300} duration={900} type="alpha">
-      <div key="login" style={{ paddingTop: isMobile ? "0px" : "0px" }}>
+      <div key="smart-analysis" style={{ paddingTop: "0px" }}>
         <Card
           style={{ width: "100%" }}
-          headStyle={{
-            borderColor: "transparent",
-            paddingTop: isMobile ? "8px" : "16px",
-            paddingBottom: isMobile ? "8px" : "16px",
-          }}
           title={
             <Flex
               gap="small"
               justify="space-between"
-              style={{
-                marginTop: isMobile ? "4px" : "8px",
-                marginBottom: isMobile ? "4px" : "8px",
-              }}
               vertical={isMobile}
+              style={{ marginTop: "8px", marginBottom: "8px" }}
             >
               <Select
                 placeholder="Tipo"
                 style={{ width: isMobile ? "100%" : "200px" }}
-                defaultValue={"1"}
+                defaultValue="1"
                 onChange={handleDateTypeChange}
                 disabled={!activate}
               >
                 <Select.Option value="1">Diario</Select.Option>
                 <Select.Option value="2">Mensual</Select.Option>
               </Select>
-              <Form layout={isMobile ? "vertical" : "inline"}>
-                <Form.Item
-                  rules={[{ required: true }]}
-                  style={{ marginBottom: isMobile ? "8px" : "0px" }}
-                >
+              <Form layout="inline" onFinish={getData}>
+                <Form.Item style={{ marginBottom: isMobile ? 8 : 0 }}>
                   <ConfigProvider locale={locale}>
                     <DatePicker
                       placeholder="Seleccionar fecha"
-                      value={dateSelected ? dayjs(dateSelected) : null}
-                      onChange={(date) => {
-                        if (date) {
-                          setDateSelected(date.format("YYYY-MM-DD"));
-                        }
-                      }}
+                      value={dateSelected}
+                      onChange={setDateSelected}
                       style={{ width: isMobile ? "100%" : "200px" }}
                       picker={dateType === "1" ? "date" : "month"}
                       disabled={!activate}
@@ -240,30 +227,26 @@ const GraphisNav = () => {
                     />
                   </ConfigProvider>
                 </Form.Item>
-                <Form.Item style={{ marginBottom: "0px" }}>
+                <Form.Item style={{ marginBottom: 0 }}>
                   <Button
                     type="primary"
                     htmlType="submit"
                     icon={<PiAtomLight />}
-                    onClick={getData}
                     disabled={!activate}
                     style={{ width: isMobile ? "100%" : "auto" }}
                   >
-                    Analizar {dateType === "1" ? "Día" : "Mes"}
+                    Analizar
                   </Button>
                 </Form.Item>
               </Form>
             </Flex>
           }
-          size="small"
         >
-          <Flex vertical gap="small" style={{ width: "100%" }}>
-            {monthMode ? (
-              <ContainerMonth data={dataMonth} dateSelected={dateSelected} />
-            ) : (
-              <ContainerDays data={data} />
-            )}
-          </Flex>
+          {monthMode ? (
+            <ContainerMonth data={dataMonth} stats={stats} />
+          ) : (
+            <ContainerDays data={data} stats={stats} />
+          )}
         </Card>
       </div>
     </QueueAnim>

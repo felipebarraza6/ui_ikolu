@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useMemo } from "react";
 import { Layout, Menu, Button, Flex } from "antd";
 import {
   HomeOutlined,
@@ -31,344 +31,203 @@ import { AppContext } from "../App";
 import MyGraphics from "../components/graphics/MyGraphics";
 import Supp from "../components/home/Supp";
 import minLogo from "../assets/images/logo-blanco.png";
+import { useResponsive } from "../hooks/useResponsive";
 
-const { Header, Sider, Content, Footer } = Layout;
+const { Header, Sider, Content } = Layout;
 
-const Home = () => {
+const MENU_ITEMS = [
+  { key: "1", icon: <WifiOutlined />, label: "Telemetría", to: "/" },
+  {
+    key: "2",
+    icon: <BarChartOutlined />,
+    label: "Smart Análisis",
+    to: "/analisis",
+  },
+  { key: "3", icon: <FileTextOutlined />, label: "DGA - MEE", to: "/dga" },
+  {
+    key: "4",
+    icon: <BarChartOutlined />,
+    label: "DGA Análisis",
+    to: "/dga-analisis",
+  },
+  { key: "5", icon: <DownloadOutlined />, label: "Descarga", to: "/descarga" },
+  {
+    key: "6",
+    icon: <FileTextOutlined />,
+    label: "Documentos",
+    to: "/documentos",
+  },
+  { key: "7", icon: <AlertOutlined />, label: "Alertas", to: "/alertas" },
+  {
+    key: "8",
+    icon: <CustomerServiceOutlined />,
+    label: "Soporte",
+    to: "/soporte",
+  },
+];
+
+const AppRoutes = React.memo(() => {
   const { state } = useContext(AppContext);
-  let location = useLocation();
-  var pathname = location.pathname;
-
-  // 🔧 FIX: Estado para manejar responsividad
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 992);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 992);
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   return (
-    <>
-      {/* 🔧 CSS crítico para móvil */}
-      {isMobile && (
-        <style>{`
-          .ant-layout-sider {
-            display: none !important;
-            width: 0 !important;
-          }
-          .ant-layout {
-            margin-left: 0 !important;
-          }
-          body {
-            overflow-x: hidden !important;
-          }
-          /* 🔧 FIX: Asegurar que el contenido esté posicionado correctamente */
-          .mobile-content {
-            position: relative;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 1;
-          }
-        `}</style>
-      )}
+    <Routes>
+      <Route
+        path="/"
+        element={
+          state.selected_profile.dga.type_dga === "SUBTERRANEO" ? (
+            state.selected_profile.dga.standard === "CAUDALES_MUY_PEQUENOS" ? (
+              <TableStandarVerySmallResponsive data={state.selected_profile} />
+            ) : (
+              <MyWell />
+            )
+          ) : state.user.username === "arrocerospti" ? (
+            <PrototypeUmi />
+          ) : (
+            <Sma />
+          )
+        }
+      />
+      <Route path="/analisis" element={<ResponsiveSmartAnalysis />} />
+      <Route path="/dga" element={<ResponsiveDga />} />
+      <Route path="/dga-analisis" element={<GraphisNavDga />} />
+      <Route path="/descarga" element={<Reports />} />
+      <Route path="/documentos" element={<DocRes />} />
+      <Route path="/alertas" element={<ResponsiveAlerts />} />
+      <Route path="/soporte" element={<Dash />} />
+      <Route path="/extraction_data" element={<Reports />} />
+      <Route path="/registers_pti" element={<DataTable />} />
+      <Route path="/well" element={<Well />} />
+      <Route path="/sys_data" element={<GraphisNav />} />
+      <Route path="/sys_data_dga" element={<GraphisNavDga />} />
+      <Route path="/sys_docs" element={<DocRes />} />
+      <Route path="/sys_support" element={<Dash />} />
+      <Route path="/sys_alerts" element={<ResponsiveAlerts />} />
+      <Route path="/graficos" element={<MyGraphics />} />
+      <Route path="/formmultidata" element={<FormMultiData />} />
+      <Route path="/reportes" element={<Reports />} />
+      <Route path="/supp" element={<Supp />} />
+    </Routes>
+  );
+});
 
-      {/* 📱 Header Fixed para móvil */}
-      {isMobile && <HeaderNav />}
-
-      {isMobile ? (
-        // 📱 ESTRUCTURA MÓVIL: Contenido directo sin Layout complejo
+const DesktopLayout = ({ children }) => (
+  <Layout style={{ minHeight: "100vh" }}>
+    <Sider
+      breakpoint="lg"
+      collapsedWidth="0"
+      style={{
+        background: "#1F3461",
+        minHeight: "100vh",
+        position: "fixed",
+        left: 0,
+        zIndex: 100,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          padding: "20px 0 0 0",
+        }}
+      >
+        <div style={{ textAlign: "center", paddingBottom: "20px" }}>
+          <img src={logo} alt="Logo" style={{ width: 60, marginBottom: 8 }} />
+        </div>
+        <div style={{ flex: 1, overflowY: "auto" }}>
+          <Menu
+            theme="dark"
+            mode="inline"
+            defaultSelectedKeys={["1"]}
+            style={{ background: "#1F3461", border: "none" }}
+          >
+            {MENU_ITEMS.map((item) => (
+              <Menu.Item key={item.key} icon={item.icon}>
+                <Link to={item.to}>{item.label}</Link>
+              </Menu.Item>
+            ))}
+          </Menu>
+        </div>
         <div
-          className="mobile-content"
           style={{
-            paddingTop: "105px", // Espacio para header fixed + margen perfecto
-            minHeight: "100vh",
-            background: "#f0f2f5",
+            flexShrink: 0,
+            textAlign: "center",
+            padding: "20px 16px 15px 16px",
+            borderTop: "1px solid rgba(255,255,255,0.1)",
           }}
         >
-          <div
-            style={{
-              margin: "8px",
-              background: "#fff",
-              borderRadius: 8,
-              padding: 4,
-              minHeight: "calc(100vh - 86px)",
-            }}
-          >
-            <div
-              key="home"
-              style={{
-                borderRadius: "10px",
-                minHeight: "calc(100vh - 94px)",
-              }}
-            >
-              <Routes>
-                {/* Telemetría */}
-                <Route
-                  path="/"
-                  element={
-                    state.selected_profile.dga.type_dga === "SUBTERRANEO" ? (
-                      state.selected_profile.dga.standard ===
-                      "CAUDALES_MUY_PEQUENOS" ? (
-                        <TableStandarVerySmallResponsive
-                          data={state.selected_profile}
-                        />
-                      ) : (
-                        <MyWell />
-                      )
-                    ) : state.user.username === "arrocerospti" ? (
-                      <PrototypeUmi />
-                    ) : (
-                      <Sma />
-                    )
-                  }
-                />
-                {/* Smart Análisis */}
-                <Route path="/analisis" element={<ResponsiveSmartAnalysis />} />
-                {/* DGA - MEE */}
-                <Route path="/dga" element={<ResponsiveDga />} />
-                {/* DGA Análisis */}
-                <Route path="/dga-analisis" element={<GraphisNavDga />} />
-                {/* Descarga */}
-                <Route path="/descarga" element={<Reports />} />
-                {/* Documentos */}
-                <Route path="/documentos" element={<DocRes />} />
-                {/* Alertas */}
-                <Route path="/alertas" element={<ResponsiveAlerts />} />
-                {/* Soporte */}
-                <Route path="/soporte" element={<Dash />} />
-                {/* Rutas adicionales existentes */}
-                <Route path="/extraction_data" element={<Reports />} />
-                <Route path="/registers_pti" element={<DataTable />} />
-                <Route path="/well" element={<Well />} />
-                <Route path="/sys_data" element={<GraphisNav />} />
-                <Route path="/sys_data_dga" element={<GraphisNavDga />} />
-                <Route path="/sys_docs" element={<DocRes />} />
-                <Route path="/sys_support" element={<Dash />} />
-                <Route path="/sys_alerts" element={<ResponsiveAlerts />} />
-                <Route exact path="/graficos" element={<MyGraphics />} />
-                <Route
-                  exact
-                  path="/formmultidata"
-                  element={<FormMultiData />}
-                />
-                <Route exact path="/reportes" element={<Reports />} />
-                <Route exact path="/supp" element={<Supp />} />
-              </Routes>
-            </div>
-          </div>
+          <img
+            src={minLogo}
+            alt="Smart Hydro"
+            style={{ width: "75%", maxWidth: "120px", opacity: 0.9 }}
+          />
         </div>
-      ) : (
-        // 💻 ESTRUCTURA DESKTOP: Layout original
-        <Layout style={{ minHeight: "100vh" }}>
-          {/* Sidebar */}
-          <Sider
-            breakpoint="lg"
-            collapsedWidth="0"
-            style={{
-              background: "#1F3461",
-              minHeight: "100vh",
-              position: "fixed",
-              left: 0,
-              zIndex: 100,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                padding: "20px 0 0 0",
-              }}
-            >
-              {/* Logo superior */}
-              <div style={{ textAlign: "center", paddingBottom: "20px" }}>
-                <img
-                  src={logo}
-                  alt="Logo"
-                  style={{ width: 60, marginBottom: 8 }}
-                />
-              </div>
+      </div>
+    </Sider>
+    <Layout style={{ marginLeft: 200, background: "#f0f2f5" }}>
+      <Header
+        style={{
+          padding: 0,
+          background: "#f0f2f5",
+          position: "sticky",
+          top: 0,
+          zIndex: 50,
+        }}
+      >
+        <HeaderNav />
+      </Header>
+      <Content style={{ margin: "24px 16px", overflow: "initial" }}>
+        <div style={{ padding: 24, background: "#fff", borderRadius: 16 }}>
+          {children}
+        </div>
+      </Content>
+    </Layout>
+  </Layout>
+);
 
-              {/* Menú central - Flex: 1 para ocupar espacio disponible */}
-              <div style={{ flex: 1 }}>
-                <Menu
-                  theme="dark"
-                  mode="inline"
-                  defaultSelectedKeys={["1"]}
-                  style={{
-                    background: "#1F3461",
-                    border: "none",
-                  }}
-                >
-                  <Menu.Item key="1" icon={<WifiOutlined />}>
-                    <Link to="/">Telemetría</Link>
-                  </Menu.Item>
-                  <Menu.Item key="2" icon={<BarChartOutlined />}>
-                    <Link to="/analisis">Smart Análisis</Link>
-                  </Menu.Item>
-                  <Menu.Item key="3" icon={<FileTextOutlined />}>
-                    <Link to="/dga">DGA - MEE</Link>
-                  </Menu.Item>
-                  <Menu.Item key="4" icon={<BarChartOutlined />}>
-                    <Link to="/dga-analisis">DGA Análisis</Link>
-                  </Menu.Item>
-                  <Menu.Item key="5" icon={<DownloadOutlined />}>
-                    <Link to="/descarga">Descarga</Link>
-                  </Menu.Item>
-                  <Menu.Item key="6" icon={<FileTextOutlined />}>
-                    <Link to="/documentos">Documentos</Link>
-                  </Menu.Item>
-                  <Menu.Item key="7" icon={<AlertOutlined />}>
-                    <Link to="/alertas">Alertas</Link>
-                  </Menu.Item>
-                  <Menu.Item key="8" icon={<CustomerServiceOutlined />}>
-                    <Link to="/soporte">Soporte</Link>
-                  </Menu.Item>
-                </Menu>
-              </div>
+const MobileLayout = ({ children }) => (
+  <>
+    <style>{`
+      body { overflow-x: hidden !important; }
+      .mobile-content {
+        position: relative;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1;
+        padding-top: 105px;
+        min-height: 100vh;
+        background: #f0f2f5;
+      }
+    `}</style>
+    <HeaderNav />
+    <div className="mobile-content">
+      <div
+        style={{
+          margin: "8px",
+          background: "#fff",
+          borderRadius: 8,
+          padding: 4,
+          minHeight: "calc(100vh - 86px)",
+        }}
+      >
+        <div style={{ borderRadius: "10px", minHeight: "calc(100vh - 94px)" }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  </>
+);
 
-              {/* Logo Smart Hydro al final - Lo más abajo posible */}
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "10px 16px 15px 16px",
-                  borderTop: "1px solid rgba(255,255,255,0.1)",
-                  marginTop: "100%",
-                }}
-              >
-                <img
-                  src={minLogo}
-                  alt="Smart Hydro"
-                  style={{
-                    width: "75%",
-                    maxWidth: "120px",
-                    opacity: 0.9,
-                  }}
-                />
-              </div>
-            </div>
-          </Sider>
+const Home = () => {
+  const { isMobile } = useResponsive();
 
-          {/* Layout principal */}
-          <Layout
-            style={{
-              marginLeft: 200,
-              minHeight: "100vh",
-            }}
-          >
-            {/* Header */}
-            <Header
-              style={{
-                background: "#fff",
-                padding: "0 24px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: "0 2px 8px #f0f1f2",
-              }}
-            >
-              <div style={{ width: "100%" }}>
-                <HeaderNav />
-              </div>
-            </Header>
+  const LayoutComponent = isMobile ? MobileLayout : DesktopLayout;
 
-            {/* Contenido principal */}
-            <Content
-              style={{
-                margin: "24px 16px 0",
-                overflow: "auto",
-                background: "#fff",
-                borderRadius: 8,
-                minHeight: "80vh",
-                padding: 24,
-              }}
-            >
-              <div
-                key="home"
-                style={{
-                  borderRadius: "10px",
-                  minHeight: "90vh",
-                }}
-              >
-                <Routes>
-                  {/* Telemetría */}
-                  <Route
-                    path="/"
-                    element={
-                      state.selected_profile.dga.type_dga === "SUBTERRANEO" ? (
-                        state.selected_profile.dga.standard ===
-                        "CAUDALES_MUY_PEQUENOS" ? (
-                          <TableStandarVerySmallResponsive
-                            data={state.selected_profile}
-                          />
-                        ) : (
-                          <MyWell />
-                        )
-                      ) : state.user.username === "arrocerospti" ? (
-                        <PrototypeUmi />
-                      ) : (
-                        <Sma />
-                      )
-                    }
-                  />
-                  {/* Smart Análisis */}
-                  <Route
-                    path="/analisis"
-                    element={<ResponsiveSmartAnalysis />}
-                  />
-                  {/* DGA - MEE */}
-                  <Route path="/dga" element={<ResponsiveDga />} />
-                  {/* DGA Análisis */}
-                  <Route path="/dga-analisis" element={<GraphisNavDga />} />
-                  {/* Descarga */}
-                  <Route path="/descarga" element={<Reports />} />
-                  {/* Documentos */}
-                  <Route path="/documentos" element={<DocRes />} />
-                  {/* Alertas */}
-                  <Route path="/alertas" element={<ResponsiveAlerts />} />
-                  {/* Soporte */}
-                  <Route path="/soporte" element={<Dash />} />
-                  {/* Rutas adicionales existentes */}
-                  <Route path="/extraction_data" element={<Reports />} />
-                  <Route path="/registers_pti" element={<DataTable />} />
-                  <Route path="/well" element={<Well />} />
-                  <Route path="/sys_data" element={<GraphisNav />} />
-                  <Route path="/sys_data_dga" element={<GraphisNavDga />} />
-                  <Route path="/sys_docs" element={<DocRes />} />
-                  <Route path="/sys_support" element={<Dash />} />
-                  <Route path="/sys_alerts" element={<ResponsiveAlerts />} />
-                  <Route exact path="/graficos" element={<MyGraphics />} />
-                  <Route
-                    exact
-                    path="/formmultidata"
-                    element={<FormMultiData />}
-                  />
-                  <Route exact path="/reportes" element={<Reports />} />
-                  <Route exact path="/supp" element={<Supp />} />
-                </Routes>
-              </div>
-            </Content>
-
-            {/* Footer */}
-            <Footer
-              style={{
-                textAlign: "center",
-                background: "#fff",
-                borderTop: "1px solid #f0f0f0",
-              }}
-            >
-              Smart Hydro ©{new Date().getFullYear()} | Soporte:
-              soporte@smarthydro.cl
-            </Footer>
-          </Layout>
-        </Layout>
-      )}
-    </>
+  return (
+    <LayoutComponent>
+      <AppRoutes />
+    </LayoutComponent>
   );
 };
 

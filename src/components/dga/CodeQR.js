@@ -76,7 +76,7 @@ const CodeQR = ({ dataProfile }) => {
             style={{
               backgroundColor: "rgb(0, 111, 179)",
               color: "white",
-              minHeight: "90vh",
+              minHeight: "80vh",
               borderRadius: "0px 10px 10px 0px",
               borderColor: "rgb(0, 111, 179)",
             }}

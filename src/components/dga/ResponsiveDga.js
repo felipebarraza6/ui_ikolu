@@ -1,22 +1,10 @@
-import React, { useEffect, useContext, useState } from "react";
-import { Card, Typography, Row, Col, Statistic, Flex } from "antd";
-import {
-  FileTextOutlined,
-  QrcodeOutlined,
-  DropboxOutlined,
-  ThunderboltOutlined,
-} from "@ant-design/icons";
+import React, { useContext } from "react";
+import { Card, Flex } from "antd";
 import QueueAnim from "rc-queue-anim";
 import Registers from "./Registers";
 import { AppContext } from "../../App";
 import CodeQR from "./CodeQR";
-import {
-  formatInteger,
-  formatFlow,
-  formatLevel,
-} from "../../utils/numberFormatter";
-
-const { Title } = Typography;
+import { useResponsive } from "../../hooks/useResponsive";
 
 /**
  * 📊 DGA RESPONSIVO
@@ -27,57 +15,35 @@ const { Title } = Typography;
  * - Optimizado para móvil y desktop
  */
 const ResponsiveDga = () => {
-  // 📱 Detectar móvil
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-
   const { state } = useContext(AppContext);
+  const { isMobile } = useResponsive();
+
   const dataDga = state.selected_profile.modules.m2;
   const profileDga = state.selected_profile.dga;
 
-  // Detectar cambios de pantalla
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  const DesktopLayout = () => (
+    <Flex gap="large" align="start">
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <Registers dataDga={dataDga} />
+      </div>
+      <div style={{ flex: "0 0 300px" }}>
+        <CodeQR dataProfile={profileDga} />
+      </div>
+    </Flex>
+  );
 
-  // Calcular estadísticas
-  const totalRegistros = dataDga ? dataDga.length : 0;
-  const ultimoRegistro =
-    dataDga && dataDga.length > 0 ? dataDga[dataDga.length - 1] : null;
-  const caudalAutorizado = profileDga ? profileDga.flow_granted_dga : 0;
-  const totalAutorizado = profileDga ? profileDga.total_granted_dga : 0;
+  const MobileLayout = () => (
+    <Flex vertical gap="large">
+      <Registers dataDga={dataDga} />
+      <CodeQR dataProfile={profileDga} />
+    </Flex>
+  );
 
   return (
-    <div style={{ padding: isMobile ? "10px" : "0px" }}>
+    <div style={{ maxWidth: "1600px", margin: "0 auto" }}>
       <QueueAnim delay={300} type={["top", "left"]}>
-        <div key={"dga"}>
-          {isMobile ? (
-            // 📱 LAYOUT MÓVIL: Stack vertical
-            <div>
-              {/* Registros arriba */}
-              <Card style={{ marginBottom: 16 }}>
-                <Registers dataDga={dataDga} />
-              </Card>
-
-              {/* QR abajo */}
-              <Card
-                style={{
-                  background: "rgb(0, 111, 179)",
-                  borderRadius: "12px",
-                }}
-                bodyStyle={{ padding: "16px" }}
-              >
-                <CodeQR dataProfile={profileDga} />
-              </Card>
-            </div>
-          ) : (
-            // 💻 LAYOUT DESKTOP: Side by side
-            <Flex align="top" justify="space-between" vertical={isMobile}>
-              <Registers dataDga={dataDga} />
-              <CodeQR dataProfile={profileDga} />
-            </Flex>
-          )}
+        <div key="dga-view">
+          {isMobile ? <MobileLayout /> : <DesktopLayout />}
         </div>
       </QueueAnim>
     </div>
