@@ -330,6 +330,7 @@ const Container = ({ data, dateSelected }) => {
               <Card
                 size="small"
                 style={styles.cardStat}
+                hoverable
                 title="Resumen Acumulado"
                 styles={{
                   header: {
@@ -347,7 +348,6 @@ const Container = ({ data, dateSelected }) => {
                     title={
                       <p
                         style={{
-                          color: "#577D37",
                           marginTop: -11,
                           borderRadius: "0px 0px 15px 15px",
                           fontWeight: "500",
@@ -367,25 +367,24 @@ const Container = ({ data, dateSelected }) => {
                     }
                     value={acumulado.first.value}
                     suffix={`m³`}
-                    valueStyle={{ fontSize: "14px", color: "white" }}
+                    valueStyle={{ fontSize: "14px" }}
                   />
                   <Statistic
                     value={acumulado.last.value}
                     suffix={`m³`}
                     prefix={
                       <Tag color="rgb(30, 48, 85)">
-                        {data.length > 0
-                          ? `${acumulado.last.hour} hrs`
-                          : "00:00"}
+                        {data.length > 0 ? `${acumulado.last.hour} ` : "00:00"}
                       </Tag>
                     }
-                    valueStyle={{ fontSize: "14px", color: "white" }}
+                    valueStyle={{ fontSize: "14px" }}
                   />
                 </Flex>
               </Card>
               <Card
                 size="small"
                 style={styles.cardStat}
+                hoverable
                 title="Consumos MAX/MIN"
                 styles={{
                   header: {
@@ -406,7 +405,6 @@ const Container = ({ data, dateSelected }) => {
                     title={
                       <p
                         style={{
-                          color: "#577D37",
                           marginTop: -11,
                           borderRadius: "0px 0px 15px 15px",
                           fontWeight: "500",
@@ -421,7 +419,7 @@ const Container = ({ data, dateSelected }) => {
                     }
                     value={maxConsumoHora.value}
                     suffix={`m³/h `}
-                    valueStyle={{ fontSize: "14px", color: "white" }}
+                    valueStyle={{ fontSize: "14px" }}
                   />
                   <Statistic
                     prefix={
@@ -429,12 +427,13 @@ const Container = ({ data, dateSelected }) => {
                     }
                     value={minConsumoHora.value}
                     suffix={`m³/h`}
-                    valueStyle={{ fontSize: "14px", color: "white" }}
+                    valueStyle={{ fontSize: "14px" }}
                   />
                 </Flex>
               </Card>
               <Card
                 size="small"
+                hoverable
                 style={styles.cardStat}
                 title="Consumo del mes"
                 styles={{
@@ -458,7 +457,6 @@ const Container = ({ data, dateSelected }) => {
                     title={
                       <p
                         style={{
-                          color: "#577D37",
                           marginTop: -4,
                           borderRadius: "0px 0px 15px 15px",
                           fontWeight: "500",
@@ -484,7 +482,6 @@ const Container = ({ data, dateSelected }) => {
                     suffix="m³"
                     valueStyle={{
                       fontSize: "22px",
-                      color: "white",
                       textAlign: "center",
                     }}
                   />
@@ -492,6 +489,7 @@ const Container = ({ data, dateSelected }) => {
               </Card>
               <Card
                 size="small"
+                hoverable
                 style={styles.cardStat}
                 title="Caudal MAX/MIN"
                 styles={{
@@ -510,7 +508,6 @@ const Container = ({ data, dateSelected }) => {
                     title={
                       <p
                         style={{
-                          color: "#577D37",
                           marginTop: -11,
                           borderRadius: "0px 0px 15px 15px",
                           fontWeight: "500",
@@ -528,7 +525,7 @@ const Container = ({ data, dateSelected }) => {
                     }
                     value={caudalMax.value}
                     suffix="lt"
-                    valueStyle={{ fontSize: "14px", color: "white" }}
+                    valueStyle={{ fontSize: "14px" }}
                   />
                   <Statistic
                     prefix={
@@ -536,7 +533,7 @@ const Container = ({ data, dateSelected }) => {
                     }
                     value={caudalMin.value}
                     suffix="lt"
-                    valueStyle={{ fontSize: "14px", color: "white" }}
+                    valueStyle={{ fontSize: "14px" }}
                   />
                 </Flex>
               </Card>
@@ -544,6 +541,7 @@ const Container = ({ data, dateSelected }) => {
                 size="small"
                 style={styles.cardStat}
                 title="Nivel Freático MAX/MIN"
+                hoverable
                 styles={styles.cardStat}
               >
                 <Flex vertical gap="small">
@@ -551,7 +549,6 @@ const Container = ({ data, dateSelected }) => {
                     title={
                       <p
                         style={{
-                          color: "#577D37",
                           marginTop: -11,
                           borderRadius: "0px 0px 15px 15px",
                           fontWeight: "500",
@@ -567,12 +564,12 @@ const Container = ({ data, dateSelected }) => {
                     prefix={<Tag color="rgb(30, 48, 85)">{nivelMax.hour} </Tag>}
                     value={nivelMax.value}
                     suffix="m"
-                    valueStyle={{ fontSize: "14px", color: "white" }}
+                    valueStyle={{ fontSize: "14px" }}
                   />
                   <Statistic
                     prefix={<Tag color="rgb(30, 48, 85)">{nivelMin.hour} </Tag>}
                     value={nivelMin.value}
-                    valueStyle={{ fontSize: "14px", color: "white" }}
+                    valueStyle={{ fontSize: "14px" }}
                     suffix="m"
                   />
                 </Flex>
@@ -588,8 +585,6 @@ const Container = ({ data, dateSelected }) => {
 const styles = {
   cardStat: {
     width: "100%",
-    background:
-      "linear-gradient(90deg, rgba(89,128,55,0.40940126050420167) 0%, rgba(30,48,85,0.7763480392156863)",
     header: {
       color: "white",
       fontWeight: "700",
@@ -604,8 +599,6 @@ const styles = {
     marginTop: "-16px",
     borderRadius: "0px 0px 10px 10px",
     width: "100%",
-    background:
-      "radial-gradient(circle, rgba(30,48,85,1) 0%, rgba(43,46,51,1) 100%)",
   },
   cardData: {
     marginTop: "-16px",

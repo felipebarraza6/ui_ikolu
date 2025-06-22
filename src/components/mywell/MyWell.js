@@ -5,7 +5,6 @@ import {
   Typography,
   Statistic,
   Card,
-  Tag,
   Descriptions,
   Flex,
   Table,
@@ -18,7 +17,6 @@ import {
 import caudal_img from "../../assets/images/caudal.png";
 import nivel_img from "../../assets/images/nivel.png";
 import acumulado_img from "../../assets/images/acumulado.png";
-import pozo1 from "../../assets/images/pozo1.png";
 import { AppContext } from "../../App";
 import QueueAnim from "rc-queue-anim";
 import MyLastRegisters from "./MyLastRegisters";
@@ -166,10 +164,6 @@ const MyWell = () => {
     cardValues: {
       marginBottom: "10px",
       padding: window.innerWidth > 900 ? "14px" : "0px",
-      borderRadius: "15px",
-      border: "0px solid #1F3461",
-      background:
-        "linear-gradient(90deg, rgba(2,0,36,0.14189425770308128) 0%, rgba(255,255,255,1) 100%)",
       width: window.innerWidth > 900 ? "280px" : "100%",
     },
     valueCard: {
@@ -197,13 +191,11 @@ const MyWell = () => {
   }) => (
     <div
       size="small"
-      hoverable
       style={{
         borderRadius: "12px",
         overflow: "hidden",
         margin: "4px",
         padding: "0px",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
         height: "80px",
         transition: "all 0.3s ease",
       }}
@@ -218,8 +210,8 @@ const MyWell = () => {
           fontWeight: "600",
           textAlign: "center",
           display: "flex",
-          backgroundColor: "#1F3461",
           color: "white",
+          backgroundColor: "#1F3461",
           alignItems: "center",
           justifyContent: "center",
         }}
@@ -359,8 +351,7 @@ const MyWell = () => {
               hoverable
               style={{
                 borderRadius: "12px",
-                background:
-                  "linear-gradient(135deg, rgba(31,52,97,0.05) 0%, rgba(255,255,255,0.95) 100%)",
+
                 boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
               }}
               bodyStyle={{ padding: "8px" }}
@@ -437,8 +428,7 @@ const MyWell = () => {
               bordered
               style={{
                 borderRadius: "12px",
-                background:
-                  "linear-gradient(135deg, rgba(31,52,97,0.03) 0%, rgba(255,255,255,0.97) 100%)",
+
                 boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
               }}
             >
@@ -521,12 +511,7 @@ const MyWell = () => {
       <Flex vertical style={{ width: "100%" }}>
         <QueueAnim delay={400} duration={1200} type="left">
           <div key={"card-last-hour"}>
-            <Card
-              hoverable
-              bordered={false}
-              style={styles.cardValues}
-              size="small"
-            >
+            <Card hoverable style={styles.cardValues} size="small">
               <Row justify="space-around" align={"middle"}>
                 <Col xs={24} lg={6} xl={6}>
                   <center>
@@ -620,7 +605,6 @@ const MyWell = () => {
           <div key={"card-accumulated"}>
             <Card
               hoverable
-              bordered={false}
               style={styles.cardValues}
               size="small"
               onMouseLeave={() => setZoomAcumulado(false)}
@@ -699,8 +683,6 @@ const MyWell = () => {
                 marginBottom: "10px",
                 width: "370px",
                 borderRadius: "10px",
-                background:
-                  "linear-gradient(90deg, rgba(2,0,36,0.14189425770308128) 0%, rgba(255,255,255,1) 100%)",
               }}
             >
               <Descriptions.Item
@@ -765,8 +747,6 @@ const MyWell = () => {
               style={{
                 borderRadius: "10px",
                 width: "85%",
-                background:
-                  "linear-gradient(90deg, rgba(2,0,36,0.14189425770308128) 0%, rgba(255,255,255,1) 100%)",
               }}
             >
               <Descriptions.Item label="Frecuencia" span={2}>
