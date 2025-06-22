@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
-import { DatePicker, Button, Flex, ConfigProvider, Card } from "antd";
-import { BarChartOutlined, CalendarOutlined } from "@ant-design/icons";
+import { DatePicker, Flex, ConfigProvider, Card, Spin, Typography } from "antd";
+import { CalendarOutlined } from "@ant-design/icons";
 import { AppContext } from "../../App";
 import sh from "../../api/sh/endpoints";
 import ContainerDays from "./dga/days/Container";
@@ -12,11 +12,14 @@ import "dayjs/locale/es";
 // Configurar dayjs para español
 dayjs.locale("es");
 
+const { Title } = Typography;
+
 /**
  * 📊 DGA ANÁLISIS RESPONSIVO
  *
  * Estructura:
- * - Solo Fecha y Botón Analizar
+ * - Solo Fecha (sin botón Analizar)
+ * - Carga automática al seleccionar fecha
  * - Tabs con gráficos abajo (estilo azul, headers blancos)
  * - Sin Card wrapper, sin gradientes
  */
@@ -24,14 +27,13 @@ const GraphisNavDga = () => {
   // 📱 Detectar móvil
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
-  // Estados principales - solo diario por defecto
-  const [dateSelected, setDateSelected] = useState(
-    dayjs().format("YYYY-MM-DD")
-  );
+  // Estados principales - fecha inicializada como null
+  const [dateSelected, setDateSelected] = useState(null);
 
   // Estados de datos
   const { state } = useContext(AppContext);
-  const [data, setData] = useState(state.selected_profile.modules.m2);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const activate = state.selected_profile.profile_ikolu.m2;
 
@@ -42,14 +44,43 @@ const GraphisNavDga = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Obtener datos - solo diario
-  const getData = async () => {
-    const response = await sh
-      .get_data_day(state.selected_profile.id, dateSelected, dateSelected)
-      .then((response) => {
+  // useEffect para cargar datos automáticamente cuando cambia la fecha
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!dateSelected) {
+        setData([]);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const response = await sh.get_data_day(
+          state.selected_profile.id,
+          dateSelected.format("YYYY-MM-DD"),
+          dateSelected.format("YYYY-MM-DD")
+        );
         setData(response || []);
-      });
-  };
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [dateSelected, state.selected_profile.id]);
+
+  // Limpiar datos al cambiar de perfil
+  useEffect(() => {
+    if (state.selected_profile) {
+      setDateSelected(null);
+      setData([]);
+    }
+  }, [state.selected_profile]);
+
+  const hasData = data && data.length > 0;
+  const dateIsSelected = !!dateSelected;
 
   return (
     <div
@@ -74,14 +105,10 @@ const GraphisNavDga = () => {
         >
           <ConfigProvider locale={locale}>
             <DatePicker
-              placeholder="Fecha"
+              placeholder="Seleccionar fecha"
               style={{ width: isMobile ? "100%" : "200px" }}
-              value={dateSelected ? dayjs(dateSelected) : null}
-              onChange={(date) => {
-                if (date) {
-                  setDateSelected(date.format("YYYY-MM-DD"));
-                }
-              }}
+              value={dateSelected}
+              onChange={setDateSelected}
               disabled={!activate}
               disabledDate={(current) =>
                 current && current > dayjs().endOf("day")
@@ -89,26 +116,34 @@ const GraphisNavDga = () => {
               format="DD/MM/YYYY"
             />
           </ConfigProvider>
-
-          <Button
-            type="primary"
-            icon={<BarChartOutlined />}
-            onClick={getData}
-            disabled={!activate}
-            style={{
-              width: isMobile ? "100%" : "auto",
-              background: "#1F3461",
-              borderColor: "#1F3461",
-            }}
-          >
-            Analizar
-          </Button>
         </Flex>
       </Card>
 
       {/* Contenedor de gráficos con tabs */}
       {activate ? (
-        <ContainerDays data={data} />
+        loading ? (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "300px",
+            }}
+          >
+            <Spin size="large" tip="Cargando datos..." />
+          </div>
+        ) : hasData ? (
+          <ContainerDays data={data} />
+        ) : (
+          <div style={{ textAlign: "center", padding: "40px 0" }}>
+            <CalendarOutlined style={{ fontSize: "48px", color: "#d9d9d9" }} />
+            <Title level={4} style={{ color: "#bfbfbf", marginTop: "16px" }}>
+              {dateIsSelected
+                ? "No se encontraron datos para la fecha seleccionada."
+                : "Por favor, selecciona una fecha para visualizar los datos."}
+            </Title>
+          </div>
+        )
       ) : (
         <div style={{ textAlign: "center", padding: "40px" }}>
           <CalendarOutlined

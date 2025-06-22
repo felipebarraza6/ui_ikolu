@@ -58,7 +58,7 @@ const GraphisNav = () => {
   const [loading, setLoading] = useState(false);
 
   // Estados de datos y fechas inicializados en vacío
-  const [data, setData] = useState([]);
+  const [data, setData] = useState(state.selected_profile.modules.m4);
   const [dataMonth, setDataMonth] = useState([]);
   const [dayDate, setDayDate] = useState(null);
   const [monthDate, setMonthDate] = useState(null);
@@ -91,10 +91,12 @@ const GraphisNav = () => {
     const fetchData = async () => {
       const dateToUse = monthMode ? monthDate : dayDate;
 
-      // Si no hay fecha, limpiar los datos y no hacer nada más
+      // Si no hay fecha, NO HACER NADA. Los datos iniciales ya están cargados.
       if (!dateToUse) {
-        setData([]);
-        setDataMonth([]);
+        // Opcional: si prefieres que se limpie en vez de mantener los de hoy,
+        // descomenta las siguientes líneas.
+        // setData([]);
+        // setDataMonth([]);
         return;
       }
 
@@ -272,7 +274,7 @@ const GraphisNav = () => {
               <Title level={4} style={{ color: "#bfbfbf", marginTop: "16px" }}>
                 {dateIsSelected
                   ? "No se encontraron datos para la fecha seleccionada."
-                  : "Por favor, selecciona una fecha para visualizar los datos."}
+                  : "Mostrando datos de hoy. Selecciona otra fecha para un nuevo análisis."}
               </Title>
             </div>
           )}

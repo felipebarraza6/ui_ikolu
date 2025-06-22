@@ -2,31 +2,31 @@ import React, { useState, useContext, useEffect } from "react";
 import {
   Card,
   Typography,
-  Row,
-  Col,
   DatePicker,
   Select,
-  Button,
-  Statistic,
   Flex,
+  Spin,
+  ConfigProvider,
 } from "antd";
-import {
-  BarChartOutlined,
-  DashboardOutlined,
-  DropboxOutlined,
-  ThunderboltOutlined,
-  CalendarOutlined,
-} from "@ant-design/icons";
+import { CalendarOutlined } from "@ant-design/icons";
 import { AppContext } from "../../App";
-import moment from "moment";
 import sh from "../../api/sh/endpoints";
 import ContainerDays from "./days/Container";
 import ContainerMonth from "./month/Container";
-import {
-  formatInteger,
-  formatFlow,
-  formatLevel,
-} from "../../utils/numberFormatter";
+import dayjs from "dayjs";
+import locale from "antd/locale/es_ES";
+import "dayjs/locale/es";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import { useResponsive } from "../../hooks/useResponsive";
+
+// Configurar dayjs correctamente
+dayjs.extend(customParseFormat);
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.locale("es");
+dayjs.tz.setDefault("America/Santiago");
 
 const { Title } = Typography;
 
@@ -39,106 +39,78 @@ const { Title } = Typography;
  * - Optimizado para móvil y desktop
  */
 const ResponsiveSmartAnalysis = () => {
-  // 📱 Detectar móvil
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const { isMobile } = useResponsive();
+  const { state } = useContext(AppContext);
 
-  // Estados principales
   const [dateType, setDateType] = useState("1");
   const [monthMode, setMonthMode] = useState(false);
-  const [dateSelected, setDateSelected] = useState(
-    moment().format("YYYY-MM-DD")
-  );
+  const [loading, setLoading] = useState(false);
 
-  // Estados de datos
-  const { state } = useContext(AppContext);
-  const [data, setData] = useState(state.selected_profile.modules.today);
+  const [data, setData] = useState(state.selected_profile.modules.today || []);
   const [dataMonth, setDataMonth] = useState([]);
-
-  // Estados de estadísticas
-  const [acumulado, setAcumulado] = useState({
-    first: { hour: "00:00", value: 0 },
-    last: { hour: "00:00", value: 0 },
-  });
-  const [caudalMax, setCaudalMax] = useState({ hour: "00:00", value: 0 });
-  const [caudalMin, setCaudalMin] = useState({ hour: "00:00", value: 0 });
-  const [nivelMax, setNivelMax] = useState({ hour: "00:00", value: 0 });
+  const [dayDate, setDayDate] = useState(null);
+  const [monthDate, setMonthDate] = useState(null);
 
   const activate = state.selected_profile.profile_ikolu.m4;
 
-  // Detectar cambios de pantalla
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  // Obtener datos
-  const getData = async () => {
-    if (!monthMode) {
-      const response = await sh
-        .get_data_day(state.selected_profile.id, dateSelected, dateSelected)
-        .then((response) => {
-          setData(response || []);
-        });
-    } else {
-      const response = await sh
-        .get_data_month(state.selected_profile.id, dateSelected, dateSelected)
-        .then((response) => {
-          setDataMonth(response || []);
-        });
-    }
-  };
-
-  // Manejar cambio de tipo de fecha
   const handleDateTypeChange = (value) => {
     setDateType(value);
     setMonthMode(value === "2");
+    setDayDate(null);
+    setMonthDate(null);
+    setData(value === "1" ? state.selected_profile.modules.today || [] : []);
+    setDataMonth([]);
   };
 
-  // Calcular estadísticas
   useEffect(() => {
-    if (data.length > 0) {
-      // Caudal máximo y mínimo
-      let caudalMaxObj = data.reduce((prev, current) =>
-        prev.flow > current.flow ? prev : current
-      );
-      let caudalMinObj = data.reduce((prev, current) => {
-        if (current.flow === 0) return prev;
-        return prev.flow < current.flow && prev.flow !== 0 ? prev : current;
-      });
+    const fetchData = async () => {
+      const dateToUse = monthMode ? monthDate : dayDate;
 
-      setCaudalMax({
-        hour: caudalMaxObj.date_time_medition.slice(11, 16),
-        value: caudalMaxObj.flow,
-      });
-      setCaudalMin({
-        hour: caudalMinObj.date_time_medition.slice(11, 16),
-        value: caudalMinObj.flow,
-      });
+      if (!dateToUse) {
+        return;
+      }
 
-      // Nivel máximo y mínimo
-      let nivelMaxObj = data.reduce((prev, current) =>
-        prev.water_table > current.water_table ? prev : current
-      );
+      setLoading(true);
+      const formattedDate = dateToUse.format("YYYY-MM-DD");
+      try {
+        if (monthMode) {
+          const response = await sh.get_data_month(
+            state.selected_profile.id,
+            formattedDate,
+            formattedDate
+          );
+          setDataMonth(response || []);
+        } else {
+          const response = await sh.get_data_day(
+            state.selected_profile.id,
+            formattedDate,
+            formattedDate
+          );
+          setData(response || []);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      setNivelMax({
-        hour: nivelMaxObj.date_time_medition.slice(11, 16),
-        value: nivelMaxObj.water_table,
-      });
+    fetchData();
+  }, [dayDate, monthDate, monthMode, state.selected_profile.id]);
 
-      // Acumulado
-      setAcumulado({
-        first: {
-          hour: data[0].date_time_medition.slice(11, 16),
-          value: parseInt(data[0].total),
-        },
-        last: {
-          hour: data[data.length - 1].date_time_medition.slice(11, 16),
-          value: parseInt(data[data.length - 1].total),
-        },
-      });
+  useEffect(() => {
+    if (state.selected_profile) {
+      setDateType("1");
+      setMonthMode(false);
+      setDayDate(null);
+      setMonthDate(null);
+      setData(state.selected_profile.modules.today || []);
+      setDataMonth([]);
     }
-  }, [data, monthMode]);
+  }, [state.selected_profile]);
+
+  const hasData = monthMode ? dataMonth.length > 0 : data.length > 0;
+  const dateIsSelected = monthMode ? !!monthDate : !!dayDate;
 
   return (
     <div
@@ -149,9 +121,6 @@ const ResponsiveSmartAnalysis = () => {
         minHeight: "100vh",
       }}
     >
-      {/* 📊 INDICADORES ARRIBA */}
-
-      {/* 📈 SECCIÓN DE GRÁFICOS Y ANÁLISIS (ABAJO) */}
       <Card
         style={{
           background: "white",
@@ -172,45 +141,61 @@ const ResponsiveSmartAnalysis = () => {
           <Select
             placeholder="Tipo de análisis"
             style={{ width: isMobile ? "100%" : "200px" }}
-            defaultValue="1"
+            value={dateType}
             onChange={handleDateTypeChange}
             disabled={!activate}
           >
             <Select.Option value="1">📅 Análisis Diario</Select.Option>
             <Select.Option value="2">📊 Análisis Mensual</Select.Option>
           </Select>
-
-          <DatePicker
-            placeholder="Seleccionar fecha"
-            style={{ width: isMobile ? "100%" : "200px" }}
-            defaultValue={moment()}
-            onChange={(date) => {
-              if (date) {
-                setDateSelected(date.format("YYYY-MM-DD"));
+          <ConfigProvider locale={locale}>
+            <DatePicker
+              key={dateType}
+              placeholder="Seleccionar fecha"
+              value={monthMode ? monthDate : dayDate}
+              onChange={monthMode ? setMonthDate : setDayDate}
+              style={{ width: isMobile ? "100%" : "200px" }}
+              picker={dateType === "1" ? "date" : "month"}
+              disabled={!activate}
+              disabledDate={(current) =>
+                current && current > dayjs().endOf("day")
               }
-            }}
-            picker={monthMode ? "month" : "date"}
-            disabled={!activate}
-          />
-
-          <Button
-            type="primary"
-            icon={<BarChartOutlined />}
-            onClick={getData}
-            disabled={!activate}
-            style={{ width: isMobile ? "100%" : "auto" }}
-          >
-            Analizar
-          </Button>
+              format={dateType === "1" ? "DD/MM/YYYY" : "MM/YYYY"}
+            />
+          </ConfigProvider>
         </Flex>
       </Card>
 
       {/* Contenedor de gráficos */}
       {activate ? (
-        monthMode ? (
-          <ContainerMonth data={dataMonth} dateSelected={dateSelected} />
+        loading ? (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "300px",
+            }}
+          >
+            <Spin size="large" tip="Cargando datos..." />
+          </div>
+        ) : hasData ? (
+          monthMode ? (
+            <ContainerMonth data={dataMonth} />
+          ) : (
+            <ContainerDays data={data} />
+          )
         ) : (
-          <ContainerDays data={data} />
+          <Card style={{ textAlign: "center", padding: "40px" }}>
+            <CalendarOutlined
+              style={{ fontSize: 48, color: "#d9d9d9", marginBottom: 16 }}
+            />
+            <Title level={4} style={{ color: "#bfbfbf" }}>
+              {dateIsSelected
+                ? "No se encontraron datos para la fecha seleccionada."
+                : "Mostrando datos de hoy. Por favor, selecciona otra fecha para un nuevo análisis."}
+            </Title>
+          </Card>
         )
       ) : (
         <Card style={{ textAlign: "center", padding: "40px" }}>

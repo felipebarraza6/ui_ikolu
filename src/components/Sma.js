@@ -210,8 +210,10 @@ const Sma = () => {
     setPage(newPage);
   };
 
-  const hasData = data && data.length > 0;
+  // Variable para verificar si se ha seleccionado un rango completo de fechas
   const dateRangeIsSelected = initialDate && finishDate;
+
+  const hasData = data && data.length > 0;
 
   return (
     <div>
