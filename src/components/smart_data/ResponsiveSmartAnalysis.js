@@ -7,6 +7,7 @@ import {
   Flex,
   Spin,
   ConfigProvider,
+  Tag,
 } from "antd";
 import { CalendarOutlined } from "@ant-design/icons";
 import { AppContext } from "../../App";
@@ -28,7 +29,7 @@ dayjs.extend(timezone);
 dayjs.locale("es");
 dayjs.tz.setDefault("America/Santiago");
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 /**
  * 📊 SMART ANÁLISIS RESPONSIVO
@@ -162,6 +163,10 @@ const ResponsiveSmartAnalysis = () => {
               }
               format={dateType === "1" ? "DD/MM/YYYY" : "MM/YYYY"}
             />
+            <Tag color="blue">
+              <CalendarOutlined />
+              {dayDate ? dayDate.format("DD/MM/YYYY") : dayjs()}
+            </Tag>
           </ConfigProvider>
         </Flex>
       </Card>
