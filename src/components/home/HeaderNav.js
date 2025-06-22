@@ -156,9 +156,6 @@ const DesktopHeader = ({ user, onLogout }) => (
     </Title>
     <Flex align="center" gap="large">
       <ListWells />
-      <Button onClick={() => {}} type="primary">
-        MODULO B
-      </Button>
     </Flex>
     <Flex align="center" gap="middle">
       <UserInfo email={user.email} />

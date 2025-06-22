@@ -32,6 +32,8 @@ import MyGraphics from "../components/graphics/MyGraphics";
 import Supp from "../components/home/Supp";
 import minLogo from "../assets/images/logo-blanco.png";
 import { useResponsive } from "../hooks/useResponsive";
+import Documentation from "../components/documentation/Documentation";
+import UserDocumentation from "../components/documentation/UserDocumentation";
 
 const { Header, Sider, Content } = Layout;
 
@@ -106,6 +108,8 @@ const AppRoutes = React.memo(() => {
       <Route path="/formmultidata" element={<FormMultiData />} />
       <Route path="/reportes" element={<Reports />} />
       <Route path="/supp" element={<Supp />} />
+      <Route path="/documentation" element={<Documentation />} />
+      <Route path="/user-documentation" element={<UserDocumentation />} />
     </Routes>
   );
 });

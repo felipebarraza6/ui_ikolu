@@ -1,8 +1,13 @@
 import React, { useContext, useCallback, useMemo } from "react";
 import { AppContext } from "../../App";
-import { Row, Col, Tag, Badge, Select, Flex, Button } from "antd";
+import { Row, Col, Tag, Badge, Select, Flex, Button, Dropdown } from "antd";
 import { useNavigate } from "react-router";
-import { SendOutlined, DatabaseFilled } from "@ant-design/icons";
+import {
+  SendOutlined,
+  DatabaseFilled,
+  BookOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
 import { GiConsoleController } from "react-icons/gi";
 import { FcDoughnutChart } from "react-icons/fc";
 import { useResponsive } from "../../hooks/useResponsive";
@@ -137,12 +142,35 @@ const ListWells = () => {
       </Select>
 
       {state.user.username === "demosmart" && (
-        <Button
-          onClick={() => navigate("formmultidata")}
-          icon={<FcDoughnutChart />}
-        >
-          MODULO B
-        </Button>
+        <Flex gap="small" align="center">
+          <Button
+            onClick={() => navigate("formmultidata")}
+            icon={<FcDoughnutChart />}
+          >
+            MODULO B
+          </Button>
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: "tech-doc",
+                  icon: <BookOutlined />,
+                  label: "Documentación Técnica",
+                  onClick: () => navigate("/documentation"),
+                },
+                {
+                  key: "user-doc",
+                  icon: <UserOutlined />,
+                  label: "Documentación de Usuario",
+                  onClick: () => navigate("/user-documentation"),
+                },
+              ],
+            }}
+            placement="bottomRight"
+          >
+            <Button icon={<BookOutlined />}>Documentación</Button>
+          </Dropdown>
+        </Flex>
       )}
     </Flex>
   );
