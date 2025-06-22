@@ -275,17 +275,14 @@ const SiderLeft = () => {
               )}
             </Flex>
           </Flex>
-          <img src={minLogo} width={"70%"} alt="logo" />
           <Flex
             vertical
             justify="center"
             align="center"
             style={{
-              marginBottom: "10px",
+              marginTop: "210px",
             }}
-          >
-            <img src={minLogo} width={"70%"} alt="logo" />
-          </Flex>
+          ></Flex>
         </Flex>
       </div>
     </QueueAnim>

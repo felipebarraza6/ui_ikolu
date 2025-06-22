@@ -1,6 +1,4 @@
 import React, { useContext, useState, useEffect } from "react";
-import moment from "moment";
-import "moment/locale/es";
 import {
   Row,
   Col,
@@ -19,7 +17,6 @@ import { AppContext } from "../../App";
 import dayjs from "dayjs";
 import locale from "antd/locale/es_ES";
 import "dayjs/locale/es";
-
 import {
   TableOutlined,
   FileExcelFilled,
@@ -33,6 +30,9 @@ import {
   formatFlow,
   formatLevel,
 } from "../../utils/numberFormatter";
+
+// Configurar dayjs para español
+dayjs.locale("es");
 
 const { Title } = Typography;
 
@@ -376,7 +376,7 @@ const Reports = () => {
                           title: "Fecha",
                           dataIndex: "date_time_medition",
                           render: (date) => {
-                            return moment(date).format("YYYY-MM-DD HH:mm");
+                            return dayjs(date).format("YYYY-MM-DD HH:mm");
                           },
                         },
                         { title: "Caudal (L/s)", dataIndex: "flow" },
@@ -487,10 +487,8 @@ const Reports = () => {
                       <>
                         Visualización:{" "}
                         <b>
-                          {moment(finishDate).diff(
-                            moment(initialDate),
-                            "days"
-                          ) + 1}{" "}
+                          {dayjs(finishDate).diff(dayjs(initialDate), "days") +
+                            1}{" "}
                           día/s
                         </b>
                       </>
@@ -590,7 +588,7 @@ const Reports = () => {
                       render: (date) => {
                         // Assuming date_time_medition still contains full timestamp, if not,
                         // this render will need adjustment based on the actual data format from API
-                        return moment(date).format("DD/MM HH:mm");
+                        return dayjs(date).format("DD/MM HH:mm");
                       },
                     },
                     {

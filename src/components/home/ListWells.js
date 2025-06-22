@@ -149,29 +149,29 @@ const ListWells = () => {
           >
             MODULO B
           </Button>
-          <Dropdown
-            menu={{
-              items: [
-                {
-                  key: "tech-doc",
-                  icon: <BookOutlined />,
-                  label: "Documentación Técnica",
-                  onClick: () => navigate("/documentation"),
-                },
-                {
-                  key: "user-doc",
-                  icon: <UserOutlined />,
-                  label: "Documentación de Usuario",
-                  onClick: () => navigate("/user-documentation"),
-                },
-              ],
-            }}
-            placement="bottomRight"
-          >
-            <Button icon={<BookOutlined />}>Documentación</Button>
-          </Dropdown>
         </Flex>
       )}
+      <Dropdown
+        menu={{
+          items: [
+            {
+              key: "user-doc",
+              icon: <UserOutlined />,
+              label: "Documentación Usuario",
+              onClick: () => navigate("/user-documentation"),
+            },
+            {
+              key: "tech-doc",
+              icon: <BookOutlined />,
+              label: "Documentación Técnica",
+              onClick: () => navigate("/documentation"),
+            },
+          ],
+        }}
+        placement="bottomRight"
+      >
+        <Button icon={<BookOutlined />}>Documentación</Button>
+      </Dropdown>
     </Flex>
   );
 };

@@ -16,11 +16,17 @@ import {
   DatePicker,
   Button,
   Typography,
-  Form,
   Row,
   Col,
+  ConfigProvider,
+  Spin,
 } from "antd";
-import moment from "moment";
+import dayjs from "dayjs";
+import "dayjs/locale/es";
+import locale from "antd/locale/es_ES";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import {
   DatabaseFilled,
   FilterFilled,
@@ -35,6 +41,15 @@ import {
 import sh from "../api/sh/endpoints";
 import { useResponsive } from "../hooks/useResponsive";
 
+// Configurar dayjs correctamente
+dayjs.extend(customParseFormat);
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.locale("es");
+
+// Forzar timezone de Chile
+dayjs.tz.setDefault("America/Santiago");
+
 const { Title } = Typography;
 
 const Sma = () => {
@@ -47,15 +62,20 @@ const Sma = () => {
   const [page, setPage] = useState(1);
   const [initialDate, setInitialDate] = useState(null);
   const [finishDate, setFinishDate] = useState(null);
-  const [data, setData] = useState(state.selected_profile.modules.today);
+  const [data, setData] = useState([]);
   const [countApi, setCountApi] = useState(0);
   const activate = state.selected_profile.profile_ikolu.m3;
 
-  const fetchData = useCallback(
-    async (currentPage) => {
-      if (!initialDate || !finishDate) return;
-      setLoading(true);
+  useEffect(() => {
+    const fetchData = async (currentPage = 1) => {
+      if (!initialDate || !finishDate) {
+        setData([]);
+        setCountApi(0);
+        return;
+      }
 
+      setLoading(true);
+      setPage(currentPage);
       const format = (date) => (date ? date.format("YYYY-MM-DD") : null);
 
       try {
@@ -69,19 +89,15 @@ const Sma = () => {
         setCountApi(rq.count);
       } catch (error) {
         console.error("Failed to fetch data:", error);
-        // Aquí podrías mostrar una notificación de error al usuario
+        setData([]);
+        setCountApi(0);
       } finally {
         setLoading(false);
       }
-    },
-    [initialDate, finishDate, state.selected_profile.id]
-  );
+    };
 
-  useEffect(() => {
-    // Cargar datos iniciales o cuando las fechas cambian
-    fetchData(1); // Siempre empezar en la página 1 al cambiar fechas
-    setPage(1);
-  }, [fetchData]);
+    fetchData(1);
+  }, [initialDate, finishDate, state.selected_profile.id]);
 
   const downloadDataToExcel = useCallback(async () => {
     if (!initialDate || !finishDate) return;
@@ -104,7 +120,11 @@ const Sma = () => {
   useEffect(() => {
     if (state.selected_profile) {
       setDataSelected(state.selected_profile);
-      setData(state.selected_profile.modules.today);
+      setInitialDate(null);
+      setFinishDate(null);
+      setData([]);
+      setCountApi(0);
+      setPage(1);
     }
   }, [state.selected_profile]);
 
@@ -137,9 +157,9 @@ const Sma = () => {
         width: isMobile ? 140 : 180,
         render: (date) => (
           <div style={{ fontWeight: 500, color: primaryColor }}>
-            <div>{moment(date).format("DD-MM")}</div>
+            <div>{dayjs(date).format("DD-MM")}</div>
             <div style={{ fontSize: 12, color: "#666" }}>
-              {moment(date).format("HH:mm")} hrs
+              {dayjs(date).format("HH:mm")} hrs
             </div>
           </div>
         ),
@@ -188,8 +208,10 @@ const Sma = () => {
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
-    fetchData(newPage);
   };
+
+  const hasData = data && data.length > 0;
+  const dateRangeIsSelected = initialDate && finishDate;
 
   return (
     <div>
@@ -394,7 +416,6 @@ const Sma = () => {
       >
         <Table
           size={isMobile ? "small" : "middle"}
-          loading={loading}
           title={() => (
             <div
               style={{
@@ -406,7 +427,7 @@ const Sma = () => {
               <Flex
                 justify="space-between"
                 align="center"
-                wrap={isMobile ? "wrap" : "nowrap"}
+                wrap="wrap"
                 gap={isMobile ? 16 : 24}
               >
                 <Title
@@ -430,28 +451,49 @@ const Sma = () => {
                   style={{ width: isMobile ? "100%" : "auto" }}
                   justify="flex-end"
                 >
-                  <DatePicker
-                    placeholder="Desde"
-                    onChange={(date) => setInitialDate(date)}
-                    disabled={!activate}
-                    style={{
-                      flex: isMobile ? "1 1 calc(50% - 6px)" : "0 1 auto",
-                    }}
-                    size={isMobile ? "large" : "middle"}
-                  />
-                  <DatePicker
-                    placeholder="Hasta"
-                    onChange={(date) => setFinishDate(date)}
-                    disabled={!activate}
-                    style={{
-                      flex: isMobile ? "1 1 calc(50% - 6px)" : "0 1 auto",
-                    }}
-                    size={isMobile ? "large" : "middle"}
-                  />
+                  <ConfigProvider locale={locale}>
+                    <DatePicker
+                      key="initial-date"
+                      placeholder="Desde"
+                      value={initialDate}
+                      onChange={(date) => {
+                        setInitialDate(date);
+                        if (date && finishDate && date.isAfter(finishDate)) {
+                          setFinishDate(null);
+                        }
+                      }}
+                      disabled={!activate}
+                      style={{
+                        flex: isMobile ? "1 1 calc(50% - 6px)" : "0 1 auto",
+                      }}
+                      size={isMobile ? "large" : "middle"}
+                      format="DD/MM/YYYY"
+                      disabledDate={(current) =>
+                        current && current > dayjs().endOf("day")
+                      }
+                    />
+                    <DatePicker
+                      key="finish-date"
+                      placeholder="Hasta"
+                      value={finishDate}
+                      onChange={setFinishDate}
+                      disabled={!initialDate || !activate}
+                      style={{
+                        flex: isMobile ? "1 1 calc(50% - 6px)" : "0 1 auto",
+                      }}
+                      size={isMobile ? "large" : "middle"}
+                      format="DD/MM/YYYY"
+                      disabledDate={(current) =>
+                        current &&
+                        (current > dayjs().endOf("day") ||
+                          current < initialDate)
+                      }
+                    />
+                  </ConfigProvider>
                   <Button
                     loading={loadingExcel}
                     type="default"
-                    disabled={!initialDate || !finishDate || !activate}
+                    disabled={!dateRangeIsSelected || !activate}
                     icon={<DownloadOutlined />}
                     onClick={downloadDataToExcel}
                     style={{
@@ -470,14 +512,12 @@ const Sma = () => {
               </Flex>
             </div>
           )}
-          style={{
-            borderRadius: "0 0 16px 16px",
-            overflow: "hidden",
-          }}
+          style={{ borderRadius: "0 0 16px 16px", overflow: "hidden" }}
           bordered={false}
           scroll={getTableScroll()}
-          columns={columns}
+          loading={loading}
           dataSource={data}
+          columns={columns}
           rowKey="date_time_medition"
           pagination={{
             onChange: handlePageChange,
@@ -492,6 +532,23 @@ const Sma = () => {
               isMobile
                 ? `${range[0]}-${range[1]} de ${total}`
                 : `Mostrando ${range[0]}-${range[1]} de ${total} registros`,
+          }}
+          locale={{
+            emptyText: (
+              <div style={{ textAlign: "center", padding: "40px 0" }}>
+                <CalendarFilled
+                  style={{ fontSize: "48px", color: "#d9d9d9" }}
+                />
+                <Title
+                  level={4}
+                  style={{ color: "#bfbfbf", marginTop: "16px" }}
+                >
+                  {dateRangeIsSelected && !loading
+                    ? "No se encontraron datos para el rango seleccionado."
+                    : "Por favor, selecciona un rango de fechas para comenzar."}
+                </Title>
+              </div>
+            ),
           }}
         />
       </Card>

@@ -25,10 +25,34 @@ import {
 import { AppContext } from "../../App";
 import ModalQR from "./ModalQR";
 import logo from "../../assets/images/channels4_profile.jpg";
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
 const CodeQR = ({ dataProfile }) => {
   const { state } = useContext(AppContext);
+  const { selected_profile } = state;
+
+  if (!selected_profile || !selected_profile.profile_ikolu) {
+    return (
+      <Card>
+        <Text>No hay datos de perfil para generar el código QR.</Text>
+      </Card>
+    );
+  }
+
+  const {
+    id,
+    title,
+    profile_ikolu: { m3_goal, m3_percent, m3_total },
+  } = selected_profile;
+
+  const qrData = JSON.stringify({
+    id: id,
+    pozo: title,
+    meta: m3_goal,
+    porcentaje: m3_percent,
+    total: m3_total,
+  });
+
   const dataDga =
     state.selected_profile.modules.m2.length > 0
       ? state.selected_profile.modules.m2[0]
@@ -203,7 +227,10 @@ const CodeQR = ({ dataProfile }) => {
                 </Descriptions.Item>
                 <Descriptions.Item label="% Caudal en uso" span={3}>
                   <Text style={{ color: "white" }}>
-                    {((last_data.flow / flow_granted_dga) * 100).toFixed(2)} %
+                    {last_data && last_data.flow && flow_granted_dga
+                      ? ((last_data.flow / flow_granted_dga) * 100).toFixed(2)
+                      : "0.00"}{" "}
+                    %
                   </Text>
                 </Descriptions.Item>
 
@@ -226,7 +253,7 @@ const CodeQR = ({ dataProfile }) => {
                   span={3}
                 >
                   <Text style={{ color: "white" }}>
-                    {total_granted_dga ? (
+                    {total_granted_dga && last_data && last_data.total ? (
                       <Text style={{ color: "white" }}>
                         {((last_data.total / total_granted_dga) * 100).toFixed(
                           2
@@ -244,7 +271,7 @@ const CodeQR = ({ dataProfile }) => {
                   span={3}
                 >
                   <Text style={{ color: "white" }}>
-                    {configProfile ? (
+                    {configProfile && configProfile.d6 ? (
                       <Text style={{ color: "white" }}>
                         {configProfile.d6.toLocaleString("es-CL")} m³
                       </Text>
@@ -320,10 +347,17 @@ const CodeQR = ({ dataProfile }) => {
                     <Text>Has consumido:</Text>
                     <br />
                     <Text>
-                      {(
-                        parseInt(dataDga.total) + parseInt(configProfile.d6)
-                      ).toLocaleString("es-CL")}{" "}
-                      / {total_granted_dga.toLocaleString("es-CL")} m³
+                      {dataDga.total &&
+                      configProfile &&
+                      configProfile.d6 &&
+                      total_granted_dga
+                        ? (
+                            parseInt(dataDga.total) + parseInt(configProfile.d6)
+                          ).toLocaleString("es-CL") +
+                          " / " +
+                          total_granted_dga.toLocaleString("es-CL") +
+                          " m³"
+                        : "Sin datos disponibles"}
                     </Text>
                     <Progress
                       trailColor="rgb(0, 111, 179, 0.5)"

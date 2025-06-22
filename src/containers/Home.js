@@ -157,6 +157,7 @@ const DesktopLayout = ({ children }) => (
             flexShrink: 0,
             textAlign: "center",
             padding: "20px 16px 15px 16px",
+            marginTop: "100%",
             borderTop: "1px solid rgba(255,255,255,0.1)",
           }}
         >

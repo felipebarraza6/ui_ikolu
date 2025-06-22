@@ -2,7 +2,6 @@ import React, { useState, useContext, useEffect } from "react";
 import { DatePicker, Button, Flex, ConfigProvider, Card } from "antd";
 import { BarChartOutlined, CalendarOutlined } from "@ant-design/icons";
 import { AppContext } from "../../App";
-import moment from "moment";
 import sh from "../../api/sh/endpoints";
 import ContainerDays from "./dga/days/Container";
 import ContainerMonth from "./dga/month/Container";
@@ -27,7 +26,7 @@ const GraphisNavDga = () => {
 
   // Estados principales - solo diario por defecto
   const [dateSelected, setDateSelected] = useState(
-    moment().format("YYYY-MM-DD")
+    dayjs().format("YYYY-MM-DD")
   );
 
   // Estados de datos

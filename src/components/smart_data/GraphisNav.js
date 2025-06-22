@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect, useCallback } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   Tabs,
   Card,
@@ -6,10 +6,10 @@ import {
   Statistic,
   DatePicker,
   Select,
-  Form,
-  Button,
   Tag,
   ConfigProvider,
+  Spin,
+  Typography,
 } from "antd";
 import {
   FlowArea,
@@ -18,28 +18,35 @@ import {
   TotalDay,
   WaterTableBar,
 } from "./days/LineGraph";
-import { DatabaseOutlined } from "@ant-design/icons";
+import { DatabaseOutlined, CalendarOutlined } from "@ant-design/icons";
 import TableData from "./days/TableData";
 import img_caudal from "../../assets/images/caudal.png";
 import img_nivel from "../../assets/images/nivel.png";
 import img_total from "../../assets/images/acumulado.png";
 import { AppContext } from "../../App";
-import { PiAtomLight } from "react-icons/pi";
 import QueueAnim from "rc-queue-anim";
-import moment from "moment";
 import sh from "../../api/sh/endpoints";
 import ContainerDays from "./days/Container";
 import ContainerMonth from "./month/Container";
-import { type } from "@testing-library/user-event/dist/type";
 import dayjs from "dayjs";
 import locale from "antd/locale/es_ES";
 import "dayjs/locale/es";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import { useResponsive } from "../../hooks/useResponsive";
 
-// Configurar dayjs para español
+// Configurar dayjs correctamente
+dayjs.extend(customParseFormat);
+dayjs.extend(utc);
+dayjs.extend(timezone);
 dayjs.locale("es");
 
+// Forzar timezone de Chile
+dayjs.tz.setDefault("America/Santiago");
+
 const { TabPane } = Tabs;
+const { Title } = Typography;
 
 const GraphisNav = () => {
   const { state } = useContext(AppContext);
@@ -48,10 +55,15 @@ const GraphisNav = () => {
   const [activeKey, setActiveKey] = useState("1");
   const [dateType, setDateType] = useState("1");
   const [monthMode, setMonthMode] = useState(false);
-  const [data, setData] = useState(state.selected_profile.modules.today);
+  const [loading, setLoading] = useState(false);
+
+  // Estados de datos y fechas inicializados en vacío
+  const [data, setData] = useState([]);
   const [dataMonth, setDataMonth] = useState([]);
+  const [dayDate, setDayDate] = useState(null);
+  const [monthDate, setMonthDate] = useState(null);
+
   const activate = state.selected_profile.profile_ikolu.m4;
-  const [dateSelected, setDateSelected] = useState(dayjs());
 
   const [stats, setStats] = useState({
     maxConsumoHora: { hour: "00:00", value: 0 },
@@ -66,36 +78,59 @@ const GraphisNav = () => {
     nivelMin: { hour: "00:00", value: 0 },
   });
 
-  const getData = useCallback(async () => {
-    const formattedDate = dateSelected.format("YYYY-MM-DD");
-    try {
-      if (monthMode) {
-        const response = await sh.get_data_month(
-          state.selected_profile.id,
-          formattedDate,
-          formattedDate
-        );
-        setDataMonth(response || []);
-      } else {
-        const response = await sh.get_data_day(
-          state.selected_profile.id,
-          formattedDate,
-          formattedDate
-        );
-        setData(response || []);
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-  }, [dateSelected, monthMode, state.selected_profile.id]);
-
   const handleDateTypeChange = (value) => {
     setDateType(value);
     setMonthMode(value === "2");
+    // Limpiar fechas para forzar una nueva selección y evitar errores de estado
+    setDayDate(null);
+    setMonthDate(null);
   };
 
+  // useEffect para buscar datos automáticamente cuando cambia la fecha
+  useEffect(() => {
+    const fetchData = async () => {
+      const dateToUse = monthMode ? monthDate : dayDate;
+
+      // Si no hay fecha, limpiar los datos y no hacer nada más
+      if (!dateToUse) {
+        setData([]);
+        setDataMonth([]);
+        return;
+      }
+
+      setLoading(true);
+      const formattedDate = dateToUse.format("YYYY-MM-DD");
+      try {
+        if (monthMode) {
+          const response = await sh.get_data_month(
+            state.selected_profile.id,
+            formattedDate,
+            formattedDate
+          );
+          setDataMonth(response || []);
+        } else {
+          const response = await sh.get_data_day(
+            state.selected_profile.id,
+            formattedDate,
+            formattedDate
+          );
+          setData(response || []);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [dayDate, monthDate, monthMode, state.selected_profile.id]);
+
+  // useEffect para calcular estadísticas cuando los datos cambian
   useEffect(() => {
     if (data && data.length > 0) {
+      const formatTime = (dateString) => dayjs(dateString).format("HH:mm");
+
       let caudalMax = data.reduce((prev, current) =>
         prev.flow > current.flow ? prev : current
       );
@@ -105,29 +140,9 @@ const GraphisNav = () => {
         return prev.flow < current.flow && prev.flow !== 0 ? prev : current;
       });
 
-      setStats({
-        ...stats,
-        caudalMax: {
-          hour: caudalMax.date_time_medition.slice(11, 16),
-          value: caudalMax.flow,
-        },
-        caudalMin: {
-          hour: caudalMin.date_time_medition.slice(11, 16),
-          value: caudalMin.flow,
-        },
-      });
-
       let nivelMax = data.reduce((prev, current) =>
         prev.water_table > current.water_table ? prev : current
       );
-
-      setStats({
-        ...stats,
-        nivelMax: {
-          hour: nivelMax.date_time_medition.slice(11, 16),
-          value: nivelMax.flow,
-        },
-      });
 
       let nivelMin = data.reduce((prev, current) => {
         if (current.water_table === 0) return prev;
@@ -136,27 +151,11 @@ const GraphisNav = () => {
           : current;
       });
 
-      setStats({
-        ...stats,
-        nivelMin: {
-          hour: nivelMin.date_time_medition.slice(11, 16),
-          value: nivelMin.flow,
-        },
-      });
-
-      let max = data.reduce((prev, current) =>
+      let maxConsumo = data.reduce((prev, current) =>
         prev.total_diff > current.total_diff ? prev : current
       );
-      console.log(max.date_time_medition.slice(11, 16));
-      setStats({
-        ...stats,
-        maxConsumoHora: {
-          hour: max.date_time_medition.slice(11, 16),
-          value: max.total_diff,
-        },
-      });
 
-      let min = data.reduce((prev, current) => {
+      let minConsumo = data.reduce((prev, current) => {
         if (current.total_diff === 0) return prev;
         return prev.total_diff < current.total_diff && prev.total_diff !== 0
           ? prev
@@ -164,21 +163,37 @@ const GraphisNav = () => {
       });
 
       setStats({
-        ...stats,
-        minConsumoHora: {
-          hour: min.date_time_medition.slice(11, 16),
-          value: min.total_diff,
+        caudalMax: {
+          hour: formatTime(caudalMax.date_time_medition),
+          value: caudalMax.flow,
         },
-      });
-      setStats({
-        ...stats,
+        caudalMin: {
+          hour: formatTime(caudalMin.date_time_medition),
+          value: caudalMin.flow,
+        },
+        nivelMax: {
+          hour: formatTime(nivelMax.date_time_medition),
+          value: nivelMax.water_table,
+        },
+        nivelMin: {
+          hour: formatTime(nivelMin.date_time_medition),
+          value: nivelMin.water_table,
+        },
+        maxConsumoHora: {
+          hour: formatTime(maxConsumo.date_time_medition),
+          value: maxConsumo.total_diff,
+        },
+        minConsumoHora: {
+          hour: formatTime(minConsumo.date_time_medition),
+          value: minConsumo.total_diff,
+        },
         acumulado: {
           first: {
-            hour: data[0].date_time_medition.slice(11, 16),
+            hour: formatTime(data[0].date_time_medition),
             value: parseInt(data[0].total).toLocaleString("es-CL"),
           },
           last: {
-            hour: data[data.length - 1].date_time_medition.slice(11, 16),
+            hour: formatTime(data[data.length - 1].date_time_medition),
             value: parseInt(data[data.length - 1].total).toLocaleString(
               "es-CL"
             ),
@@ -187,6 +202,9 @@ const GraphisNav = () => {
       });
     }
   }, [data]);
+
+  const hasData = monthMode ? dataMonth.length > 0 : data.length > 0;
+  const dateIsSelected = monthMode ? !!monthDate : !!dayDate;
 
   return (
     <QueueAnim delay={300} duration={900} type="alpha">
@@ -210,42 +228,53 @@ const GraphisNav = () => {
                 <Select.Option value="1">Diario</Select.Option>
                 <Select.Option value="2">Mensual</Select.Option>
               </Select>
-              <Form layout="inline" onFinish={getData}>
-                <Form.Item style={{ marginBottom: isMobile ? 8 : 0 }}>
-                  <ConfigProvider locale={locale}>
-                    <DatePicker
-                      placeholder="Seleccionar fecha"
-                      value={dateSelected}
-                      onChange={setDateSelected}
-                      style={{ width: isMobile ? "100%" : "200px" }}
-                      picker={dateType === "1" ? "date" : "month"}
-                      disabled={!activate}
-                      disabledDate={(current) =>
-                        current && current > dayjs().endOf("day")
-                      }
-                      format={dateType === "1" ? "DD/MM/YYYY" : "MM/YYYY"}
-                    />
-                  </ConfigProvider>
-                </Form.Item>
-                <Form.Item style={{ marginBottom: 0 }}>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    icon={<PiAtomLight />}
-                    disabled={!activate}
-                    style={{ width: isMobile ? "100%" : "auto" }}
-                  >
-                    Analizar
-                  </Button>
-                </Form.Item>
-              </Form>
+
+              <ConfigProvider locale={locale}>
+                <DatePicker
+                  key={dateType} // Clave para forzar reinicio del componente
+                  placeholder="Seleccionar fecha"
+                  value={monthMode ? monthDate : dayDate}
+                  onChange={monthMode ? setMonthDate : setDayDate}
+                  style={{ width: isMobile ? "100%" : "200px" }}
+                  picker={dateType === "1" ? "date" : "month"}
+                  disabled={!activate}
+                  disabledDate={(current) =>
+                    current && current > dayjs().endOf("day")
+                  }
+                  format={dateType === "1" ? "DD/MM/YYYY" : "MM/YYYY"}
+                />
+              </ConfigProvider>
             </Flex>
           }
         >
-          {monthMode ? (
-            <ContainerMonth data={dataMonth} stats={stats} />
+          {loading ? (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "300px",
+              }}
+            >
+              <Spin size="large" tip="Cargando datos..." />
+            </div>
+          ) : hasData ? (
+            monthMode ? (
+              <ContainerMonth data={dataMonth} stats={stats} />
+            ) : (
+              <ContainerDays data={data} stats={stats} />
+            )
           ) : (
-            <ContainerDays data={data} stats={stats} />
+            <div style={{ textAlign: "center", padding: "40px 0" }}>
+              <CalendarOutlined
+                style={{ fontSize: "48px", color: "#d9d9d9" }}
+              />
+              <Title level={4} style={{ color: "#bfbfbf", marginTop: "16px" }}>
+                {dateIsSelected
+                  ? "No se encontraron datos para la fecha seleccionada."
+                  : "Por favor, selecciona una fecha para visualizar los datos."}
+              </Title>
+            </div>
           )}
         </Card>
       </div>
