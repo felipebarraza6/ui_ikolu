@@ -192,7 +192,7 @@ const Container = ({ data, dateSelected }) => {
                 paddingRight: "5px",
                 width: "100%",
                 borderRadius: "10px 10px 0px 0px",
-                marginBottom: isMobile ? "5px" : "16px",
+                marginBottom: isMobile ? "16px" : "16px",
               }}
             >
               <TabPane

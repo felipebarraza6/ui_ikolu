@@ -134,6 +134,7 @@ const ResponsiveSmartAnalysis = () => {
         <Flex
           gap={isMobile ? "small" : "middle"}
           vertical={isMobile}
+          align="center"
           style={{
             width: "100%",
             flexWrap: isMobile ? "nowrap" : "wrap",
@@ -163,10 +164,12 @@ const ResponsiveSmartAnalysis = () => {
               }
               format={dateType === "1" ? "DD/MM/YYYY" : "MM/YYYY"}
             />
-            <Tag color="blue">
-              <CalendarOutlined />
-              {dayDate ? dayDate.format("DD/MM/YYYY") : dayjs()}
-            </Tag>
+
+            {!monthMode && !dayDate && (
+              <Text icon={<CalendarOutlined />} code>
+                Estás viendo los datos de hoy {dayjs().format("DD/MM/YYYY")}
+              </Text>
+            )}
           </ConfigProvider>
         </Flex>
       </Card>
@@ -198,7 +201,7 @@ const ResponsiveSmartAnalysis = () => {
             <Title level={4} style={{ color: "#bfbfbf" }}>
               {dateIsSelected
                 ? "No se encontraron datos para la fecha seleccionada."
-                : "Mostrando datos de hoy. Por favor, selecciona otra fecha para un nuevo análisis."}
+                : "Por favor, selecciona otra fecha para un nuevo análisis."}
             </Title>
           </Card>
         )
