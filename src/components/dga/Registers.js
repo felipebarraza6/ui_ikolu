@@ -2,342 +2,397 @@ import React, { useContext, useState, useEffect } from "react";
 import {
   Table,
   Tooltip,
-  Flex,
   Button,
   Typography,
-  Alert,
   DatePicker,
   Form,
   ConfigProvider,
+  Space,
+  Tag,
+  notification,
+  Modal,
+  Row,
+  Col,
 } from "antd";
-import QueueAnim from "rc-queue-anim";
 import {
-  WarningFilled,
-  CheckCircleFilled,
-  FileExcelFilled,
-  LoadingOutlined,
-  FileExcelOutlined,
+  CheckCircleOutlined,
+  SyncOutlined,
+  CloseCircleOutlined,
+  ExportOutlined,
+  WarningOutlined,
+  FileTextOutlined,
   CopyOutlined,
-  CloudDownloadOutlined,
-  ConsoleSqlOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
 import sh from "../../api/sh/endpoints";
 import dayjs from "dayjs";
 import locale from "antd/locale/es_ES";
 import "dayjs/locale/es";
+import { formatInteger, formatFlow } from "../../utils/numberFormatter";
+import QueueAnim from "rc-queue-anim";
 
-// Configurar dayjs para español
 dayjs.locale("es");
 
-const Registers = ({ dataDga }) => {
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  const { Text } = Typography;
-  const { state } = useContext(AppContext);
+const { Text, Title } = Typography;
+
+// --- Componente del Modal de Exportación ---
+const ExportModal = ({ open, onCancel, profile }) => {
+  const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 
-  const selected = state.selected_profile.id;
-  const profile_ikolu = state.selected_profile.profile_ikolu;
-  const profile_dga = state.selected_profile.dga;
-  const catchment_points = state.profile_client;
-
-  // Detectar cambios de pantalla
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+    if (!open) {
+      form.resetFields();
+    }
+  }, [open, form]);
+
+  const disabledDate = (current) => {
+    const startOfYear = dayjs().startOf("year");
+    const endOfYear = dayjs().endOf("year");
+    return current && (current < startOfYear || current > endOfYear);
+  };
+
+  const handleDownload = async () => {
+    try {
+      const values = await form.validateFields();
+      setLoading(true);
+
+      const initialDate = values.range[0].format("YYYY-MM-DD");
+      const finishDate = values.range[1].format("YYYY-MM-DD");
+      const codeDga = profile?.dga?.code_dga || "SinCodigo";
+      const title = `Reporte_MEE_${codeDga}`;
+
+      await sh.get_data_sh_range_to_excel_dga(
+        profile.id,
+        initialDate,
+        finishDate,
+        title
+      );
+
+      notification.success({
+        message: "Descarga Exitosa",
+        description: `Archivo "${title}.xlsx" descargado correctamente.`,
+      });
+
+      onCancel();
+    } catch (error) {
+      console.error("Error en la descarga:", error);
+      notification.error({
+        message: "Error en la Descarga",
+        description:
+          error.response?.data?.message ||
+          "No se pudo generar el reporte. Por favor, inténtelo de nuevo.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Modal
+      title="Exportar Registros DGA"
+      open={open}
+      onCancel={onCancel}
+      destroyOnClose
+      footer={[
+        <Button key="back" onClick={onCancel}>
+          Cancelar
+        </Button>,
+        <Button
+          key="submit"
+          type="primary"
+          loading={loading}
+          onClick={handleDownload}
+          icon={<DownloadOutlined />}
+        >
+          Descargar
+        </Button>,
+      ]}
+    >
+      <ConfigProvider locale={locale}>
+        <Form form={form} layout="vertical" name="export_form">
+          <p>
+            Seleccione el rango de fechas para generar el reporte de la DGA.
+            Solo se pueden seleccionar días dentro del año en curso.
+          </p>
+          <Form.Item
+            name="range"
+            label="Rango de Fechas"
+            rules={[
+              {
+                required: true,
+                message: "Por favor, seleccione un rango de fechas.",
+              },
+            ]}
+          >
+            <DatePicker.RangePicker
+              style={{ width: "100%" }}
+              disabledDate={disabledDate}
+            />
+          </Form.Item>
+        </Form>
+      </ConfigProvider>
+    </Modal>
+  );
+};
+
+// --- Componente Principal de Registros ---
+const Registers = () => {
+  const { state } = useContext(AppContext);
+  const [loading, setLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const m2_permission = state.selected_profile?.profile_ikolu?.m2 || false;
+
+  // Obtener datos desde el perfil (módulo m2)
+  const dataDga = state.selected_profile?.modules?.m2 || [];
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    notification.success({
+      message: "Copiado",
+      description: "Número de comprobante copiado al portapapeles.",
+      placement: "bottomRight",
+    });
+  };
+
+  const renderValidatedValue = (value, limit, formatterFn) => {
+    if (limit === null || limit === undefined || limit === 0) {
+      return <Text>{formatterFn(value)}</Text>;
+    }
+    const numericValue = Number(value);
+    const percentage = (numericValue / limit) * 100;
+    let color;
+    let tooltipTitle;
+
+    if (percentage > 100) {
+      color = "red";
+      tooltipTitle = `Valor excede el límite autorizado (${formatterFn(
+        limit
+      )})`;
+    } else if (percentage >= 90) {
+      color = "orange";
+      tooltipTitle = `Valor se acerca al límite autorizado (${formatterFn(
+        limit
+      )})`;
+    } else {
+      color = "green";
+      tooltipTitle = `Valor dentro del límite autorizado (${formatterFn(
+        limit
+      )})`;
+    }
+
+    return (
+      <Tooltip title={tooltipTitle}>
+        <Tag color={color} style={{ fontSize: "14px", padding: "2px 8px" }}>
+          {formatterFn(value)}
+        </Tag>
+      </Tooltip>
+    );
+  };
 
   const columns = [
     {
-      title: "Fecha/hora",
-      dataIndex: "date_time_medition",
-      key: "date",
-      align: "center",
-      width: isMobile ? 100 : 140,
-      fixed: isMobile ? "left" : false,
-      render: (date) => {
+      title: "Estado",
+      dataIndex: "send_dga",
+      key: "send_dga",
+      width: 120,
+      render: (send_dga, record) => {
+        const hasVoucher = record.n_voucher && record.n_voucher !== "...";
+        const hasError =
+          record.return_dga &&
+          record.return_dga.toLowerCase().includes("error");
+
+        if (hasError) {
+          return (
+            <Tag icon={<CloseCircleOutlined />} color="error">
+              Error
+            </Tag>
+          );
+        }
+        if (hasVoucher) {
+          return (
+            <Tag icon={<CheckCircleOutlined />} color="success">
+              Completado
+            </Tag>
+          );
+        }
         return (
-          <Text style={{ fontSize: isMobile ? "11px" : "14px" }}>
-            {date.slice(5, 10)}
-            <br />
-            {date.slice(11, 16)} hrs
-          </Text>
+          <Tag icon={<SyncOutlined spin />} color="processing">
+            En Cola
+          </Tag>
         );
       },
+    },
+    {
+      title: "Fecha/Hora Medición",
+      dataIndex: "date_time_medition",
+      key: "date_time_medition",
+      width: 180,
+      render: (text) => dayjs(text).format("DD/MM/YYYY HH:mm"),
     },
     {
       title: "Caudal (L/s)",
       dataIndex: "flow",
       key: "flow",
-      align: "center",
-      width: isMobile ? 90 : 120,
-      render: (flow) => {
-        return (
-          <Text style={{ fontSize: isMobile ? "12px" : "14px" }}>{flow}</Text>
-        );
-      },
+      width: 120,
+      align: "right",
+      render: (flow) =>
+        renderValidatedValue(
+          flow,
+          state.selected_profile?.dga?.flow_granted_dga,
+          formatFlow
+        ),
     },
     {
       title: "Total (m³)",
+      dataIndex: "total",
       key: "total",
-      align: "center",
-      width: isMobile ? 100 : 120,
-      render: (record) => (
-        <Text style={{ fontSize: isMobile ? "12px" : "14px" }}>
-          {record.total.toLocaleString("es-CL")}
-        </Text>
-      ),
+      width: 120,
+      align: "right",
+      render: (total) =>
+        renderValidatedValue(
+          total,
+          state.selected_profile?.dga?.total_granted_dga,
+          formatInteger
+        ),
     },
     {
-      title: "Nivel Freático (m)",
-      hidden: state.user.id === 59,
+      title: "Nivel Freático",
       dataIndex: "water_table",
       key: "water_table",
-      align: "center",
-      width: isMobile ? 110 : 140,
-      render: (water_table) => (
-        <Text style={{ fontSize: isMobile ? "12px" : "14px" }}>
-          {water_table}
-        </Text>
-      ),
+      width: 120,
+      align: "right",
+      render: (water_table) => renderValidatedValue(water_table, 0, formatFlow),
     },
     {
-      title: "MEE",
+      title: "",
+      key: "actions",
+      fixed: "right",
+      width: 100,
       align: "center",
-      key: "proof",
-      width: isMobile ? 120 : 200,
-      render: (obj) => {
-        if (obj.n_voucher !== "No se pudo obtener el comprobante") {
-          return (
-            <div
-              style={{
-                backgroundColor: "#1F3461",
-                color: "white",
-                padding: isMobile ? "3px" : "5px",
-                cursor: "pointer",
-                borderRadius: "4px",
-                fontSize: isMobile ? "10px" : "12px",
-              }}
-            >
-              <Tooltip
-                title={obj.return_dga}
-                color={"green"}
-                trigger={["click"]}
-                placement={isMobile ? "top" : "left"}
-              >
-                <Flex
-                  justify="center"
-                  align="center"
-                  gap="4px"
-                  vertical={isMobile}
-                >
-                  <CheckCircleFilled
-                    style={{ fontSize: isMobile ? "10px" : "12px" }}
-                  />
-                  <Text
-                    style={{
-                      fontSize: isMobile ? "9px" : "12px",
-                      color: "white",
-                      textAlign: "center",
-                    }}
-                    copyable={{
-                      text: obj.n_voucher,
-                      icon: [
-                        <CopyOutlined
-                          key="copy-icon"
+      render: (_, record) => (
+        <Tooltip title="Ver detalle del envío DGA">
+          <Button
+            shape="circle"
+            icon={<FileTextOutlined />}
+            onClick={() => {
+              Modal.info({
+                title: "Detalle del Envío a la DGA",
+                content: (
+                  <div>
+                    <p>
+                      <strong>Respuesta del servidor:</strong>
+                    </p>
+                    <pre
+                      style={{
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-all",
+                        background: "#f5f5f5",
+                        padding: "10px",
+                        borderRadius: "4px",
+                      }}
+                    >
+                      {record.return_dga || "Sin respuesta registrada."}
+                    </pre>
+                    {record.n_voucher && record.n_voucher !== "..." && (
+                      <>
+                        <p style={{ marginTop: "10px" }}>
+                          <strong>Número de Comprobante:</strong>
+                        </p>
+                        <pre
                           style={{
-                            color: "white",
-                            fontSize: isMobile ? "8px" : "10px",
+                            whiteSpace: "pre-wrap",
+                            wordBreak: "break-all",
+                            background: "#f5f5f5",
+                            padding: "10px",
+                            borderRadius: "4px",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
                           }}
-                        />,
-                        <CheckCircleFilled
-                          key="copied-icon"
-                          style={{
-                            color: "white",
-                            fontSize: isMobile ? "8px" : "10px",
-                          }}
-                        />,
-                      ],
-                    }}
-                  >
-                    {isMobile
-                      ? obj.n_voucher.slice(0, 6) + "..."
-                      : obj.n_voucher.slice(0, 10) + "..."}
-                  </Text>
-                </Flex>
-              </Tooltip>
-            </div>
-          );
-        } else {
-          return (
-            <Flex gap="4px" vertical={isMobile} align="center">
-              <LoadingOutlined
-                style={{
-                  color: "#1F3461",
-                  fontSize: isMobile ? "12px" : "14px",
-                }}
-              />
-              <Text
-                style={{
-                  fontSize: isMobile ? "10px" : "12px",
-                  textAlign: "center",
-                }}
-              >
-                {isMobile ? "En cola" : "En cola de envío a DGA"}
-              </Text>
-              <Tooltip
-                title={<span style={{ color: "black" }}>{obj.return_dga}</span>}
-                color="#fa8c16"
-              >
-                <Button
-                  size="small"
-                  type="primary"
-                  icon={<WarningFilled />}
-                  style={{
-                    backgroundColor: "#fa8c16",
-                    borderColor: "#fa8c16",
-                    fontSize: isMobile ? "10px" : "12px",
-                    height: isMobile ? "20px" : "auto",
-                  }}
-                >
-                  {isMobile ? "!" : "estado"}
-                </Button>
-              </Tooltip>
-            </Flex>
-          );
-        }
-      },
+                        >
+                          {record.n_voucher}
+                          <Tooltip title="Copiar comprobante">
+                            <Button
+                              icon={<CopyOutlined />}
+                              onClick={() => copyToClipboard(record.n_voucher)}
+                              size="small"
+                              type="text"
+                            />
+                          </Tooltip>
+                        </pre>
+                      </>
+                    )}
+                  </div>
+                ),
+                onOk() {},
+              });
+            }}
+          />
+        </Tooltip>
+      ),
     },
   ];
 
-  const getReport = async (values) => {
-    var datei = new Date(values.initialDate);
-    var datef = new Date(values.finishDate);
-    values = {
-      ...values,
-      initialDate: datei.toISOString().split("T")[0],
-      finishDate: datef.toISOString().split("T")[0],
-    };
-    setLoading(true);
-
-    const getReport = await sh
-      .get_data_sh_range_to_excel_dga(
-        selected,
-        values.initialDate,
-        values.finishDate,
-        profile_dga.code_dga
-      )
-      .then((res) => {
-        setLoading(false);
-      })
-      .then(() => {
-        setLoading(false);
-      });
-  };
-
   return (
-    <QueueAnim delay={500} type={["top", "bottom"]}>
-      <div key={"registers"} style={{ width: "100%" }}>
-        {/* CSS para ocultar scrollbar pero mantener funcionalidad */}
-
-        <Table
-          style={{
-            width: isMobile ? "100%" : "800px",
-            borderRadius: "0px",
-          }}
-          title={() => (
-            <Flex
-              justify="center"
-              align="center"
-              vertical={isMobile}
-              style={{ width: "100%", height: "100%" }}
-              gap={isMobile ? "8px" : "small"}
+    <QueueAnim type="right" duration={500}>
+      <div key="registers">
+        <Row
+          justify="space-between"
+          align="middle"
+          style={{ marginBottom: 20 }}
+        >
+          <Col>
+            <Title level={4}>Registros de las últimas 48 horas</Title>
+          </Col>
+          <Col>
+            <Tooltip
+              title={
+                !m2_permission
+                  ? "No tienes permisos para exportar."
+                  : "Exportar registros a Excel para la DGA"
+              }
             >
-              <Form
-                layout={isMobile ? "vertical" : "inline"}
-                style={{ width: "100%" }}
-                onFinish={getReport}
+              <Button
+                type="primary"
+                icon={<ExportOutlined />}
+                onClick={() => setIsModalOpen(true)}
+                disabled={!m2_permission}
               >
-                <Flex
-                  gap={isMobile ? "8px" : "middle"}
-                  vertical={isMobile}
-                  align={isMobile ? "stretch" : "center"}
-                  justify="center"
-                >
-                  <Form.Item
-                    name={"initialDate"}
-                    rules={[{ required: true, message: "" }]}
-                    style={{ marginBottom: isMobile ? "8px" : "0" }}
-                  >
-                    <ConfigProvider locale={locale}>
-                      <DatePicker
-                        placeholder="Desde"
-                        disabled={!profile_ikolu.m2}
-                        format="DD/MM/YYYY"
-                        style={{ width: isMobile ? "100%" : "auto" }}
-                      />
-                    </ConfigProvider>
-                  </Form.Item>
-                  <Form.Item
-                    name={"finishDate"}
-                    rules={[{ required: true, message: "" }]}
-                    style={{ marginBottom: isMobile ? "8px" : "0" }}
-                  >
-                    <ConfigProvider locale={locale}>
-                      <DatePicker
-                        placeholder="Hasta"
-                        disabled={!profile_ikolu.m2}
-                        format="DD/MM/YYYY"
-                        style={{ width: isMobile ? "100%" : "auto" }}
-                      />
-                    </ConfigProvider>
-                  </Form.Item>
-                  <Form.Item style={{ marginBottom: "0" }}>
-                    <Button
-                      htmlType="submit"
-                      type="primary"
-                      shape="round"
-                      icon={<FileExcelOutlined />}
-                      loading={loading}
-                      disabled={!profile_ikolu.m2}
-                      style={{
-                        width: isMobile ? "100%" : "auto",
-                        background: "#1F3461",
-                        borderColor: "#1F3461",
-                      }}
-                    >
-                      Descargar
-                    </Button>
-                  </Form.Item>
-                </Flex>
-              </Form>
-            </Flex>
-          )}
-          size="small"
+                Exportar
+              </Button>
+            </Tooltip>
+          </Col>
+        </Row>
+        <Table
+          columns={columns}
           dataSource={dataDga}
           bordered
-          columns={columns}
+          loading={loading}
+          size="small"
+          rowKey="id"
+          scroll={{ x: "max-content" }}
           pagination={{
-            defaultPageSize: isMobile ? 5 : 10,
-            position: ["bottomCenter"],
+            pageSize: 10,
+            responsive: true,
             showSizeChanger: false,
-            showQuickJumper: false,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} de ${total} registros`,
           }}
-          scroll={
-            isMobile
-              ? {
-                  x: 520, // Solo scroll horizontal en móvil
-                  y: 300,
-                }
-              : {
-                  y: 400, // Solo scroll vertical en desktop
-                  x: 520,
-                }
-          }
+          style={{ overflowX: "auto" }}
         />
+        <ExportModal
+          open={isModalOpen}
+          onCancel={() => setIsModalOpen(false)}
+          profile={state.selected_profile}
+        />
+        <div style={{ marginTop: 20, textAlign: "right" }}>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            <strong>Leyenda de Validación:</strong>{" "}
+            <Tag color="green">Normal</Tag> <Tag color="orange">Alerta</Tag>{" "}
+            <Tag color="red">Excedido</Tag>
+          </Text>
+        </div>
       </div>
     </QueueAnim>
   );

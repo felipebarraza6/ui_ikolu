@@ -3,7 +3,7 @@
  *
  * Formatos estándar:
  * - Enteros: 1.000 (punto como separador de miles)
- * - Decimales: 0,00 (coma como separador decimal)
+ * - Decimales: 0.00 (punto como separador decimal, por solicitud)
  */
 
 /**
@@ -31,15 +31,19 @@ export const formatInteger = (value) => {
  * @returns {string} - Número formateado como "1.000,00"
  */
 export const formatDecimal = (value, decimals = 2) => {
-  if (value === null || value === undefined || value === "") return "0,00";
+  if (value === null || value === undefined || value === "") return "0.00";
 
   const num = typeof value === "string" ? parseFloat(value) : value;
-  if (isNaN(num)) return "0,00";
+  if (isNaN(num)) return "0.00";
 
-  return num.toLocaleString("es-CL", {
+  // Formato chileno para separador de miles
+  const chileanFormat = num.toLocaleString("es-CL", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
+
+  // Reemplazar coma decimal por punto, según requerimiento
+  return chileanFormat.replace(/,/g, ".");
 };
 
 /**
@@ -104,10 +108,10 @@ export const formatLevel = (value) => {
  * @returns {string} - Porcentaje formateado como "50,25%"
  */
 export const formatPercentage = (value, isDecimal = false) => {
-  if (value === null || value === undefined || value === "") return "0,00%";
+  if (value === null || value === undefined || value === "") return "0.00%";
 
   let num = typeof value === "string" ? parseFloat(value) : value;
-  if (isNaN(num)) return "0,00%";
+  if (isNaN(num)) return "0.00%";
 
   // Si está en formato decimal (0-1), convertir a porcentaje
   if (isDecimal) {

@@ -1,17 +1,37 @@
 import React, { useState, useContext, useEffect } from "react";
-import { DatePicker, Flex, ConfigProvider, Card, Spin, Typography } from "antd";
-import { CalendarOutlined } from "@ant-design/icons";
+import {
+  Tabs,
+  Card,
+  Flex,
+  DatePicker,
+  Select,
+  Tag,
+  ConfigProvider,
+  Spin,
+  Typography,
+} from "antd";
+import { CalendarOutlined, ApartmentOutlined } from "@ant-design/icons";
+import img_caudal from "../../assets/images/caudal.png";
+import img_nivel from "../../assets/images/nivel.png";
 import { AppContext } from "../../App";
+import QueueAnim from "rc-queue-anim";
 import sh from "../../api/sh/endpoints";
 import ContainerDays from "./dga/days/Container";
 import ContainerMonth from "./dga/month/Container";
+import TableData from "./TableData";
 import dayjs from "dayjs";
 import locale from "antd/locale/es_ES";
 import "dayjs/locale/es";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import { useResponsive } from "../../hooks/useResponsive";
 
-// Configurar dayjs para español
+dayjs.extend(utc);
+dayjs.extend(timezone);
 dayjs.locale("es");
+dayjs.tz.setDefault("America/Santiago");
 
+const { TabPane } = Tabs;
 const { Title } = Typography;
 
 /**
@@ -24,127 +44,78 @@ const { Title } = Typography;
  * - Sin Card wrapper, sin gradientes
  */
 const GraphisNavDga = () => {
-  // 📱 Detectar móvil
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-
-  // Estados principales - fecha inicializada como null
-  const [dateSelected, setDateSelected] = useState(null);
-
-  // Estados de datos
   const { state } = useContext(AppContext);
-  const [data, setData] = useState([]);
+  const { isMobile } = useResponsive();
+
+  const [activeKey, setActiveKey] = useState("1");
+  const [dateType, setDateType] = useState("1");
+  const [monthMode, setMonthMode] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const [data, setData] = useState([]);
+  const [dataMonth, setDataMonth] = useState([]);
+  const [dayDate, setDayDate] = useState(null);
+  const [monthDate, setMonthDate] = useState(null);
 
   const activate = state.selected_profile.profile_ikolu.m2;
 
-  // Detectar cambios de pantalla
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  const handleDateTypeChange = (value) => {
+    setDateType(value);
+    setMonthMode(value === "2");
+    setDayDate(null);
+    setMonthDate(null);
+    setData([]);
+    setDataMonth([]);
+  };
 
-  // useEffect para cargar datos automáticamente cuando cambia la fecha
   useEffect(() => {
     const fetchData = async () => {
-      if (!dateSelected) {
+      const dateToUse = monthMode ? monthDate : dayDate;
+      if (!dateToUse) {
         setData([]);
+        setDataMonth([]);
         return;
       }
 
       setLoading(true);
+      const formattedDate = dateToUse.format("YYYY-MM-DD");
       try {
-        const response = await sh.get_data_day(
-          state.selected_profile.id,
-          dateSelected.format("YYYY-MM-DD"),
-          dateSelected.format("YYYY-MM-DD")
-        );
-        setData(response || []);
+        if (monthMode) {
+          const response = await sh.get_data_month_dga(
+            state.selected_profile.id,
+            formattedDate
+          );
+          setDataMonth(response || []);
+        } else {
+          const response = await sh.get_data_day(
+            state.selected_profile.id,
+            formattedDate
+          );
+          setData(response || []);
+        }
       } catch (error) {
-        console.error("Error fetching data:", error);
-        setData([]);
+        console.error("Error fetching DGA data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, [dateSelected, state.selected_profile.id]);
-
-  // Limpiar datos al cambiar de perfil
-  useEffect(() => {
-    if (state.selected_profile) {
-      setDateSelected(null);
-      setData([]);
+    if (activate) {
+      fetchData();
     }
-  }, [state.selected_profile]);
+  }, [dayDate, monthDate, monthMode, state.selected_profile.id, activate]);
 
-  const hasData = data && data.length > 0;
-  const dateIsSelected = !!dateSelected;
+  const dateToUse = monthMode ? monthDate : dayDate;
+  const dateLabel = dateToUse
+    ? dayjs(dateToUse).format("DD/MM/YYYY")
+    : "hoy " + dayjs().format("DD/MM/YYYY");
 
-  return (
-    <div
-      style={{
-        padding: isMobile ? "4px" : "20px",
-        paddingTop: isMobile ? "0px" : "20px",
-        background: "white",
-        minHeight: "100vh",
-      }}
-    >
-      {/* Controles */}
-      <Card size="small" style={{ background: "#f5f5f5" }}>
-        <Flex
-          gap={isMobile ? "small" : "middle"}
-          vertical={isMobile}
-          justify="space-between"
-          align="center"
-          style={{
-            width: "100%",
-            flexWrap: isMobile ? "nowrap" : "wrap",
-          }}
-        >
-          <ConfigProvider locale={locale}>
-            <DatePicker
-              placeholder="Seleccionar fecha"
-              style={{ width: isMobile ? "100%" : "200px" }}
-              value={dateSelected}
-              onChange={setDateSelected}
-              disabled={!activate}
-              disabledDate={(current) =>
-                current && current > dayjs().endOf("day")
-              }
-              format="DD/MM/YYYY"
-            />
-          </ConfigProvider>
-        </Flex>
-      </Card>
+  const renderContent = () => {
+    const currentData = monthMode ? dataMonth : data;
+    const noData = !currentData || currentData.length === 0;
 
-      {/* Contenedor de gráficos con tabs */}
-      {activate ? (
-        loading ? (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "300px",
-            }}
-          >
-            <Spin size="large" tip="Cargando datos..." />
-          </div>
-        ) : hasData ? (
-          <ContainerDays data={data} />
-        ) : (
-          <div style={{ textAlign: "center", padding: "40px 0" }}>
-            <CalendarOutlined style={{ fontSize: "48px", color: "#d9d9d9" }} />
-            <Title level={4} style={{ color: "#bfbfbf", marginTop: "16px" }}>
-              {dateIsSelected
-                ? "No se encontraron datos para la fecha seleccionada."
-                : "Por favor, selecciona una fecha para visualizar los datos."}
-            </Title>
-          </div>
-        )
-      ) : (
+    if (!activate) {
+      return (
         <div style={{ textAlign: "center", padding: "40px" }}>
           <CalendarOutlined
             style={{ fontSize: 48, color: "#d9d9d9", marginBottom: 16 }}
@@ -153,12 +124,192 @@ const GraphisNavDga = () => {
             Módulo DGA Análisis no disponible
           </div>
           <p style={{ color: "#666" }}>
-            Contacta a soporte para activar esta funcionalidad en tu punto de
-            captación.
+            Contacta a soporte para activar esta funcionalidad.
           </p>
         </div>
-      )}
-    </div>
+      );
+    }
+
+    if (loading) {
+      return (
+        <Flex justify="center" align="center" style={{ height: "40vh" }}>
+          <Spin size="large" />
+        </Flex>
+      );
+    }
+
+    if (noData) {
+      return (
+        <Flex
+          justify="center"
+          align="center"
+          style={{ height: "40vh", textAlign: "center" }}
+        >
+          <Title level={4} style={{ color: "#bfbfbf" }}>
+            {dayDate || monthDate
+              ? "No se encontraron datos para la fecha seleccionada."
+              : "Por favor, selecciona una fecha para visualizar los datos."}
+          </Title>
+        </Flex>
+      );
+    }
+
+    return (
+      <Tabs
+        activeKey={activeKey}
+        onChange={(key) => setActiveKey(key)}
+        size="large"
+        tabBarStyle={{ marginBottom: 24, borderBottom: "1px solid #f0f0f0" }}
+      >
+        <TabPane
+          tab={
+            <span
+              style={{
+                display: "flex",
+                alignItems: "center",
+                padding: "8px 16px",
+                borderRadius: "8px",
+                background: activeKey === "1" ? "#1f3461" : "transparent",
+                color: activeKey === "1" ? "white" : "inherit",
+              }}
+            >
+              <img
+                src={img_caudal}
+                alt="caudal"
+                style={{
+                  width: 22,
+                  marginRight: 8,
+                  filter:
+                    activeKey === "1" ? "brightness(0) invert(1)" : "none",
+                }}
+              />
+              Caudal
+            </span>
+          }
+          key="1"
+        >
+          {monthMode ? (
+            <ContainerMonth data={currentData} type="caudal" />
+          ) : (
+            <ContainerDays data={currentData} type="caudal" />
+          )}
+        </TabPane>
+        <TabPane
+          tab={
+            <span
+              style={{
+                display: "flex",
+                alignItems: "center",
+                padding: "8px 16px",
+                borderRadius: "8px",
+                background: activeKey === "2" ? "#1f3461" : "transparent",
+                color: activeKey === "2" ? "white" : "inherit",
+              }}
+            >
+              <img
+                src={img_nivel}
+                alt="nivel"
+                style={{
+                  width: 22,
+                  marginRight: 8,
+                  filter:
+                    activeKey === "2" ? "brightness(0) invert(1)" : "none",
+                }}
+              />
+              Nivel Freático
+            </span>
+          }
+          key="2"
+        >
+          {monthMode ? (
+            <ContainerMonth data={currentData} type="nivel" />
+          ) : (
+            <ContainerDays data={currentData} type="nivel" />
+          )}
+        </TabPane>
+        <TabPane
+          tab={
+            <span
+              style={{
+                display: "flex",
+                alignItems: "center",
+                padding: "8px 16px",
+                borderRadius: "8px",
+                background: activeKey === "3" ? "#1f3461" : "transparent",
+                color: activeKey === "3" ? "white" : "inherit",
+              }}
+            >
+              <ApartmentOutlined style={{ fontSize: 22, marginRight: 8 }} />
+              Resumen
+            </span>
+          }
+          key="3"
+        >
+          <TableData
+            data={currentData}
+            isToday={!dateToUse}
+            periodType={monthMode ? "month" : "day"}
+          />
+        </TabPane>
+      </Tabs>
+    );
+  };
+
+  return (
+    <QueueAnim delay={300} duration={900} type="right">
+      <div key="graphisnav-dga">
+        <ConfigProvider locale={locale}>
+          <Card
+            bordered={false}
+            style={{
+              borderRadius: "12px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            }}
+          >
+            <Flex
+              justify="space-between"
+              align="center"
+              wrap="wrap"
+              gap="middle"
+            >
+              <Flex gap="middle" align="center">
+                <Select
+                  defaultValue="1"
+                  style={{ width: 180 }}
+                  onChange={handleDateTypeChange}
+                  options={[
+                    { value: "1", label: "Análisis Diario" },
+                    { value: "2", label: "Análisis Mensual" },
+                  ]}
+                />
+                {monthMode ? (
+                  <DatePicker
+                    picker="month"
+                    onChange={(date) => setMonthDate(date)}
+                    value={monthDate}
+                    placeholder="Seleccionar mes"
+                  />
+                ) : (
+                  <DatePicker
+                    onChange={(date) => setDayDate(date)}
+                    value={dayDate}
+                    placeholder="Seleccionar fecha"
+                  />
+                )}
+              </Flex>
+              <Tag
+                icon={<CalendarOutlined />}
+                color="blue"
+                style={{ fontSize: "14px", padding: "6px 12px" }}
+              >
+                Estás viendo datos de {dateLabel}
+              </Tag>
+            </Flex>
+            <div style={{ marginTop: "24px" }}>{renderContent()}</div>
+          </Card>
+        </ConfigProvider>
+      </div>
+    </QueueAnim>
   );
 };
 

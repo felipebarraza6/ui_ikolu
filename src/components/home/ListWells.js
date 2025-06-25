@@ -88,7 +88,6 @@ const ListWells = () => {
             selected_profile: { ...selectedProfile, key },
           },
         });
-        navigate("/");
       }
     },
     [navigate, state.profile_client, dispatch, hasValidData]

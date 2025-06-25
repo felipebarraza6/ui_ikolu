@@ -70,36 +70,69 @@ const ResponsiveAlerts = () => {
   return (
     <div
       style={{
+        maxWidth: "1600px",
         padding: isMobile ? "10px" : "0px",
         minHeight: "90vh",
       }}
     >
+      {/* Header del módulo */}
+      <div
+        style={{
+          marginBottom: "24px",
+          borderRadius: "12px",
+          background: "#1F3461", // Color sólido, sin gradiente
+          border: "none",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          padding: "24px",
+        }}
+      >
+        <Flex align="center" gap="middle">
+          <AlertOutlined style={{ fontSize: 32, color: "white" }} />
+          <Title level={3} style={{ margin: 0, color: "white" }}>
+            Sistema de Alertas
+          </Title>
+        </Flex>
+      </div>
+
       {/* Indicadores */}
-      <Row gutter={[16, 16]} style={{ marginBottom: "20px" }}>
+      <Row gutter={[16, 16]} style={{ marginBottom: "24px" }}>
         <Col xs={12} sm={12} md={6} lg={6}>
           <Card
             size="small"
+            bordered
             style={{
-              backgroundColor: "#FF6B35",
+              background: "linear-gradient(135deg, #FF6B35 0%, #FF8A65 100%)",
               border: "none",
               borderRadius: "12px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              boxShadow: "0 4px 12px rgba(255,107,53,0.3)",
+              transition: "transform 0.2s ease",
             }}
-            bodyStyle={{ padding: "16px", textAlign: "center" }}
+            bodyStyle={{ padding: "20px", textAlign: "center" }}
+            hoverable
           >
             <BellOutlined
-              style={{ fontSize: 24, color: "white", marginBottom: 8 }}
+              style={{ fontSize: 28, color: "white", marginBottom: 12 }}
             />
             <Statistic
               title={
-                <span style={{ color: "rgba(255,255,255,0.9)", fontSize: 12 }}>
+                <span
+                  style={{
+                    color: "rgba(255,255,255,0.95)",
+                    fontSize: 14,
+                    fontWeight: 500,
+                  }}
+                >
                   Alertas Activas
                 </span>
               }
               value={formatInteger(alertasActivas)}
-              valueStyle={{ color: "white", fontSize: isMobile ? 16 : 18 }}
+              valueStyle={{
+                color: "white",
+                fontSize: isMobile ? 20 : 24,
+                fontWeight: "bold",
+              }}
               suffix={
-                <span style={{ color: "rgba(255,255,255,0.8)", fontSize: 10 }}>
+                <span style={{ color: "rgba(255,255,255,0.9)", fontSize: 12 }}>
                   pendientes
                 </span>
               }
@@ -111,26 +144,38 @@ const ResponsiveAlerts = () => {
           <Card
             size="small"
             style={{
-              backgroundColor: "#1F3461",
+              background: "linear-gradient(135deg, #1F3461 0%, #2E5A8A 100%)",
               border: "none",
               borderRadius: "12px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              boxShadow: "0 4px 12px rgba(31,52,97,0.3)",
+              transition: "transform 0.2s ease",
             }}
-            bodyStyle={{ padding: "16px", textAlign: "center" }}
+            bodyStyle={{ padding: "20px", textAlign: "center" }}
+            hoverable
           >
             <AlertOutlined
-              style={{ fontSize: 24, color: "white", marginBottom: 8 }}
+              style={{ fontSize: 28, color: "white", marginBottom: 12 }}
             />
             <Statistic
               title={
-                <span style={{ color: "rgba(255,255,255,0.9)", fontSize: 12 }}>
+                <span
+                  style={{
+                    color: "rgba(255,255,255,0.95)",
+                    fontSize: 14,
+                    fontWeight: 500,
+                  }}
+                >
                   Total Alertas
                 </span>
               }
               value={formatInteger(totalAlertas)}
-              valueStyle={{ color: "white", fontSize: isMobile ? 16 : 18 }}
+              valueStyle={{
+                color: "white",
+                fontSize: isMobile ? 20 : 24,
+                fontWeight: "bold",
+              }}
               suffix={
-                <span style={{ color: "rgba(255,255,255,0.8)", fontSize: 10 }}>
+                <span style={{ color: "rgba(255,255,255,0.9)", fontSize: 12 }}>
                   historial
                 </span>
               }
@@ -142,26 +187,38 @@ const ResponsiveAlerts = () => {
           <Card
             size="small"
             style={{
-              backgroundColor: "#52C41A",
+              background: "linear-gradient(135deg, #52C41A 0%, #73D13D 100%)",
               border: "none",
               borderRadius: "12px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              boxShadow: "0 4px 12px rgba(82,196,26,0.3)",
+              transition: "transform 0.2s ease",
             }}
-            bodyStyle={{ padding: "16px", textAlign: "center" }}
+            bodyStyle={{ padding: "20px", textAlign: "center" }}
+            hoverable
           >
             <CheckCircleOutlined
-              style={{ fontSize: 24, color: "white", marginBottom: 8 }}
+              style={{ fontSize: 28, color: "white", marginBottom: 12 }}
             />
             <Statistic
               title={
-                <span style={{ color: "rgba(255,255,255,0.9)", fontSize: 12 }}>
+                <span
+                  style={{
+                    color: "rgba(255,255,255,0.95)",
+                    fontSize: 14,
+                    fontWeight: 500,
+                  }}
+                >
                   Alertas Resueltas
                 </span>
               }
               value={formatInteger(alertasResueltas)}
-              valueStyle={{ color: "white", fontSize: isMobile ? 16 : 18 }}
+              valueStyle={{
+                color: "white",
+                fontSize: isMobile ? 20 : 24,
+                fontWeight: "bold",
+              }}
               suffix={
-                <span style={{ color: "rgba(255,255,255,0.8)", fontSize: 10 }}>
+                <span style={{ color: "rgba(255,255,255,0.9)", fontSize: 12 }}>
                   completadas
                 </span>
               }
@@ -172,29 +229,42 @@ const ResponsiveAlerts = () => {
         <Col xs={12} sm={12} md={6} lg={6}>
           <Card
             size="small"
+            bordered
             style={{
-              backgroundColor: "#722ED1",
+              background: "linear-gradient(135deg, #722ED1 0%, #9254DE 100%)",
               border: "none",
               borderRadius: "12px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              boxShadow: "0 4px 12px rgba(114,46,209,0.3)",
+              transition: "transform 0.2s ease",
             }}
-            bodyStyle={{ padding: "16px", textAlign: "center" }}
+            bodyStyle={{ padding: "20px", textAlign: "center" }}
+            hoverable
           >
             <AlertOutlined
-              style={{ fontSize: 24, color: "white", marginBottom: 8 }}
+              style={{ fontSize: 28, color: "white", marginBottom: 12 }}
             />
             <Statistic
               title={
-                <span style={{ color: "rgba(255,255,255,0.9)", fontSize: 12 }}>
+                <span
+                  style={{
+                    color: "rgba(255,255,255,0.95)",
+                    fontSize: 14,
+                    fontWeight: 500,
+                  }}
+                >
                   Última Alerta
                 </span>
               }
               value={
                 ultimaAlerta ? ultimaAlerta.type_notification : "Sin alertas"
               }
-              valueStyle={{ color: "white", fontSize: isMobile ? 12 : 14 }}
+              valueStyle={{
+                color: "white",
+                fontSize: isMobile ? 14 : 16,
+                fontWeight: "bold",
+              }}
               suffix={
-                <span style={{ color: "rgba(255,255,255,0.8)", fontSize: 10 }}>
+                <span style={{ color: "rgba(255,255,255,0.9)", fontSize: 12 }}>
                   {ultimaAlerta && ultimaAlerta.created_at
                     ? formatFecha(ultimaAlerta.created_at)
                     : ""}
@@ -209,32 +279,25 @@ const ResponsiveAlerts = () => {
       {isMobile ? (
         <Row gutter={[16, 16]}>
           <Col span={24}>
-            <div
+            <Card
               style={{
-                backgroundColor: "white",
-                borderRadius: "10px",
-                padding: "16px",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                marginBottom: "16px",
+                borderRadius: "12px",
+                background: "white",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                border: "none",
               }}
+              bodyStyle={{ padding: "20px" }}
             >
               <div
                 style={{
-                  marginBottom: "16px",
-                  borderBottom: "2px solid #FF6B35",
-                  paddingBottom: "12px",
+                  marginBottom: "20px",
+                  borderBottom: "3px solid #FF6B35",
+                  paddingBottom: "16px",
                 }}
               >
-                <h3
-                  style={{
-                    margin: 0,
-                    color: "#1F3461",
-                    fontSize: "16px",
-                    fontWeight: "600",
-                  }}
-                >
+                <Title level={4} style={{ margin: 0, color: "#1F3461" }}>
                   Crear Alerta
-                </h3>
+                </Title>
               </div>
 
               <Alert
@@ -242,83 +305,80 @@ const ResponsiveAlerts = () => {
                 type="info"
                 showIcon
                 style={{
-                  marginBottom: "16px",
+                  marginBottom: "20px",
                   borderColor: "#FF6B35",
                   backgroundColor: "#FFF8F0",
+                  borderRadius: "8px",
                 }}
               />
 
               <FormAlert update={update} setUpdate={setUpdate} />
-            </div>
+            </Card>
           </Col>
 
           <Col span={24}>
-            <div
+            <Card
               style={{
-                backgroundColor: "white",
-                borderRadius: "10px",
-                padding: "16px",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                borderRadius: "12px",
+                background: "white",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                border: "none",
               }}
+              bodyStyle={{ padding: "20px" }}
             >
               <div
                 style={{
-                  marginBottom: "16px",
-                  borderBottom: "2px solid #1F3461",
-                  paddingBottom: "12px",
+                  marginBottom: "20px",
+                  borderBottom: "3px solid #1F3461",
+                  paddingBottom: "16px",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
                 }}
               >
-                <h3
+                <Title level={4} style={{ margin: 0, color: "#1F3461" }}>
+                  Mis Alertas
+                </Title>
+                <Tag
+                  color="#FF6B35"
                   style={{
-                    margin: 0,
-                    color: "#1F3461",
-                    fontSize: "16px",
                     fontWeight: "600",
+                    fontSize: "12px",
+                    padding: "4px 12px",
+                    borderRadius: "6px",
                   }}
                 >
-                  Mis Alertas
-                </h3>
-                <Tag color="#FF6B35" style={{ fontWeight: "500" }}>
                   {tickets.length} alertas
                 </Tag>
               </div>
 
               <TableAlerts data={tickets} />
-            </div>
+            </Card>
           </Col>
         </Row>
       ) : (
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 24]}>
           <Col xs={24} sm={24} md={10} lg={8} xl={8}>
-            <div
+            <Card
               style={{
-                backgroundColor: "white",
-                borderRadius: "10px",
-                padding: "24px",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                borderRadius: "12px",
+                background: "white",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                border: "none",
                 height: "fit-content",
               }}
+              bodyStyle={{ padding: "24px" }}
             >
               <div
                 style={{
-                  marginBottom: "16px",
-                  borderBottom: "2px solid #FF6B35",
-                  paddingBottom: "12px",
+                  marginBottom: "20px",
+                  borderBottom: "3px solid #FF6B35",
+                  paddingBottom: "16px",
                 }}
               >
-                <h3
-                  style={{
-                    margin: 0,
-                    color: "#1F3461",
-                    fontSize: "18px",
-                    fontWeight: "600",
-                  }}
-                >
+                <Title level={4} style={{ margin: 0, color: "#1F3461" }}>
                   Crear Alerta
-                </h3>
+                </Title>
               </div>
 
               <Alert
@@ -326,52 +386,55 @@ const ResponsiveAlerts = () => {
                 type="info"
                 showIcon
                 style={{
-                  marginBottom: "16px",
+                  marginBottom: "20px",
                   borderColor: "#FF6B35",
                   backgroundColor: "#FFF8F0",
+                  borderRadius: "8px",
                 }}
               />
 
               <FormAlert update={update} setUpdate={setUpdate} />
-            </div>
+            </Card>
           </Col>
 
           <Col xs={24} sm={24} md={14} lg={16} xl={16}>
-            <div
+            <Card
               style={{
-                backgroundColor: "white",
-                borderRadius: "10px",
-                padding: "24px",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                borderRadius: "12px",
+                background: "white",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                border: "none",
               }}
+              bodyStyle={{ padding: "24px" }}
             >
               <div
                 style={{
-                  marginBottom: "16px",
-                  borderBottom: "2px solid #1F3461",
-                  paddingBottom: "12px",
+                  marginBottom: "20px",
+                  borderBottom: "3px solid #1F3461",
+                  paddingBottom: "16px",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
                 }}
               >
-                <h3
+                <Title level={4} style={{ margin: 0, color: "#1F3461" }}>
+                  Mis Alertas
+                </Title>
+                <Tag
+                  color="#FF6B35"
                   style={{
-                    margin: 0,
-                    color: "#1F3461",
-                    fontSize: "18px",
                     fontWeight: "600",
+                    fontSize: "14px",
+                    padding: "6px 16px",
+                    borderRadius: "8px",
                   }}
                 >
-                  Mis Alertas
-                </h3>
-                <Tag color="#FF6B35" style={{ fontWeight: "500" }}>
                   {tickets.length} alertas
                 </Tag>
               </div>
 
               <TableAlerts data={tickets} />
-            </div>
+            </Card>
           </Col>
         </Row>
       )}

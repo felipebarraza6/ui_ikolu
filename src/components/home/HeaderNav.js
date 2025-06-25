@@ -13,7 +13,15 @@ import {
   CustomerServiceOutlined,
   DownloadOutlined,
 } from "@ant-design/icons";
-import { Typography, Button, Popconfirm, Flex, Drawer, Menu } from "antd";
+import {
+  Typography,
+  Button,
+  Popconfirm,
+  Flex,
+  Drawer,
+  Menu,
+  Breadcrumb,
+} from "antd";
 import ListWells from "./ListWells";
 import logo from "../../assets/images/logozivo.png";
 import minLogo from "../../assets/images/logo-blanco.png";
@@ -31,12 +39,7 @@ const MENU_ITEMS = [
     to: "/analisis",
   },
   { key: "3", icon: <FileTextOutlined />, label: "DGA - MEE", to: "/dga" },
-  {
-    key: "4",
-    icon: <BarChartOutlined />,
-    label: "DGA Análisis",
-    to: "/dga-analisis",
-  },
+
   { key: "5", icon: <DownloadOutlined />, label: "Descarga", to: "/descarga" },
   {
     key: "6",
@@ -141,35 +144,57 @@ const MobileHeader = ({ onMenuClick, onLogout }) => {
   );
 };
 
-const DesktopHeader = ({ user, onLogout }) => (
-  <div
-    style={{
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      height: "100%",
-      padding: "0 24px",
-    }}
-  >
-    <Title level={4} style={{ margin: 0 }}>
-      PC
-    </Title>
-    <Flex align="center" gap="large">
-      <ListWells />
-    </Flex>
-    <Flex align="center" gap="middle">
-      <UserInfo email={user.email} />
-      <Popconfirm
-        cancelText="Volver"
-        okText="SALIR"
-        title="¿Estás seguro de querer cerrar la sesión?"
-        onConfirm={onLogout}
-      >
-        <Button type="text" icon={<LogoutOutlined />} />
-      </Popconfirm>
-    </Flex>
-  </div>
-);
+const DesktopHeader = ({ user, onLogout }) => {
+  const { state } = useContext(AppContext);
+  const location = useLocation();
+
+  const moduleName = useMemo(() => {
+    const currentPath = location.pathname;
+    const menuItem = MENU_ITEMS.find((item) => item.to === currentPath);
+    return menuItem ? menuItem.label : "Módulo";
+  }, [location.pathname]);
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        height: "100%",
+        padding: "0 24px",
+        boxShadow: "0 2px 8px rgba(31, 52, 97, 0.15)",
+        transition: "box-shadow 0.3s",
+      }}
+    >
+      <Breadcrumb
+        separator=">"
+        style={{ fontSize: "16px", fontWeight: 500 }}
+        items={[
+          {
+            title: state.selected_profile.title || "Punto de Captación",
+          },
+          {
+            title: moduleName,
+          },
+        ]}
+      />
+      <Flex align="center" gap="large">
+        <ListWells />
+      </Flex>
+      <Flex align="center" gap="middle">
+        <UserInfo email={user.email} />
+        <Popconfirm
+          cancelText="Volver"
+          okText="SALIR"
+          title="¿Estás seguro de querer cerrar la sesión?"
+          onConfirm={onLogout}
+        >
+          <Button type="text" icon={<LogoutOutlined />} />
+        </Popconfirm>
+      </Flex>
+    </div>
+  );
+};
 
 const NavDrawer = ({ visible, onClose }) => (
   <Drawer

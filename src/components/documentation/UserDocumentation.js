@@ -1,486 +1,303 @@
 import React from "react";
 import {
-  Card,
   Typography,
-  Divider,
+  Collapse,
+  Row,
+  Col,
+  Card,
+  Flex,
   List,
   Avatar,
-  Space,
-  Collapse,
   Tag,
+  Space,
 } from "antd";
 import {
-  BookOutlined,
-  WifiOutlined,
+  QuestionCircleOutlined,
   BarChartOutlined,
   FileTextOutlined,
   AlertOutlined,
+  CustomerServiceOutlined,
   DownloadOutlined,
-  UserOutlined,
-  InfoCircleOutlined,
   CheckCircleOutlined,
+  LineChartOutlined,
+  FolderOpenOutlined,
+  FileExcelOutlined,
+  MessageOutlined,
+  HeartOutlined,
+  LikeOutlined,
 } from "@ant-design/icons";
+import { useResponsive } from "../../hooks/useResponsive";
 
 const { Title, Paragraph, Text } = Typography;
 const { Panel } = Collapse;
 
+// Estilos compartidos para los paneles del acordeón
+const panelStyle = {
+  marginBottom: 24,
+  background: "#ffffff",
+  borderRadius: 8,
+  border: "1px solid #f0f0f0",
+  boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+};
+
+const DGA_COLOR = "#237804"; // Verde para cumplimiento
+
 const UserDocumentation = () => {
-  return (
-    <div style={{ padding: "20px", maxWidth: "1000px", margin: "auto" }}>
-      <Card>
-        <Title level={2}>
-          <UserOutlined /> Documentación de Usuario - Ikoku
-        </Title>
+  const { isMobile } = useResponsive();
+
+  // --- CONTENIDO DETALLADO POR MÓDULO ---
+
+  const dgaContent = (
+    <Space direction="vertical" size="middle">
+      <Paragraph>
+        Este módulo es su central para mantener los reportes a la DGA en orden y
+        al día. Nos encargamos de la parte técnica para que usted cumpla con la
+        normativa sin complicaciones.
+      </Paragraph>
+      <Card type="inner" title="Diagnóstico Inteligente: Su resumen en un clic">
         <Paragraph>
-          Bienvenido a la guía de usuario de Ikoku. Esta documentación te
-          ayudará a entender qué mide cada módulo y cómo utilizar la aplicación
-          de manera efectiva.
+          Con un solo clic, esta herramienta le muestra un resumen claro del
+          estado de sus reportes:
         </Paragraph>
-        <Divider />
-
-        <Title level={3}>📊 Módulos y Funcionalidades</Title>
-
-        <Space direction="vertical" style={{ width: "100%" }} size="large">
-          <Card
-            type="inner"
-            title={
-              <span>
-                <WifiOutlined style={{ color: "#1890ff" }} /> Telemetría
-              </span>
-            }
-          >
-            <Paragraph>
-              <Text strong>¿Qué mide?</Text> Este módulo muestra datos en tiempo
-              real de los pozos y puntos de captación.
-            </Paragraph>
-            <List
-              size="small"
-              dataSource={[
-                "Nivel de agua en tiempo real",
-                "Caudal instantáneo",
-                "Caudal promedio",
-                "Estado de la telemetría (conectado/desconectado)",
-                "Últimos registros de medición",
-                "Alertas de estado del sistema",
-              ]}
-              renderItem={(item) => (
-                <List.Item>
-                  <CheckCircleOutlined
-                    style={{ color: "#52c41a", marginRight: 8 }}
-                  />
-                  {item}
-                </List.Item>
-              )}
-            />
-
-            <Divider />
-
-            <Title level={4}>📊 Tipos de Caudal</Title>
-
-            <Space direction="vertical" style={{ width: "100%" }} size="middle">
-              <Card type="inner" size="small" title="🌊 Caudal Instantáneo">
-                <Paragraph>
-                  <Text strong>Descripción:</Text> Es la medición del caudal en
-                  el momento exacto de la lectura.
-                </Paragraph>
-                <Paragraph>
-                  <Text strong>Características:</Text>
-                </Paragraph>
-                <List
-                  size="small"
-                  dataSource={[
-                    "Se actualiza en tiempo real",
-                    "Puede variar significativamente entre lecturas",
-                    "Útil para detectar picos o caídas súbitas",
-                    "Se muestra en litros por segundo (L/s)",
-                  ]}
-                  renderItem={(item) => (
-                    <List.Item>
-                      <Text>{item}</Text>
-                    </List.Item>
-                  )}
-                />
-              </Card>
-
-              <Card type="inner" size="small" title="📈 Caudal Promedio">
-                <Paragraph>
-                  <Text strong>Descripción:</Text> Es el caudal calculado como
-                  promedio en un período determinado.
-                </Paragraph>
-                <Paragraph>
-                  <Text strong>Fórmula de Cálculo:</Text>
-                </Paragraph>
-                <div
-                  style={{
-                    background: "#f5f5f5",
-                    padding: 16,
-                    borderRadius: 8,
-                    margin: "8px 0",
-                    fontFamily: "monospace",
-                    fontSize: 16,
-                    textAlign: "center",
-                  }}
-                >
-                  <Text strong>
-                    Caudal Promedio = (Total₁ - Total₂) / (Frecuencia en
-                    segundos) × 1000
-                  </Text>
-                </div>
-                <Paragraph>
-                  <Text strong>Donde:</Text>
-                </Paragraph>
-                <List
-                  size="small"
-                  dataSource={[
-                    "Total₁: Lectura actual del medidor",
-                    "Total₂: Lectura anterior del medidor",
-                    "Frecuencia: Intervalo de tiempo entre lecturas (en segundos)",
-                    "1000: Factor de conversión a litros por segundo",
-                  ]}
-                  renderItem={(item) => (
-                    <List.Item>
-                      <Text>{item}</Text>
-                    </List.Item>
-                  )}
-                />
-                <Paragraph>
-                  <Text strong>Características:</Text>
-                </Paragraph>
-                <List
-                  size="small"
-                  dataSource={[
-                    "Proporciona una medida más estable del caudal",
-                    "Reduce el impacto de variaciones momentáneas",
-                    "Ideal para análisis de tendencias",
-                    "Se muestra en litros por segundo (L/s)",
-                  ]}
-                  renderItem={(item) => (
-                    <List.Item>
-                      <Text>{item}</Text>
-                    </List.Item>
-                  )}
-                />
-              </Card>
-            </Space>
-
-            <Paragraph>
-              <Text type="secondary">
-                <InfoCircleOutlined /> Los datos se actualizan automáticamente
-                cada pocos minutos.
-              </Text>
-            </Paragraph>
-          </Card>
-
-          <Card
-            type="inner"
-            title={
-              <span>
-                <BarChartOutlined style={{ color: "#52c41a" }} /> Smart Análisis
-              </span>
-            }
-          >
-            <Paragraph>
-              <Text strong>¿Qué mide?</Text> Análisis inteligente de datos
-              históricos con gráficos y tendencias.
-            </Paragraph>
-            <List
-              size="small"
-              dataSource={[
-                "Tendencias de caudal a lo largo del tiempo",
-                "Análisis de patrones de consumo",
-                "Comparación de períodos",
-                "Gráficos interactivos de nivel y volumen",
-                "Exportación de datos para análisis externo",
-              ]}
-              renderItem={(item) => (
-                <List.Item>
-                  <CheckCircleOutlined
-                    style={{ color: "#52c41a", marginRight: 8 }}
-                  />
-                  {item}
-                </List.Item>
-              )}
-            />
-            <Paragraph>
-              <Text type="secondary">
-                <InfoCircleOutlined /> Selecciona un rango de fechas para ver
-                los datos históricos.
-              </Text>
-            </Paragraph>
-          </Card>
-
-          <Card
-            type="inner"
-            title={
-              <span>
-                <FileTextOutlined style={{ color: "#fa8c16" }} /> DGA - MEE
-              </span>
-            }
-          >
-            <Paragraph>
-              <Text strong>¿Qué mide?</Text> Gestión de documentos y reportes
-              para la Dirección General de Aguas (DGA).
-            </Paragraph>
-            <List
-              size="small"
-              dataSource={[
-                "Registros de medición para DGA",
-                "Códigos QR para verificación",
-                "Documentos de cumplimiento normativo",
-                "Reportes mensuales automáticos",
-                "Historial de envíos a DGA",
-              ]}
-              renderItem={(item) => (
-                <List.Item>
-                  <CheckCircleOutlined
-                    style={{ color: "#52c41a", marginRight: 8 }}
-                  />
-                  {item}
-                </List.Item>
-              )}
-            />
-            <Paragraph>
-              <Text type="secondary">
-                <InfoCircleOutlined /> Los códigos QR permiten verificar la
-                autenticidad de los documentos.
-              </Text>
-            </Paragraph>
-          </Card>
-
-          <Card
-            type="inner"
-            title={
-              <span>
-                <BarChartOutlined style={{ color: "#722ed1" }} /> DGA Análisis
-              </span>
-            }
-          >
-            <Paragraph>
-              <Text strong>¿Qué mide?</Text> Análisis específico de datos para
-              cumplimiento DGA.
-            </Paragraph>
-            <List
-              size="small"
-              dataSource={[
-                "Análisis de cumplimiento normativo",
-                "Comparación con límites DGA",
-                "Reportes de excedencias",
-                "Tendencias de calidad del agua",
-                "Alertas de incumplimiento",
-              ]}
-              renderItem={(item) => (
-                <List.Item>
-                  <CheckCircleOutlined
-                    style={{ color: "#52c41a", marginRight: 8 }}
-                  />
-                  {item}
-                </List.Item>
-              )}
-            />
-          </Card>
-
-          <Card
-            type="inner"
-            title={
-              <span>
-                <DownloadOutlined style={{ color: "#13c2c2" }} /> Descarga
-              </span>
-            }
-          >
-            <Paragraph>
-              <Text strong>¿Qué mide?</Text> Generación y descarga de reportes
-              en diferentes formatos.
-            </Paragraph>
-            <List
-              size="small"
-              dataSource={[
-                "Reportes en PDF y Excel",
-                "Datos históricos completos",
-                "Reportes personalizados por fecha",
-                "Exportación de gráficos",
-                "Datos para análisis externo",
-              ]}
-              renderItem={(item) => (
-                <List.Item>
-                  <CheckCircleOutlined
-                    style={{ color: "#52c41a", marginRight: 8 }}
-                  />
-                  {item}
-                </List.Item>
-              )}
-            />
-          </Card>
-
-          <Card
-            type="inner"
-            title={
-              <span>
-                <FileTextOutlined style={{ color: "#eb2f96" }} /> Documentos
-              </span>
-            }
-          >
-            <Paragraph>
-              <Text strong>¿Qué mide?</Text> Gestión de documentos y archivos
-              del sistema.
-            </Paragraph>
-            <List
-              size="small"
-              dataSource={[
-                "Documentos técnicos",
-                "Manuales de operación",
-                "Certificados de calibración",
-                "Documentos de mantenimiento",
-                "Archivos históricos",
-              ]}
-              renderItem={(item) => (
-                <List.Item>
-                  <CheckCircleOutlined
-                    style={{ color: "#52c41a", marginRight: 8 }}
-                  />
-                  {item}
-                </List.Item>
-              )}
-            />
-          </Card>
-
-          <Card
-            type="inner"
-            title={
-              <span>
-                <AlertOutlined style={{ color: "#f5222d" }} /> Alertas
-              </span>
-            }
-          >
-            <Paragraph>
-              <Text strong>¿Qué mide?</Text> Sistema de alertas y notificaciones
-              del sistema.
-            </Paragraph>
-            <List
-              size="small"
-              dataSource={[
-                "Alertas de nivel crítico",
-                "Notificaciones de fallas",
-                "Alertas de mantenimiento",
-                "Recordatorios de reportes",
-                "Alertas de calidad del agua",
-              ]}
-              renderItem={(item) => (
-                <List.Item>
-                  <CheckCircleOutlined
-                    style={{ color: "#52c41a", marginRight: 8 }}
-                  />
-                  {item}
-                </List.Item>
-              )}
-            />
-          </Card>
-
-          <Card
-            type="inner"
-            title={
-              <span>
-                <UserOutlined style={{ color: "#faad14" }} /> Módulo B
-              </span>
-            }
-          >
-            <Paragraph>
-              <Text strong>¿Qué mide?</Text> Entrada manual de datos para
-              mediciones específicas.
-            </Paragraph>
-            <List
-              size="small"
-              dataSource={[
-                "Consumo mensual de agua",
-                "Datos de medición manual",
-                "Registros de campo",
-                "Cálculos automáticos de totales",
-                "Validación de datos ingresados",
-              ]}
-              renderItem={(item) => (
-                <List.Item>
-                  <CheckCircleOutlined
-                    style={{ color: "#52c41a", marginRight: 8 }}
-                  />
-                  {item}
-                </List.Item>
-              )}
-            />
-            <Paragraph>
-              <Text type="secondary">
-                <InfoCircleOutlined /> Los totales se calculan automáticamente
-                al ingresar los valores mensuales.
-              </Text>
-            </Paragraph>
-          </Card>
-        </Space>
-
-        <Divider />
-
-        <Title level={3}>💡 Consejos de Uso</Title>
-
-        <Collapse defaultActiveKey={["1"]}>
-          <Panel header="Navegación Rápida" key="1">
-            <List
-              size="small"
-              dataSource={[
-                "Usa el menú lateral para navegar entre módulos",
-                "El selector de pozos te permite cambiar entre puntos de captación",
-                "Los iconos indican el estado de cada módulo",
-                "Usa los filtros de fecha para consultar datos históricos",
-              ]}
-              renderItem={(item) => (
-                <List.Item>
-                  <Text>{item}</Text>
-                </List.Item>
-              )}
-            />
-          </Panel>
-
-          <Panel header="Interpretación de Datos" key="2">
-            <List
-              size="small"
-              dataSource={[
-                "Los valores en verde indican normalidad",
-                "Los valores en amarillo requieren atención",
-                "Los valores en rojo indican alertas críticas",
-                "Los gráficos muestran tendencias temporales",
-                "Las tablas permiten ver datos detallados",
-              ]}
-              renderItem={(item) => (
-                <List.Item>
-                  <Text>{item}</Text>
-                </List.Item>
-              )}
-            />
-          </Panel>
-
-          <Panel header="Solución de Problemas" key="3">
-            <List
-              size="small"
-              dataSource={[
-                "Si no ves datos, verifica la conexión de telemetría",
-                "Para datos históricos, asegúrate de seleccionar fechas válidas",
-                "Si hay errores, contacta al soporte técnico",
-                "Limpia el caché del navegador si hay problemas de visualización",
-              ]}
-              renderItem={(item) => (
-                <List.Item>
-                  <Text>{item}</Text>
-                </List.Item>
-              )}
-            />
-          </Panel>
-        </Collapse>
-
-        <Divider />
-
-        <Title level={3}>📞 Soporte</Title>
+        <List
+          dataSource={[
+            "✅ Registros Completados: Los que la DGA ya aceptó.",
+            "⏳ Registros Pendientes: Los que están en camino a ser informados.",
+            "❌ Registros con Error: Si alguno necesita su atención por algún motivo.",
+          ]}
+          renderItem={(item) => <List.Item>{item}</List.Item>}
+        />
+      </Card>
+      <Card type="inner" title="Gráficos de Cumplimiento">
         <Paragraph>
-          Si necesitas ayuda adicional o tienes preguntas sobre el uso de la
-          aplicación, puedes contactar al equipo de soporte técnico de
-          SmartHydro a través del módulo de Soporte.
+          Vea de forma muy visual si su consumo de agua se mantiene dentro de lo
+          autorizado. Una línea roja le indicará su límite para que nunca se
+          pase por accidente y pueda tomar acciones a tiempo.
         </Paragraph>
       </Card>
+    </Space>
+  );
+
+  const smartAnalysisContent = (
+    <Space direction="vertical" size="middle">
+      <Paragraph>
+        Este es el cerebro de la plataforma. Le ayuda a entender el
+        comportamiento de su pozo a lo largo del tiempo, respondiendo preguntas
+        importantes con gráficos fáciles de entender.
+      </Paragraph>
+      <Card type="inner" title="¿Qué puedo descubrir aquí?">
+        <List
+          dataSource={[
+            "¿Cómo cambia el nivel de mi pozo a través de las estaciones?",
+            "¿En qué meses del año extraigo más agua?",
+            "Entender si extraer más agua afecta mucho el nivel de mi pozo.",
+          ]}
+          renderItem={(item) => (
+            <List.Item>
+              <HeartOutlined style={{ color: "#1890ff", marginRight: 8 }} />
+              {item}
+            </List.Item>
+          )}
+        />
+      </Card>
+      <Paragraph>
+        Use los filtros de fecha para analizar un período específico, como el
+        último verano o el año pasado completo. ¡Explore sus datos!
+      </Paragraph>
+    </Space>
+  );
+
+  const downloadContent = (
+    <Space direction="vertical" size="middle">
+      <Paragraph>
+        ¿Necesita tener una copia de sus datos en su computador? Desde aquí
+        puede descargar todo su historial de mediciones de forma sencilla.
+      </Paragraph>
+      <Card type="inner" title="¿Para qué me sirve?">
+        <List
+          dataSource={[
+            "Para guardar un respaldo seguro de toda su información.",
+            "Si necesita hacer sus propios cálculos o gráficos en Excel.",
+            "Para compartir la información con un asesor o para un informe.",
+          ]}
+          renderItem={(item) => (
+            <List.Item>
+              <FileExcelOutlined style={{ color: "green", marginRight: 8 }} />
+              {item}
+            </List.Item>
+          )}
+        />
+      </Card>
+    </Space>
+  );
+
+  const docResContent = (
+    <Space direction="vertical" size="middle">
+      <Paragraph>
+        Un lugar único y seguro para guardar todos los documentos importantes de
+        su pozo, como planos, certificados o resoluciones.
+      </Paragraph>
+      <List
+        dataSource={[
+          "Suba archivos fácilmente desde su computador.",
+          "Descárguelos en cualquier momento que los necesite.",
+          "Elimine archivos de forma segura con una confirmación para evitar accidentes.",
+        ]}
+        renderItem={(item) => (
+          <List.Item>
+            <LikeOutlined style={{ marginRight: 8 }} />
+            {item}
+          </List.Item>
+        )}
+      />
+    </Space>
+  );
+
+  const alertsContent = (
+    <Space direction="vertical" size="middle">
+      <Paragraph>
+        Piense en las alertas como un guardián que vigila su pozo 24/7. Le
+        avisará si algo importante ocurre, para que usted pueda revisar qué
+        pasa.
+      </Paragraph>
+      <Card type="inner" title="¿De qué me puede avisar el sistema?">
+        <List
+          dataSource={[
+            "Si el nivel del agua de su pozo baja más de lo normal.",
+            "Si el consumo de agua está superando los límites que usted considera seguros.",
+            "Si por alguna razón se pierde la comunicación con los equipos en terreno.",
+          ]}
+          renderItem={(item) => (
+            <List.Item>
+              <Tag color="orange">AVISO</Tag> {item}
+            </List.Item>
+          )}
+        />
+      </Card>
+    </Space>
+  );
+
+  const supportContent = (
+    <Space direction="vertical" size="middle">
+      <Paragraph>
+        Si alguna vez tiene una duda o algo no funciona como esperaba, nuestro
+        equipo de especialistas está a un solo clic de distancia para ayudarle.
+      </Paragraph>
+      <Card type="inner" title="¿Cómo funciona?">
+        <List
+          size="small"
+          dataSource={[
+            "1. Vaya a 'Soporte' y haga clic en 'Nuevo Ticket' para escribirnos su consulta.",
+            "2. Uno de nuestros especialistas le responderá directamente en la plataforma.",
+            "3. Podrá seguir toda la conversación y ver cuándo su solicitud esté resuelta. ¡Así de fácil!",
+          ]}
+          renderItem={(item) => (
+            <List.Item>
+              <MessageOutlined style={{ marginRight: 8 }} /> {item}
+            </List.Item>
+          )}
+        />
+      </Card>
+    </Space>
+  );
+
+  return (
+    <div
+      style={{
+        backgroundColor: "#f8f9fa",
+        padding: isMobile ? "16px" : "24px",
+        minHeight: "90vh",
+      }}
+    >
+      <div
+        style={{
+          borderRadius: "12px",
+          background: "linear-gradient(135deg, #1F3461 0%, #2A4B8D 100%)",
+          padding: "24px",
+          marginBottom: "24px",
+        }}
+      >
+        <Flex align="center" gap="middle">
+          <QuestionCircleOutlined style={{ fontSize: 32, color: "white" }} />
+          <Title level={3} style={{ margin: 0, color: "white" }}>
+            Guía de Usuario y Novedades
+          </Title>
+        </Flex>
+      </div>
+
+      <Collapse accordion defaultActiveKey={["1"]} ghost>
+        <Panel
+          header={
+            <Text strong style={{ color: DGA_COLOR }}>
+              <FileTextOutlined /> Módulo DGA - MEE
+            </Text>
+          }
+          key="1"
+          style={panelStyle}
+        >
+          {dgaContent}
+        </Panel>
+
+        <Panel
+          header={
+            <Text strong>
+              <BarChartOutlined /> Smart Análisis
+            </Text>
+          }
+          key="2"
+          style={panelStyle}
+        >
+          {smartAnalysisContent}
+        </Panel>
+
+        <Panel
+          header={
+            <Text strong>
+              <DownloadOutlined /> Descarga de Datos
+            </Text>
+          }
+          key="3"
+          style={panelStyle}
+        >
+          {downloadContent}
+        </Panel>
+
+        <Panel
+          header={
+            <Text strong>
+              <FolderOpenOutlined /> Gestor de Documentos
+            </Text>
+          }
+          key="4"
+          style={panelStyle}
+        >
+          {docResContent}
+        </Panel>
+
+        <Panel
+          header={
+            <Text strong>
+              <AlertOutlined /> Sistema de Alertas
+            </Text>
+          }
+          key="5"
+          style={panelStyle}
+        >
+          {alertsContent}
+        </Panel>
+
+        <Panel
+          header={
+            <Text strong>
+              <CustomerServiceOutlined /> Soporte Técnico
+            </Text>
+          }
+          key="6"
+          style={panelStyle}
+        >
+          {supportContent}
+        </Panel>
+      </Collapse>
     </div>
   );
 };

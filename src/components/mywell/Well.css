@@ -1,7 +1,8 @@
 .pozo {
   position: relative;
   width: 290px;
-  top: -100px;
+  margin-left:-60px;
+  top: -120px;
   height: 500px;
 }
 

@@ -12,6 +12,7 @@ import {
   Tabs, // Added Tabs for the 'main' branch logic, but will be removed if 'ikolu_sma' is chosen
   Tooltip, // Added missing Tooltip import
   ConfigProvider,
+  Flex,
 } from "antd";
 import { AppContext } from "../../App";
 import dayjs from "dayjs";
@@ -187,447 +188,160 @@ const Reports = () => {
   };
 
   useEffect(() => {
-    // Cargar datos automáticamente cuando se seleccionen ambas fechas
-    if (initialDate && finishDate) {
-      getData();
-    }
-  }, [state.selected_profile, page, initialDate, finishDate]); // Added initialDate and finishDate to dependencies
-
-  const disabledDownload = () => {
+    // No hacer nada si las fechas no están seleccionadas
     if (!initialDate || !finishDate) {
-      return true;
-    } else {
-      // Assuming status_module indicates whether the feature is enabled for the profile
-      return !status_module;
+      setData([]); // Limpiar datos si no hay rango
+      setTotal(0);
+      return;
+    }
+    getData();
+  }, [page, initialDate, finishDate, state.selected_profile.id]);
+
+  const renderContent = () => {
+    if (!status_module) {
+      return (
+        <Flex justify="center" align="center" style={{ minHeight: "50vh" }}>
+          <Title level={4} style={{ color: "#999" }}>
+            Este módulo no está activado.
+          </Title>
+        </Flex>
+      );
+    }
+
+    if (!initialDate || !finishDate) {
+      return (
+        <Flex
+          vertical
+          justify="center"
+          align="center"
+          style={{ minHeight: "50vh", textAlign: "center" }}
+        >
+          <CalendarOutlined style={{ fontSize: "48px", color: "#d9d9d9" }} />
+          <Title level={4} style={{ color: "#bfbfbf", marginTop: "16px" }}>
+            Por favor, selecciona un rango de fechas para generar el reporte.
+          </Title>
+        </Flex>
+      );
+    }
+
+    return (
+      <Table
+        size="small"
+        scroll={{ x: 1200, y: 500 }}
+        columns={[
+          {
+            title: "Fecha",
+            dataIndex: "date_time_medition",
+            render: (date) => {
+              return dayjs(date).format("YYYY-MM-DD HH:mm");
+            },
+          },
+          { title: "Caudal (L/s)", dataIndex: "flow" },
+          {
+            title: "Acumulado (m³)",
+            dataIndex: "total",
+            render: (a) => formatVolume(a),
+          },
+          {
+            title: "Acumulado/hora (m³)",
+            dataIndex: "total_diff",
+            render: (a) => formatVolume(a),
+          },
+          {
+            title: "Contador diario (m³)",
+            dataIndex: "total_today_diff",
+            render: (a) => formatVolume(a),
+          },
+          {
+            title: () => "Nivel Freático (m)",
+            dataIndex: "water_table",
+          },
+        ]}
+        dataSource={data}
+        loading={loadingTab1}
+        pagination={{
+          pageSize: 100,
+          current: page,
+          total: total,
+          onChange: (page) => setPage(page),
+          showSizeChanger: false,
+          disabled: !status_module,
+        }}
+      />
+    );
+  };
+
+  const onFinish = (values) => {
+    if (values.range) {
+      setInitialDate(values.range[0]);
+      setFinishDate(values.range[1]);
     }
   };
-  // console.log(state); // Removed console.log
+
+  const clearFilters = () => {
+    form.resetFields();
+    setInitialDate("");
+    setFinishDate("");
+    setData([]);
+    setTotal(0);
+  };
 
   return (
-    <QueueAnim type="alpha" delay={300} duration={1500}>
-      <div key="1">
-        <Row
-          style={{ marginTop: "0px", padding: "0px", minHeight: "90vh" }}
-          justify={"center"}
-          align={"top"}
-        >
-          {window.innerWidth > 900 ? (
-            <>
-              <Col
-                span={24}
-                style={{
-                  marginTop: "0px",
-                  marginBottom: "0px",
-                }}
-              >
-                <QueueAnim type="left" delay={500} duration={1000}>
-                  <div key="2">
-                    <Table
-                      title={() => (
-                        <Row
-                          justify={"space-around"}
-                          align={"top"}
-                          style={{ marginTop: "25px", marginBottom: "20px" }}
-                        >
-                          <Form form={form} layout="inline">
-                            <Form.Item name="initialDate">
-                              <ConfigProvider locale={locale}>
-                                <DatePicker
-                                  style={{ width: "100%" }}
-                                  placeholder="Desde"
-                                  value={
-                                    initialDate ? dayjs(initialDate) : null
-                                  }
-                                  disabledDate={(current) =>
-                                    current && current >= dayjs().endOf("day")
-                                  }
-                                  onChange={(date) => {
-                                    if (date) {
-                                      setInitialDate(date.format("YYYY-MM-DD"));
-                                    } else {
-                                      form.resetFields([
-                                        "initialDate",
-                                        "finishDate",
-                                      ]);
-                                      setInitialDate("");
-                                      setFinishDate("");
-                                      setData([]);
-                                    }
-                                  }}
-                                  format="DD/MM/YYYY"
-                                />
-                              </ConfigProvider>
-                            </Form.Item>
-                            <Form.Item name="finishDate">
-                              <ConfigProvider locale={locale}>
-                                <DatePicker
-                                  style={{ width: "100%" }}
-                                  placeholder="Hasta"
-                                  value={finishDate ? dayjs(finishDate) : null}
-                                  disabled={!initialDate}
-                                  disabledDate={(current) =>
-                                    current &&
-                                    (current >= dayjs().endOf("day") ||
-                                      current <
-                                        dayjs(initialDate).startOf("day"))
-                                  }
-                                  onChange={(date) => {
-                                    if (date) {
-                                      if (
-                                        initialDate &&
-                                        date.format("YYYY-MM-DD") < initialDate
-                                      ) {
-                                        notification.error({
-                                          message:
-                                            "La fecha final no puede ser menor a la fecha inicial",
-                                        });
-                                        setFinishDate("");
-                                        form.setFieldsValue({
-                                          finishDate: null,
-                                        });
-                                      } else {
-                                        setFinishDate(
-                                          date.format("YYYY-MM-DD")
-                                        );
-                                        // Los datos se cargarán automáticamente por el useEffect
-                                      }
-                                    } else {
-                                      setFinishDate("");
-                                      setData([]);
-                                    }
-                                  }}
-                                  format="DD/MM/YYYY"
-                                />
-                              </ConfigProvider>
-                            </Form.Item>
-                          </Form>
-
-                          <Button
-                            icon={<ClearOutlined />}
-                            type="primary"
-                            disabled={
-                              !initialDate && !finishDate && data.length === 0
-                            } // Disable if nothing to clear
-                            style={{
-                              textAlign: "left",
-                              backgroundColor:
-                                !initialDate && !finishDate && data.length === 0
-                                  ? "#D9D9D9"
-                                  : "#1F3461",
-                              color:
-                                !initialDate && !finishDate && data.length === 0
-                                  ? "#1F3461"
-                                  : "white",
-                              borderColor: "#1F3461",
-                            }}
-                            block={false}
-                            onClick={() => {
-                              setInitialDate("");
-                              setFinishDate("");
-                              form.resetFields();
-                              setData([]);
-                              setTotal(0);
-                              // setData2([]); // data2 is not used in this branch
-                            }}
-                          >
-                            Limpiar
-                          </Button>
-
-                          <Button
-                            icon={<FileExcelFilled />}
-                            type="primary"
-                            loading={loadingExcel}
-                            disabled={disabledDownload()}
-                            style={{
-                              textAlign: "left",
-                              backgroundColor: disabledDownload()
-                                ? "#D9D9D9"
-                                : "#1F3461",
-                              color: disabledDownload() ? "#1F3461" : "white",
-                              borderColor: "#1F3461",
-                            }}
-                            onClick={downloadDataToExcel}
-                          >
-                            Descargar reporte (.xlsx)
-                          </Button>
-                          <Col
-                            style={{ paddingTop: "10px", paddingLeft: "0px" }}
-                          ></Col>
-                        </Row>
-                      )}
-                      footer={() =>
-                        total > 0 && (
-                          <Tag color={"rgb(31, 52, 97)"}>{total} registros</Tag>
-                        )
+    <QueueAnim delay={300} duration={900} type="right">
+      <div key="reports">
+        <Title level={2}>Descarga de Datos</Title>
+        <ConfigProvider locale={locale}>
+          <Form
+            form={form}
+            onFinish={onFinish}
+            style={{ marginBottom: "20px" }}
+            layout="inline"
+          >
+            <Row gutter={[16, 16]} style={{ width: "100%" }}>
+              <Col xs={24} sm={12} md={8}>
+                <Form.Item name="range">
+                  <DatePicker.RangePicker
+                    style={{ width: "100%" }}
+                    format="DD/MM/YYYY"
+                    disabledDate={(current) => {
+                      return (
+                        current &&
+                        (current < dayjs().startOf("year") ||
+                          current > dayjs().endOf("day"))
+                      );
+                    }}
+                    onChange={(dates, dateStrings) => {
+                      if (dates) {
+                        setInitialDate(dateStrings[0]);
+                        setFinishDate(dateStrings[1]);
+                      } else {
+                        clearFilters();
                       }
-                      size={"small"}
-                      loading={loadingTab1}
-                      pagination={{
-                        total: total,
-                        showSizeChanger: false,
-                        disabled: !status_module || !initialDate || !finishDate, // Disable if no dates or module not active
-                        pageSize: 10,
-                        onChange: (page) => {
-                          setPage(page);
-                        },
-                      }}
-                      columns={[
-                        {
-                          title: "Fecha",
-                          dataIndex: "date_time_medition",
-                          render: (date) => {
-                            return dayjs(date).format("YYYY-MM-DD HH:mm");
-                          },
-                        },
-                        { title: "Caudal (L/s)", dataIndex: "flow" },
-                        {
-                          title: "Acumulado (m³)",
-                          dataIndex: "total",
-                          render: (a) => formatVolume(a),
-                        },
-                        {
-                          title: "Acumulado/hora (m³)",
-                          dataIndex: "total_diff",
-                          render: (a) => formatVolume(a),
-                        },
-                        {
-                          title: "Contador diario (m³)",
-                          dataIndex: "total_today_diff",
-                          render: (a) => formatVolume(a),
-                        },
-                        {
-                          title: () => "Nivel Freático (m)",
-                          dataIndex: "water_table",
-                        },
-                      ]}
-                      dataSource={data}
-                    />
-                  </div>
-                </QueueAnim>
+                    }}
+                  />
+                </Form.Item>
               </Col>
-            </>
-          ) : (
-            // Mobile View
-            <>
-              <Col xs={24} style={{ paddingLeft: "10px" }}>
-                <Row justify={"center"} align={"top"}>
-                  <Col>
-                    <Title level={4} style={{ textAlign: "center" }}>
-                      Selecciona un rango de tiempo a visualizar
-                    </Title>
-                    <Form form={form} layout="vertical">
-                      <Col style={{ paddingTop: "20px" }}>
-                        <Form.Item name="initialDate">
-                          <ConfigProvider locale={locale}>
-                            <DatePicker
-                              style={{ width: "100%" }}
-                              placeholder="Selecciona una fecha inicial"
-                              value={initialDate ? dayjs(initialDate) : null}
-                              disabledDate={(current) =>
-                                current && current >= dayjs().endOf("day")
-                              }
-                              onChange={(date) => {
-                                if (date) {
-                                  setInitialDate(date.format("YYYY-MM-DD"));
-                                }
-                              }}
-                              format="DD/MM/YYYY"
-                            />
-                          </ConfigProvider>
-                        </Form.Item>
-                      </Col>
-                      <Col style={{ paddingTop: "-20px" }}>
-                        <Form.Item name="finishDate">
-                          <ConfigProvider locale={locale}>
-                            <DatePicker
-                              style={{ width: "100%" }}
-                              placeholder="Selecciona una fecha final"
-                              value={finishDate ? dayjs(finishDate) : null}
-                              disabled={!initialDate}
-                              disabledDate={(current) =>
-                                current &&
-                                (current >= dayjs().endOf("day") ||
-                                  current < dayjs(initialDate).startOf("day"))
-                              }
-                              onChange={(date) => {
-                                if (date) {
-                                  if (
-                                    initialDate &&
-                                    date.format("YYYY-MM-DD") <= initialDate
-                                  ) {
-                                    notification.error({
-                                      placement:
-                                        window.innerWidth < 900
-                                          ? "bottom"
-                                          : "topRight",
-                                      style: { zIndex: 1000000 },
-                                      closeIcon: <></>,
-                                      message:
-                                        "La fecha final no puede ser menor o igual a la fecha inicial",
-                                    });
-                                    setFinishDate("");
-                                    form.setFieldsValue({ finishDate: null });
-                                  } else {
-                                    setFinishDate(date.format("YYYY-MM-DD"));
-                                    // Los datos se cargarán automáticamente por el useEffect
-                                  }
-                                }
-                              }}
-                              format="DD/MM/YYYY"
-                            />
-                          </ConfigProvider>
-                        </Form.Item>
-                      </Col>
-                    </Form>
-                  </Col>
-                  <Col style={{ paddingTop: "0px", paddingLeft: "0px" }}>
-                    desde: <b>{initialDate || "YYYY-MM-DD"} </b>
-                    hasta: <b>{finishDate || "YYYY-MM-DD"} </b>
-                    {finishDate && (
-                      <>
-                        Visualización:{" "}
-                        <b>
-                          {dayjs(finishDate).diff(dayjs(initialDate), "days") +
-                            1}{" "}
-                          día/s
-                        </b>
-                      </>
-                    )}
-                  </Col>
-                  <Col
-                    span={24}
-                    style={{ paddingTop: "10px", paddingLeft: "0px" }}
+              <Col xs={24} sm={12} md={16}>
+                <Flex gap="small" wrap="wrap">
+                  <Button icon={<ClearOutlined />} onClick={clearFilters}>
+                    Limpiar
+                  </Button>
+                  <Button
+                    icon={<FileExcelFilled />}
+                    type="primary"
+                    style={{ background: "#1f3461", color: "white" }}
+                    onClick={downloadDataToExcel}
+                    loading={loadingExcel}
+                    disabled={!initialDate || !finishDate || !status_module}
                   >
-                    <Button
-                      icon={<ClearOutlined />}
-                      type="primary"
-                      disabled={
-                        !initialDate && !finishDate && data.length === 0
-                      }
-                      style={{
-                        width: "100%",
-                        textAlign: "left",
-                        backgroundColor:
-                          !initialDate && !finishDate && data.length === 0
-                            ? "#D9D9D9"
-                            : "#1F3461",
-                        color:
-                          !initialDate && !finishDate && data.length === 0
-                            ? "#1F3461"
-                            : "white",
-                        borderColor: "#1F3461",
-                      }}
-                      block={false}
-                      onClick={() => {
-                        setInitialDate("");
-                        setFinishDate("");
-                        form.resetFields();
-                        setData([]);
-                        setTotal(0);
-                        // setData2([]); // data2 is not used in this branch
-                      }}
-                    >
-                      Limpiar
-                    </Button>
-                  </Col>
-                  <Col
-                    span={24}
-                    style={{ paddingTop: "10px", paddingLeft: "0px" }}
-                  >
-                    <Button
-                      icon={<FileExcelFilled />}
-                      type="primary"
-                      disabled={!initialDate || !finishDate}
-                      style={{
-                        width: "100%",
-                        textAlign: "left",
-                        backgroundColor:
-                          !initialDate || !finishDate ? "#D9D9D9" : "#1F3461",
-                        color:
-                          !initialDate || !finishDate ? "#1F3461" : "white",
-                        borderColor: "#1F3461",
-                      }}
-                      block={false}
-                      onClick={downloadDataToExcel}
-                    >
-                      Descargar reporte (.xlsx)
-                    </Button>
-                  </Col>
-                </Row>
+                    Descargar reporte (.xlsx)
+                  </Button>
+                </Flex>
               </Col>
-              <Col
-                span={24}
-                style={{
-                  marginTop: "10px",
-                  marginBottom: "0px",
-                  paddingRight: "10px",
-                }}
-              >
-                {/* Tabla con scroll horizontal solo en móvil */}
-                <Table
-                  title={() => "Datos del Reporte"}
-                  bordered
-                  size={"small"}
-                  loading={loadingTab1}
-                  scroll={{ x: 800 }} // Scroll horizontal solo para móvil
-                  pagination={{
-                    total: total,
-                    pageSize: 10,
-                    showSizeChanger: false,
-                    current: page,
-                    disabled: !status_module || !initialDate || !finishDate,
-                    onChange: (page) => {
-                      setPage(page);
-                    },
-                  }}
-                  columns={[
-                    {
-                      title: "Fecha",
-                      dataIndex: "date_time_medition",
-                      width: 120,
-                      render: (date) => {
-                        // Assuming date_time_medition still contains full timestamp, if not,
-                        // this render will need adjustment based on the actual data format from API
-                        return dayjs(date).format("DD/MM HH:mm");
-                      },
-                    },
-                    {
-                      title: "Caudal (L/s)",
-                      dataIndex: "flow",
-                      width: 100,
-                      render: (a) => parseFloat(a).toFixed(2), // Ensure consistent formatting
-                    },
-                    {
-                      title: "Acumulado (m³)",
-                      dataIndex: "total",
-                      width: 120,
-                      render: (a) => formatVolume(a),
-                    },
-                    {
-                      title: "Acum./hora (m³)",
-                      dataIndex: "total_diff",
-                      width: 120,
-                      render: (a) => formatVolume(a),
-                    },
-                    {
-                      title: "Cont. diario (m³)",
-                      dataIndex: "total_today_diff",
-                      width: 130,
-                      render: (a) => formatVolume(a),
-                    },
-                    {
-                      title: "Nivel Freático (m)",
-                      dataIndex: "water_table",
-                      width: 130,
-                      render: (a) => parseFloat(a).toFixed(2), // Ensure consistent formatting
-                    },
-                  ]}
-                  dataSource={data}
-                />
-              </Col>
-            </>
-          )}
-        </Row>
+            </Row>
+          </Form>
+        </ConfigProvider>
+        {renderContent()}
       </div>
     </QueueAnim>
   );

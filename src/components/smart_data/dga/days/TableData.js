@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Table, Flex, Typography } from "antd";
+import { Table } from "antd";
 import {
   formatFlow,
   formatInteger,
   formatLevel,
 } from "../../../../utils/numberFormatter";
-
-const { Text } = Typography;
+import DataSummary from "../../DataSummary";
 
 const TableData = ({ data }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -48,60 +47,28 @@ const TableData = ({ data }) => {
       render: (total) => formatInteger(total),
     },
     {
+      title: "Consumo (m³/h)",
+      dataIndex: "total_diff",
+      key: "consumo",
+      align: "center",
+      width: 130,
+      render: (total_diff) => formatInteger(total_diff),
+    },
+    {
+      title: "Consumo (m³/d)",
+      dataIndex: "total_today_diff",
+      key: "total_today_diff",
+      align: "center",
+      width: 130,
+      render: (total_today_diff) => formatInteger(total_today_diff),
+    },
+    {
       title: "Nivel freático (m)",
       dataIndex: "water_table",
       key: "water_table",
       align: "center",
-      width: 130,
+      width: 140,
       render: (water_table) => formatLevel(water_table),
-    },
-    {
-      title: "Comprobante MEE",
-      width: 200,
-      align: "center",
-      render: (obj) => {
-        if (obj.n_voucher) {
-          return (
-            <Flex vertical justify="center" align="center" gap="small">
-              <Text
-                copyable
-                size="small"
-                style={{
-                  border: "1px solid #1F3461",
-                  color: "#1F3461",
-                  padding: isMobile ? "3px" : "5px",
-                  textAlign: "center",
-                  fontSize: isMobile ? "10px" : "12px",
-                  width: "100%",
-                  borderRadius: "5px",
-                  cursor: "pointer",
-                }}
-              >
-                {obj.n_voucher}
-              </Text>
-              <span
-                style={{
-                  backgroundColor: "#1F3461",
-                  color: "white",
-                  padding: isMobile ? "3px" : "5px",
-                  width: "100%",
-                  textAlign: "center",
-                  fontSize: isMobile ? "10px" : "12px",
-                  borderRadius: "5px",
-                  cursor: "pointer",
-                }}
-              >
-                {obj.return_dga}
-              </span>
-            </Flex>
-          );
-        }
-        return (
-          <span style={{ color: "#999", fontSize: "12px" }}>
-            Sin comprobante
-          </span>
-        );
-      },
     },
   ];
 
@@ -118,6 +85,19 @@ const TableData = ({ data }) => {
         }
       `}</style>
 
+      {/* Componente reutilizable de resumen inteligente para DGA */}
+      <DataSummary
+        data={data}
+        periodType="day"
+        title="Resumen Inteligente DGA del Día"
+        config={{
+          // Configuración específica para DGA si es necesario
+          flowUnit: "L/s",
+          consumptionUnit: "m³/h",
+          levelUnit: "m",
+        }}
+      />
+
       <Table
         dataSource={data}
         columns={columns}
@@ -133,11 +113,11 @@ const TableData = ({ data }) => {
         scroll={
           isMobile
             ? {
-                x: 630, // Solo scroll horizontal en móvil
+                x: 700,
                 y: 300,
               }
             : {
-                y: 400, // Solo scroll vertical en desktop
+                y: 400,
               }
         }
       />

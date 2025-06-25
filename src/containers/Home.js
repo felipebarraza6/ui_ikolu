@@ -46,12 +46,7 @@ const MENU_ITEMS = [
     to: "/analisis",
   },
   { key: "3", icon: <FileTextOutlined />, label: "DGA - MEE", to: "/dga" },
-  {
-    key: "4",
-    icon: <BarChartOutlined />,
-    label: "DGA Análisis",
-    to: "/dga-analisis",
-  },
+
   { key: "5", icon: <DownloadOutlined />, label: "Descarga", to: "/descarga" },
   {
     key: "6",
@@ -152,81 +147,129 @@ const AppRoutes = React.memo(() => {
   );
 });
 
-const DesktopLayout = ({ children }) => (
-  <Layout style={{ minHeight: "100vh" }}>
-    <Sider
-      breakpoint="lg"
-      collapsedWidth="0"
-      style={{
-        background: "#1F3461",
-        minHeight: "100vh",
-        position: "fixed",
-        left: 0,
-        zIndex: 100,
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          height: "100%",
-          padding: "20px 0 0 0",
-        }}
-      >
-        <div style={{ textAlign: "center", paddingBottom: "20px" }}>
-          <img src={logo} alt="Logo" style={{ width: 60, marginBottom: 8 }} />
-        </div>
-        <div style={{ flex: 1, overflowY: "auto" }}>
-          <Menu
-            theme="dark"
-            mode="inline"
-            defaultSelectedKeys={["1"]}
-            style={{ background: "#1F3461", border: "none" }}
-          >
-            {MENU_ITEMS.map((item) => (
-              <Menu.Item key={item.key} icon={item.icon}>
-                <Link to={item.to}>{item.label}</Link>
-              </Menu.Item>
-            ))}
-          </Menu>
-        </div>
-        <div
+const DesktopLayout = ({ children }) => {
+  const location = useLocation();
+
+  const selectedKey = useMemo(() => {
+    const currentPath = location.pathname;
+    const menuItem = MENU_ITEMS.find((item) => item.to === currentPath);
+    return menuItem ? menuItem.key : "1";
+  }, [location.pathname]);
+
+  return (
+    <>
+      <style>{`
+        .ant-layout-sider .ant-menu-item::after {
+          border-right: none !important;
+        }
+
+        .ant-layout-sider .ant-menu-item-selected {
+          background-color: white !important;
+          color: #1F3461 !important;
+          font-weight: 600;
+          border-radius: 8px;
+          margin: 4px 8px !important;
+          width: calc(100% - 16px);
+        }
+        
+        .ant-layout-sider .ant-menu-item-selected .ant-menu-item-icon,
+        .ant-layout-sider .ant-menu-item-selected a {
+          color: #1F3461 !important;
+        }
+
+        .ant-layout-sider .ant-menu-item:not(.ant-menu-item-selected):hover {
+          background-color: rgba(255, 255, 255, 0.1) !important;
+          border-radius: 8px;
+          margin: 4px 8px !important;
+          width: calc(100% - 16px);
+        }
+      `}</style>
+      <Layout style={{ minHeight: "100vh" }}>
+        <Sider
+          breakpoint="lg"
+          collapsedWidth="0"
           style={{
-            flexShrink: 0,
-            textAlign: "center",
-            padding: "20px 16px 15px 16px",
-            marginTop: "100%",
-            borderTop: "1px solid rgba(255,255,255,0.1)",
+            background: "#1F3461",
+            minHeight: "100vh",
+            position: "fixed",
+            left: 0,
+            zIndex: 100,
           }}
         >
-          <img
-            src={minLogo}
-            alt="Smart Hydro"
-            style={{ width: "75%", maxWidth: "120px", opacity: 0.9 }}
-          />
-        </div>
-      </div>
-    </Sider>
-    <Layout style={{ marginLeft: 200, background: "#f0f2f5" }}>
-      <Header
-        style={{
-          padding: 0,
-          background: "#f0f2f5",
-          position: "sticky",
-          top: 0,
-          zIndex: 50,
-        }}
-      >
-        <HeaderNav />
-      </Header>
-      <Content style={{ margin: "24px 16px", overflow: "initial" }}>
-        <div style={{ padding: 24, background: "#fff", borderRadius: 16 }}>
-          {children}
-        </div>
-      </Content>
-    </Layout>
-  </Layout>
-);
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              height: "100%",
+              padding: "20px 0 0 0",
+            }}
+          >
+            <div style={{ textAlign: "center", paddingBottom: "20px" }}>
+              <img
+                src={logo}
+                alt="Logo"
+                style={{ width: 60, marginBottom: 8 }}
+              />
+            </div>
+            <div style={{ flex: 1, overflowY: "auto" }}>
+              <Menu
+                theme="dark"
+                mode="inline"
+                selectedKeys={[selectedKey]}
+                style={{ background: "#1F3461", border: "none" }}
+              >
+                {MENU_ITEMS.map((item) => (
+                  <Menu.Item key={item.key} icon={item.icon}>
+                    <Link to={item.to}>{item.label}</Link>
+                  </Menu.Item>
+                ))}
+              </Menu>
+            </div>
+            <div
+              style={{
+                flexShrink: 0,
+                textAlign: "center",
+                padding: "20px 16px 15px 16px",
+                marginTop: "100%",
+                borderTop: "1px solid rgba(255,255,255,0.1)",
+              }}
+            >
+              <img
+                src={minLogo}
+                alt="Smart Hydro"
+                style={{ width: "75%", maxWidth: "120px", opacity: 0.9 }}
+              />
+            </div>
+          </div>
+        </Sider>
+        <Layout style={{ marginLeft: 200, background: "#f0f2f5" }}>
+          <Header
+            style={{
+              padding: 0,
+              background: "#f0f2f5",
+              position: "sticky",
+              top: 0,
+              zIndex: 50,
+            }}
+          >
+            <HeaderNav />
+          </Header>
+          <Content
+            style={{
+              margin: window.innerWidth > 768 ? "24px 16px" : "0px",
+              overflow: "initial",
+              width: "100%",
+            }}
+          >
+            <div style={{ padding: 24, background: "#fff", borderRadius: 16 }}>
+              {children}
+            </div>
+          </Content>
+        </Layout>
+      </Layout>
+    </>
+  );
+};
 
 const MobileLayout = ({ children }) => (
   <>
@@ -247,9 +290,9 @@ const MobileLayout = ({ children }) => (
     <div className="mobile-content">
       <div
         style={{
-          margin: "8px",
           background: "#fff",
           borderRadius: 8,
+          marginTop: "50px",
           padding: 4,
           minHeight: "calc(100vh - 86px)",
         }}

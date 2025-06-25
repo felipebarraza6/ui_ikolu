@@ -57,7 +57,12 @@ const SiderLeft = () => {
             </Flex>
             <Flex vertical justify="center" align="center" gap="small">
               <Button
-                type={location.pathname === "/" ? "primary" : "default"}
+                style={{
+                  backgroundColor:
+                    location.pathname === "/" ? "white" : "transparent",
+                  color: location.pathname === "/" ? "#1f3461" : "white",
+                  border: "none",
+                }}
                 block
                 onClick={() => {
                   navigate("/");
@@ -85,11 +90,17 @@ const SiderLeft = () => {
 
               {state.user.username === "arrocerospti" && (
                 <Button
-                  type={
-                    location.pathname === "/registers_pti"
-                      ? "primary"
-                      : "default"
-                  }
+                  style={{
+                    backgroundColor:
+                      location.pathname === "/registers_pti"
+                        ? "white"
+                        : "transparent",
+                    color:
+                      location.pathname === "/registers_pti"
+                        ? "#1f3461"
+                        : "white",
+                    border: "none",
+                  }}
                   onClick={() => navigate("/registers_pti")}
                   icon={<DatabaseOutlined />}
                 >
@@ -102,9 +113,15 @@ const SiderLeft = () => {
                 <>
                   <Button
                     block
-                    type={
-                      location.pathname === "/sys_data" ? "primary" : "default"
-                    }
+                    style={{
+                      backgroundColor:
+                        location.pathname === "/sys_data"
+                          ? "white"
+                          : "transparent",
+                      color:
+                        location.pathname === "/sys_data" ? "#1f3461" : "white",
+                      border: "none",
+                    }}
                     onClick={() => navigate("/sys_data")}
                   >
                     <Flex
@@ -122,9 +139,15 @@ const SiderLeft = () => {
                     <>
                       <Button
                         block
-                        type={
-                          location.pathname === "/dga" ? "primary" : "default"
-                        }
+                        style={{
+                          backgroundColor:
+                            location.pathname === "/dga"
+                              ? "white"
+                              : "transparent",
+                          color:
+                            location.pathname === "/dga" ? "#1f3461" : "white",
+                          border: "none",
+                        }}
                         onClick={() => navigate("/dga")}
                       >
                         <Flex
@@ -157,11 +180,17 @@ const SiderLeft = () => {
                       </Button>
                       <Button
                         block
-                        type={
-                          location.pathname === "/sys_data_dga"
-                            ? "primary"
-                            : "default"
-                        }
+                        style={{
+                          backgroundColor:
+                            location.pathname === "/sys_data_dga"
+                              ? "white"
+                              : "transparent",
+                          color:
+                            location.pathname === "/sys_data_dga"
+                              ? "#1f3461"
+                              : "white",
+                          border: "none",
+                        }}
                         onClick={() => navigate("/sys_data_dga")}
                       >
                         <Flex
@@ -174,16 +203,6 @@ const SiderLeft = () => {
                           <AreaChartOutlined
                             style={{
                               fontSize: "18px",
-                              backgroundColor:
-                                location.pathname === "/sys_data_dga"
-                                  ? "white"
-                                  : "rgb(0, 111, 179,0.7)",
-                              color:
-                                location.pathname === "/sys_data_dga"
-                                  ? "rgb(0, 111, 179,0.7)"
-                                  : "white",
-                              padding: "2px",
-                              borderRadius: "3px",
                             }}
                           />
                           DGA Análisis
@@ -193,12 +212,18 @@ const SiderLeft = () => {
                   )}
                   <Button
                     block
-                    style={{ height: "50px" }}
-                    type={
-                      location.pathname === "/extraction_data"
-                        ? "primary"
-                        : "default"
-                    }
+                    style={{
+                      height: "50px",
+                      backgroundColor:
+                        location.pathname === "/extraction_data"
+                          ? "white"
+                          : "transparent",
+                      color:
+                        location.pathname === "/extraction_data"
+                          ? "#1f3461"
+                          : "white",
+                      border: "none",
+                    }}
                     onClick={() => navigate("/extraction_data")}
                   >
                     <Flex
@@ -213,9 +238,15 @@ const SiderLeft = () => {
 
                   <Button
                     block
-                    type={
-                      location.pathname === "/sys_docs" ? "primary" : "default"
-                    }
+                    style={{
+                      backgroundColor:
+                        location.pathname === "/sys_docs"
+                          ? "white"
+                          : "transparent",
+                      color:
+                        location.pathname === "/sys_docs" ? "#1f3461" : "white",
+                      border: "none",
+                    }}
                     onClick={() => navigate("/sys_docs")}
                   >
                     <Flex
@@ -231,11 +262,17 @@ const SiderLeft = () => {
                   </Button>
                   <Button
                     block
-                    type={
-                      location.pathname === "/sys_alerts"
-                        ? "primary"
-                        : "default"
-                    }
+                    style={{
+                      backgroundColor:
+                        location.pathname === "/sys_alerts"
+                          ? "white"
+                          : "transparent",
+                      color:
+                        location.pathname === "/sys_alerts"
+                          ? "#1f3461"
+                          : "white",
+                      border: "none",
+                    }}
                     onClick={() => navigate("/sys_alerts")}
                   >
                     <Flex
@@ -251,11 +288,17 @@ const SiderLeft = () => {
                   </Button>
                   <Button
                     block
-                    type={
-                      location.pathname === "/sys_support"
-                        ? "primary"
-                        : "default"
-                    }
+                    style={{
+                      backgroundColor:
+                        location.pathname === "/sys_support"
+                          ? "white"
+                          : "transparent",
+                      color:
+                        location.pathname === "/sys_support"
+                          ? "#1f3461"
+                          : "white",
+                      border: "none",
+                    }}
                     onClick={() => navigate("/sys_support")}
                   >
                     <Flex

@@ -74,12 +74,7 @@ const ResponsiveLayout = ({ children }) => {
       label: "DGA - MEE",
       path: "/dga",
     },
-    {
-      key: "/sys_data_dga",
-      icon: <BarChartOutlined />,
-      label: "DGA Análisis",
-      path: "/sys_data_dga",
-    },
+
     {
       key: "/extraction_data",
       icon: <DownloadOutlined />,

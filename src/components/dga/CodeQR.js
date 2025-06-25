@@ -1,381 +1,299 @@
-import React, { useContext } from "react";
-import QueueAnim from "rc-queue-anim";
+import React, { useState, useContext, useEffect } from "react";
 import {
-  Card,
-  Descriptions,
-  Flex,
-  Progress,
-  QRCode,
-  Badge,
   Typography,
+  Card,
+  Row,
+  Col,
+  Space,
+  Progress,
+  notification,
+  Statistic,
+  Flex,
   Tag,
-  Button,
-  Image,
-  Affix,
 } from "antd";
 import {
-  CheckCircleFilled,
-  CloseCircleFilled,
-  LoadingOutlined,
+  InfoCircleOutlined,
   QrcodeOutlined,
-  FileExcelFilled,
   LinkOutlined,
+  DatabaseOutlined,
+  CheckCircleOutlined,
+  CalendarOutlined,
+  BarChartOutlined,
   CopyOutlined,
+  CompassOutlined,
+  AlertOutlined,
+  DashboardOutlined,
+  PieChartOutlined,
+  PercentageOutlined,
 } from "@ant-design/icons";
-import { AppContext } from "../../App";
 import ModalQR from "./ModalQR";
-import logo from "../../assets/images/channels4_profile.jpg";
+import { AppContext } from "../../App";
+import sh from "../../api/sh/endpoints";
+import dayjs from "dayjs";
+import logoDga from "../../assets/images/logo_dga.png";
+import { formatFlow, formatInteger } from "../../utils/numberFormatter";
+
 const { Text, Title } = Typography;
 
-const CodeQR = ({ dataProfile }) => {
-  const { state } = useContext(AppContext);
-  const { selected_profile } = state;
+const DetailItem = ({ icon, title, content }) => (
+  <Flex align="center" justify="space-between" style={{ width: "100%" }}>
+    <Flex align="center" gap="small">
+      {icon}
+      <Text>{title}</Text>
+    </Flex>
+    {typeof content === "string" ? <Text strong>{content}</Text> : content}
+  </Flex>
+);
 
-  if (!selected_profile || !selected_profile.profile_ikolu) {
-    return (
-      <Card>
-        <Text>No hay datos de perfil para generar el código QR.</Text>
-      </Card>
-    );
-  }
+const CodeQR = ({ onDiagnoseClick }) => {
+  const { state } = useContext(AppContext);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const profile = state.selected_profile || {};
+  const { dga: dgaInfo = {}, profile_ikolu = {} } = profile;
 
   const {
-    id,
-    title,
-    profile_ikolu: { m3_goal, m3_percent, m3_total },
-  } = selected_profile;
-
-  const qrData = JSON.stringify({
-    id: id,
-    pozo: title,
-    meta: m3_goal,
-    porcentaje: m3_percent,
-    total: m3_total,
-  });
-
-  const dataDga =
-    state.selected_profile.modules.m2.length > 0
-      ? state.selected_profile.modules.m2[0]
-      : null;
-
-  const configProfile = state.selected_profile.config_data;
-
-  const premium_dga = state.selected_profile.profile_ikolu.m2;
-
-  var last_data = 0;
-  if (state.selected_profile.modules.m2.length > 0) {
-    last_data = state.selected_profile.modules.m2[0];
-  }
-  var {
-    send_dga,
-    type_dga,
     code_dga,
-    flow_granted_dga,
+    send_dga,
     total_granted_dga,
-    shac,
-    date_created_code,
-    date_start_compliance,
+    flow_granted_dga,
+    compliance_days: complianceDays = "N/A",
+    type_dga,
     standard,
-  } = dataProfile;
+  } = dgaInfo;
 
-  if (!total_granted_dga) {
-    total_granted_dga = 0;
-  }
+  const { m2: hasExportPermission } = profile_ikolu;
+  const isMeeActive = profile_ikolu?.m2 || false;
 
-  const percentage =
-    dataDga && total_granted_dga
-      ? parseFloat(
-          ((parseInt(dataDga.total) + parseInt(configProfile.d6)) /
-            total_granted_dga) *
-            100
-        ).toFixed(2)
+  const hasDgaData = flow_granted_dga && total_granted_dga;
+
+  // Obtener datos de consumo desde el perfil (módulo m2)
+  const dataDga = state.selected_profile?.modules?.m2 || [];
+
+  // Calcular el consumo total desde los registros
+  const totalConsumption =
+    dataDga.length > 0
+      ? Math.max(...dataDga.map((record) => parseFloat(record.total) || 0))
+      : 0;
+
+  // Obtener la fecha del registro más reciente (última sincronización)
+  const getLastSyncDate = () => {
+    if (dataDga.length === 0) return null;
+
+    // Ordenar por fecha de medición y tomar el más reciente
+    const sortedData = [...dataDga].sort(
+      (a, b) => new Date(b.date_time_medition) - new Date(a.date_time_medition)
+    );
+
+    return sortedData[0].date_time_medition;
+  };
+
+  const lastSyncDate = getLastSyncDate();
+
+  const showModal = () => setIsModalVisible(true);
+  const handleCancel = () => setIsModalVisible(false);
+
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text);
+    notification.success({
+      message: "Copiado",
+      description: "El código de obra ha sido copiado al portapapeles.",
+      placement: "bottomRight",
+    });
+  };
+
+  const handleOpenDgaPortal = () => {
+    if (code_dga) {
+      window.open(
+        `https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${code_dga}`,
+        "_blank"
+      );
+    } else {
+      notification.warning({
+        message: "Código DGA no disponible",
+        description:
+          "Este punto de captación no tiene un código de obra para validar.",
+      });
+    }
+  };
+
+  const consumptionPercentage =
+    total_granted_dga > 0
+      ? parseFloat(((totalConsumption / total_granted_dga) * 100).toFixed(1))
       : 0;
 
   return (
-    <QueueAnim delay={500} type={["right", "left"]}>
-      <div key={"codeqr"}>
-        <Affix>
-          <Card
-            size="small"
-            style={{
-              backgroundColor: "rgb(0, 111, 179)",
-              color: "white",
-              minHeight: "80vh",
-              borderRadius: "0px 10px 10px 0px",
-              borderColor: "rgb(0, 111, 179)",
-            }}
-          >
-            <Flex vertical gap={"small"} style={{ width: "100%" }}>
-              <Descriptions
-                colon={false}
-                size="small"
-                labelStyle={{ color: "white", width: "60%" }}
-                style={{ width: "100%", color: "white" }}
-              >
-                <Descriptions.Item
-                  label="Estado servicio"
-                  style={{ color: "white" }}
-                  span={3}
-                >
-                  <span
-                    style={{
-                      backgroundColor: "white",
-                      paddingRight: "5px",
-                      paddingLeft: "5px",
-                      borderRadius: "5px",
-                    }}
-                  >
-                    {send_dga ? (
-                      <>
-                        <Badge
-                          status="processing"
-                          style={{ marginRight: "5px" }}
-                        />
-                        Activado
-                      </>
-                    ) : (
-                      <>Desactivado</>
-                    )}
-                  </span>
-                </Descriptions.Item>
-                <Descriptions.Item
-                  label="Extracciones MEE"
-                  style={{ color: "white" }}
-                  span={3}
-                >
-                  <Text style={{ color: "white" }}>
-                    {premium_dga ? (
-                      <Tag icon={<FileExcelFilled />} color="rgb(31, 52, 97)">
-                        Activado
-                      </Tag>
-                    ) : (
-                      <Tag>Desactivado</Tag>
-                    )}
-                  </Text>
-                </Descriptions.Item>
-                <Descriptions.Item
-                  label="Código de obra"
-                  style={{ color: "white" }}
-                  span={3}
-                >
-                  <Text
-                    style={{ color: "white" }}
-                    copyable={{
-                      text: code_dga,
-                      icon: [
-                        <CopyOutlined
-                          key="copy-icon"
-                          style={{ color: "white" }}
-                        />,
-                        <CheckCircleFilled
-                          key="check-icon"
-                          style={{ color: "white" }}
-                        />,
-                        <CloseCircleFilled
-                          key="close-icon"
-                          style={{ color: "white" }}
-                        />,
-                        <LoadingOutlined
-                          key="loading-icon"
-                          style={{ color: "white" }}
-                        />,
-                      ],
-                    }}
-                  >
-                    {code_dga}
-                  </Text>
-                </Descriptions.Item>
-                <Descriptions.Item label="Estandar" span={3}>
-                  <span style={{ color: "white" }}>
-                    {standard
-                      ? standard === "CAUDALES_MUY_PEQUENOS"
-                        ? "Muy pequeños"
-                        : standard
-                      : "Sin registro"}
-                  </span>
-                </Descriptions.Item>
-                <Descriptions.Item
-                  label="Creación "
-                  style={{ color: "white" }}
-                  span={3}
-                >
-                  <Text style={{ color: "white" }}>
-                    {date_created_code ? date_created_code : "Sin registro"}
-                  </Text>
-                </Descriptions.Item>
-                <Descriptions.Item
-                  label="Tipo captación"
-                  style={{ color: "white" }}
-                  span={3}
-                >
-                  <Text style={{ color: "white" }}>{type_dga}</Text>
-                </Descriptions.Item>
-                <Descriptions.Item
-                  label="Caudal autorizado"
-                  style={{ color: "white" }}
-                  span={3}
-                >
-                  <Flex vertical gap={"small"}>
-                    <Text style={{ color: "white" }}>
-                      {flow_granted_dga ? (
-                        <Tag>{flow_granted_dga.toLocaleString()} lt/s</Tag>
-                      ) : (
-                        "Sin registro"
-                      )}
-                    </Text>
-                  </Flex>
-                </Descriptions.Item>
-                <Descriptions.Item label="% Caudal en uso" span={3}>
-                  <Text style={{ color: "white" }}>
-                    {last_data && last_data.flow && flow_granted_dga
-                      ? ((last_data.flow / flow_granted_dga) * 100).toFixed(2)
-                      : "0.00"}{" "}
-                    %
-                  </Text>
-                </Descriptions.Item>
-
-                <Descriptions.Item
-                  label="Total autorizado"
-                  style={{ color: "white" }}
-                  span={3}
-                >
-                  <Text style={{ color: "white" }}>
-                    {total_granted_dga ? (
-                      <Tag>{total_granted_dga.toLocaleString("es-CL")} m³</Tag>
-                    ) : (
-                      "Sin registro"
-                    )}
-                  </Text>
-                </Descriptions.Item>
-                <Descriptions.Item
-                  label="% Total autorizado"
-                  style={{ color: "white" }}
-                  span={3}
-                >
-                  <Text style={{ color: "white" }}>
-                    {total_granted_dga && last_data && last_data.total ? (
-                      <Text style={{ color: "white" }}>
-                        {((last_data.total / total_granted_dga) * 100).toFixed(
-                          2
-                        )}{" "}
-                        %
-                      </Text>
-                    ) : (
-                      "Sin registro"
-                    )}
-                  </Text>
-                </Descriptions.Item>
-                <Descriptions.Item
-                  label="Total puesta en marcha"
-                  style={{ color: "white" }}
-                  span={3}
-                >
-                  <Text style={{ color: "white" }}>
-                    {configProfile && configProfile.d6 ? (
-                      <Text style={{ color: "white" }}>
-                        {configProfile.d6.toLocaleString("es-CL")} m³
-                      </Text>
-                    ) : (
-                      "Sin registro"
-                    )}
-                  </Text>
-                </Descriptions.Item>
-                <Descriptions.Item
-                  label="SHAC"
-                  style={{ color: "white" }}
-                  span={3}
-                >
-                  <Text style={{ color: "white" }}>
-                    {shac ? <Tag>{shac}</Tag> : "Sin registro"}
-                  </Text>
-                </Descriptions.Item>
-
-                <Descriptions.Item
-                  label="Cumplimiento MEE"
-                  style={{ color: "white" }}
-                  span={3}
-                >
-                  {date_start_compliance ? (
-                    <>
-                      <Text style={{ color: "white" }}>
-                        {date_start_compliance}
-                        <br />(
-                        {Math.floor(
-                          (new Date() - new Date(date_start_compliance)) /
-                            (1000 * 60 * 60 * 24)
-                        )}{" "}
-                        Días)
-                      </Text>
-                    </>
-                  ) : (
-                    <>
-                      <Text style={{ color: "white" }}>Sin registro</Text>
-                    </>
-                  )}
-                </Descriptions.Item>
-                <Descriptions.Item label="Código QR" span={3}>
-                  <ModalQR data={dataProfile} />
-                </Descriptions.Item>
-              </Descriptions>
-              <Flex vertical align="center" justify="center" gap={"large"}>
-                <Button
-                  style={{
-                    backgroundColor: "rgb(0, 111, 179)",
-                    color: "white",
-                    borderColor: "white",
-                    borderRadius: "5px",
-                    marginTop: "10px",
-                  }}
-                  icon={<LinkOutlined />}
-                  onClick={() =>
-                    window.open(
-                      `https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${code_dga}`
-                    )
-                  }
-                >
-                  Validar sincronización DGA
-                </Button>
-                {dataDga && (
-                  <Card
-                    style={{
-                      width: "100%",
-                      background:
-                        "linear-gradient(39deg, rgba(186,188,198,1) 0%, rgba(255,255,255,1) 100%)",
-                    }}
-                    size="small"
-                  >
-                    <Text>Has consumido:</Text>
-                    <br />
-                    <Text>
-                      {dataDga.total &&
-                      configProfile &&
-                      configProfile.d6 &&
-                      total_granted_dga
-                        ? (
-                            parseInt(dataDga.total) + parseInt(configProfile.d6)
-                          ).toLocaleString("es-CL") +
-                          " / " +
-                          total_granted_dga.toLocaleString("es-CL") +
-                          " m³"
-                        : "Sin datos disponibles"}
-                    </Text>
-                    <Progress
-                      trailColor="rgb(0, 111, 179, 0.5)"
-                      strokeColor={"rgb(0, 111, 179)"}
-                      status="active"
-                      style={{ color: "white" }}
-                      percent={percentage}
-                      format={() => `${percentage}%`}
-                    />
-                    <Text>del total de tu consumo autorizado</Text>
-                  </Card>
-                )}
+    <div>
+      <Row gutter={[16, 16]}>
+        {/* Columna Izquierda - Detalles */}
+        <Col xs={24} md={12} lg={8}>
+          <Card className="dga-details-card">
+            <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+              <Flex align="center" gap="middle">
+                <img
+                  src={logoDga}
+                  alt="Logo DGA"
+                  style={{ width: 40, height: 40 }}
+                />
+                <Title level={5} style={{ margin: 0 }}>
+                  Información DGA
+                </Title>
               </Flex>
+              <DetailItem
+                icon={<InfoCircleOutlined />}
+                title="Código de Obra"
+                content={
+                  <Text
+                    strong
+                    copyable={{ onCopy: () => handleCopy(code_dga) }}
+                  >
+                    {code_dga || "N/A"}
+                  </Text>
+                }
+              />
+              <DetailItem
+                icon={<CheckCircleOutlined />}
+                title="Estado MEE"
+                content={
+                  <Tag color={send_dga ? "green-inverse" : "default"}>
+                    {send_dga ? "Activado" : "Desactivado"}
+                  </Tag>
+                }
+              />
+              <DetailItem
+                icon={<CalendarOutlined />}
+                title="Última Sincronización"
+                content={
+                  <div style={{ textAlign: "right" }}>
+                    {lastSyncDate
+                      ? dayjs(lastSyncDate).format("DD/MM/YYYY HH:mm") + " hrs"
+                      : "N/A"}
+                  </div>
+                }
+              />
+              <DetailItem
+                icon={<CompassOutlined />}
+                title="Tipo"
+                content={type_dga || "No especificado"}
+              />
+              <DetailItem
+                icon={<AlertOutlined />}
+                title="Estándar"
+                content={
+                  standard === "CAUDALES_MUY_PEQUENOS"
+                    ? "Muy Pequeños"
+                    : standard
+                }
+              />
+              <DetailItem
+                icon={<DashboardOutlined />}
+                title="Caudal Autorizado"
+                content={
+                  hasDgaData ? (
+                    `${formatFlow(flow_granted_dga)} lt/s`
+                  ) : (
+                    <Tag color="orange">En Procesamiento</Tag>
+                  )
+                }
+              />
+            </Space>
+          </Card>
+        </Col>
+
+        {/* Columna Central - Consumo */}
+        <Col xs={24} md={12} lg={8}>
+          <Card className="dga-details-card" style={{ height: "100%" }}>
+            <Flex
+              vertical
+              justify="space-between"
+              align="center"
+              style={{ height: "100%" }}
+            >
+              <Title level={5}>Consumo Anual</Title>
+              <Progress
+                type="dashboard"
+                percent={consumptionPercentage}
+                format={(percent) => `${percent}%`}
+                strokeColor={{
+                  "0%": "#87d068",
+                  "90%": "#ffc107",
+                  "100%": "#ff4d4f",
+                }}
+              />
+              <Statistic
+                title="Consumo acumulado"
+                value={totalConsumption}
+                formatter={(val) => new Intl.NumberFormat("es-CL").format(val)}
+                suffix="m³"
+              />
+              <Text type="secondary">
+                Límite:{" "}
+                {new Intl.NumberFormat("es-CL").format(total_granted_dga || 0)}{" "}
+                m³
+              </Text>
             </Flex>
           </Card>
-        </Affix>
-      </div>
-    </QueueAnim>
+        </Col>
+
+        {/* Columna Derecha - Acciones */}
+        <Col xs={24} md={24} lg={8}>
+          <Row gutter={[16, 16]}>
+            <Col span={24}>
+              <Card
+                hoverable
+                className="dga-card"
+                onClick={handleOpenDgaPortal}
+              >
+                <Space
+                  direction="vertical"
+                  align="center"
+                  style={{ width: "100%" }}
+                >
+                  <LinkOutlined
+                    style={{ fontSize: "24px", color: "#1890ff" }}
+                  />
+                  <Text strong>Validar Sync DGA</Text>
+                </Space>
+              </Card>
+            </Col>
+            <Col xs={12} span={12}>
+              <Card hoverable className="dga-card" onClick={onDiagnoseClick}>
+                <Space
+                  direction="vertical"
+                  align="center"
+                  style={{ width: "100%" }}
+                >
+                  <BarChartOutlined
+                    style={{ fontSize: "24px", color: "#1890ff" }}
+                  />
+                  <Text strong>Diagnóstico Inteligente</Text>
+                </Space>
+              </Card>
+            </Col>
+            <Col xs={12} span={12}>
+              <Card hoverable className="dga-card" onClick={showModal}>
+                <Space
+                  direction="vertical"
+                  align="center"
+                  style={{ width: "100%" }}
+                >
+                  <QrcodeOutlined
+                    style={{ fontSize: "24px", color: "#1890ff" }}
+                  />
+                  <Text strong>Ver Código QR</Text>
+                </Space>
+              </Card>
+            </Col>
+          </Row>
+        </Col>
+      </Row>
+      <ModalQR
+        isModalVisible={isModalVisible}
+        handleCancel={handleCancel}
+        codeDga={code_dga}
+        profile={profile}
+      />
+    </div>
   );
 };
 

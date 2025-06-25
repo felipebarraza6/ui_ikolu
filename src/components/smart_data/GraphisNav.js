@@ -18,8 +18,11 @@ import {
   TotalDay,
   WaterTableBar,
 } from "./days/LineGraph";
-import { DatabaseOutlined, CalendarOutlined } from "@ant-design/icons";
-import TableData from "./days/TableData";
+import {
+  DatabaseOutlined,
+  CalendarOutlined,
+  ApartmentOutlined,
+} from "@ant-design/icons";
 import img_caudal from "../../assets/images/caudal.png";
 import img_nivel from "../../assets/images/nivel.png";
 import img_total from "../../assets/images/acumulado.png";
@@ -35,6 +38,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { useResponsive } from "../../hooks/useResponsive";
+import TableData from "./TableData";
 
 // Configurar dayjs correctamente
 dayjs.extend(customParseFormat);
@@ -65,6 +69,11 @@ const GraphisNav = () => {
 
   const activate = state.selected_profile.profile_ikolu.m4;
 
+  const dateToUse = monthMode ? monthDate : dayDate;
+  const dateLabel = dateToUse
+    ? dayjs(dateToUse).format("DD/MM/YYYY")
+    : "los datos de hoy " + dayjs().format("DD/MM/YYYY");
+
   const [stats, setStats] = useState({
     maxConsumoHora: { hour: "00:00", value: 0 },
     minConsumoHora: { hour: "00:00", value: 0 },
@@ -77,6 +86,14 @@ const GraphisNav = () => {
     nivelMax: { hour: "00:00", value: 0 },
     nivelMin: { hour: "00:00", value: 0 },
   });
+
+  // useEffect inicial para cargar datos de hoy por defecto
+  useEffect(() => {
+    if (!monthMode && !dayDate && activate) {
+      // Cargar datos de hoy por defecto en modo diario
+      setData(state.selected_profile.modules.m4);
+    }
+  }, [activate, monthMode, dayDate, state.selected_profile.modules.m4]);
 
   const handleDateTypeChange = (value) => {
     setDateType(value);
@@ -91,12 +108,15 @@ const GraphisNav = () => {
     const fetchData = async () => {
       const dateToUse = monthMode ? monthDate : dayDate;
 
-      // Si no hay fecha, NO HACER NADA. Los datos iniciales ya están cargados.
+      // Si no hay fecha seleccionada, mantener datos por defecto
       if (!dateToUse) {
-        // Opcional: si prefieres que se limpie en vez de mantener los de hoy,
-        // descomenta las siguientes líneas.
-        // setData([]);
-        // setDataMonth([]);
+        if (monthMode) {
+          // Para modo mensual, limpiar datos si no hay fecha
+          setDataMonth([]);
+        } else {
+          // Para modo diario, mantener datos de hoy por defecto
+          setData(state.selected_profile.modules.m4);
+        }
         return;
       }
 
@@ -208,77 +228,194 @@ const GraphisNav = () => {
   const hasData = monthMode ? dataMonth.length > 0 : data.length > 0;
   const dateIsSelected = monthMode ? !!monthDate : !!dayDate;
 
-  return (
-    <QueueAnim delay={300} duration={900} type="alpha">
-      <div key="smart-analysis" style={{ paddingTop: "0px" }}>
-        <Card
-          style={{ width: "100%" }}
-          title={
-            <Flex
-              gap="small"
-              justify="space-between"
-              vertical={isMobile}
-              style={{ marginTop: "8px", marginBottom: "8px" }}
-            >
-              <Select
-                placeholder="Tipo"
-                style={{ width: isMobile ? "100%" : "200px" }}
-                defaultValue="1"
-                onChange={handleDateTypeChange}
-                disabled={!activate}
-              >
-                <Select.Option value="1">Diario</Select.Option>
-                <Select.Option value="2">Mensual</Select.Option>
-              </Select>
+  // Componente que renderiza el contenido (gráficos o resumen)
+  const renderContent = () => {
+    const currentData = monthMode ? dataMonth : data;
+    const noData = !currentData || currentData.length === 0;
 
-              <ConfigProvider locale={locale}>
-                <DatePicker
-                  key={dateType} // Clave para forzar reinicio del componente
-                  placeholder="Seleccionar fecha"
-                  value={monthMode ? monthDate : dayDate}
-                  onChange={monthMode ? setMonthDate : setDayDate}
-                  style={{ width: isMobile ? "100%" : "200px" }}
-                  picker={dateType === "1" ? "date" : "month"}
-                  disabled={!activate}
-                  disabledDate={(current) =>
-                    current && current > dayjs().endOf("day")
-                  }
-                  format={dateType === "1" ? "DD/MM/YYYY" : "MM/YYYY"}
-                />
-              </ConfigProvider>
-            </Flex>
-          }
+    if (loading) {
+      return (
+        <Flex justify="center" align="center" style={{ height: "40vh" }}>
+          <Spin size="large" />
+        </Flex>
+      );
+    }
+
+    if (noData) {
+      return (
+        <Flex
+          justify="center"
+          align="center"
+          style={{ height: "40vh", textAlign: "center" }}
         >
-          {loading ? (
-            <div
+          <Title level={4} style={{ color: "#bfbfbf" }}>
+            {dayDate || monthDate
+              ? "No se encontraron datos para la fecha seleccionada."
+              : "Por favor, selecciona una fecha para visualizar los datos."}
+          </Title>
+        </Flex>
+      );
+    }
+
+    // Usar el nuevo componente `TableData` unificado para la pestaña de resumen
+    // y los `Container` para los gráficos.
+    return (
+      <Tabs
+        activeKey={activeKey}
+        onChange={(key) => setActiveKey(key)}
+        size="large"
+        tabBarStyle={{
+          marginBottom: 24,
+          borderBottom: "1px solid #f0f0f0",
+        }}
+      >
+        <TabPane
+          tab={
+            <span
               style={{
                 display: "flex",
-                justifyContent: "center",
                 alignItems: "center",
-                height: "300px",
+                padding: "8px 16px",
+                borderRadius: "8px",
+                background: activeKey === "1" ? "#1f3461" : "transparent",
+                color: activeKey === "1" ? "white" : "inherit",
               }}
             >
-              <Spin size="large" tip="Cargando datos..." />
-            </div>
-          ) : hasData ? (
-            monthMode ? (
-              <ContainerMonth data={dataMonth} stats={stats} />
-            ) : (
-              <ContainerDays data={data} stats={stats} />
-            )
-          ) : (
-            <div style={{ textAlign: "center", padding: "40px 0" }}>
-              <CalendarOutlined
-                style={{ fontSize: "48px", color: "#d9d9d9" }}
+              <img
+                src={img_caudal}
+                alt="caudal"
+                style={{
+                  width: 22,
+                  marginRight: 8,
+                  filter:
+                    activeKey === "1" ? "brightness(0) invert(1)" : "none",
+                }}
               />
-              <Title level={4} style={{ color: "#bfbfbf", marginTop: "16px" }}>
-                {dateIsSelected
-                  ? "No se encontraron datos para la fecha seleccionada."
-                  : "Mostrando datos de hoy. Selecciona otra fecha para un nuevo análisis."}
-              </Title>
-            </div>
+              Caudal
+            </span>
+          }
+          key="1"
+        >
+          {monthMode ? (
+            <ContainerMonth data={currentData} type="caudal" />
+          ) : (
+            <ContainerDays data={currentData} type="caudal" />
           )}
-        </Card>
+        </TabPane>
+        <TabPane
+          tab={
+            <span
+              style={{
+                display: "flex",
+                alignItems: "center",
+                padding: "8px 16px",
+                borderRadius: "8px",
+                background: activeKey === "2" ? "#1f3461" : "transparent",
+                color: activeKey === "2" ? "white" : "inherit",
+              }}
+            >
+              <img
+                src={img_nivel}
+                alt="nivel"
+                style={{
+                  width: 22,
+                  marginRight: 8,
+                  filter:
+                    activeKey === "2" ? "brightness(0) invert(1)" : "none",
+                }}
+              />
+              Nivel Freático
+            </span>
+          }
+          key="2"
+        >
+          {monthMode ? (
+            <ContainerMonth data={currentData} type="nivel" />
+          ) : (
+            <ContainerDays data={currentData} type="nivel" />
+          )}
+        </TabPane>
+        <TabPane
+          tab={
+            <span
+              style={{
+                display: "flex",
+                alignItems: "center",
+                padding: "8px 16px",
+                borderRadius: "8px",
+                background: activeKey === "3" ? "#1f3461" : "transparent",
+                color: activeKey === "3" ? "white" : "inherit",
+              }}
+            >
+              <ApartmentOutlined style={{ fontSize: 22, marginRight: 8 }} />
+              Resumen
+            </span>
+          }
+          key="3"
+        >
+          <TableData
+            data={currentData}
+            isToday={!dayDate && !monthMode}
+            periodType={monthMode ? "month" : "day"}
+          />
+        </TabPane>
+      </Tabs>
+    );
+  };
+
+  return (
+    <QueueAnim delay={300} duration={900} type="right">
+      <div key="graphisnav">
+        <ConfigProvider locale={locale}>
+          <Card
+            bordered={false}
+            style={{
+              borderRadius: "12px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            }}
+          >
+            <Flex
+              justify="space-between"
+              align="center"
+              wrap="wrap"
+              gap="middle"
+            >
+              <Flex gap="middle" align="center">
+                <Select
+                  defaultValue="1"
+                  style={{ width: 180 }}
+                  onChange={handleDateTypeChange}
+                  options={[
+                    { value: "1", label: "Análisis Diario" },
+                    { value: "2", label: "Análisis Mensual" },
+                  ]}
+                />
+                {monthMode ? (
+                  <DatePicker
+                    picker="month"
+                    onChange={(date) => setMonthDate(date)}
+                    value={monthDate}
+                    placeholder="Seleccionar mes"
+                  />
+                ) : (
+                  <DatePicker
+                    onChange={(date) => setDayDate(date)}
+                    value={dayDate}
+                    placeholder="Seleccionar fecha"
+                  />
+                )}
+              </Flex>
+              <Tag
+                icon={<CalendarOutlined />}
+                color="blue"
+                style={{ fontSize: "14px", padding: "6px 12px" }}
+              >
+                Estás viendo {dateLabel}
+              </Tag>
+            </Flex>
+            <div style={{ marginTop: "24px" }}>{renderContent()}</div>
+          </Card>
+        </ConfigProvider>
       </div>
     </QueueAnim>
   );

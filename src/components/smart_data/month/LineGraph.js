@@ -5,12 +5,15 @@ const commonConfig = {
   xAxis: {
     label: {
       formatter: (text) => {
-        var time = `${text.slice(11, 16)} hrs`;
-        return time;
+        // Formatear para mostrar solo mes y día (MM/DD)
+        const date = new Date(text);
+        const day = date.getDate().toString().padStart(2, "0");
+        const month = (date.getMonth() + 1).toString().padStart(2, "0");
+        return `${month}/${day}`;
       },
     },
     title: {
-      text: "Hora",
+      text: "Fecha",
       style: {
         fontSize: 14,
         fontWeight: "bold",
@@ -54,14 +57,19 @@ export const FlowArea = ({ data }) => {
     color: "rgb(31, 52, 97)",
     meta: {
       flow: { alias: "Caudal (lt/s)" },
-      date_time_medition: { alias: "Fecha/hora medición" },
+      date_time_medition: { alias: "Fecha medición" },
     },
     tooltip: {
-      formatter: (datum) => ({
-        name: "Caudal",
-        value: `${datum.flow} lt/s`,
-        title: `${datum.date_time_medition.slice(11, 16)} hrs`,
-      }),
+      formatter: (datum) => {
+        const date = new Date(datum.date_time_medition);
+        const day = date.getDate().toString().padStart(2, "0");
+        const month = (date.getMonth() + 1).toString().padStart(2, "0");
+        return {
+          name: "Caudal",
+          value: `${datum.flow} lt/s`,
+          title: `${month}/${day}`,
+        };
+      },
     },
     yAxis: {
       ...commonConfig.yAxis,
@@ -90,14 +98,19 @@ export const TotalLine = ({ data }) => {
     color: "rgb(31, 52, 97)",
     meta: {
       flow: { alias: "Acumulado (m³)" },
-      date_time_medition: { alias: "Fecha/hora medición" },
+      date_time_medition: { alias: "Fecha medición" },
     },
     tooltip: {
-      formatter: (datum) => ({
-        name: "Acumulado",
-        value: `${datum.total.toLocaleString("es-CL")} m³`,
-        title: `${datum.date_time_medition.slice(11, 16)} hrs`,
-      }),
+      formatter: (datum) => {
+        const date = new Date(datum.date_time_medition);
+        const day = date.getDate().toString().padStart(2, "0");
+        const month = (date.getMonth() + 1).toString().padStart(2, "0");
+        return {
+          name: "Acumulado",
+          value: `${datum.total.toLocaleString("es-CL")} m³`,
+          title: `${month}/${day}`,
+        };
+      },
     },
     yAxis: {
       ...commonConfig.yAxis,
@@ -124,22 +137,27 @@ export const TotalHour = ({ data }) => {
     smooth: true,
     color: "rgb(31, 52, 97)",
     meta: {
-      flow: { alias: "Consumo (m³/h)" },
-      date_time_medition: { alias: "Fecha/hora medición" },
+      flow: { alias: "Consumo (m³/día)" },
+      date_time_medition: { alias: "Fecha medición" },
     },
     tooltip: {
-      formatter: (datum) => ({
-        name: "Consumo",
-        value: `${datum.total_diff.toLocaleString("es-CL")} m³/h`,
-        title: `${datum.date_time_medition.slice(11, 16)} hrs`,
-      }),
+      formatter: (datum) => {
+        const date = new Date(datum.date_time_medition);
+        const day = date.getDate().toString().padStart(2, "0");
+        const month = (date.getMonth() + 1).toString().padStart(2, "0");
+        return {
+          name: "Consumo",
+          value: `${datum.total_diff.toLocaleString("es-CL")} m³/día`,
+          title: `${month}/${day}`,
+        };
+      },
     },
     yAxis: {
       ...commonConfig.yAxis,
       min: Math.min(...data.map((d) => d.total_diff)),
       max: Math.max(...data.map((d) => d.total_diff)) + 5,
       title: {
-        text: "Consumo (m³/h)",
+        text: "Consumo (m³/día)",
       },
     },
   };
@@ -159,22 +177,27 @@ export const TotalDay = ({ data }) => {
     smooth: true,
     color: "rgb(31, 52, 97)",
     meta: {
-      flow: { alias: "Consumo (m³/d)" },
-      date_time_medition: { alias: "Fecha/hora medición" },
+      flow: { alias: "Consumo (m³/día)" },
+      date_time_medition: { alias: "Fecha medición" },
     },
     tooltip: {
-      formatter: (datum) => ({
-        name: "Consumo",
-        value: `${datum.total_today_diff.toLocaleString("es-CL")} m³/d`,
-        title: `${datum.date_time_medition.slice(11, 16)} hrs`,
-      }),
+      formatter: (datum) => {
+        const date = new Date(datum.date_time_medition);
+        const day = date.getDate().toString().padStart(2, "0");
+        const month = (date.getMonth() + 1).toString().padStart(2, "0");
+        return {
+          name: "Consumo",
+          value: `${datum.total_today_diff.toLocaleString("es-CL")} m³/día`,
+          title: `${month}/${day}`,
+        };
+      },
     },
     yAxis: {
       ...commonConfig.yAxis,
       min: Math.min(...data.map((d) => d.total_today_diff)),
       max: Math.max(...data.map((d) => d.total_today_diff)) + 5,
       title: {
-        text: "Consumo (m³/d)",
+        text: "Consumo (m³/día)",
       },
     },
   };
@@ -193,14 +216,19 @@ export const WaterTableBar = ({ data }) => {
     seriesField: "water_table",
     meta: {
       flow: { alias: "Nivel freático (m)" },
-      date_time_medition: { alias: "Fecha/hora medición" },
+      date_time_medition: { alias: "Fecha medición" },
     },
     tooltip: {
-      formatter: (datum) => ({
-        name: "Nivel freático",
-        value: `${datum.water_table.toFixed(2)} m`,
-        title: `${datum.date_time_medition.slice(11, 16)} hrs`,
-      }),
+      formatter: (datum) => {
+        const date = new Date(datum.date_time_medition);
+        const day = date.getDate().toString().padStart(2, "0");
+        const month = (date.getMonth() + 1).toString().padStart(2, "0");
+        return {
+          name: "Nivel freático",
+          value: `${datum.water_table.toFixed(2)} m`,
+          title: `${month}/${day}`,
+        };
+      },
     },
     yAxis: {
       ...commonConfig.yAxis,

@@ -7,8 +7,8 @@ import {
   TotalDay,
   WaterTableBar,
 } from "./LineGraph";
-import { DatabaseOutlined } from "@ant-design/icons";
-import TableData from "./TableData";
+import { DatabaseOutlined, ApartmentOutlined } from "@ant-design/icons";
+import TableData from "../TableData";
 import img_caudal from "../../../assets/images/caudal.png";
 import img_nivel from "../../../assets/images/nivel.png";
 import img_total from "../../../assets/images/acumulado.png";
@@ -182,36 +182,51 @@ const Container = ({ data, dateSelected }) => {
               activeKey={activeKey}
               onChange={handleTabChange}
               size="small"
-              type="card"
-              style={{ width: "100%", marginTop: isMobile ? "5px" : "0px" }}
+              style={{
+                width: "100%",
+                marginTop: isMobile ? "5px" : "0px",
+                marginBottom: "10px",
+              }}
               tabBarStyle={{
-                paddingTop: "5px",
                 position: "flex",
                 justifyContent: "center",
-                paddingLeft: "5px",
-                paddingRight: "5px",
-                width: "100%",
-                borderRadius: "10px 10px 0px 0px",
-                marginBottom: isMobile ? "16px" : "16px",
+                marginBottom: isMobile ? "5px" : "16px",
               }}
+              tabBarGutter={isMobile ? 2 : 4}
             >
               <TabPane
                 key="1"
                 tab={
-                  <Flex gap={"small"}>
+                  <Flex
+                    gap={isMobile ? "4px" : "small"}
+                    align="center"
+                    justify="center"
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      backgroundColor:
+                        activeKey === "1" ? "#1f3461" : "transparent",
+                    }}
+                  >
                     <img
-                      alt="nivel"
+                      alt="acumulado"
                       style={{
-                        width: "30px",
-                        color: "white",
+                        width: isMobile ? "20px" : "25px",
                         filter:
                           activeKey === "1"
                             ? "brightness(0) invert(1)"
-                            : "none",
+                            : "grayscale(100%)",
                       }}
                       src={img_total}
                     />
-                    Acumulado(m³)
+                    <span
+                      style={{
+                        fontSize: isMobile ? "12px" : "12px",
+                        color: activeKey === "1" ? "white" : "inherit",
+                      }}
+                    >
+                      Acumulado(m³)
+                    </span>
                   </Flex>
                 }
               >
@@ -221,19 +236,36 @@ const Container = ({ data, dateSelected }) => {
               </TabPane>
               <TabPane
                 tab={
-                  <Flex gap={"small"}>
+                  <Flex
+                    gap={isMobile ? "4px" : "small"}
+                    align="center"
+                    justify="center"
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      backgroundColor:
+                        activeKey === "2" ? "#1f3461" : "transparent",
+                    }}
+                  >
                     <img
-                      alt="nivel"
+                      alt="consumo dia"
                       style={{
-                        width: "30px",
+                        width: isMobile ? "20px" : "25px",
                         filter:
                           activeKey === "2"
                             ? "brightness(0) invert(1)"
-                            : "none",
+                            : "grayscale(100%)",
                       }}
                       src={img_total}
                     />
-                    Consumo Hora(m³/h)
+                    <span
+                      style={{
+                        fontSize: isMobile ? "12px" : "12px",
+                        color: activeKey === "2" ? "white" : "inherit",
+                      }}
+                    >
+                      Consumo día(m³/d)
+                    </span>
                   </Flex>
                 }
                 key="2"
@@ -248,44 +280,38 @@ const Container = ({ data, dateSelected }) => {
               <TabPane
                 key="3"
                 tab={
-                  <Flex gap={"small"}>
-                    <img
-                      alt="nivel"
-                      style={{
-                        width: "30px",
-                        filter:
-                          activeKey === "3"
-                            ? "brightness(0) invert(1)"
-                            : "none",
-                      }}
-                      src={img_total}
-                    />
-                    Consumo día(m³/d)
-                  </Flex>
-                }
-              >
-                <Card hoverable style={styles.card}>
-                  <TotalDay data={data} />
-                </Card>
-              </TabPane>
-              <TabPane
-                tab={
-                  <Flex gap={"small"}>
+                  <Flex
+                    gap={isMobile ? "4px" : "small"}
+                    align="center"
+                    justify="center"
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      backgroundColor:
+                        activeKey === "3" ? "#1f3461" : "transparent",
+                    }}
+                  >
                     <img
                       alt="caudal"
                       style={{
-                        width: "40px",
+                        width: isMobile ? "20px" : "25px",
                         filter:
-                          activeKey === "4"
+                          activeKey === "3"
                             ? "brightness(0) invert(1)"
-                            : "none",
+                            : "grayscale(100%)",
                       }}
                       src={img_caudal}
                     />
-                    Caudal(lt/s)
+                    <span
+                      style={{
+                        fontSize: isMobile ? "12px" : "12px",
+                        color: activeKey === "3" ? "white" : "inherit",
+                      }}
+                    >
+                      Caudal(L/s)
+                    </span>
                   </Flex>
                 }
-                key="4"
               >
                 <Card hoverable style={styles.card}>
                   <span style={{ color: "white" }}>
@@ -295,21 +321,38 @@ const Container = ({ data, dateSelected }) => {
                 </Card>
               </TabPane>
               <TabPane
-                key="5"
+                key="4"
                 tab={
-                  <Flex gap={"small"}>
+                  <Flex
+                    gap={isMobile ? "4px" : "small"}
+                    align="center"
+                    justify="center"
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      backgroundColor:
+                        activeKey === "4" ? "#1f3461" : "transparent",
+                    }}
+                  >
                     <img
                       alt="nivel"
                       style={{
-                        width: "25px",
+                        width: isMobile ? "20px" : "25px",
                         filter:
-                          activeKey === "5"
+                          activeKey === "4"
                             ? "brightness(0) invert(1)"
-                            : "none",
+                            : "grayscale(100%)",
                       }}
                       src={img_nivel}
                     />
-                    Nivel freático (m)
+                    <span
+                      style={{
+                        fontSize: isMobile ? "12px" : "12px",
+                        color: activeKey === "4" ? "white" : "inherit",
+                      }}
+                    >
+                      Nivel freático (m)
+                    </span>
                   </Flex>
                 }
               >
@@ -320,9 +363,43 @@ const Container = ({ data, dateSelected }) => {
                   <WaterTableBar data={data} />
                 </Card>
               </TabPane>
-              <TabPane tab={"Datos"} key="6" icon={<DatabaseOutlined />}>
+              <TabPane
+                tab={
+                  <Flex
+                    gap={isMobile ? "4px" : "small"}
+                    align="center"
+                    justify="center"
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      backgroundColor:
+                        activeKey === "6" ? "#1f3461" : "transparent",
+                    }}
+                  >
+                    <ApartmentOutlined
+                      style={{
+                        fontSize: isMobile ? "14px" : "16px",
+                        color: activeKey === "6" ? "white" : "inherit",
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: isMobile ? "12px" : "14px",
+                        color: activeKey === "6" ? "white" : "inherit",
+                      }}
+                    >
+                      Resumen
+                    </span>
+                  </Flex>
+                }
+                key="6"
+              >
                 <Card hoverable style={styles.cardData}>
-                  <TableData data={data} dateSelected={dateSelected} />
+                  <TableData
+                    data={data}
+                    periodType="month"
+                    dateSelected={dateSelected}
+                  />
                 </Card>
               </TabPane>
             </Tabs>
@@ -596,7 +673,7 @@ const styles = {
   },
 
   card: {
-    marginTop: "-16px",
+    marginTop: window.innerWidth > 900 ? "-16px" : "-6px",
     borderRadius: "0px 0px 10px 10px",
     width: "100%",
   },

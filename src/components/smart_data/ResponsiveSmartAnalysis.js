@@ -67,7 +67,15 @@ const ResponsiveSmartAnalysis = () => {
     const fetchData = async () => {
       const dateToUse = monthMode ? monthDate : dayDate;
 
+      // Si no hay fecha seleccionada, mantener datos por defecto
       if (!dateToUse) {
+        if (monthMode) {
+          // Para modo mensual, limpiar datos si no hay fecha
+          setDataMonth([]);
+        } else {
+          // Para modo diario, mantener datos de hoy por defecto
+          setData(state.selected_profile.modules.today || []);
+        }
         return;
       }
 
@@ -155,7 +163,24 @@ const ResponsiveSmartAnalysis = () => {
               key={dateType}
               placeholder="Seleccionar fecha"
               value={monthMode ? monthDate : dayDate}
-              onChange={monthMode ? setMonthDate : setDayDate}
+              onChange={(date) => {
+                if (monthMode) {
+                  setMonthDate(date);
+                } else {
+                  setDayDate(date);
+                }
+
+                // Si se limpia la fecha, resetear a datos de hoy
+                if (!date) {
+                  if (monthMode) {
+                    // Para modo mensual, resetear a mes actual
+                    setDataMonth([]);
+                  } else {
+                    // Para modo diario, resetear a datos de hoy
+                    setData(state.selected_profile.modules.today || []);
+                  }
+                }
+              }}
               style={{ width: isMobile ? "100%" : "200px" }}
               picker={dateType === "1" ? "date" : "month"}
               disabled={!activate}
@@ -191,7 +216,7 @@ const ResponsiveSmartAnalysis = () => {
           monthMode ? (
             <ContainerMonth data={dataMonth} />
           ) : (
-            <ContainerDays data={data} />
+            <ContainerDays data={data} isToday={!dateIsSelected} />
           )
         ) : (
           <Card style={{ textAlign: "center", padding: "40px" }}>
@@ -201,7 +226,7 @@ const ResponsiveSmartAnalysis = () => {
             <Title level={4} style={{ color: "#bfbfbf" }}>
               {dateIsSelected
                 ? "No se encontraron datos para la fecha seleccionada."
-                : "Por favor, selecciona otra fecha para un nuevo análisis."}
+                : "Por favor, selecciona una una fecha/mes"}
             </Title>
           </Card>
         )

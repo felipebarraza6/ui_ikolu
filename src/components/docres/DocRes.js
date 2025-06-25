@@ -1,419 +1,302 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
-  Tag,
-  Table,
-  Button,
-  Input,
-  Flex,
-  Card,
-  Popconfirm,
-  Upload,
-  Form,
-  message,
+  App,
   Row,
   Col,
+  Input,
+  Select,
+  Button,
+  Upload,
+  Table,
+  Tag,
+  Space,
+  Typography,
+  Flex,
+  Popconfirm,
 } from "antd";
 import {
-  ClearOutlined,
-  CloudSyncOutlined,
   UploadOutlined,
-  CloudUploadOutlined,
+  DownloadOutlined,
   DeleteOutlined,
+  FileTextOutlined,
   FileAddOutlined,
-  PaperClipOutlined,
-  FileOutlined,
-  CloudDownloadOutlined,
+  FolderOpenOutlined,
+  TagOutlined,
+  CalendarOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
-import logo from "../../assets/images/logo-blanco.png";
 import sh from "../../api/sh/endpoints";
-import { type } from "@testing-library/user-event/dist/type";
+import { useResponsive } from "../../hooks/useResponsive";
 
-const DocRes = () => {
+const { Option } = Select;
+const { Title } = Typography;
+
+// Mapeo de IDs de tipo a nombres legibles
+const typeMap = {
+  1: "Plano",
+  2: "Memoria",
+  3: "Certificado",
+  4: "Otro",
+};
+
+const DocResContent = () => {
   const { state } = useContext(AppContext);
-  const [isMobile, setIsMobile] = useState(false);
+  const { isMobile } = useResponsive();
+  const { message } = App.useApp();
 
-  const [form] = Form.useForm();
-  const selected = state.selected_profile;
-  const [files, setFiles] = useState(selected.modules.files);
-  console.log(selected.profile_ikolu.m5);
-  const activate = selected.profile_ikolu.m5;
+  const [documents, setDocuments] = useState([]);
+  const [fileList, setFileList] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [docType, setDocType] = useState(null);
+  const [description, setDescription] = useState("");
+  const [update, setUpdate] = useState(false);
 
-  // Detectar si es móvil
+  const selectedProfileId = state.selected_profile?.id;
+
+  const getDocuments = async () => {
+    if (!selectedProfileId) return;
+    try {
+      const response = await sh.getFiles(selectedProfileId);
+      setDocuments(response.results);
+    } catch (error) {
+      console.error("Error al obtener documentos:", error);
+      message.error("No se pudieron cargar los documentos.");
+    }
+  };
+
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
+    getDocuments();
+  }, [selectedProfileId, update]);
+
+  const handleUpload = async () => {
+    if (fileList.length === 0) {
+      message.warning("Por favor, seleccione un archivo para subir.");
+      return;
+    }
+    if (!docType) {
+      message.warning("Por favor, seleccione un tipo de documento.");
+      return;
+    }
+
+    setUploading(true);
+
+    const values = {
+      file: { originFileObj: fileList[0] },
+      type_file: docType,
+      description: description,
+      point_catchment: selectedProfileId,
+      name: fileList[0].name,
     };
 
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  const onDelete = async (id) => {
-    const rq = await sh.deleteFile(id).then((res) => {
-      message.success("Archivo eliminado correctamente");
-    });
-    setFiles(files.filter((file) => file.id !== id));
-    console.log(rq);
+    try {
+      await sh.uploadFile(values);
+      message.success("Archivo subido exitosamente.");
+      setFileList([]);
+      setDocType(null);
+      setDescription("");
+      setUpdate(!update);
+    } catch (error) {
+      console.error("Error al subir archivo:", error);
+      message.error("La subida del archivo falló.");
+    } finally {
+      setUploading(false);
+    }
   };
 
-  const onCreate = async (values) => {
-    values = {
-      ...values,
-      point_catchment: selected.id,
-      file: values.file.fileList[0],
-    };
-
-    const rq = await sh.uploadFile(values).then((response) => {
-      message.success("Archivo subido correctamente");
-      console.log(response);
-      response = {
-        ...response,
-        type_file: {
-          name: "General",
-        },
-      };
-      setFiles([...files, response]);
-      form.resetFields();
-    });
+  const handleDelete = async (fileId) => {
+    try {
+      await sh.deleteFile(fileId);
+      message.success("Archivo eliminado exitosamente.");
+      setUpdate(!update);
+    } catch (error) {
+      console.error("Error al eliminar archivo:", error);
+      message.error("No se pudo eliminar el archivo.");
+    }
   };
+
+  const props = {
+    onRemove: (file) => {
+      setFileList([]);
+    },
+    beforeUpload: (file) => {
+      setFileList([file]);
+      return false;
+    },
+    fileList,
+  };
+
+  const columns = [
+    {
+      title: (
+        <>
+          <FileTextOutlined /> Nombre
+        </>
+      ),
+      dataIndex: "name",
+      key: "name",
+    },
+    {
+      title: (
+        <>
+          <TagOutlined /> Tipo
+        </>
+      ),
+      dataIndex: "type_file",
+      key: "type_file",
+      render: (typeId) => {
+        const typeName = typeMap[typeId] || "Desconocido";
+        return <Tag>{typeName}</Tag>;
+      },
+    },
+    {
+      title: (
+        <>
+          <CalendarOutlined /> Fecha
+        </>
+      ),
+      dataIndex: "created",
+      key: "created",
+      render: (date) => new Date(date).toLocaleDateString(),
+    },
+    {
+      title: (
+        <>
+          <SettingOutlined /> Acciones
+        </>
+      ),
+      key: "actions",
+      render: (_, record) => (
+        <Space size="middle">
+          <Button
+            icon={<DownloadOutlined />}
+            href={record.file}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Descargar
+          </Button>
+          <Popconfirm
+            title="Eliminar el archivo"
+            description="¿Estás seguro de que quieres eliminar este archivo? Esta acción no se puede deshacer."
+            onConfirm={() => handleDelete(record.id)}
+            okText="Sí, eliminar"
+            cancelText="No"
+          >
+            <Button icon={<DeleteOutlined />} danger>
+              Eliminar
+            </Button>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
 
   return (
     <div
       style={{
+        backgroundColor: "#f8f9fa",
+        padding: isMobile ? "16px" : "24px",
         minHeight: "90vh",
-        padding: isMobile ? "10px" : "20px",
-        backgroundColor: "#f5f5f5",
       }}
     >
-      <Row gutter={[16, 16]} justify="center">
-        {/* Formulario de subida */}
-        <Col xs={24} sm={24} md={8} lg={8} xl={6}>
-          <Card
-            style={{
-              borderRadius: "10px",
-              background: "white",
-              height: "fit-content",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-            }}
-            bodyStyle={{ padding: isMobile ? "16px" : "24px" }}
-          >
-            <div style={{ marginBottom: "16px" }}>
-              <span
-                style={{
-                  color: "#4d628c",
-                  fontSize: isMobile ? "16px" : "18px",
-                  fontWeight: "500",
-                }}
-              >
-                Subir archivo
-              </span>
-            </div>
-            <Form
-              form={form}
-              onFinish={onCreate}
-              layout="vertical"
-              style={{ width: "100%" }}
+      {/* Header del módulo */}
+      <div
+        style={{
+          borderRadius: "12px",
+          background: "linear-gradient(135deg, #1F3461 0%, #2A4B8D 100%)",
+          border: "none",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          padding: "24px",
+        }}
+      >
+        <Flex align="center" gap="middle">
+          <FileTextOutlined style={{ fontSize: 32, color: "white" }} />
+          <Title level={3} style={{ margin: 0, color: "white" }}>
+            Gestor de Documentos
+          </Title>
+        </Flex>
+      </div>
+
+      <div
+        style={{
+          marginTop: "24px",
+          padding: "24px",
+          backgroundColor: "white",
+          borderRadius: "12px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.09)",
+        }}
+      >
+        <Row gutter={[24, 24]}>
+          {/* Formulario de subida */}
+          <Col xs={24} sm={24} md={9} lg={9} xl={7}>
+            <Title level={5}>
+              <FileAddOutlined /> Subir Nuevo Documento
+            </Title>
+            <Space
+              direction="vertical"
+              style={{ width: "100%", marginTop: 16 }}
+              size="middle"
             >
-              <Form.Item
-                name="name"
-                rules={[
-                  { required: true, message: "Nombre del archivo requerido" },
-                ]}
+              <Select
+                placeholder="Seleccione tipo de documento"
+                onChange={(value) => setDocType(value)}
+                value={docType}
+                style={{ width: "100%" }}
               >
-                <Input
-                  addonBefore={<FileAddOutlined style={{ color: "#4d628c" }} />}
-                  size={isMobile ? "middle" : "large"}
-                  placeholder="Nombre archivo"
-                  style={{ width: "100%" }}
-                />
-              </Form.Item>
-
-              <Form.Item name="description">
-                <Input.TextArea
-                  placeholder="Descripción del archivo"
-                  rows={3}
-                  style={{ width: "100%" }}
-                />
-              </Form.Item>
-
-              <Form.Item
-                name="file"
-                rules={[{ required: true, message: "Archivo requerido" }]}
+                <Option value={1}>Plano</Option>
+                <Option value={2}>Memoria</Option>
+                <Option value={3}>Certificado</Option>
+                <Option value={4}>Otro</Option>
+              </Select>
+              <Input.TextArea
+                rows={3}
+                placeholder="Descripción del archivo (opcional)"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+              <Upload {...props} maxCount={1}>
+                <Button icon={<UploadOutlined />} style={{ width: "100%" }}>
+                  Seleccionar Archivo
+                </Button>
+              </Upload>
+              <Button
+                type="primary"
+                onClick={handleUpload}
+                loading={uploading}
+                style={{ width: "100%" }}
+                disabled={fileList.length === 0}
               >
-                <Upload
-                  name="file"
-                  listType="text"
-                  itemRender={(originNode, file, currFileList, actions) => (
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        backgroundColor: "#f0f0f0",
-                        borderRadius: "4px",
-                        width: "100%",
-                        marginTop: "8px",
-                        padding: "8px",
-                      }}
-                    >
-                      <span style={{ flex: 1, fontSize: "12px" }}>
-                        {file.name.length > 20
-                          ? `${file.name.slice(0, 20)}...`
-                          : file.name}
-                      </span>
-                      <Button
-                        type="link"
-                        size="small"
-                        onClick={() => actions.remove(file)}
-                        icon={
-                          <DeleteOutlined
-                            style={{ fontSize: "12px", color: "red" }}
-                          />
-                        }
-                      />
-                    </div>
-                  )}
-                  beforeUpload={() => false}
-                  maxCount={1}
-                  showUploadList={{
-                    showPreviewIcon: true,
-                    showRemoveIcon: true,
-                    showDownloadIcon: false,
-                  }}
-                >
-                  <Card
-                    hoverable
-                    size="small"
-                    style={{
-                      width: "100%",
-                      backgroundColor: "#1F3461",
-                      cursor: "pointer",
-                      border: "none",
-                    }}
-                    bodyStyle={{ padding: "12px", textAlign: "center" }}
-                  >
-                    <Flex gap="small" align="center" justify="center">
-                      <PaperClipOutlined style={{ color: "white" }} />
-                      <span style={{ color: "white" }}>Adjuntar</span>
-                    </Flex>
-                  </Card>
-                </Upload>
-              </Form.Item>
+                {uploading ? "Subiendo..." : "Subir Archivo"}
+              </Button>
+            </Space>
+          </Col>
 
-              <Form.Item style={{ marginBottom: 0 }}>
-                <Row gutter={8}>
-                  <Col span={12}>
-                    <Button
-                      type="primary"
-                      icon={<CloudSyncOutlined />}
-                      htmlType="submit"
-                      disabled={files.length >= 3}
-                      size={isMobile ? "middle" : "small"}
-                      style={{
-                        width: "100%",
-                        backgroundColor: "#1F3461",
-                        borderColor: "#1F3461",
-                      }}
-                    >
-                      Aceptar
-                    </Button>
-                  </Col>
-                  <Col span={12}>
-                    <Button
-                      type="default"
-                      onClick={() => form.resetFields()}
-                      size={isMobile ? "middle" : "small"}
-                      icon={<ClearOutlined />}
-                      style={{ width: "100%" }}
-                    >
-                      Limpiar
-                    </Button>
-                  </Col>
-                </Row>
-              </Form.Item>
-            </Form>
-          </Card>
-        </Col>
-
-        {/* Documentos cargados */}
-        <Col xs={24} sm={24} md={16} lg={16} xl={18}>
-          <Row gutter={[16, 16]}>
-            {/* Documentación del usuario */}
-            <Col span={24}>
-              <Card
-                title={`Documentación ${selected.title}`}
-                style={{
-                  width: "100%",
-                  backgroundColor: "#1F3461",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                }}
-                headStyle={{
-                  color: "white",
-                  borderBottom: "1px solid rgba(255,255,255,0.2)",
-                }}
-                bodyStyle={{ backgroundColor: "white" }}
-                extra={
-                  <span style={{ color: "white" }}>
-                    {files.length} Documentos cargados
-                  </span>
-                }
-              >
-                <Table
-                  size="small"
-                  pagination={false}
-                  style={{ width: "100%" }}
-                  scroll={isMobile ? { x: 600 } : undefined}
-                  dataSource={files.filter(
-                    (file) => file.type_file.name === "General"
-                  )}
-                  columns={[
-                    {
-                      title: "#",
-                      dataIndex: "title",
-                      width: 40,
-                      render: () => <FileOutlined />,
-                    },
-                    {
-                      title: "Nombre",
-                      dataIndex: "name",
-                      width: isMobile ? 120 : undefined,
-                      ellipsis: true,
-                    },
-                    {
-                      title: "Descripción",
-                      dataIndex: "description",
-                      width: isMobile ? 150 : undefined,
-                      ellipsis: true,
-                      render: (description) => {
-                        if (description === "undefined" || !description) {
-                          return "Sin descripción";
-                        } else {
-                          return description;
-                        }
-                      },
-                    },
-                    {
-                      title: "Acciones",
-                      width: isMobile ? 180 : undefined,
-                      render: (obj) => (
-                        <Flex gap="small" wrap>
-                          <Button
-                            type="primary"
-                            shape="round"
-                            icon={<CloudDownloadOutlined />}
-                            onClick={() =>
-                              window.open(
-                                `https://api.smarthydro.app/${obj.file}`,
-                                "_blank"
-                              )
-                            }
-                            size="small"
-                            style={{
-                              backgroundColor: "#1F3461",
-                              borderColor: "#1F3461",
-                            }}
-                          >
-                            {isMobile ? "" : "Descargar"}
-                          </Button>
-                          <Popconfirm
-                            title="¿Estás seguro?"
-                            onConfirm={() => onDelete(obj.id)}
-                          >
-                            <Button
-                              danger
-                              type="primary"
-                              size="small"
-                              shape="round"
-                              icon={<DeleteOutlined />}
-                            >
-                              {isMobile ? "" : "Eliminar"}
-                            </Button>
-                          </Popconfirm>
-                        </Flex>
-                      ),
-                    },
-                  ]}
-                />
-              </Card>
-            </Col>
-
-            {/* Gestión Documental Smart Hydro */}
-            <Col span={24}>
-              <Card
-                title="Gestión Documental Smart Hydro"
-                style={{
-                  width: "100%",
-                  backgroundColor: "rgba(31, 52, 97, 0.7)",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                }}
-                headStyle={{
-                  color: "white",
-                  borderBottom: "1px solid rgba(255,255,255,0.2)",
-                }}
-                bodyStyle={{ backgroundColor: "white" }}
-                extra={
-                  <img
-                    src={logo}
-                    style={{ width: isMobile ? "80px" : "100px" }}
-                    alt="Smart Hydro Logo"
-                  />
-                }
-              >
-                <Table
-                  size="small"
-                  pagination={false}
-                  scroll={isMobile ? { x: 500 } : undefined}
-                  dataSource={files.filter(
-                    (file) => file.type_file.name === "Internos"
-                  )}
-                  columns={[
-                    {
-                      title: "#",
-                      dataIndex: "title",
-                      width: 40,
-                      render: () => <FileOutlined />,
-                    },
-                    {
-                      title: "Nombre",
-                      dataIndex: "name",
-                      width: isMobile ? 120 : undefined,
-                      ellipsis: true,
-                    },
-                    {
-                      title: "Descripción",
-                      dataIndex: "description",
-                      width: isMobile ? 150 : undefined,
-                      ellipsis: true,
-                      render: (description) => description || "Sin descripción",
-                    },
-                    {
-                      title: "Acciones",
-                      dataIndex: "file",
-                      width: isMobile ? 100 : undefined,
-                      render: () => (
-                        <Button
-                          size="small"
-                          style={{
-                            backgroundColor: "#1F3461",
-                            borderColor: "#1F3461",
-                            color: "white",
-                          }}
-                        >
-                          Descargar
-                        </Button>
-                      ),
-                    },
-                  ]}
-                />
-              </Card>
-            </Col>
-          </Row>
-        </Col>
-      </Row>
+          {/* Documentos cargados */}
+          <Col xs={24} sm={24} md={15} lg={15} xl={17}>
+            <Title level={5}>
+              <FolderOpenOutlined /> Documentos Cargados
+            </Title>
+            <Table
+              style={{ marginTop: 16 }}
+              columns={columns}
+              dataSource={documents}
+              rowKey="id"
+              pagination={{ pageSize: 5 }}
+              scroll={{ x: isMobile ? 800 : true }}
+            />
+          </Col>
+        </Row>
+      </div>
     </div>
   );
 };
+
+// Envoltura principal que provee el contexto de App
+const DocRes = () => (
+  <App>
+    <DocResContent />
+  </App>
+);
 
 export default DocRes;

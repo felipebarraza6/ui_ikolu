@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import {
   Row,
   Col,
@@ -7,329 +7,344 @@ import {
   Card,
   Descriptions,
   Flex,
+  Collapse,
   Table,
+  Drawer,
+  Button,
+  Tag,
+  Space,
 } from "antd";
 import {
   CalendarOutlined,
   ClockCircleOutlined,
   HistoryOutlined,
+  DatabaseOutlined,
+  SettingOutlined,
+  CopyOutlined,
+  CheckCircleFilled,
+  IdcardOutlined,
+  ToolOutlined,
+  AimOutlined,
+  ExpandOutlined,
+  CalculatorOutlined,
+  ArrowDownOutlined,
+  TableOutlined,
+  CloseOutlined,
+  DashboardOutlined,
+  RiseOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 import caudal_img from "../../assets/images/caudal.png";
 import nivel_img from "../../assets/images/nivel.png";
 import acumulado_img from "../../assets/images/acumulado.png";
+import logo_dga from "../../assets/images/channels4_profile.jpg";
 import { AppContext } from "../../App";
 import QueueAnim from "rc-queue-anim";
 import MyLastRegisters from "./MyLastRegisters";
 import sh from "../../api/sh/endpoints";
-import { BsClockHistory } from "react-icons/bs";
 import Well from "./Well";
-import dateConverter from "xlsx-populate/lib/dateConverter";
-
+import { useResponsive } from "../../hooks/useResponsive";
+import { useMediaQuery } from "react-responsive";
+import moment from "moment";
+import "moment/locale/es";
 const { Countdown } = Statistic;
 const { Title, Text } = Typography;
+const { Panel } = Collapse;
+
+moment.locale("es");
 
 const numberForMiles = new Intl.NumberFormat("de-DE");
 
-const processNivel = (value) => parseFloat(value).toFixed(1);
-const processCaudal = (value) => parseFloat(value).toFixed(1);
-const processAcum = (value) => numberForMiles.format(value);
+// --- Fila de información para la Ficha Técnica ---
+const TechInfoRow = ({ icon, label, value }) => (
+  <Flex
+    justify="space-between"
+    align="center"
+    style={{ padding: "8px 4px", borderBottom: "1px solid #f0f0f0" }}
+  >
+    <Flex align="center" gap="small">
+      {icon}
+      <Text type="secondary">{label}</Text>
+    </Flex>
+    <Text strong>{value}</Text>
+  </Flex>
+);
+
+const SectionTitle = ({ children }) => (
+  <Text
+    style={{
+      display: "block",
+      color: "#8c8c8c",
+      fontWeight: 500,
+      marginTop: "12px",
+      marginBottom: "4px",
+      paddingLeft: "4px",
+    }}
+  >
+    {children}
+  </Text>
+);
+
+// --- Componente para Ficha Técnica (Rediseñado) ---
+const WellTechnicalSheet = ({ profile }) => {
+  // Usamos optional chaining para acceder a los datos de forma segura.
+  const config_data = profile?.config_data ?? {};
+  const dga = profile?.dga ?? {};
+  const title = profile?.title ?? "N/A";
+
+  if (!profile) return null;
+
+  return (
+    <Card
+      title={
+        <Flex align="center" gap="small">
+          <DatabaseOutlined /> Ficha Técnica
+        </Flex>
+      }
+      style={{
+        borderRadius: "12px",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+        height: "100%",
+      }}
+    >
+      <div style={{ padding: "0 8px" }}>
+        <TechInfoRow
+          icon={<IdcardOutlined />}
+          label="DGA"
+          value={<Text copyable>{dga.code_dga || "N/A"}</Text>}
+        />
+        <TechInfoRow icon={<IdcardOutlined />} label="Nombre" value={title} />
+        <TechInfoRow
+          icon={<ArrowDownOutlined />}
+          label="Profundidad"
+          value={`${parseFloat(config_data.d1 || 0).toFixed(2)} m`}
+        />
+        <SectionTitle>Posicionamientos</SectionTitle>
+        <TechInfoRow
+          icon={<ToolOutlined />}
+          label="Bomba"
+          value={`${parseFloat(config_data.d2 || 0).toFixed(2)} m`}
+        />
+        <TechInfoRow
+          icon={<AimOutlined />}
+          label="Nivel"
+          value={`${parseFloat(config_data.d3 || 0).toFixed(2)} m`}
+        />
+        <SectionTitle>Diámetros</SectionTitle>
+        <TechInfoRow
+          icon={<ExpandOutlined />}
+          label="Ducto"
+          value={`${parseFloat(config_data.d4 || 0).toFixed(2)} pulg`}
+        />
+        <TechInfoRow
+          icon={<ExpandOutlined />}
+          label="Flujómetro"
+          value={`${parseFloat(config_data.d5 || 0).toFixed(2)} pulg`}
+        />
+        <SectionTitle>Totalizador</SectionTitle>
+        <TechInfoRow
+          icon={<CalculatorOutlined />}
+          label="m³ Iniciales"
+          value={`${numberForMiles.format(config_data.d6 || 0)}`}
+        />
+      </div>
+    </Card>
+  );
+};
+
+// --- Componente para Tarjetas de Métricas ---
+const MetricCard = ({ title, value, unit, icon }) => (
+  <Card
+    hoverable
+    style={{
+      marginBottom: "16px",
+      borderRadius: "12px",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+    }}
+  >
+    <Statistic
+      title={
+        <Flex align="center" gap="small">
+          {icon}
+          <Text style={{ fontSize: 12 }}>{title}</Text>
+        </Flex>
+      }
+      value={value}
+      suffix={unit}
+      valueStyle={{
+        color: "#1F3461",
+        fontWeight: 600,
+        fontSize: 20,
+      }}
+    />
+  </Card>
+);
 
 const MyWell = () => {
   const { state, dispatch } = useContext(AppContext);
-  const [frecuency, setFrecuency] = useState(60);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-
+  const { isMobile } = useResponsive();
+  const isMobileQuery = useMediaQuery({ maxWidth: 768 });
+  const [loading, setLoading] = useState(true);
   const [nivel, setNivel] = useState(0);
   const [caudal, setCaudal] = useState(0);
-  const [finishCounter, setFinishCounter] = useState(0);
   const [acumulado, setAcumulado] = useState(0);
-  const [acumHora, setAcumHora] = useState(0);
   const [acumDia, setAcumDia] = useState(0);
   const [deadline, setDeadline] = useState(null);
   const [lastCaption, setLastCaption] = useState(null);
   const [acumAyer, setAcumAyer] = useState(0);
-  const [acumulado2, setAcumulado2] = useState(0);
-  const [dataSource, setDataSource] = useState([]);
+  const [lastRegisters, setLastRegisters] = useState([]);
+  const [drawerVisible, setDrawerVisible] = useState(false);
+  const intervalRef = useRef(null);
 
-  const [zoomNivel, setZoomNivel] = useState(false);
-  const [zoomCaudal, setZoomCaudal] = useState(false);
-  const [zoomAcumulado, setZoomAcumulado] = useState(false);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  const onFinishCounter = async () => {
-    setFinishCounter(finishCounter + 1);
-
-    const token = localStorage.getItem("token");
-    const selected_profile = state.selected_profile;
+  const fetchData = async () => {
+    if (!state.selected_profile) return;
+    setLoading(true);
 
     try {
+      const profileId = state.selected_profile.id;
+
       const userProfileResponse = await sh.get_profile();
-      console.log(userProfileResponse);
-      const profile_data = userProfileResponse.user.catchment_points;
+      const allProfiles = userProfileResponse?.user?.catchment_points ?? [];
       const selected_profile_data =
-        profile_data.find((profile) => profile.id === selected_profile?.id) ||
-        profile_data[0];
+        allProfiles.find((p) => p.id === profileId) || allProfiles[0] || {};
 
       dispatch({
         type: "UPDATE",
-        payload: {
-          token: token,
-          user: userProfileResponse.user,
-          profile_data: profile_data,
-          selected_profile: selected_profile_data,
-        },
+        payload: { ...state, selected_profile: selected_profile_data },
       });
 
-      if (
-        userProfileResponse.results &&
-        userProfileResponse.results.length > 0
-      ) {
-        let currentNivel = 0;
-        let currentFlow = 0;
-        let currentTotal = 0;
-        let currentTotal2 = 0;
+      const telemetryData = await sh.get_data_sh(profileId);
 
-        if (userProfileResponse.results[0].nivel !== null) {
-          currentNivel = processNivel(userProfileResponse.results[0].nivel);
-        }
-        if (userProfileResponse.results[0].flow !== null) {
-          currentFlow = processCaudal(userProfileResponse.results[0].flow);
-        }
-        if (userProfileResponse.results[0].total !== null) {
-          currentTotal = processAcum(userProfileResponse.results[0].total);
-        }
-        if (userProfileResponse.results[0].total2 !== null) {
-          currentTotal2 = processAcum(userProfileResponse.results[0].total2);
-        }
+      // Acceso seguro a los datos de telemetría y perfil
+      const modules = selected_profile_data?.modules ?? {};
+      const frecuency = selected_profile_data?.frecuency ?? 0;
+      const total_consumed_yesterday =
+        selected_profile_data?.total_consumed_yesterday ?? 0;
 
-        userProfileResponse.results.forEach((result, i) => {
-          result.total_hora =
-            result.total - (userProfileResponse.results[i + 1]?.total || 0);
-          if (result.total_hora < 0 || isNaN(result.total_hora)) {
-            result.total_hora = 0;
-          }
-        });
-        setDataSource(userProfileResponse.results);
-        setNivel(currentNivel);
-        setCaudal(currentFlow > 0 ? currentFlow : 0.0);
-        setAcumulado(currentTotal);
-        setAcumulado2(currentTotal2);
-      } else {
-        setNivel(0.0);
-        setCaudal(0.0);
-        setAcumulado(0.0);
-        setAcumulado2(0.0);
+      if (modules.m1) {
+        setLastCaption(modules.m1.date_time_medition ?? null);
+        setAcumDia(modules.m1.total_today_diff || 0);
+        setNivel(modules.m1.water_table || 0);
+        setCaudal(modules.m1.flow || 0);
+        setAcumulado(modules.m1.total || 0);
+      }
+
+      if (telemetryData?.results) {
+        const today = new Date().toISOString().slice(0, 10);
+        const todayRegisters = telemetryData.results.filter(
+          (reg) => reg.date_time_medition?.slice(0, 10) === today
+        );
+
+        const processedData = todayRegisters.map((result, i, arr) => ({
+          ...result,
+          total_hora: (result.total || 0) - (arr[i + 1]?.total || 0),
+        }));
+        setLastRegisters(processedData);
+      }
+
+      setAcumAyer(total_consumed_yesterday);
+
+      if (frecuency > 0) {
+        const now = new Date();
+        const minutesUntilNext = frecuency - (now.getMinutes() % frecuency);
+        setDeadline(new Date(now.getTime() + minutesUntilNext * 60000));
       }
     } catch (error) {
-      console.error("Error fetching profile data:", error);
+      console.error("Error fetching data in MyWell:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (
-      state.selected_profile &&
-      state.selected_profile.modules &&
-      state.selected_profile.config_data
-    ) {
-      const now = new Date();
-      let miliseconds = 60000;
-      let frequency = state.selected_profile.frecuency;
-
-      const minutesUntilNextFrequency =
-        frequency - (now.getMinutes() % frequency);
-      const deadline = new Date(
-        now.getTime() + minutesUntilNextFrequency * miliseconds
-      );
-      setLastCaption(state.selected_profile.modules.m1.date_time_medition);
-      setAcumHora(state.selected_profile.modules.m1.total_diff);
-      setAcumDia(state.selected_profile.modules.m1.total_today_diff);
-      setAcumAyer(state.selected_profile.modules.total_consumed_yesterday);
-
-      setNivel(state.selected_profile.modules.m1.water_table);
-      setCaudal(state.selected_profile.modules.m1.flow);
-      setAcumulado(state.selected_profile.modules.m1.total);
-      setDeadline(deadline);
+    // Evita el parpadeo al no reiniciar los datos si ya existen.
+    if (state.selected_profile?.id) {
+      fetchData();
     }
-  }, [state.selected_profile, finishCounter]);
+  }, [state.selected_profile?.id]);
 
-  const styles = {
-    colCard: {
-      paddingLeft: window.innerWidth > 900 && "20px",
-    },
-    cardValues: {
-      marginBottom: "10px",
-      padding: window.innerWidth > 900 ? "14px" : "0px",
-      width: window.innerWidth > 900 ? "280px" : "100%",
-    },
-    valueCard: {
-      color: "white",
-      backgroundColor: "#1F3461",
-      marginTop: window.innerWidth > 900 ? "0px" : "-15px",
-      borderRadius: "5px",
-      padding: window.innerWidth > 900 ? "3px" : "1px",
-    },
-    well: {
-      paddingLeft: window.innerWidth < 900 && "0px",
-      marginTop: "30px",
-      marginLeft: window.innerWidth > 900 ? "-5px" : "0px",
-    },
+  useEffect(() => {
+    // Configura el intervalo para la actualización periódica.
+    const interval = setInterval(() => {
+      if (state.selected_profile?.id) {
+        fetchData();
+      }
+    }, 60000); // 1 minuto
+
+    // Limpia el intervalo cuando el componente se desmonta.
+    return () => clearInterval(interval);
+  }, [state.selected_profile?.id, fetchData]);
+
+  const formatDate = (date) => {
+    if (!date) return { date: "N/A", time: "" };
+    const d = new Date(date);
+    const datePart = d.toLocaleDateString("es-CL", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+    const timePart = `${String(d.getHours()).padStart(2, "0")}:00 hrs`;
+    return { date: datePart, time: timePart };
   };
 
-  const MobileMetricCard = ({
-    icon,
-    image,
-    title,
-    value,
-    unit,
-    onMouseEnter,
-    onMouseLeave,
-  }) => (
-    <div
-      size="small"
-      style={{
-        borderRadius: "12px",
-        overflow: "hidden",
-        margin: "4px",
-        padding: "0px",
-        height: "80px",
-        transition: "all 0.3s ease",
-      }}
-      bodyStyle={{ padding: 0, height: "100%" }}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-    >
-      {/* Cabecera con título */}
-      <div
-        style={{
-          fontSize: "11px",
-          fontWeight: "600",
-          textAlign: "center",
-          display: "flex",
-          color: "white",
-          backgroundColor: "#1F3461",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {icon && <span style={{ marginRight: "4px" }}>{icon}</span>}
-        {title}
-      </div>
-
-      {/* Contenido: valor centrado */}
-      <div
-        style={{
-          height: "52px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <div style={{ textAlign: "center" }}>
-          <div
-            style={{
-              padding: "6px 12px",
-              fontSize: "12px",
-              fontWeight: "700",
-              display: "inline-block",
-              minWidth: "70px",
-            }}
-          >
-            {value} {unit}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  const getDayMonth = (date) => {
+    return date.toLocaleDateString("es-CL", { month: "short", day: "numeric" });
+  };
 
   if (isMobile) {
+    // --- VISTA MÓVIL ---
     return (
-      <div style={{ padding: "2px" }}>
-        {/* Grid 2x2 para móvil */}
-        <Row gutter={[4, 4]} style={{ marginBottom: "4px" }}>
-          <Col xs={12}>
-            <QueueAnim delay={200} duration={800} type="left">
-              <div key="ultima-hora-mobile">
-                <MobileMetricCard
-                  icon={<CalendarOutlined style={{ fontSize: "10px" }} />}
-                  title="Última hora"
-                  value={
-                    <Flex vertical>
-                      <Text>
-                        {lastCaption
-                          ? `${lastCaption.slice(11, 13)} ${lastCaption.slice(
-                              14,
-                              16
-                            )} hrs`
-                          : "No hay datos"}
-                      </Text>
-                    </Flex>
-                  }
-                />
-              </div>
-            </QueueAnim>
+      <div>
+        <Row gutter={[8, 8]}>
+          <Col span={24}>
+            <MetricCard
+              title="Caudal"
+              value={(parseFloat(caudal) || 0).toFixed(2)}
+              unit="L/s"
+              icon={<img src={caudal_img} alt="caudal" style={{ width: 24 }} />}
+            />
           </Col>
-
-          <Col xs={12}>
-            <QueueAnim delay={400} duration={800} type="left">
-              <div key="caudal-mobile">
-                <MobileMetricCard
-                  title={
-                    state.selected_profile?.is_prom_flow
-                      ? "Caudal Medio"
-                      : "Caudal"
-                  }
-                  value={caudal}
-                  unit={
-                    state.selected_profile?.is_prom_flow ? "(L/h)" : "(L/s)"
-                  }
-                  onMouseEnter={() => setZoomCaudal(true)}
-                  onMouseLeave={() => setZoomCaudal(false)}
-                />
-              </div>
-            </QueueAnim>
+          <Col span={24}>
+            <MetricCard
+              title="Nivel Freático"
+              value={(parseFloat(nivel) || 0).toFixed(2)}
+              unit="m"
+              icon={<img src={nivel_img} alt="nivel" style={{ width: 24 }} />}
+            />
           </Col>
-
-          <Col xs={12}>
-            <QueueAnim delay={600} duration={800} type="left">
-              <div key="nivel-mobile">
-                <MobileMetricCard
-                  title="Nivel Freático"
-                  value={parseFloat(nivel).toLocaleString("es-ES", {
-                    minimumFractionDigits: 1,
-                  })}
-                  unit="(m)"
-                  onMouseEnter={() => setZoomNivel(true)}
-                  onMouseLeave={() => setZoomNivel(false)}
+          <Col span={24}>
+            <MetricCard
+              title="Acumulado Total"
+              value={new Intl.NumberFormat("de-DE").format(acumulado)}
+              unit="m³"
+              icon={
+                <img
+                  src={acumulado_img}
+                  alt="acumulado"
+                  style={{ width: 24 }}
                 />
-              </div>
-            </QueueAnim>
+              }
+            />
           </Col>
-
-          <Col xs={12}>
-            <QueueAnim delay={800} duration={800} type="left">
-              <div key="acumulado-mobile">
-                <MobileMetricCard
-                  title="Acumulado"
-                  value={numberForMiles.format(acumulado)}
-                  unit="(m³)"
-                  onMouseEnter={() => setZoomAcumulado(true)}
-                  onMouseLeave={() => setZoomAcumulado(false)}
-                />
-              </div>
-            </QueueAnim>
+          <Col span={24}>
+            <MetricCard
+              title="Último Registro"
+              value={lastCaption ? formatDate(lastCaption).date : "N/A"}
+              unit={lastCaption ? formatDate(lastCaption).time : ""}
+              icon={<ClockCircleOutlined style={{ color: "#1F3461" }} />}
+            />
           </Col>
         </Row>
 
-        {/* Pozo animado */}
-        <QueueAnim delay={1000} duration={800} type="bottom">
+        <Flex justify="center" style={{ margin: "16px 0" }}>
           <div
-            key="pozo-mobile"
-            style={{ textAlign: "center", marginBottom: "4px" }}
+            style={{
+              width: "100%",
+              maxWidth: "280px",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
           >
             <Well
               total={acumulado}
@@ -338,435 +353,318 @@ const MyWell = () => {
               profW={state.selected_profile?.config_data?.d1}
             />
           </div>
-        </QueueAnim>
+        </Flex>
 
-        {/* Counter de siguiente medición */}
-        <QueueAnim delay={1200} duration={800} type="left">
-          <div
-            key="counter-mobile"
-            style={{ margin: "2px", marginBottom: "4px" }}
+        <Flex vertical={true} gap="middle">
+          {/* Ficha Técnica */}
+          <WellTechnicalSheet profile={state.selected_profile} />
+
+          {/* Consumos Combinados */}
+          <Card
+            title={
+              <Flex align="center" gap="small">
+                <RiseOutlined /> Consumos
+              </Flex>
+            }
+            style={{
+              borderRadius: "12px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+            }}
           >
-            <Card
-              size="small"
-              hoverable
-              style={{
-                borderRadius: "12px",
-
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-              }}
-              bodyStyle={{ padding: "8px" }}
-            >
-              <Row gutter={8} align="middle">
-                <Col xs={12}>
-                  <div style={{ textAlign: "center" }}>
-                    <div
-                      style={{
-                        fontSize: "10px",
-                        color: "#666",
-                        marginBottom: "2px",
-                        fontWeight: "500",
-                      }}
-                    >
-                      Frecuencia
-                    </div>
-                    <div
-                      style={{
-                        backgroundColor: "#1F3461",
-                        color: "white",
-                        padding: "3px 6px",
-                        borderRadius: "6px",
-                        fontSize: "11px",
-                        fontWeight: "600",
-                        display: "inline-block",
-                        boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-                      }}
-                    >
-                      {state.selected_profile?.frecuency}/min
-                    </div>
-                  </div>
-                </Col>
-                <Col xs={12}>
-                  <div style={{ textAlign: "center" }}>
-                    <div
-                      style={{
-                        fontSize: "10px",
-                        color: "#666",
-                        marginBottom: "2px",
-                        fontWeight: "500",
-                      }}
-                    >
-                      Siguiente medición
-                    </div>
-                    {deadline && (
-                      <Countdown
-                        value={deadline}
-                        valueStyle={{
-                          fontSize: "11px",
-                          fontWeight: "600",
-                          color: "#1F3461",
-                        }}
-                        suffix={
-                          <ClockCircleOutlined
-                            style={{ fontSize: "11px", color: "#1F3461" }}
-                          />
-                        }
-                        onFinish={() => onFinishCounter()}
-                      />
-                    )}
-                  </div>
-                </Col>
-              </Row>
-            </Card>
-          </div>
-        </QueueAnim>
-
-        {/* Información diaria */}
-        <QueueAnim delay={1400} duration={800} type="left">
-          <div key="descripcion-diaria-mobile" style={{ margin: "2px" }}>
-            <Descriptions
-              size="small"
-              bordered
-              style={{
-                borderRadius: "12px",
-
-                boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-              }}
-            >
-              <Descriptions.Item
-                label={
-                  <span style={{ fontSize: "11px", fontWeight: "500" }}>
-                    <CalendarOutlined
-                      style={{ marginRight: "4px", fontSize: "10px" }}
-                    />
-                    {new Date().toLocaleDateString("es-ES", {
-                      day: "2-digit",
-                      month: "long",
-                    })}
-                  </span>
-                }
-                span={3}
-              >
-                <span
+            <Row gutter={[8, 8]}>
+              <Col span={24}>
+                <Card
+                  size="small"
                   style={{
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    color: "#1F3461",
+                    textAlign: "center",
+                    background: "#fafafa",
+                    border: "1px solid #f0f0f0",
                   }}
                 >
-                  {acumDia} (m³)
-                </span>
-              </Descriptions.Item>
-              <Descriptions.Item
-                label={
-                  <span style={{ fontSize: "11px", fontWeight: "500" }}>
-                    <CalendarOutlined
-                      style={{ marginRight: "4px", fontSize: "10px" }}
-                    />
-                    {new Date(
-                      new Date().setDate(new Date().getDate() - 1)
-                    ).toLocaleDateString("es-ES", {
-                      day: "2-digit",
-                      month: "long",
-                    })}
-                  </span>
-                }
-                span={3}
-              >
-                <span
+                  <Statistic
+                    title={`Hoy (${moment().format("DD MMM")})`}
+                    value={acumDia}
+                    suffix="m³"
+                    valueStyle={{ color: "#27AE60", fontSize: 18 }}
+                  />
+                </Card>
+              </Col>
+              <Col span={24}>
+                <Card
+                  size="small"
                   style={{
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    color: "#1F3461",
+                    textAlign: "center",
+                    background: "#fafafa",
+                    border: "1px solid #f0f0f0",
                   }}
                 >
-                  {acumAyer} (m³)
-                </span>
-              </Descriptions.Item>
-              <Descriptions.Item
-                label={
-                  <span style={{ fontSize: "11px", fontWeight: "500" }}>
-                    <HistoryOutlined
-                      style={{ marginRight: "4px", fontSize: "10px" }}
-                    />
-                    Historial {new Date().toLocaleDateString()}
-                  </span>
-                }
-              >
-                <MyLastRegisters />
-              </Descriptions.Item>
-            </Descriptions>
-          </div>
-        </QueueAnim>
+                  <Statistic
+                    title={`Ayer (${moment()
+                      .subtract(1, "days")
+                      .format("DD MMM")})`}
+                    value={acumAyer}
+                    suffix="m³"
+                    valueStyle={{ color: "#F2994A", fontSize: 18 }}
+                  />
+                </Card>
+              </Col>
+            </Row>
+            <div style={{ marginTop: "16px" }}>
+              <MyLastRegisters />
+            </div>
+          </Card>
+        </Flex>
       </div>
     );
   }
 
+  const columns = [
+    {
+      title: "Hora",
+      dataIndex: "date_time_medition",
+      render: (time) => time.slice(11, 16) + " hrs",
+      width: 90,
+    },
+    {
+      title: "Caudal (Lt/s)",
+      dataIndex: "flow",
+      render: (flow) => (parseFloat(flow) || 0).toFixed(2),
+      width: 100,
+    },
+    {
+      title: "Nivel F. (m)",
+      dataIndex: "water_table",
+      render: (nivel) => (parseFloat(nivel) || 0).toFixed(2),
+      width: 100,
+    },
+    {
+      title: "m³/hora",
+      dataIndex: "total_diff",
+      render: (a) => numberForMiles.format(a || 0),
+      width: 110,
+    },
+    {
+      title: "m³/día",
+      dataIndex: "total_today_diff",
+      render: (a) => numberForMiles.format(a || 0),
+      width: 110,
+    },
+    {
+      title: "Totalizador (m³)",
+      dataIndex: "total",
+      render: (total) => numberForMiles.format(total || 0),
+      width: 120,
+    },
+  ];
+
+  const cardStyle = {
+    padding: "0 !important",
+  };
+
+  // --- VISTA ESCRITORIO ---
   return (
-    <Flex
-      justify="space-around"
-      align="top"
-      style={{ padding: "10px" }}
-      vertical={false}
+    <div
+      style={{
+        minHeight: "calc(100vh - 64px)",
+      }}
     >
-      <Flex vertical style={{ width: "100%" }}>
-        <QueueAnim delay={400} duration={1200} type="left">
-          <div key={"card-last-hour"}>
-            <Card hoverable style={styles.cardValues} size="small">
-              <Row justify="space-around" align={"middle"}>
-                <Col xs={24} lg={6} xl={6}>
-                  <center>
-                    <BsClockHistory
-                      style={{ fontSize: "48px", color: "#2E5E9C" }}
+      <Row gutter={[16, 16]}>
+        {/* Columna Izquierda: Indicadores */}
+        <Col xs={24} sm={24} md={7} lg={7} xl={7}>
+          <QueueAnim delay={200} type="left">
+            <div key="metrics">
+              <div>
+                <MetricCard
+                  title="Caudal"
+                  value={(parseFloat(caudal) || 0).toFixed(2)}
+                  unit="(Lt/s)"
+                  icon={
+                    <img src={caudal_img} alt="caudal" style={{ width: 24 }} />
+                  }
+                />
+                <MetricCard
+                  title="Nivel Freático"
+                  value={(parseFloat(nivel) || 0).toFixed(2)}
+                  unit="(m)"
+                  icon={
+                    <img src={nivel_img} alt="nivel" style={{ width: 24 }} />
+                  }
+                />
+                <MetricCard
+                  title="Acumulado Total"
+                  value={numberForMiles.format(acumulado || 0)}
+                  unit="(m³)"
+                  icon={
+                    <img
+                      src={acumulado_img}
+                      alt="acumulado"
+                      style={{ width: 24 }}
                     />
-                  </center>
-                </Col>
-                <Col xs={24} lg={18} xl={18} style={styles.colCard}>
-                  <Title level={5} style={{ marginTop: "-10px" }}>
-                    Última hora
-                  </Title>
-                  <Text style={styles.valueCard}>
-                    {lastCaption ? lastCaption.slice(0, 10) : "No hay datos"}
-                  </Text>
-                  <br />
-                  <Text>
-                    {lastCaption && (
-                      <u>
-                        {lastCaption.slice(11, 13)}
-                        {":00 hrs "}
-                      </u>
-                    )}
-                  </Text>
-                </Col>
-              </Row>
-            </Card>
-          </div>
-        </QueueAnim>
+                  }
+                />
+                <MetricCard
+                  title="Último Registro"
+                  value={lastCaption ? formatDate(lastCaption).date : "N/A"}
+                  unit={lastCaption ? formatDate(lastCaption).time : ""}
+                  icon={<ClockCircleOutlined style={{ color: "#1F3461" }} />}
+                />
+              </div>
+            </div>
+            <div key="b">
+              <Card
+                title={
+                  <Flex align="center" gap="small">
+                    <RiseOutlined /> Consumos
+                  </Flex>
+                }
+                style={{
+                  borderRadius: "12px",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                }}
+              >
+                <Row gutter={[8, 8]}>
+                  <Col span={12}>
+                    <Card
+                      size="small"
+                      style={{
+                        textAlign: "center",
+                        background: "#fafafa",
+                        border: "1px solid #f0f0f0",
+                      }}
+                    >
+                      <Statistic
+                        title={`Hoy (${moment().format("DD MMM")})`}
+                        value={acumDia}
+                        suffix="m³"
+                        valueStyle={{ color: "#27AE60", fontSize: 18 }}
+                      />
+                    </Card>
+                  </Col>
+                  <Col span={12}>
+                    <Card
+                      size="small"
+                      style={{
+                        textAlign: "center",
+                        background: "#fafafa",
+                        border: "1px solid #f0f0f0",
+                      }}
+                    >
+                      <Statistic
+                        title={`Ayer (${moment()
+                          .subtract(1, "days")
+                          .format("DD MMM")})`}
+                        value={acumAyer}
+                        suffix="m³"
+                        valueStyle={{ color: "#F2994A", fontSize: 18 }}
+                      />
+                    </Card>
+                  </Col>
+                </Row>
+              </Card>
+            </div>
+          </QueueAnim>
+        </Col>
 
-        <QueueAnim delay={600} duration={1200} type="left">
-          <div key={"card-flow"}>
+        {/* Columna Central: Pozo y Mediciones (Más angosta) */}
+        <Col xs={24} sm={24} md={10} lg={10} xl={10}>
+          <QueueAnim delay={400} type="bottom">
             <Card
-              hoverable
-              style={styles.cardValues}
-              size="small"
-              onMouseLeave={() => setZoomCaudal(false)}
-              onMouseEnter={() => setZoomCaudal(true)}
-            >
-              <Row justify="space-between">
-                <Col xs={24} lg={6} xl={6}>
-                  <center>
-                    <img src={caudal_img} alt="caudal_img" width="100%" />
-                  </center>
-                </Col>
-                <Col xs={24} lg={18} xl={18} style={styles.colCard}>
-                  <Title level={5} style={{ marginTop: "-10px" }}>
-                    {state.selected_profile?.is_prom_flow
-                      ? "Caudal Medio"
-                      : "Caudal"}
-                  </Title>
-                  <Text style={styles.valueCard}>
-                    <b>
-                      {caudal}
-                      {state.selected_profile?.is_prom_flow ? "(L/h)" : "(L/s)"}
-                    </b>
-                  </Text>
-                </Col>
-              </Row>
-            </Card>
-          </div>
-        </QueueAnim>
-
-        <QueueAnim delay={800} duration={1200} type="left">
-          <div key={"card-water-level"}>
-            <Card
-              hoverable
-              style={styles.cardValues}
-              size="small"
-              onMouseLeave={() => setZoomNivel(false)}
-              onMouseEnter={() => setZoomNivel(true)}
-            >
-              <Row justify="space-around">
-                <Col xs={24} lg={6} xl={6}>
-                  <center>
-                    <img src={nivel_img} alt="nivel_img" width="75%" />
-                  </center>
-                </Col>
-                <Col xs={24} lg={18} xl={18} style={styles.colCard}>
-                  <Title level={5} style={{ marginTop: "-10px" }}>
-                    Nivel Freático
-                  </Title>
-                  <Text style={styles.valueCard}>{nivel} (m)</Text>
-                </Col>
-              </Row>
-            </Card>
-          </div>
-        </QueueAnim>
-
-        <QueueAnim delay={1000} duration={1200} type="left">
-          <div key={"card-accumulated"}>
-            <Card
-              hoverable
-              style={styles.cardValues}
-              size="small"
-              onMouseLeave={() => setZoomAcumulado(false)}
-              onMouseEnter={() => setZoomAcumulado(true)}
-            >
-              <Row justify="space-around">
-                <Col xs={24} lg={6} xl={6}>
-                  <center>
-                    <img src={acumulado_img} alt="acumulado_img" width="100%" />
-                  </center>
-                </Col>
-                <Col xs={24} lg={18} xl={18} style={styles.colCard}>
-                  <Title level={5} style={{ marginTop: "-10px" }}>
-                    Acumulado
-                  </Title>
-                  <Text style={styles.valueCard}>
-                    {numberForMiles.format(acumulado)} (m³)
-                  </Text>
-                </Col>
-              </Row>
-            </Card>
-          </div>
-        </QueueAnim>
-
-        {state.user.username === "lecheriavalleverde" && (
-          <Col span={13} style={{ marginBottom: "10px" }}>
-            <Table
-              bordered
-              title={() => "Telemetría"}
-              size="small"
-              dataSource={dataSource}
-              pagination={false}
-              columns={[
-                {
-                  title: "Fecha",
-                  dataIndex: "date_time_medition",
-                  render: (date) => date.slice(0, 10),
-                },
-                {
-                  title: "Hora",
-                  dataIndex: "date_time_medition",
-                  render: (time) => time.slice(11, 16) + " hrs",
-                },
-                {
-                  title: "Caudal(lt/s)",
-                  dataIndex: "flow",
-                  render: (flow) => parseFloat(flow).toFixed(1),
-                },
-                {
-                  title: "Total (m³)",
-                  dataIndex: "total",
-                  render: (total) => processAcum(total),
-                },
-                {
-                  title:
-                    state.user.id === 43
-                      ? "Acumulado (lt/h)"
-                      : "Acumulado (m³)",
-                  dataIndex: "total_hora",
-                  render: (a) =>
-                    state.user.id === 43
-                      ? numberForMiles.format(parseFloat(a * 1000))
-                      : numberForMiles.format(a),
-                },
-              ]}
-            />
-          </Col>
-        )}
-
-        <QueueAnim delay={1200} duration={1200} type="left">
-          <div key={"description-daily-yesterday"}>
-            <Descriptions
-              size="small"
-              bordered
               style={{
-                marginBottom: "10px",
-                width: "370px",
-                borderRadius: "10px",
+                borderRadius: "12px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                padding: "24px 16px",
+                height: "100%",
+                position: "relative",
               }}
             >
-              <Descriptions.Item
-                label={
-                  <>
-                    <CalendarOutlined style={{ marginRight: "5px" }} />
-                    {new Date().toLocaleDateString("es-ES", {
-                      day: "2-digit",
-                      month: "long",
-                    })}
-                  </>
-                }
-                span={3}
+              <Flex
+                justify="flex-end"
+                style={{ position: "absolute", top: 16, right: 16, zIndex: 10 }}
               >
-                {acumDia} (m³)
-              </Descriptions.Item>
-              <Descriptions.Item
-                label={
-                  <>
-                    <CalendarOutlined style={{ marginRight: "5px" }} />
-                    {new Date(
-                      new Date().setDate(new Date().getDate() - 1)
-                    ).toLocaleDateString("es-ES", {
-                      day: "2-digit",
-                      month: "long",
-                    })}
-                  </>
-                }
-                span={3}
+                <Button
+                  type="primary"
+                  icon={<TableOutlined />}
+                  onClick={() => setDrawerVisible(true)}
+                >
+                  Mediciones ({lastRegisters.length})
+                </Button>
+              </Flex>
+              <Flex
+                vertical
+                align="center"
+                justify="center"
+                style={{ height: "100%", width: "100%" }}
               >
-                {acumAyer} (m³)
-              </Descriptions.Item>
-              <Descriptions.Item
-                label={
-                  <>
-                    <HistoryOutlined /> Historial{" "}
-                    {new Date().toLocaleDateString()}
-                  </>
-                }
-              >
-                <MyLastRegisters />
-              </Descriptions.Item>
-            </Descriptions>
-          </div>
-        </QueueAnim>
-      </Flex>
-
-      <Flex vertical style={{ width: "100%" }}>
-        <Well
-          total={acumulado}
-          nivel={nivel}
-          caudal={caudal}
-          profW={state.selected_profile?.config_data?.d1}
-        />
-
-        <QueueAnim delay={1200} duration={1200} type="bottom">
-          <div key={"description_well"}>
-            <Descriptions
-              bordered
-              size="small"
-              layout="vertical"
-              style={{
-                borderRadius: "10px",
-                width: "85%",
-              }}
-            >
-              <Descriptions.Item label="Frecuencia" span={2}>
-                {state.selected_profile?.frecuency}/min
-              </Descriptions.Item>
-              <Descriptions.Item label="Siguiente medición" span={2}>
+                <Flex justify="center" align="center" style={{ width: "100%" }}>
+                  <div
+                    style={{
+                      width: "100%",
+                      maxWidth: "320px",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Well
+                      total={acumulado}
+                      nivel={nivel}
+                      caudal={caudal}
+                      profW={state.selected_profile?.config_data?.d1}
+                    />
+                  </div>
+                </Flex>
                 {deadline && (
-                  <Countdown
-                    value={deadline}
-                    valueStyle={{ fontSize: "14px" }}
-                    suffix={<ClockCircleOutlined />}
-                    onFinish={() => onFinishCounter()}
-                  />
+                  <Flex align="center" gap="middle">
+                    <ClockCircleOutlined
+                      style={{ fontSize: 20, color: "#5D6983" }}
+                    />
+                    <Countdown
+                      title={
+                        <Text style={{ color: "#5D6983" }}>
+                          Próxima medición en:
+                        </Text>
+                      }
+                      value={deadline}
+                      format="HH:mm:ss"
+                      valueStyle={{ color: "#1F3461", fontSize: 22 }}
+                    />
+                  </Flex>
                 )}
-              </Descriptions.Item>
-            </Descriptions>
-          </div>
-        </QueueAnim>
-      </Flex>
-    </Flex>
+              </Flex>
+            </Card>
+          </QueueAnim>
+        </Col>
+
+        {/* Columna Derecha: Ficha Técnica (Layout Flex/Tag con datos correctos) */}
+        <Col xs={24} sm={24} md={7} lg={7} xl={7}>
+          <QueueAnim type="right" delay={200}>
+            <div key="d">
+              <WellTechnicalSheet profile={state.selected_profile} />
+            </div>
+          </QueueAnim>
+        </Col>
+      </Row>
+      <Drawer
+        title={<Text style={{ color: "white" }}>Registros de Hoy</Text>}
+        placement="right"
+        onClose={() => setDrawerVisible(false)}
+        open={drawerVisible}
+        width={700}
+        closable={true}
+        closeIcon={<CloseOutlined style={{ color: "white" }} />}
+        headerStyle={{ backgroundColor: "#1F3461" }}
+        bodyStyle={{ padding: "8px" }}
+      >
+        <Table
+          dataSource={lastRegisters}
+          columns={columns}
+          size="small"
+          pagination={{ pageSize: 20, hideOnSinglePage: true }}
+          rowKey="id"
+          scroll={{ y: "calc(100vh - 120px)" }}
+        />
+      </Drawer>
+    </div>
   );
 };
 

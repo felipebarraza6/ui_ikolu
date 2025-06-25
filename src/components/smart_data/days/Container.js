@@ -7,8 +7,8 @@ import {
   TotalDay,
   WaterTableBar,
 } from "./LineGraph";
-import { DatabaseOutlined } from "@ant-design/icons";
-import TableData from "./TableData";
+import { ApartmentOutlined } from "@ant-design/icons";
+import TableData from "../TableData";
 import img_caudal from "../../../assets/images/caudal.png";
 import img_nivel from "../../../assets/images/nivel.png";
 import img_total from "../../../assets/images/acumulado.png";
@@ -17,7 +17,7 @@ import QueueAnim from "rc-queue-anim";
 
 const { TabPane } = Tabs;
 
-const Container = ({ data }) => {
+const Container = ({ data, isToday = false }) => {
   const [activeKey, setActiveKey] = useState("1");
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
@@ -147,20 +147,14 @@ const Container = ({ data }) => {
               activeKey={activeKey}
               onChange={handleTabChange}
               size="small"
-              type="card"
               style={{
                 width: "100%",
                 marginTop: isMobile ? "5px" : "0px",
                 marginBottom: "10px",
               }}
               tabBarStyle={{
-                paddingTop: "5px",
                 position: "flex",
                 justifyContent: "center",
-                paddingLeft: "5px",
-                paddingRight: "5px",
-                width: "100%",
-                borderRadius: "10px 10px 0px 0px",
                 marginBottom: isMobile ? "5px" : "16px",
               }}
               tabBarGutter={isMobile ? 2 : 4}
@@ -168,19 +162,34 @@ const Container = ({ data }) => {
               <TabPane
                 key="1"
                 tab={
-                  <Flex gap={isMobile ? "4px" : "small"} align="center">
+                  <Flex
+                    gap={isMobile ? "4px" : "small"}
+                    align="center"
+                    justify="center"
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      backgroundColor:
+                        activeKey === "1" ? "#1f3461" : "transparent",
+                    }}
+                  >
                     <img
-                      alt="nivel"
+                      alt="acumulado"
                       style={{
-                        width: isMobile ? "20px" : "30px",
+                        width: isMobile ? "20px" : "25px",
                         filter:
                           activeKey === "1"
                             ? "brightness(0) invert(1)"
-                            : "none",
+                            : "grayscale(100%)",
                       }}
                       src={img_total}
                     />
-                    <span style={{ fontSize: isMobile ? "12px" : "14px" }}>
+                    <span
+                      style={{
+                        fontSize: isMobile ? "12px" : "12px",
+                        color: activeKey === "1" ? "white" : "inherit",
+                      }}
+                    >
                       Acumulado(m³)
                     </span>
                   </Flex>
@@ -192,19 +201,34 @@ const Container = ({ data }) => {
               </TabPane>
               <TabPane
                 tab={
-                  <Flex gap={isMobile ? "4px" : "small"} align="center">
+                  <Flex
+                    gap={isMobile ? "4px" : "small"}
+                    align="center"
+                    justify="center"
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      backgroundColor:
+                        activeKey === "2" ? "#1f3461" : "transparent",
+                    }}
+                  >
                     <img
-                      alt="nivel"
+                      alt="consumo hora"
                       style={{
-                        width: isMobile ? "20px" : "30px",
+                        width: isMobile ? "20px" : "25px",
                         filter:
                           activeKey === "2"
                             ? "brightness(0) invert(1)"
-                            : "none",
+                            : "grayscale(100%)",
                       }}
                       src={img_total}
                     />
-                    <span style={{ fontSize: isMobile ? "12px" : "14px" }}>
+                    <span
+                      style={{
+                        fontSize: isMobile ? "12px" : "12px",
+                        color: activeKey === "2" ? "white" : "inherit",
+                      }}
+                    >
                       Consumo Hora(m³/h)
                     </span>
                   </Flex>
@@ -216,50 +240,80 @@ const Container = ({ data }) => {
                 </Card>
               </TabPane>
               <TabPane
-                key="3"
                 tab={
-                  <Flex gap={isMobile ? "4px" : "small"} align="center">
+                  <Flex
+                    gap={isMobile ? "4px" : "small"}
+                    align="center"
+                    justify="center"
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      backgroundColor:
+                        activeKey === "3" ? "#1f3461" : "transparent",
+                    }}
+                  >
                     <img
-                      alt="nivel"
+                      alt="consumo dia"
                       style={{
-                        width: isMobile ? "20px" : "30px",
+                        width: isMobile ? "20px" : "25px",
                         filter:
                           activeKey === "3"
                             ? "brightness(0) invert(1)"
-                            : "none",
+                            : "grayscale(100%)",
                       }}
                       src={img_total}
                     />
-                    <span style={{ fontSize: isMobile ? "12px" : "14px" }}>
+                    <span
+                      style={{
+                        fontSize: isMobile ? "12px" : "12px",
+                        color: activeKey === "3" ? "white" : "inherit",
+                      }}
+                    >
                       Consumo día(m³/d)
                     </span>
                   </Flex>
                 }
+                key="3"
               >
                 <Card hoverable style={styles.card}>
                   <TotalDay data={data} />
                 </Card>
               </TabPane>
               <TabPane
+                key="4"
                 tab={
-                  <Flex gap={isMobile ? "4px" : "small"} align="center">
+                  <Flex
+                    gap={isMobile ? "4px" : "small"}
+                    align="center"
+                    justify="center"
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      backgroundColor:
+                        activeKey === "4" ? "#1f3461" : "transparent",
+                    }}
+                  >
                     <img
                       alt="caudal"
                       style={{
-                        width: isMobile ? "25px" : "40px",
+                        width: isMobile ? "20px" : "25px",
                         filter:
                           activeKey === "4"
                             ? "brightness(0) invert(1)"
-                            : "none",
+                            : "grayscale(100%)",
                       }}
                       src={img_caudal}
                     />
-                    <span style={{ fontSize: isMobile ? "12px" : "14px" }}>
+                    <span
+                      style={{
+                        fontSize: isMobile ? "12px" : "12px",
+                        color: activeKey === "4" ? "white" : "inherit",
+                      }}
+                    >
                       Caudal(L/s)
                     </span>
                   </Flex>
                 }
-                key="4"
               >
                 <Card hoverable style={styles.card}>
                   <FlowArea data={data} />
@@ -268,19 +322,34 @@ const Container = ({ data }) => {
               <TabPane
                 key="5"
                 tab={
-                  <Flex gap={isMobile ? "4px" : "small"} align="center">
+                  <Flex
+                    gap={isMobile ? "4px" : "small"}
+                    align="center"
+                    justify="center"
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      backgroundColor:
+                        activeKey === "5" ? "#1f3461" : "transparent",
+                    }}
+                  >
                     <img
                       alt="nivel"
                       style={{
-                        width: isMobile ? "18px" : "25px",
+                        width: isMobile ? "20px" : "25px",
                         filter:
                           activeKey === "5"
                             ? "brightness(0) invert(1)"
-                            : "none",
+                            : "grayscale(100%)",
                       }}
                       src={img_nivel}
                     />
-                    <span style={{ fontSize: isMobile ? "12px" : "14px" }}>
+                    <span
+                      style={{
+                        fontSize: isMobile ? "12px" : "12px",
+                        color: activeKey === "5" ? "white" : "inherit",
+                      }}
+                    >
                       Nivel freático (m)
                     </span>
                   </Flex>
@@ -292,19 +361,37 @@ const Container = ({ data }) => {
               </TabPane>
               <TabPane
                 tab={
-                  <Flex gap={isMobile ? "4px" : "small"} align="center">
-                    <DatabaseOutlined
-                      style={{ fontSize: isMobile ? "14px" : "16px" }}
+                  <Flex
+                    gap={isMobile ? "4px" : "small"}
+                    align="center"
+                    justify="center"
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      backgroundColor:
+                        activeKey === "6" ? "#1f3461" : "transparent",
+                    }}
+                  >
+                    <ApartmentOutlined
+                      style={{
+                        fontSize: isMobile ? "14px" : "16px",
+                        color: activeKey === "6" ? "white" : "inherit",
+                      }}
                     />
-                    <span style={{ fontSize: isMobile ? "12px" : "14px" }}>
-                      Datos
+                    <span
+                      style={{
+                        fontSize: isMobile ? "12px" : "14px",
+                        color: activeKey === "6" ? "white" : "inherit",
+                      }}
+                    >
+                      Resumen
                     </span>
                   </Flex>
                 }
                 key="6"
               >
                 <Card hoverable style={styles.cardData}>
-                  <TableData data={data} />
+                  <TableData data={data} periodType="day" isToday={isToday} />
                 </Card>
               </TabPane>
             </Tabs>

@@ -58,19 +58,39 @@ const Dash = () => {
   return (
     <div
       style={{
+        maxWidth: "1600px",
+        margin: "24px auto",
+        padding: isMobile ? "10px" : "24px",
+        backgroundColor: "#f5f5f5",
         minHeight: "90vh",
-        padding: isMobile ? "10px" : "20px",
       }}
     >
-      {/* Header con navegación */}
+      {/* Header del módulo */}
       <div
         style={{
-          marginBottom: "20px",
-          backgroundColor: "#1F3461",
-          borderRadius: "10px",
-          padding: isMobile ? "10px" : "15px",
+          marginBottom: "24px",
+          borderRadius: "12px",
+          background: "#1F3461",
+          border: "none",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          padding: isMobile ? "16px" : "24px",
         }}
       >
+        <Flex align="center" gap="middle" style={{ marginBottom: "16px" }}>
+          <PlusCircleFilled style={{ fontSize: 32, color: "white" }} />
+          <h2
+            style={{
+              margin: 0,
+              color: "white",
+              fontSize: "24px",
+              fontWeight: "600",
+            }}
+          >
+            Centro de Soporte
+          </h2>
+        </Flex>
+
+        {/* Navegación */}
         {isMobile ? (
           <Row gutter={8}>
             <Col span={12}>
@@ -81,9 +101,12 @@ const Dash = () => {
                 style={{
                   width: "100%",
                   backgroundColor:
-                    selectedMenu === "1" ? "#FF6B35" : "transparent",
-                  borderColor: selectedMenu === "1" ? "#FF6B35" : "white",
-                  color: selectedMenu === "1" ? "white" : "white",
+                    selectedMenu === "1" ? "#40a9ff" : "rgba(255,255,255,0.1)",
+                  borderColor:
+                    selectedMenu === "1" ? "#40a9ff" : "rgba(255,255,255,0.3)",
+                  color: "white",
+                  borderRadius: "8px",
+                  fontWeight: "500",
                 }}
                 size="small"
               >
@@ -98,9 +121,12 @@ const Dash = () => {
                 style={{
                   width: "100%",
                   backgroundColor:
-                    selectedMenu === "2" ? "#FF6B35" : "transparent",
-                  borderColor: selectedMenu === "2" ? "#FF6B35" : "white",
-                  color: selectedMenu === "2" ? "white" : "white",
+                    selectedMenu === "2" ? "#40a9ff" : "rgba(255,255,255,0.1)",
+                  borderColor:
+                    selectedMenu === "2" ? "#40a9ff" : "rgba(255,255,255,0.3)",
+                  color: "white",
+                  borderRadius: "8px",
+                  fontWeight: "500",
                 }}
                 size="small"
               >
@@ -124,9 +150,11 @@ const Dash = () => {
               key="1"
               style={{
                 backgroundColor:
-                  selectedMenu === "1" ? "#FF6B35" : "transparent",
-                borderRadius: "6px",
-                margin: "0 5px",
+                  selectedMenu === "1" ? "#40a9ff" : "rgba(255,255,255,0.1)",
+                borderRadius: "8px",
+                margin: "0 8px",
+                color: "white",
+                fontWeight: "500",
               }}
             >
               Nuevo Ticket
@@ -136,9 +164,11 @@ const Dash = () => {
               icon={<OrderedListOutlined />}
               style={{
                 backgroundColor:
-                  selectedMenu === "2" ? "#FF6B35" : "transparent",
-                borderRadius: "6px",
-                margin: "0 5px",
+                  selectedMenu === "2" ? "#40a9ff" : "rgba(255,255,255,0.1)",
+                borderRadius: "8px",
+                margin: "0 8px",
+                color: "white",
+                fontWeight: "500",
               }}
             >
               Tickets Completados
@@ -149,30 +179,31 @@ const Dash = () => {
 
       {/* Contenido principal */}
       {selectedMenu === "1" ? (
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 24]}>
           {/* Formulario de crear ticket */}
           <Col xs={24} sm={24} md={10} lg={8} xl={8}>
-            <div
+            <Card
               style={{
-                backgroundColor: "white",
-                borderRadius: "10px",
-                padding: isMobile ? "16px" : "24px",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                borderRadius: "12px",
+                background: "white",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                border: "none",
                 height: "fit-content",
               }}
+              bodyStyle={{ padding: isMobile ? "20px" : "24px" }}
             >
               <div
                 style={{
-                  marginBottom: "16px",
-                  borderBottom: "2px solid #FF6B35",
-                  paddingBottom: "12px",
+                  marginBottom: "20px",
+                  borderBottom: "3px solid #FF6B35",
+                  paddingBottom: "16px",
                 }}
               >
                 <h3
                   style={{
                     margin: 0,
                     color: "#1F3461",
-                    fontSize: isMobile ? "16px" : "18px",
+                    fontSize: isMobile ? "18px" : "20px",
                     fontWeight: "600",
                   }}
                 >
@@ -180,7 +211,7 @@ const Dash = () => {
                 </h3>
                 <p
                   style={{
-                    margin: "4px 0 0 0",
+                    margin: "8px 0 0 0",
                     color: "#666",
                     fontSize: "14px",
                   }}
@@ -194,31 +225,33 @@ const Dash = () => {
                 type="info"
                 showIcon
                 style={{
-                  marginBottom: "16px",
+                  marginBottom: "20px",
                   borderColor: "#FF6B35",
                   backgroundColor: "#FFF8F0",
+                  borderRadius: "8px",
                 }}
               />
 
               <FormSupport update={update} setUpdate={setUpdate} />
-            </div>
+            </Card>
           </Col>
 
           {/* Tickets activos */}
           <Col xs={24} sm={24} md={14} lg={16} xl={16}>
-            <div
+            <Card
               style={{
-                backgroundColor: "white",
-                borderRadius: "10px",
-                padding: isMobile ? "16px" : "24px",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                borderRadius: "12px",
+                background: "white",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                border: "none",
               }}
+              bodyStyle={{ padding: isMobile ? "20px" : "24px" }}
             >
               <div
                 style={{
-                  marginBottom: "16px",
-                  borderBottom: "2px solid #1F3461",
-                  paddingBottom: "12px",
+                  marginBottom: "20px",
+                  borderBottom: "3px solid #1F3461",
+                  paddingBottom: "16px",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
@@ -228,44 +261,53 @@ const Dash = () => {
                   style={{
                     margin: 0,
                     color: "#1F3461",
-                    fontSize: isMobile ? "16px" : "18px",
+                    fontSize: isMobile ? "18px" : "20px",
                     fontWeight: "600",
                   }}
                 >
                   Tickets Activos
                 </h3>
-                <Tag color="#FF6B35" style={{ fontWeight: "500" }}>
+                <Tag
+                  color="#FF6B35"
+                  style={{
+                    fontWeight: "600",
+                    fontSize: "14px",
+                    padding: "6px 16px",
+                    borderRadius: "8px",
+                  }}
+                >
                   {ticketsActives.length} activos
                 </Tag>
               </div>
 
               <ActiveTickets data={ticketsActives} />
-            </div>
+            </Card>
           </Col>
         </Row>
       ) : (
         <Row>
           <Col span={24}>
-            <div
+            <Card
               style={{
-                backgroundColor: "white",
-                borderRadius: "10px",
-                padding: isMobile ? "16px" : "24px",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                borderRadius: "12px",
+                background: "white",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                border: "none",
               }}
+              bodyStyle={{ padding: isMobile ? "20px" : "24px" }}
             >
               <div
                 style={{
-                  marginBottom: "16px",
-                  borderBottom: "2px solid #1F3461",
-                  paddingBottom: "12px",
+                  marginBottom: "20px",
+                  borderBottom: "3px solid #1F3461",
+                  paddingBottom: "16px",
                 }}
               >
                 <h3
                   style={{
                     margin: 0,
                     color: "#1F3461",
-                    fontSize: isMobile ? "16px" : "18px",
+                    fontSize: isMobile ? "18px" : "20px",
                     fontWeight: "600",
                   }}
                 >
@@ -273,7 +315,7 @@ const Dash = () => {
                 </h3>
                 <p
                   style={{
-                    margin: "4px 0 0 0",
+                    margin: "8px 0 0 0",
                     color: "#666",
                     fontSize: "14px",
                   }}
@@ -284,7 +326,7 @@ const Dash = () => {
               </div>
 
               <TableSupport data={tickets} />
-            </div>
+            </Card>
           </Col>
         </Row>
       )}

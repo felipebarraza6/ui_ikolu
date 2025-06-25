@@ -70,13 +70,18 @@ const deleteFile = async (id) => {
   return rq.data;
 };
 
+const getFiles = async (point_catchment) => {
+  const rq = await GET(`file_catchment/?point_catchment=${point_catchment}`);
+  return rq.data;
+};
+
 const formUploadFile = async (values) => {
   const formData = new FormData();
   formData.append("file", values.file.originFileObj);
   formData.append("point_catchment", values.point_catchment);
   formData.append("name", values.name);
   formData.append("description", values.description);
-  formData.append("type_file", 2);
+  formData.append("type_file", values.type_file);
 
   const rq = await POST("file_catchment/", formData);
   return rq.data;
@@ -93,7 +98,7 @@ const downloadFile = async (id_profile, initialDate, finishDate, title) => {
 const downloadFileDga = async (id_profile, initialDate, finishDate, title) => {
   const now_date = new Date();
   const rq = await DOWNLOAD(
-    `interaction_detail_dga/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}`,
+    `interaction_detail_dga/?point_catchment=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}`,
     `${title}.xlsx`
   );
 };
@@ -324,6 +329,7 @@ const sh = {
   downloadMonth: downloadDataMonthToExcel,
   uploadFile: formUploadFile,
   deleteFile: deleteFile,
+  getFiles: getFiles,
   notifications: {
     create: createNotification,
     get: getNotifications,
