@@ -71,24 +71,62 @@ const MENU_ITEMS = [
 const AppRoutes = React.memo(() => {
   const { state } = useContext(AppContext);
 
+  // Función para renderizar el componente de la ruta principal con validaciones
+  const renderMainRoute = () => {
+    // Validar que tengamos un selected_profile válido
+    if (!state.selected_profile || !state.selected_profile.id) {
+      return (
+        <div style={{ padding: "20px", textAlign: "center" }}>
+          <p>Cargando información del punto de captación...</p>
+        </div>
+      );
+    }
+
+    // Validar que tengamos las propiedades necesarias
+    const hasValidDga =
+      state.selected_profile.dga &&
+      typeof state.selected_profile.dga === "object";
+    const hasValidUser = state.user && typeof state.user === "object";
+
+    if (!hasValidDga) {
+      console.warn(
+        "Selected profile sin datos DGA válidos:",
+        state.selected_profile
+      );
+      return (
+        <div style={{ padding: "20px", textAlign: "center" }}>
+          <p>Error: Información DGA no disponible</p>
+        </div>
+      );
+    }
+
+    try {
+      if (state.selected_profile.dga.type_dga === "SUBTERRANEO") {
+        if (state.selected_profile.dga.standard === "CAUDALES_MUY_PEQUENOS") {
+          return (
+            <TableStandarVerySmallResponsive data={state.selected_profile} />
+          );
+        } else {
+          return <MyWell />;
+        }
+      } else if (hasValidUser && state.user.username === "arrocerospti") {
+        return <PrototypeUmi />;
+      } else {
+        return <Sma />;
+      }
+    } catch (error) {
+      console.error("Error renderizando ruta principal:", error);
+      return (
+        <div style={{ padding: "20px", textAlign: "center" }}>
+          <p>Error cargando el componente principal</p>
+        </div>
+      );
+    }
+  };
+
   return (
     <Routes>
-      <Route
-        path="/"
-        element={
-          state.selected_profile.dga.type_dga === "SUBTERRANEO" ? (
-            state.selected_profile.dga.standard === "CAUDALES_MUY_PEQUENOS" ? (
-              <TableStandarVerySmallResponsive data={state.selected_profile} />
-            ) : (
-              <MyWell />
-            )
-          ) : state.user.username === "arrocerospti" ? (
-            <PrototypeUmi />
-          ) : (
-            <Sma />
-          )
-        }
-      />
+      <Route path="/" element={renderMainRoute()} />
       <Route path="/analisis" element={<ResponsiveSmartAnalysis />} />
       <Route path="/dga" element={<ResponsiveDga />} />
       <Route path="/dga-analisis" element={<GraphisNavDga />} />

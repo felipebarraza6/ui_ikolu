@@ -44,15 +44,44 @@ export const appReducer = (state, action) => {
       localStorage.setItem("user", JSON.stringify(action.payload.user));
       localStorage.setItem(
         "profile_client",
-        JSON.stringify(action.payload.catchment_points)
+        JSON.stringify(action.payload.user.catchment_points)
       );
+
+      // Validar selected_profile
+      let validSelectedProfile = action.payload.selected_profile;
+      const catchmentPoints = action.payload.user.catchment_points;
+
+      if (catchmentPoints && catchmentPoints.length > 0) {
+        if (!validSelectedProfile || !validSelectedProfile.id) {
+          // Si no hay selected_profile válido, usar el primero
+          validSelectedProfile = {
+            ...catchmentPoints[0],
+            key: catchmentPoints[0].id,
+          };
+        } else {
+          // Verificar si el selected_profile existe en los catchment_points
+          const profileExists = catchmentPoints.find(
+            (p) => p.id === validSelectedProfile.id
+          );
+          if (!profileExists) {
+            validSelectedProfile = {
+              ...catchmentPoints[0],
+              key: catchmentPoints[0].id,
+            };
+          }
+        }
+        localStorage.setItem(
+          "selected_profile",
+          JSON.stringify(validSelectedProfile)
+        );
+      }
 
       return {
         ...state,
         isAuth: true,
         user: action.payload.user,
         profile_client: action.payload.user.catchment_points,
-        selected_profile: action.payload.selected_profile,
+        selected_profile: validSelectedProfile,
       };
 
     case "DEFAULT_LIST":

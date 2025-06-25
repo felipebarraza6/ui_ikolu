@@ -24,12 +24,43 @@ function getInitialState() {
   const profile_client = safeParseJSON("profile_client", []);
   const selected_profile = safeParseJSON("selected_profile", null);
 
+  // Validar y sincronizar selected_profile con profile_client
+  let validSelectedProfile = null;
+
+  if (selected_profile && profile_client && profile_client.length > 0) {
+    // Verificar si el selected_profile existe en profile_client
+    const profileExists = profile_client.find(
+      (p) => p.id === selected_profile.id
+    );
+    if (profileExists) {
+      validSelectedProfile = selected_profile;
+    } else {
+      // Si no existe, usar el primer perfil disponible
+      validSelectedProfile = {
+        ...profile_client[0],
+        key: profile_client[0].id,
+      };
+      // Actualizar localStorage con el perfil corregido
+      localStorage.setItem(
+        "selected_profile",
+        JSON.stringify(validSelectedProfile)
+      );
+    }
+  } else if (profile_client && profile_client.length > 0) {
+    // Si no hay selected_profile pero sí hay profile_client, usar el primero
+    validSelectedProfile = { ...profile_client[0], key: profile_client[0].id };
+    localStorage.setItem(
+      "selected_profile",
+      JSON.stringify(validSelectedProfile)
+    );
+  }
+
   return {
     isAuth: !!user && !!token,
     token: token,
     user: user || {},
     profile_client: profile_client || [],
-    selected_profile: selected_profile || {
+    selected_profile: validSelectedProfile || {
       dga: {},
       config_data: {},
       modules: {},
