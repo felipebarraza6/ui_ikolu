@@ -8,8 +8,16 @@ import {
   AlertOutlined,
   CustomerServiceOutlined,
   DownloadOutlined,
+  EnvironmentOutlined,
 } from "@ant-design/icons";
-import { Outlet, Link, Routes, Route, useLocation } from "react-router-dom";
+import {
+  Outlet,
+  Link,
+  Routes,
+  Route,
+  useLocation,
+  Navigate,
+} from "react-router-dom";
 import logo from "../assets/images/logozivo.png";
 import HeaderNav from "../components/home/HeaderNav";
 import MyWell from "../components/mywell/MyWell";
@@ -34,19 +42,20 @@ import minLogo from "../assets/images/logo-blanco.png";
 import { useResponsive } from "../hooks/useResponsive";
 import Documentation from "../components/documentation/Documentation";
 import UserDocumentation from "../components/documentation/UserDocumentation";
+import ResponsiveGeoSmart from "../components/geo_smart/ResponsiveGeoSmart";
 
 const { Header, Sider, Content } = Layout;
 
 const MENU_ITEMS = [
-  { key: "1", icon: <WifiOutlined />, label: "Telemetría", to: "/" },
+  { key: "1", icon: <EnvironmentOutlined />, label: "GEO Smart", to: "/geo" },
+  { key: "2", icon: <WifiOutlined />, label: "Telemetría", to: "/telemetria" },
   {
-    key: "2",
+    key: "3",
     icon: <BarChartOutlined />,
     label: "Smart Análisis",
     to: "/analisis",
   },
-  { key: "3", icon: <FileTextOutlined />, label: "DGA - MEE", to: "/dga" },
-
+  { key: "4", icon: <FileTextOutlined />, label: "DGA - MEE", to: "/dga" },
   { key: "5", icon: <DownloadOutlined />, label: "Descarga", to: "/descarga" },
   {
     key: "6",
@@ -121,7 +130,8 @@ const AppRoutes = React.memo(() => {
 
   return (
     <Routes>
-      <Route path="/" element={renderMainRoute()} />
+      <Route path="/geo" element={<ResponsiveGeoSmart />} />
+      <Route path="/telemetria" element={renderMainRoute()} />
       <Route path="/analisis" element={<ResponsiveSmartAnalysis />} />
       <Route path="/dga" element={<ResponsiveDga />} />
       <Route path="/dga-analisis" element={<GraphisNavDga />} />
@@ -143,6 +153,7 @@ const AppRoutes = React.memo(() => {
       <Route path="/supp" element={<Supp />} />
       <Route path="/documentation" element={<Documentation />} />
       <Route path="/user-documentation" element={<UserDocumentation />} />
+      <Route path="/" element={<Navigate to="/geo" replace />} />
     </Routes>
   );
 });

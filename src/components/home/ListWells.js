@@ -88,6 +88,7 @@ const ListWells = () => {
             selected_profile: { ...selectedProfile, key },
           },
         });
+        navigate("/telemetria");
       }
     },
     [navigate, state.profile_client, dispatch, hasValidData]
@@ -120,7 +121,7 @@ const ListWells = () => {
         }
 
         return (
-          <Select.Option key={e.id} disabled={disabledWell(e)} value={e.id}>
+          <Select.Option key={e.id} value={e.id}>
             <Flex gap="large" justify="space-between" align="center">
               <Flex gap="small" align="center">
                 <Badge
