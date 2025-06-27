@@ -18,6 +18,7 @@
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.0",
     "leaflet": "^1.9.4",
+    "leaflet.markercluster": "^1.5.3",
     "moment": "^2.29.4",
     "qrcode.react": "^3.1.0",
     "rc-queue-anim": "^2.0.0",

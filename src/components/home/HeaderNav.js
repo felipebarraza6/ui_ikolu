@@ -1,45 +1,32 @@
-import React, { useContext, useState, useMemo } from "react";
+import React, { useContext, useMemo } from "react";
 import { AppContext } from "../../App";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   LogoutOutlined,
   WifiOutlined,
-  ArrowLeftOutlined,
-  MenuOutlined,
   UserOutlined,
   BarChartOutlined,
   FileTextOutlined,
   AlertOutlined,
   CustomerServiceOutlined,
   DownloadOutlined,
+  EnvironmentOutlined,
 } from "@ant-design/icons";
-import {
-  Typography,
-  Button,
-  Popconfirm,
-  Flex,
-  Drawer,
-  Menu,
-  Breadcrumb,
-} from "antd";
+import { Typography, Button, Popconfirm, Flex, Breadcrumb } from "antd";
 import ListWells from "./ListWells";
-import logo from "../../assets/images/logozivo.png";
-import minLogo from "../../assets/images/logo-blanco.png";
-import { Link } from "react-router-dom";
-import { useResponsive } from "../../hooks/useResponsive";
 
 const { Title } = Typography;
 
 const MENU_ITEMS = [
-  { key: "1", icon: <WifiOutlined />, label: "Telemetría", to: "/" },
+  { key: "1", icon: <EnvironmentOutlined />, label: "GEO Smart", to: "/geo" },
+  { key: "2", icon: <WifiOutlined />, label: "Telemetría", to: "/telemetria" },
   {
-    key: "2",
+    key: "3",
     icon: <BarChartOutlined />,
     label: "Smart Análisis",
     to: "/analisis",
   },
-  { key: "3", icon: <FileTextOutlined />, label: "DGA - MEE", to: "/dga" },
-
+  { key: "4", icon: <FileTextOutlined />, label: "DGA - MEE", to: "/dga" },
   { key: "5", icon: <DownloadOutlined />, label: "Descarga", to: "/descarga" },
   {
     key: "6",
@@ -76,102 +63,39 @@ const UserInfo = React.memo(({ email }) => (
         width: "8px",
         height: "8px",
         borderRadius: "50%",
+        marginLeft: 8,
       }}
     />
   </Flex>
 ));
 
-const MobileHeader = ({ onMenuClick, onLogout }) => {
-  const { pathname } = useLocation();
-  const navigate = useNavigate();
-
-  return (
-    <>
-      <div
-        style={{
-          background: "#1F3461",
-          padding: "16px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          minHeight: "70px",
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 1000,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-        }}
-      >
-        <Button
-          type="text"
-          icon={<MenuOutlined />}
-          onClick={onMenuClick}
-          style={{ color: "white" }}
-        />
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            justifyContent: "center",
-            margin: "0 12px",
-          }}
-        >
-          {pathname === "/formmultidata" ? (
-            <Button icon={<ArrowLeftOutlined />} onClick={() => navigate("/")}>
-              Volver
-            </Button>
-          ) : (
-            <div style={{ width: "100%", maxWidth: "300px" }}>
-              <ListWells />
-            </div>
-          )}
-        </div>
-        <Popconfirm
-          cancelText="Volver"
-          okText="SALIR"
-          title="¿Estás seguro de querer cerrar la sesión?"
-          onConfirm={onLogout}
-        >
-          <Button
-            type="text"
-            icon={<LogoutOutlined />}
-            style={{ color: "white" }}
-          />
-        </Popconfirm>
-      </div>
-    </>
-  );
-};
-
-const DesktopHeader = ({ user, onLogout }) => {
-  const { state } = useContext(AppContext);
+const HeaderNav = () => {
+  const { state, dispatch } = useContext(AppContext);
   const location = useLocation();
+
+  const handleLogout = () => {
+    dispatch({ type: "LOGOUT" });
+    // No es necesario navegar aquí, el AppRouter se encargará
+  };
 
   const moduleName = useMemo(() => {
     const currentPath = location.pathname;
-    const menuItem = MENU_ITEMS.find((item) => item.to === currentPath);
+    const menuItem = MENU_ITEMS.find((item) => currentPath.startsWith(item.to));
     return menuItem ? menuItem.label : "Módulo";
   }, [location.pathname]);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        height: "100%",
-        padding: "0 24px",
-        boxShadow: "0 2px 8px rgba(31, 52, 97, 0.15)",
-        transition: "box-shadow 0.3s",
-      }}
+    <Flex
+      align="center"
+      justify="space-between"
+      style={{ width: "100%", height: "100%" }}
     >
       <Breadcrumb
         separator=">"
         style={{ fontSize: "16px", fontWeight: 500 }}
         items={[
           {
-            title: state.selected_profile.title || "Punto de Captación",
+            title: state.selected_profile?.title || "Punto de Captación",
           },
           {
             title: moduleName,
@@ -180,93 +104,18 @@ const DesktopHeader = ({ user, onLogout }) => {
       />
       <Flex align="center" gap="large">
         <ListWells />
-      </Flex>
-      <Flex align="center" gap="middle">
-        <UserInfo email={user.email} />
+        <UserInfo email={state.user?.email} />
         <Popconfirm
           cancelText="Volver"
           okText="SALIR"
           title="¿Estás seguro de querer cerrar la sesión?"
-          onConfirm={onLogout}
+          onConfirm={handleLogout}
         >
           <Button type="text" icon={<LogoutOutlined />} />
         </Popconfirm>
       </Flex>
-    </div>
+    </Flex>
   );
-};
-
-const NavDrawer = ({ visible, onClose }) => (
-  <Drawer
-    title={<img src={logo} alt="Logo" style={{ height: 50 }} />}
-    placement="left"
-    onClose={onClose}
-    open={visible}
-    closable={false}
-    width={280}
-    bodyStyle={{ padding: 0 }}
-  >
-    <Menu mode="vertical" style={{ border: "none" }} onClick={onClose}>
-      {MENU_ITEMS.map((item) => (
-        <Menu.Item
-          key={item.key}
-          icon={item.icon}
-          style={{
-            margin: "8px 0",
-            borderRadius: "8px",
-            height: "48px",
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <Link to={item.to}>{item.label}</Link>
-        </Menu.Item>
-      ))}
-    </Menu>
-    <div
-      style={{
-        position: "absolute",
-        bottom: 20,
-        left: 20,
-        right: 20,
-        textAlign: "center",
-      }}
-    >
-      <img
-        src={minLogo}
-        alt="Smart Hydro"
-        style={{ width: "60%", opacity: 0.8 }}
-      />
-    </div>
-  </Drawer>
-);
-
-const HeaderNav = () => {
-  const { state, dispatch } = useContext(AppContext);
-  const { isMobile } = useResponsive();
-  const [drawerVisible, setDrawerVisible] = useState(false);
-
-  const handleLogout = () => {
-    dispatch({ type: "LOGOUT" });
-    window.location.assign("/");
-  };
-
-  if (isMobile) {
-    return (
-      <>
-        <MobileHeader
-          onMenuClick={() => setDrawerVisible(true)}
-          onLogout={handleLogout}
-        />
-        <NavDrawer
-          visible={drawerVisible}
-          onClose={() => setDrawerVisible(false)}
-        />
-      </>
-    );
-  }
-
-  return <DesktopHeader user={state.user} onLogout={handleLogout} />;
 };
 
 export default HeaderNav;

@@ -1,5 +1,15 @@
-import React, { useContext, useMemo } from "react";
-import { Layout, Menu, Button, Flex } from "antd";
+import React, { useContext, useMemo, useState } from "react";
+import {
+  Layout,
+  Menu,
+  Button,
+  Flex,
+  ConfigProvider,
+  theme,
+  Drawer,
+  Avatar,
+  Typography,
+} from "antd";
 import {
   HomeOutlined,
   BarChartOutlined,
@@ -9,6 +19,8 @@ import {
   CustomerServiceOutlined,
   DownloadOutlined,
   EnvironmentOutlined,
+  MenuOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 import {
   Outlet,
@@ -42,9 +54,11 @@ import minLogo from "../assets/images/logo-blanco.png";
 import { useResponsive } from "../hooks/useResponsive";
 import Documentation from "../components/documentation/Documentation";
 import UserDocumentation from "../components/documentation/UserDocumentation";
-import ResponsiveGeoSmart from "../components/geo_smart/ResponsiveGeoSmart";
+import GeoSmart from "../components/geo_smart/GeoSmart";
 
 const { Header, Sider, Content } = Layout;
+const { useToken } = theme;
+const { Title } = Typography;
 
 const MENU_ITEMS = [
   { key: "1", icon: <EnvironmentOutlined />, label: "GEO Smart", to: "/geo" },
@@ -80,9 +94,9 @@ const AppRoutes = React.memo(() => {
     // Validar que tengamos un selected_profile válido
     if (!state.selected_profile || !state.selected_profile.id) {
       return (
-        <div style={{ padding: "20px", textAlign: "center" }}>
+        <Flex align="center" justify="center" style={{ height: "50vh" }}>
           <p>Cargando información del punto de captación...</p>
-        </div>
+        </Flex>
       );
     }
 
@@ -98,9 +112,9 @@ const AppRoutes = React.memo(() => {
         state.selected_profile
       );
       return (
-        <div style={{ padding: "20px", textAlign: "center" }}>
+        <Flex align="center" justify="center" style={{ height: "50vh" }}>
           <p>Error: Información DGA no disponible</p>
-        </div>
+        </Flex>
       );
     }
 
@@ -121,16 +135,16 @@ const AppRoutes = React.memo(() => {
     } catch (error) {
       console.error("Error renderizando ruta principal:", error);
       return (
-        <div style={{ padding: "20px", textAlign: "center" }}>
+        <Flex align="center" justify="center" style={{ height: "50vh" }}>
           <p>Error cargando el componente principal</p>
-        </div>
+        </Flex>
       );
     }
   };
 
   return (
     <Routes>
-      <Route path="/geo" element={<ResponsiveGeoSmart />} />
+      <Route path="/geo" element={<GeoSmart />} />
       <Route path="/telemetria" element={renderMainRoute()} />
       <Route path="/analisis" element={<ResponsiveSmartAnalysis />} />
       <Route path="/dga" element={<ResponsiveDga />} />
@@ -158,173 +172,160 @@ const AppRoutes = React.memo(() => {
   );
 });
 
-const DesktopLayout = ({ children }) => {
+const SideMenu = ({ inDrawer = false, onLinkClick }) => {
   const location = useLocation();
+  const { token } = useToken();
 
   const selectedKey = useMemo(() => {
     const currentPath = location.pathname;
-    const menuItem = MENU_ITEMS.find((item) => item.to === currentPath);
+    const menuItem = MENU_ITEMS.find((item) => currentPath.startsWith(item.to));
     return menuItem ? menuItem.key : "1";
   }, [location.pathname]);
 
   return (
-    <>
-      <style>{`
-        .ant-layout-sider .ant-menu-item::after {
-          border-right: none !important;
-        }
-
-        .ant-layout-sider .ant-menu-item-selected {
-          background-color: white !important;
-          color: #1F3461 !important;
-          font-weight: 600;
-          border-radius: 8px;
-          margin: 4px 8px !important;
-          width: calc(100% - 16px);
-        }
-        
-        .ant-layout-sider .ant-menu-item-selected .ant-menu-item-icon,
-        .ant-layout-sider .ant-menu-item-selected a {
-          color: #1F3461 !important;
-        }
-
-        .ant-layout-sider .ant-menu-item:not(.ant-menu-item-selected):hover {
-          background-color: rgba(255, 255, 255, 0.1) !important;
-          border-radius: 8px;
-          margin: 4px 8px !important;
-          width: calc(100% - 16px);
-        }
-      `}</style>
-      <Layout style={{ minHeight: "100vh" }}>
-        <Sider
-          breakpoint="lg"
-          collapsedWidth="0"
-          style={{
-            background: "#1F3461",
-            minHeight: "100vh",
-            position: "fixed",
-            left: 0,
-            zIndex: 100,
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              height: "100%",
-              padding: "20px 0 0 0",
-            }}
-          >
-            <div style={{ textAlign: "center", paddingBottom: "20px" }}>
-              <img
-                src={logo}
-                alt="Logo"
-                style={{ width: 60, marginBottom: 8 }}
-              />
-            </div>
-            <div style={{ flex: 1, overflowY: "auto" }}>
-              <Menu
-                theme="dark"
-                mode="inline"
-                selectedKeys={[selectedKey]}
-                style={{ background: "#1F3461", border: "none" }}
-              >
-                {MENU_ITEMS.map((item) => (
-                  <Menu.Item key={item.key} icon={item.icon}>
-                    <Link to={item.to}>{item.label}</Link>
-                  </Menu.Item>
-                ))}
-              </Menu>
-            </div>
-            <div
-              style={{
-                flexShrink: 0,
-                textAlign: "center",
-                padding: "20px 16px 15px 16px",
-                marginTop: "100%",
-                borderTop: "1px solid rgba(255,255,255,0.1)",
-              }}
-            >
-              <img
-                src={minLogo}
-                alt="Smart Hydro"
-                style={{ width: "75%", maxWidth: "120px", opacity: 0.9 }}
-              />
-            </div>
-          </div>
-        </Sider>
-        <Layout style={{ marginLeft: 200, background: "#f0f2f5" }}>
-          <Header
-            style={{
-              padding: 0,
-              background: "#f0f2f5",
-              position: "sticky",
-              top: 0,
-              zIndex: 50,
-            }}
-          >
-            <HeaderNav />
-          </Header>
-          <Content
-            style={{
-              margin: window.innerWidth > 768 ? "24px 16px" : "0px",
-              overflow: "initial",
-              width: "100%",
-            }}
-          >
-            <div style={{ padding: 24, background: "#fff", borderRadius: 16 }}>
-              {children}
-            </div>
-          </Content>
-        </Layout>
-      </Layout>
-    </>
+    <Flex vertical style={{ height: "100%" }}>
+      <div style={{ textAlign: "center", padding: "24px 0" }}>
+        <img src={logo} alt="Logo Zivo" style={{ width: inDrawer ? 80 : 60 }} />
+      </div>
+      <Menu
+        theme="dark"
+        mode="inline"
+        selectedKeys={[selectedKey]}
+        onClick={onLinkClick}
+        style={{
+          background: "transparent",
+          border: "none",
+          flex: 1,
+          overflowY: "auto",
+        }}
+        items={MENU_ITEMS.map((item) => ({
+          key: item.key,
+          icon: item.icon,
+          label: <Link to={item.to}>{item.label}</Link>,
+        }))}
+      />
+      <div style={{ padding: "16px", textAlign: "center" }}>
+        <img
+          src={minLogo}
+          alt="Smart Hydro"
+          style={{ width: "80%", maxWidth: "120px", opacity: 0.8 }}
+        />
+      </div>
+    </Flex>
   );
 };
 
-const MobileLayout = ({ children }) => (
-  <>
-    <style>{`
-      body { overflow-x: hidden !important; }
-      .mobile-content {
-        position: relative;
-        top: 0;
-        left: 0;
-        width: 100%;
-        z-index: 1;
-        padding-top: 105px;
-        min-height: 100vh;
-        background: #f0f2f5;
-      }
-    `}</style>
-    <HeaderNav />
-    <div className="mobile-content">
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 8,
-          marginTop: "50px",
-          padding: 4,
-          minHeight: "calc(100vh - 86px)",
-        }}
-      >
-        <div style={{ borderRadius: "10px", minHeight: "calc(100vh - 94px)" }}>
-          {children}
-        </div>
-      </div>
-    </div>
-  </>
-);
-
-const Home = () => {
+const AppLayout = ({ children }) => {
   const { isMobile } = useResponsive();
+  const [drawerVisible, setDrawerVisible] = useState(false);
+  const { token } = useToken();
 
-  const LayoutComponent = isMobile ? MobileLayout : DesktopLayout;
+  const handleDrawerToggle = () => {
+    setDrawerVisible(!drawerVisible);
+  };
 
   return (
-    <LayoutComponent>
-      <AppRoutes />
-    </LayoutComponent>
+    <Layout style={{ minHeight: "100vh" }}>
+      {!isMobile && (
+        <Sider
+          width={250}
+          style={{
+            background: token.colorPrimary,
+            position: "fixed",
+            height: "100%",
+            left: 0,
+            top: 0,
+            bottom: 0,
+            zIndex: 1000,
+          }}
+        >
+          <SideMenu />
+        </Sider>
+      )}
+      <Layout style={{ marginLeft: isMobile ? 0 : 250 }}>
+        <Header
+          style={{
+            padding: "0 24px",
+            background: token.colorBgContainer,
+            display: "flex",
+            alignItems: "center",
+            position: "sticky",
+            top: 0,
+            zIndex: 10,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+            width: "100%",
+          }}
+        >
+          {isMobile && (
+            <Button
+              icon={<MenuOutlined />}
+              onClick={handleDrawerToggle}
+              style={{ marginRight: 16 }}
+            />
+          )}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <HeaderNav />
+          </div>
+        </Header>
+        <Content
+          style={{
+            margin: "24px 16px",
+            padding: 24,
+            minHeight: 280,
+            background: token.colorBgContainer,
+            borderRadius: token.borderRadiusLG,
+          }}
+        >
+          {children}
+        </Content>
+      </Layout>
+      {isMobile && (
+        <Drawer
+          placement="left"
+          closable={false}
+          onClose={handleDrawerToggle}
+          open={drawerVisible}
+          width={250}
+          bodyStyle={{ padding: 0, background: token.colorPrimary }}
+        >
+          <SideMenu inDrawer onLinkClick={handleDrawerToggle} />
+        </Drawer>
+      )}
+    </Layout>
+  );
+};
+
+const Home = () => {
+  return (
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: "#1F3461",
+          borderRadius: 8,
+        },
+        components: {
+          Layout: {
+            headerBg: "#ffffff",
+            bodyBg: "#f0f2f5",
+            siderBg: "#1F3461",
+          },
+          Menu: {
+            darkItemBg: "#1F3461",
+            darkItemColor: "rgba(255, 255, 255, 0.75)",
+            darkItemSelectedBg: "#ffffff",
+            darkItemSelectedColor: "#1F3461",
+            darkItemHoverBg: "rgba(255, 255, 255, 0.1)",
+          },
+          Button: {
+            primaryShadow: "none",
+          },
+        },
+      }}
+    >
+      <AppLayout>
+        <AppRoutes />
+      </AppLayout>
+    </ConfigProvider>
   );
 };
 
