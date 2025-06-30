@@ -10,7 +10,10 @@ const AppRouter = () => {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/" element={<Navigate to="/geo" replace />} />
+      <Route
+        path="/"
+        element={isAuth ? <Home /> : <Navigate to="/login" replace />}
+      />
       <Route
         path="/*"
         element={isAuth ? <Home /> : <Navigate to="/login" replace />}

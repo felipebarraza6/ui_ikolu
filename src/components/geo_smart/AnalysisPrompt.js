@@ -29,10 +29,21 @@ import {
   InteractionOutlined,
 } from "@ant-design/icons";
 import { LuBrain } from "react-icons/lu";
-import { FaHouseFloodWater } from "react-icons/fa6";
+import {
+  FaHouseFloodWater,
+  FaWater,
+  FaTint,
+  FaHandHoldingWater,
+  FaBroadcastTower,
+  FaStream,
+  FaThermometerHalf,
+  FaArrowDown,
+} from "react-icons/fa";
 import { formatInteger, formatFlow } from "../../utils/numberFormatter";
 import moment from "moment";
 import "moment/locale/es";
+import { MdWater, MdWaves, MdWaterDrop } from "react-icons/md";
+import { WiHumidity, WiThermometer } from "react-icons/wi";
 
 moment.locale("es");
 const { Title, Text, Paragraph } = Typography;
@@ -47,9 +58,9 @@ const AnalysisPrompt = ({ profiles }) => {
     }
 
     const todayConsumers = [];
-    const waterLevels = [];
     const loggerStatuses = [];
     const highestFlows = [];
+    const waterLevelAnalysis = []; // Nuevo array para análisis individual por punto
     let consumptionChanges = [];
     let totalToday = 0;
     let totalYesterday = 0;
@@ -87,10 +98,50 @@ const AnalysisPrompt = ({ profiles }) => {
         highestFlows.push({ name: p.title, value: Number(p.modules.m1.flow) });
       }
 
-      // Water Level Analysis
-      if (p.water_level !== undefined && p.water_level !== null) {
-        waterLevels.push({ name: p.title, level: p.water_level });
+      // Water Level Analysis - Por punto individual
+      const todayData = p.modules?.m22 || [];
+      const waterLevels = [];
+
+      todayData.forEach((record) => {
+        const waterLevel =
+          record.water_table !== undefined && record.water_table !== null
+            ? record.water_table
+            : record.water_level;
+
+        if (
+          waterLevel !== undefined &&
+          waterLevel !== null &&
+          !isNaN(Number(waterLevel))
+        ) {
+          waterLevels.push({
+            level: Number(waterLevel),
+            time: record.date_time_medition,
+            record: record,
+          });
+        }
+      });
+
+      // Ordenar niveles de agua para este punto (más profundo = mayor valor)
+      waterLevels.sort((a, b) => b.level - a.level);
+
+      if (waterLevels.length > 0) {
+        waterLevelAnalysis.push({
+          name: p.title,
+          deepestLevel: waterLevels[0], // Primer elemento (mayor valor)
+          shallowestLevel: waterLevels[waterLevels.length - 1], // Último elemento (menor valor)
+          totalReadings: waterLevels.length,
+          allLevels: waterLevels,
+        });
       }
+
+      // Debug: Verificar datos de nivel de agua para este punto
+      console.log(`🔍 Análisis de nivel de agua para ${p.title}:`, {
+        totalRecords: todayData.length,
+        validWaterLevels: waterLevels.length,
+        deepestLevel: waterLevels.length > 0 ? waterLevels[0] : null,
+        shallowestLevel:
+          waterLevels.length > 0 ? waterLevels[waterLevels.length - 1] : null,
+      });
 
       // Logger Status Analysis
       if (p.modules?.m1?.created) {
@@ -107,11 +158,16 @@ const AnalysisPrompt = ({ profiles }) => {
     // Sorting
     todayConsumers.sort((a, b) => b.value - a.value);
     consumptionChanges.sort((a, b) => b.change - a.change);
-    waterLevels.sort((a, b) => b.level - a.level);
     loggerStatuses.sort(
       (a, b) => b.last_updated.valueOf() - a.last_updated.valueOf()
     ); // Most recent first
     highestFlows.sort((a, b) => b.value - a.value);
+
+    // Debug: Resumen de análisis de niveles de agua
+    console.log(`📊 Resumen de análisis de niveles por punto:`, {
+      totalPointsWithWaterLevels: waterLevelAnalysis.length,
+      waterLevelAnalysis: waterLevelAnalysis,
+    });
 
     const overallChange =
       totalYesterday > 0
@@ -126,9 +182,7 @@ const AnalysisPrompt = ({ profiles }) => {
         .filter((c) => c.change < 0)
         .sort((a, b) => a.change - b.change),
       highestFlows: highestFlows,
-      deepestLevel: waterLevels.length > 0 ? waterLevels[0] : null,
-      shallowestLevel:
-        waterLevels.length > 0 ? waterLevels[waterLevels.length - 1] : null,
+      waterLevelAnalysis: waterLevelAnalysis, // Nuevo campo
       loggerStatuses,
       stoppedConsuming,
       overallChange,
@@ -196,7 +250,6 @@ const AnalysisPrompt = ({ profiles }) => {
   return (
     <Card
       style={{ height: "100%", display: "flex", flexDirection: "column" }}
-      bodyStyle={{ flex: 1 }}
       title={mainCardTitle}
     >
       <Row gutter={[16, 16]} style={{ height: "100%" }}>
@@ -260,8 +313,8 @@ const AnalysisPrompt = ({ profiles }) => {
                   gap: "8px",
                 }}
               >
-                <FaHouseFloodWater />
-                Peak Consumos
+                <FaBroadcastTower style={{ color: "#1890ff" }} />
+                Picos de Consumo
               </Title>
             }
           >
@@ -303,7 +356,7 @@ const AnalysisPrompt = ({ profiles }) => {
                   gap: "8px",
                 }}
               >
-                <InteractionOutlined />
+                <FaStream style={{ color: "#52c41a" }} />
                 Mayores Caudales
               </Title>
             }
@@ -322,7 +375,7 @@ const AnalysisPrompt = ({ profiles }) => {
             {renderList(analysis.highestFlows, "caudales", "value", (item) => (
               <List.Item style={{ padding: "8px 0" }}>
                 <Text style={{ flex: 1 }}>{item.name}</Text>
-                <Text strong>{formatFlow(item.value)} l/s</Text>
+                <Text strong>{formatFlow(item.value)} L/s</Text>
               </List.Item>
             ))}
           </Card>
@@ -341,7 +394,7 @@ const AnalysisPrompt = ({ profiles }) => {
                   gap: "8px",
                 }}
               >
-                <FallOutlined />
+                <FaArrowDown style={{ color: "#fa8c16" }} />
                 Mayores Bajas
               </Title>
             }
@@ -384,8 +437,8 @@ const AnalysisPrompt = ({ profiles }) => {
                   gap: "8px",
                 }}
               >
-                <ClockCircleOutlined />
-                Estado Conexión
+                <WiThermometer style={{ color: "#722ed1" }} />
+                Estado de Conexión
               </Title>
             }
           >
@@ -433,51 +486,151 @@ const AnalysisPrompt = ({ profiles }) => {
           </Card>
         </Col>
 
-        {analysis.deepestLevel ||
-          (analysis.shallowestLevel && (
-            <Col span={24}>
-              <Card type="inner" title="Análisis Freático">
-                <Row>
-                  {analysis.deepestLevel && (
-                    <Col xs={24} sm={12}>
-                      <Statistic
-                        title={
-                          <Flex align="center" gap="small">
-                            <VerticalAlignBottomOutlined />
-                            <Text>Nivel más Profundo</Text>
-                          </Flex>
-                        }
-                        value={formatFlow(analysis.deepestLevel.level)}
-                        suffix="m"
-                      />
-                      <Paragraph type="secondary">
-                        Registrado en{" "}
-                        <Text strong>{analysis.deepestLevel.name}</Text>.
-                      </Paragraph>
-                    </Col>
-                  )}
-                  {analysis.shallowestLevel && (
-                    <Col xs={24} sm={12}>
-                      <Statistic
-                        title={
-                          <Flex align="center" gap="small">
-                            <VerticalAlignTopOutlined />
-                            <Text>Nivel más Superficial</Text>
-                          </Flex>
-                        }
-                        value={formatFlow(analysis.shallowestLevel.level)}
-                        suffix="m"
-                      />
-                      <Paragraph type="secondary">
-                        Registrado en{" "}
-                        <Text strong>{analysis.shallowestLevel.name}</Text>.
-                      </Paragraph>
-                    </Col>
-                  )}
-                </Row>
-              </Card>
-            </Col>
-          ))}
+        {analysis.waterLevelAnalysis.length > 0 && (
+          <Col span={24}>
+            <Card
+              type="inner"
+              title={
+                <Flex align="center" gap="small">
+                  <FaWater style={{ color: "#1890ff" }} />
+                  <Text>Análisis del Nivel Freático - Puntos Extremos</Text>
+                </Flex>
+              }
+            >
+              <Paragraph
+                type="secondary"
+                style={{
+                  fontSize: "0.8rem",
+                  marginBottom: "1rem",
+                }}
+              >
+                Puntos de captación con los niveles freáticos más extremos
+                registrados hoy.
+              </Paragraph>
+              <Row gutter={[16, 16]}>
+                {analysis.waterLevelAnalysis.map((pointAnalysis, index) => (
+                  <Col xs={24} sm={12} lg={8} key={index}>
+                    <Card
+                      size="small"
+                      title={
+                        <Flex align="center" gap="small">
+                          <FaBroadcastTower style={{ color: "#1890ff" }} />
+                          <Text strong style={{ fontSize: "14px" }}>
+                            {pointAnalysis.name}
+                          </Text>
+                        </Flex>
+                      }
+                      style={{
+                        background:
+                          "linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%)",
+                        border: "1px solid #91d5ff",
+                      }}
+                    >
+                      <Row gutter={[8, 8]}>
+                        {/* Nivel más Profundo */}
+                        <Col span={12}>
+                          <div style={{ textAlign: "center" }}>
+                            <VerticalAlignBottomOutlined
+                              style={{ color: "#d32f2f", fontSize: "16px" }}
+                            />
+                            <Text
+                              style={{
+                                color: "#d32f2f",
+                                fontSize: "12px",
+                                display: "block",
+                                fontWeight: 600,
+                              }}
+                            >
+                              Más Profundo
+                            </Text>
+                            <Text
+                              style={{
+                                color: "#d32f2f",
+                                fontSize: "16px",
+                                fontWeight: "bold",
+                              }}
+                            >
+                              {formatFlow(pointAnalysis.deepestLevel.level)} m
+                            </Text>
+                            <Text
+                              style={{
+                                color: "#666",
+                                fontSize: "10px",
+                              }}
+                            >
+                              {pointAnalysis.deepestLevel.time
+                                ? moment(
+                                    pointAnalysis.deepestLevel.time
+                                  ).format("HH:mm")
+                                : "N/A"}
+                            </Text>
+                          </div>
+                        </Col>
+
+                        {/* Nivel más Superficial */}
+                        <Col span={12}>
+                          <div style={{ textAlign: "center" }}>
+                            <VerticalAlignTopOutlined
+                              style={{ color: "#388e3c", fontSize: "16px" }}
+                            />
+                            <Text
+                              style={{
+                                color: "#388e3c",
+                                fontSize: "12px",
+                                display: "block",
+                                fontWeight: 600,
+                              }}
+                            >
+                              Más Superficial
+                            </Text>
+                            <Text
+                              style={{
+                                color: "#388e3c",
+                                fontSize: "16px",
+                                fontWeight: "bold",
+                              }}
+                            >
+                              {formatFlow(pointAnalysis.shallowestLevel.level)}{" "}
+                              m
+                            </Text>
+                            <Text
+                              style={{
+                                color: "#666",
+                                fontSize: "10px",
+                              }}
+                            >
+                              {pointAnalysis.shallowestLevel.time
+                                ? moment(
+                                    pointAnalysis.shallowestLevel.time
+                                  ).format("HH:mm")
+                                : "N/A"}
+                            </Text>
+                          </div>
+                        </Col>
+                      </Row>
+
+                      {/* Información adicional */}
+                      <div
+                        style={{
+                          marginTop: "8px",
+                          padding: "4px 8px",
+                          background: "rgba(24, 144, 255, 0.1)",
+                          borderRadius: "4px",
+                          textAlign: "center",
+                        }}
+                      >
+                        <Text style={{ fontSize: "10px", color: "#666" }}>
+                          <FaTint style={{ marginRight: 4 }} />
+                          {pointAnalysis.totalReadings} lecturas hoy
+                        </Text>
+                      </div>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            </Card>
+          </Col>
+        )}
       </Row>
     </Card>
   );

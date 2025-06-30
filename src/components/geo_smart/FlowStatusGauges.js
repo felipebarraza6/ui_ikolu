@@ -1,7 +1,6 @@
 import React from "react";
-import { Row, Col, Card, Progress, Typography, Flex, theme } from "antd";
+import { Progress, Typography, Flex, theme } from "antd";
 import moment from "moment";
-import { FaArrowUpFromGroundWater } from "react-icons/fa6";
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -21,13 +20,35 @@ const FlowStatusGauges = ({ profiles }) => {
     <Flex wrap="wrap" gap="middle" justify="space-between">
       {activeProfiles.map((profile) => {
         const caudal = Number(profile.modules?.m1?.flow ?? 0);
-        const flowGranted = Number(profile.dga?.flow_granted_dga ?? 0);
+        const todayData = profile.modules?.m22 || [];
+
+        // Validación robusta de datos m22
+        const validFlowData = todayData.filter(
+          (d) =>
+            d && typeof d === "object" && "flow" in d && !isNaN(Number(d.flow))
+        );
+
+        const maxFlow = Math.max(
+          ...validFlowData.map((d) => Number(d.flow) || 0),
+          0
+        );
         const lastMeasurement = profile.modules?.m1?.date_time_medition;
 
-        const percentage = flowGranted > 0 ? (caudal / flowGranted) * 100 : 0;
+        const percentage = maxFlow > 0 ? (caudal / maxFlow) * 100 : 0;
+
+        // Logs para debugging (solo en desarrollo)
+        if (process.env.NODE_ENV === "development") {
+          console.log(`🔍 ${profile.title}:`, {
+            caudal,
+            maxFlow,
+            percentage: percentage.toFixed(2),
+            validDataCount: validFlowData.length,
+            totalDataCount: todayData.length,
+          });
+        }
 
         return (
-          <div>
+          <div key={profile.id}>
             <Flex vertical align="center" justify="space-between" gap="small">
               <Progress
                 type="dashboard"
@@ -44,6 +65,13 @@ const FlowStatusGauges = ({ profiles }) => {
                 {lastMeasurement
                   ? moment(lastMeasurement).format("YYYY-MM-DD HH:mm")
                   : "Sin fecha"}
+              </Text>
+              {/* Información adicional para validación */}
+              <Text
+                type="secondary"
+                style={{ fontSize: "0.7rem", textAlign: "center" }}
+              >
+                Max: {maxFlow.toFixed(2)} l/s | Datos: {validFlowData.length}
               </Text>
             </Flex>
           </div>

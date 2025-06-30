@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Line } from "@ant-design/plots";
-import { Card, Spin, Flex, Typography, Alert, DatePicker, Button } from "antd";
+import { Spin, Flex, Alert, DatePicker, Button } from "antd";
 import { AppContext } from "../../App";
 import moment from "moment";
 import { formatVolume } from "../../utils/numberFormatter";
 import sh from "../../api/sh/endpoints";
 
-const { Title } = Typography;
 const { RangePicker } = DatePicker;
 
 const ConsumptionChart = () => {

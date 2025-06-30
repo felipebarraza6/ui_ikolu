@@ -12,14 +12,42 @@ const markerPulseStyle = `
 }
 .marker-pulse {
   position: absolute;
-  width: 20px;
-  height: 20px;
+  width: 32px;
+  height: 32px;
+  left: -10px;
+  top: -18px;
   border-radius: 50%;
-  background: #1890ff;
-  animation: marker-pulse 1.5s infinite;
-  z-index: -1;
-  left: -4px;
-  top: -4px;
+  background: #1f3461;
+  animation: marker-pulse 1.8s infinite;
+  z-index: 0;
+  opacity: 0.18;
+  box-shadow: 0 0 8px #1f3461;
+}
+.marker-favicon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 16px;
+  height: 16px;
+  z-index: 1;
+  background: none;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(31,52,97,0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.marker-favicon img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.custom-marker-icon {
+  filter: none;
+}
+.marker-pin {
+  display: none;
 }
 .marker-cluster-small div,
 .marker-cluster-medium div,
@@ -32,10 +60,12 @@ const markerPulseStyle = `
 }
 `;
 
-const createIcon = (color) => {
+const createIcon = () => {
+  // Marker con favicon y pulso azul
+  const faviconPath = require("../../assets/images/favicon.ico");
   return new L.divIcon({
-    html: `<div style="background-color: ${color};" class="marker-pin"></div><div class="marker-pulse"></div>`,
-    iconSize: [12, 12],
+    html: `<div class="marker-favicon"><img src="${faviconPath}" alt="marker" /></div><div class="marker-pulse"></div>`,
+    iconSize: [16, 16],
     className: "custom-marker-icon",
   });
 };
@@ -105,7 +135,7 @@ const GeoMap = ({ geoData, onPointClick, onMapLoaded }) => {
           point.flowGranted
         );
         const marker = L.marker([point.lat, point.lon], {
-          icon: createIcon(iconColor),
+          icon: createIcon(),
         }).bindPopup(
           `<b>${point.title}</b><br>Caudal: ${point.currentCaudal} L/s`
         );
@@ -125,7 +155,18 @@ const GeoMap = ({ geoData, onPointClick, onMapLoaded }) => {
     }
   }, [geoData, onPointClick]);
 
-  return <div ref={mapRef} style={{ height: "100%", width: "100%" }} />;
+  return (
+    <div
+      ref={mapRef}
+      style={{
+        height: "100%",
+        width: "100%",
+        zIndex: 1,
+        overflow: "hidden",
+        borderRadius: "12px",
+      }}
+    />
+  );
 };
 
 export default GeoMap;

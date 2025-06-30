@@ -3,100 +3,59 @@ import {
   Card,
   Row,
   Col,
-  Statistic,
-  Alert,
+  Table,
+  Typography,
   Spin,
   Flex,
-  Typography,
   Tag,
-  Button,
+  Badge,
+  Grid,
   Divider,
-  Table,
-  theme,
+  Skeleton,
+  Statistic,
 } from "antd";
-import {
-  EnvironmentOutlined,
-  BarChartOutlined,
-  InfoCircleOutlined,
-  EyeOutlined,
-  LinkOutlined,
-  ClockCircleOutlined,
-} from "@ant-design/icons";
-import {
-  FaHouseFloodWater,
-  FaGlassWaterDroplet,
-  FaHandHoldingDroplet,
-} from "react-icons/fa6";
-import { MdWater } from "react-icons/md";
-import { formatInteger, formatFlow } from "../../utils/numberFormatter";
-import { useResponsive } from "../../hooks/useResponsive";
 import { AppContext } from "../../App";
-import ConsumptionChart from "./ConsumptionChart";
-import AnalysisPrompt from "./AnalysisPrompt";
-import moment from "moment";
-import { Link } from "react-router-dom";
-import FlowStatusGauges from "./FlowStatusGauges";
 import GeoMap from "./GeoMap";
 import StatusTag from "./StatusTag";
+import { formatInteger, formatFlow } from "../../utils/numberFormatter";
+import {
+  FaMapMarkerAlt,
+  FaWater,
+  FaChartBar,
+  FaTint,
+  FaDroplet,
+  FaHandHoldingWater,
+  FaBroadcastTower,
+  FaStream,
+  FaClock,
+  FaRulerVertical,
+  FaExclamationTriangle,
+  FaCheckCircle,
+  FaCalendarAlt,
+  FaBolt,
+} from "react-icons/fa";
+import {
+  MdGpsFixed,
+  MdGpsOff,
+  MdAccessTime,
+  MdWaterDrop,
+  MdWaves,
+  MdWater,
+} from "react-icons/md";
+import { WiHumidity, WiThermometer } from "react-icons/wi";
+import favicon from "../../assets/images/favicon.ico";
+import moment from "moment";
+import { FaArrowUpFromGroundWater } from "react-icons/fa6";
+import { LiaLevelUpAltSolid } from "react-icons/lia";
 
 const { Title, Text, Paragraph } = Typography;
-const { useToken } = theme;
-
-const MetricCard = ({ title, value, unit, icon, loading }) => {
-  const { token } = useToken();
-  return (
-    <Card
-      hoverable
-      style={{
-        flex: 1,
-        minWidth: 160,
-        borderRadius: "12px",
-        background: `linear-gradient(135deg, ${token.colorPrimary} 0%, #1d3a70 100%)`,
-        color: "white",
-      }}
-    >
-      <Statistic
-        title={
-          <Flex align="center" gap="small">
-            {React.cloneElement(icon, {
-              style: { color: "white", fontSize: 18 },
-            })}
-            <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 14 }}>
-              {title}
-            </Text>
-          </Flex>
-        }
-        value={loading ? "-" : value}
-        suffix={
-          loading ? null : (
-            <Text
-              style={{
-                color: "rgba(255,255,255,0.85)",
-                fontSize: 16,
-                marginLeft: 4,
-              }}
-            >
-              {unit}
-            </Text>
-          )
-        }
-        valueStyle={{
-          color: "white",
-          fontWeight: 600,
-          fontSize: 24,
-        }}
-      />
-    </Card>
-  );
-};
+const { useBreakpoint } = Grid;
 
 const GeoSmart = () => {
   const { state } = useContext(AppContext);
-  const { isMobile } = useResponsive();
-  const [loading, setLoading] = useState(true);
+  const screens = useBreakpoint();
   const [geoData, setGeoData] = useState([]);
   const [selectedPoint, setSelectedPoint] = useState(null);
-  const [mapInstance, setMapInstance] = useState(null);
   const [stats, setStats] = useState({
     totalPoints: 0,
     pointsWithGPS: 0,
@@ -106,10 +65,8 @@ const GeoSmart = () => {
     avgCaudal: 0,
   });
 
-  const processGeoData = useCallback(() => {
-    setLoading(true);
+  useEffect(() => {
     const profiles = state.profile_client || [];
-
     const processedData = profiles.map((profile) => {
       const hasGPS =
         profile.lat &&
@@ -139,118 +96,138 @@ const GeoSmart = () => {
         typeDga: profile.dga?.type_dga,
         waterTable: lastM1Data.water_table,
         total: lastM1Data.total,
+        total_today_diff: lastM1Data.total_today_diff,
       };
     });
-
     setGeoData(processedData);
-
-    const totalPoints = processedData.length;
-    const pointsWithGPS = processedData.filter((p) => p.hasGPS).length;
-    const totalCaudal = processedData.reduce(
-      (sum, p) => sum + p.currentCaudal,
-      0
-    );
-    const totalConsumption = processedData.reduce(
-      (sum, p) => sum + p.totalConsumption,
-      0
-    );
-
     setStats({
-      totalPoints,
-      pointsWithGPS,
-      pointsWithoutGPS: totalPoints - pointsWithGPS,
-      totalCaudal,
-      totalConsumption,
-      avgCaudal: totalPoints > 0 ? totalCaudal / totalPoints : 0,
+      totalPoints: processedData.length,
+      pointsWithGPS: processedData.filter((p) => p.hasGPS).length,
+      pointsWithoutGPS: processedData.filter((p) => !p.hasGPS).length,
+      totalCaudal: processedData.reduce((sum, p) => sum + p.currentCaudal, 0),
+      totalConsumption: processedData.reduce(
+        (sum, p) => sum + p.totalConsumption,
+        0
+      ),
+      avgCaudal:
+        processedData.length > 0
+          ? processedData.reduce((sum, p) => sum + p.currentCaudal, 0) /
+            processedData.length
+          : 0,
     });
-
     if (processedData.length > 0 && !selectedPoint) {
       const firstPointWithGPS = processedData.find((p) => p.hasGPS);
       if (firstPointWithGPS) {
         setSelectedPoint(firstPointWithGPS);
       }
     }
-
-    setLoading(false);
   }, [state.profile_client]);
-
-  useEffect(() => {
-    processGeoData();
-  }, [processGeoData]);
 
   const handlePointClick = useCallback((point) => {
     setSelectedPoint(point);
   }, []);
 
-  const handleMapLoaded = useCallback((map) => {
-    setMapInstance(map);
-  }, []);
+  const columns = [
+    { title: "Nombre", dataIndex: "title", key: "title" },
+    { title: "Código de obra", dataIndex: "codeDga", key: "codeDga" },
 
-  const getGoogleMapsUrl = (lat, lon) => {
-    return `https://www.google.com/maps?q=${lat},${lon}`;
-  };
-
-  const renderStats = () => (
-    <Card
-      title={`Indicadores Correspondientes a Hoy (${moment().format(
-        "DD/MM/YYYY"
-      )})`}
-    >
-      <Flex gap="large" wrap="wrap">
-        <MetricCard
-          title="Total Captaciones"
-          value={stats.totalPoints}
-          icon={<EnvironmentOutlined />}
-          loading={loading}
-        />
-        <MetricCard
-          title="Caudal Total"
-          value={formatFlow(stats.totalCaudal)}
-          unit="l/s"
-          icon={<FaGlassWaterDroplet />}
-          loading={loading}
-        />
-        <MetricCard
-          title="Consumo Total"
-          value={formatInteger(stats.totalConsumption)}
-          unit="m³"
-          icon={<FaHouseFloodWater />}
-          loading={loading}
-        />
-        <MetricCard
-          title="Con GPS"
-          value={stats.pointsWithGPS}
-          unit={`de ${stats.totalPoints}`}
-          icon={<EyeOutlined />}
-          loading={loading}
-        />
-      </Flex>
-    </Card>
-  );
+    {
+      title: "Latitud",
+      dataIndex: "lat",
+      key: "lat",
+      align: "right",
+      render: (value) =>
+        value ? (
+          <span>{value}</span>
+        ) : (
+          <span style={{ color: "#bdbdbd" }}>-</span>
+        ),
+    },
+    {
+      title: "Longitud",
+      dataIndex: "lon",
+      key: "lon",
+      align: "right",
+      render: (value) =>
+        value ? (
+          <span>{value}</span>
+        ) : (
+          <span style={{ color: "#bdbdbd" }}>-</span>
+        ),
+    },
+    {
+      title: "GPS",
+      dataIndex: "hasGPS",
+      key: "hasGPS",
+      align: "center",
+      render: (value, record) => {
+        if (value && record.isTelemetry) {
+          return (
+            <Badge
+              status="processing"
+              color="#43a047"
+              text={
+                <span style={{ color: "#43a047", fontWeight: 600 }}>
+                  Activo
+                </span>
+              }
+              className="gps-pulse"
+            />
+          );
+        } else if (value && !record.isTelemetry) {
+          return <Tag color="orange">Sin Telemetría</Tag>;
+        } else {
+          return <Tag color="warning">Sin GPS</Tag>;
+        }
+      },
+    },
+    {
+      title: "Última Medición",
+      dataIndex: "lastMeasurement",
+      key: "lastMeasurement",
+      render: (value) =>
+        value ? (
+          <span>
+            {value.split("T")[0]} <b>{value.split("T")[1]?.slice(0, 5)} hrs</b>
+          </span>
+        ) : (
+          <span style={{ color: "#bdbdbd" }}>-</span>
+        ),
+    },
+  ];
 
   const renderSelectedPoint = () => {
-    if (loading) return <Spin />;
     if (!selectedPoint) {
       return (
-        <Card style={{ height: "100%", overflowY: "auto" }}>
-          <Flex
-            vertical
-            align="center"
-            justify="center"
-            style={{ height: "100%", textAlign: "center" }}
-          >
-            <EnvironmentOutlined style={{ fontSize: 48, color: "#d9d9d9" }} />
-            <Title level={5} style={{ marginTop: 16, color: "#8c8c8c" }}>
-              Selecciona un punto
-            </Title>
+        <Card
+          style={{
+            height: "100%",
+            borderRadius: 12,
+            boxShadow: "0 2px 8px #e3f2fd",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Skeleton.Avatar
+            size={48}
+            shape="circle"
+            style={{ marginBottom: 16 }}
+          />
+          <Skeleton
+            active
+            paragraph={{ rows: 5 }}
+            title={false}
+            style={{ width: "100%" }}
+          />
+          <div style={{ textAlign: "center", width: "100%", marginTop: 16 }}>
             <Text type="secondary">
-              Haz clic en un marcador del mapa para ver sus detalles.
+              Selecciona un punto en el mapa para ver detalles
             </Text>
-          </Flex>
+          </div>
         </Card>
       );
     }
-
     const {
       title,
       lat,
@@ -259,207 +236,255 @@ const GeoSmart = () => {
       codeDga,
       lastMeasurement,
       lastLogger,
+      totalConsumption,
+      waterTable,
+      total,
+      total_today_diff,
+      isTelemetry,
     } = selectedPoint;
+    const hasGPS = lat && lon && lat !== 0 && lon !== 0;
+
+    // Estado de fechas
+    const today = moment().format("YYYY-MM-DD");
+    const lastMedDate = lastMeasurement
+      ? moment(lastMeasurement).format("YYYY-MM-DD")
+      : null;
+    const lastLoggerDate = lastLogger
+      ? moment(lastLogger).format("YYYY-MM-DD")
+      : null;
+    let estado = "";
+    let estadoColor = "success";
+    let estadoIcon = (
+      <FaCheckCircle style={{ color: "#43a047", marginRight: 6 }} />
+    );
+    if (!lastMedDate || lastMedDate < today) {
+      if (lastMedDate === moment().subtract(1, "days").format("YYYY-MM-DD")) {
+        estado = "Medición de ayer";
+        estadoColor = "warning";
+        estadoIcon = (
+          <FaExclamationTriangle style={{ color: "#faad14", marginRight: 6 }} />
+        );
+      } else {
+        estado = "Sin datos recientes";
+        estadoColor = "error";
+        estadoIcon = (
+          <FaExclamationTriangle style={{ color: "#ff4d4f", marginRight: 6 }} />
+        );
+      }
+    } else {
+      estado = "Actualizado hoy";
+    }
+
+    // Diferencia entre medición y logger
+    let diffTag = null;
+    if (lastMeasurement && lastLogger) {
+      const diffMin = Math.abs(
+        moment(lastMeasurement).diff(moment(lastLogger), "minutes")
+      );
+      if (diffMin >= 60) {
+        diffTag = (
+          <Tag
+            color="error"
+            style={{ textAlign: "center" }}
+            icon={
+              <FaExclamationTriangle
+                style={{ color: "#ff4d4f", marginRight: 4 }}
+              />
+            }
+          >
+            Desincronizado: {Math.floor(diffMin / 60)}h {diffMin % 60}m
+          </Tag>
+        );
+      } else if (diffMin > 10) {
+        diffTag = (
+          <Tag style={{ textAlign: "center" }} color="warning">
+            Diferencia: {diffMin} min
+          </Tag>
+        );
+      } else {
+        diffTag = (
+          <Tag
+            icon={
+              <FaCheckCircle style={{ color: "#43a047", marginRight: 4 }} />
+            }
+            style={{ textAlign: "center" }}
+            color="success"
+          >
+            Sincronizado
+          </Tag>
+        );
+      }
+    }
+
+    // Alertas de valores
+    const alertas = [];
+    if (currentCaudal === 0) {
+      alertas.push({
+        msg: "Caudal en 0 L/s",
+        color: "error",
+        icon: <FaBolt style={{ color: "#ff4d4f", marginRight: 4 }} />,
+      });
+    }
+    if (total_today_diff === 0) {
+      alertas.push({
+        msg: "Sin consumo hoy",
+        color: "warning",
+        icon: (
+          <FaExclamationTriangle style={{ color: "#faad14", marginRight: 4 }} />
+        ),
+      });
+    }
+
+    // Prompt animado para caudal 0
+    const CaudalPrompt = () => (
+      <div style={{ marginTop: 8, minHeight: 24 }}>
+        {currentCaudal === 0 && (
+          <Typography.Text
+            type="danger"
+            style={{ fontWeight: 600, fontSize: 14, animation: "fadeIn 1s" }}
+          >
+            <FaExclamationTriangle style={{ marginRight: 6 }} /> Caudal en 0 L/s
+          </Typography.Text>
+        )}
+        <style>{`@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }`}</style>
+      </div>
+    );
 
     return (
       <Card
-        style={{ height: "100%", overflowY: "auto" }}
-        hoverable
-        title={
-          <Flex align="center" gap="small">
-            <EnvironmentOutlined />
-            <Title level={5} style={{ margin: 0 }}>
-              {title}
-            </Title>
-          </Flex>
-        }
-        extra={<StatusTag point={selectedPoint} />}
+        style={{
+          height: "100%",
+          borderRadius: 12,
+          boxShadow: "0 2px 8px #e3f2fd",
+          padding: 0,
+          width: screens.xs ? "100%" : "30%",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+        }}
+        bodyStyle={{ padding: 24, height: "100%" }}
       >
-        <div style={{ padding: "16px", flexGrow: 1, overflowY: "auto" }}>
-          <Row gutter={[16, 24]}>
-            <Col span={12}>
-              <Statistic
-                title="Caudal"
-                value={formatFlow(currentCaudal)}
-                prefix={<FaHandHoldingDroplet />}
-                valueStyle={{ fontSize: "20px" }}
-                suffix="l/s"
-              />
-            </Col>
-            <Col span={12}>
-              <Statistic
-                title="Nivel Freático"
-                value={formatFlow(selectedPoint.waterTable)}
-                prefix={<MdWater />}
-                valueStyle={{ fontSize: "20px" }}
-              />
-            </Col>
-          </Row>
-
-          <Divider style={{ margin: "16px 0" }} />
-
-          <Title level={5}>Información Adicional</Title>
-          <Paragraph>
-            <Text strong>Código DGA:</Text> {codeDga || "No disponible"}
-          </Paragraph>
-          <Paragraph>
-            <Text strong>Última Medición:</Text>{" "}
-            {lastMeasurement
-              ? moment(lastMeasurement).format("YYYY-MM-DD")
-              : "No disponible"}
-          </Paragraph>
-          <Paragraph>
-            <Text strong>Último Logger:</Text>{" "}
-            {lastLogger
-              ? moment(lastLogger).format("YYYY-MM-DD")
-              : "No disponible"}
-          </Paragraph>
-        </div>
-        <div>
-          <Flex vertical gap="small">
-            <Button
-              type="primary"
-              icon={<LinkOutlined />}
-              href={getGoogleMapsUrl(lat, lon)}
-              target="_blank"
-              rel="noopener noreferrer"
-              block
-            >
-              Ver en Google Maps
-            </Button>
+        <Flex vertical style={{ width: "100%" }}>
+          <Flex align="center" gap={16} style={{ marginBottom: 8 }}>
+            <FaMapMarkerAlt style={{ fontSize: 22, color: "#1f3461" }} />
+            <div style={{ flex: 1 }}>
+              <Title
+                level={5}
+                style={{ margin: 0, color: "#1f3461", fontWeight: 700 }}
+              >
+                {title}
+              </Title>
+              <Text type="secondary" style={{ fontSize: 15 }}>
+                {codeDga || "Sin datos"}
+              </Text>
+            </div>
           </Flex>
-        </div>
+          <Flex
+            gap={"small"}
+            justify="space-between"
+            style={{ width: "100%" }}
+            wrap
+          >
+            <Statistic
+              style={{ fontWeight: 700, color: "#1f3461" }}
+              title="Caudal"
+              valueStyle={{
+                fontSize: 14,
+              }}
+              value={formatFlow(currentCaudal || 0)}
+              suffix="lt/s"
+            />
+            <Statistic
+              style={{ fontWeight: 700, color: "#1f3461" }}
+              title="Total"
+              value={total}
+              valueStyle={{
+                fontSize: 14,
+              }}
+              suffix="m³"
+            />
+            <Statistic
+              style={{ fontWeight: 700, color: "#1f3461" }}
+              title="N.Freático"
+              valueStyle={{
+                fontSize: 14,
+              }}
+              value={
+                waterTable !== undefined && waterTable !== null
+                  ? Number(waterTable).toFixed(2)
+                  : "Sin datos"
+              }
+              suffix="m"
+            />
+          </Flex>
+          <Divider style={{ margin: "16px 0 12px 0" }}></Divider>
+          <Flex vertical gap={8}>
+            <Text>
+              <FaClock style={{ color: "#1F3461", marginRight: 5 }} />{" "}
+              {lastMeasurement
+                ? moment(lastMeasurement).format("YYYY-MM-DD HH:mm") + " hrs"
+                : "Sin datos"}
+            </Text>
+            <Text>
+              <FaCalendarAlt style={{ color: "#1F3461", marginRight: 5 }} />{" "}
+              {lastLogger
+                ? moment(lastLogger).format("YYYY-MM-DD HH:mm") + " hrs"
+                : "Sin datos"}
+            </Text>
+            {diffTag}
+          </Flex>
+          <Divider style={{ margin: "16px 0 12px 0" }} />
+          {hasGPS && (
+            <>
+              <Text style={{ color: "#388e3c", fontSize: 13 }}>
+                <FaMapMarkerAlt style={{ marginRight: 6, color: "#43a047" }} />
+                Lat: <b>{lat}</b>
+              </Text>
+              <Text style={{ color: "#388e3c", fontSize: 13 }}>
+                <FaMapMarkerAlt style={{ marginRight: 6, color: "#43a047" }} />
+                Lon: <b>{lon}</b>
+              </Text>
+            </>
+          )}
+        </Flex>
       </Card>
     );
   };
 
-  const columns = [
-    { title: "Nombre", dataIndex: "title", key: "title", fixed: false },
-    {
-      title: "Fecha",
-      dataIndex: "lastMeasurement",
-      key: "lastMeasurement",
-      render: (value) =>
-        value ? moment(value).format("YYYY-MM-DD HH:mm") : "-",
-    },
-    { title: "Código de Obra", dataIndex: "codeDga", key: "codeDga" },
-    {
-      title: "Caudal",
-      dataIndex: "currentCaudal",
-      key: "currentCaudal",
-      align: "right",
-      render: (value) => formatFlow(value) + " L/s",
-    },
-    {
-      title: "Nivel Freático",
-      dataIndex: "waterTable",
-      key: "waterTable",
-      align: "right",
-      render: (value) =>
-        value !== undefined && value !== null
-          ? Number(value).toFixed(2) + " m"
-          : "-",
-    },
-    {
-      title: "Total Acumulado",
-      dataIndex: "total",
-      key: "total",
-      align: "right",
-      render: (value) =>
-        value !== undefined && value !== null ? formatInteger(value) : "-",
-    },
-    {
-      title: "Consumo Hoy",
-      dataIndex: "totalConsumption",
-      key: "totalConsumption",
-      align: "right",
-      render: (value) =>
-        value !== undefined && value !== null ? formatInteger(value) : "-",
-    },
-    {
-      title: "GPS",
-      dataIndex: "hasGPS",
-      key: "hasGPS",
-      align: "center",
-      render: (value) =>
-        value ? <Tag color="success">Sí</Tag> : <Tag color="warning">No</Tag>,
-    },
-  ];
-
   return (
-    <div
-      style={{
-        height: "100%",
-        padding: isMobile ? "8px" : "16px",
-        backgroundImage:
-          "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4e3ff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
-      }}
-    >
-      <Flex vertical style={{ height: "100%" }} gap="large">
-        {renderStats()}
-
-        <AnalysisPrompt profiles={state.profile_client} />
-
-        <Row gutter={[16, 16]}>
-          <Card style={{ width: "100%" }}>
-            <Flex vertical gap="middle">
-              <ConsumptionChart />
-              <FlowStatusGauges profiles={state.profile_client} />
-            </Flex>
-          </Card>
-        </Row>
-
-        <Row gutter={[16, 16]} style={{ flex: 1, minHeight: "500px" }}>
-          <Col xs={24} lg={16} style={{ height: "100%" }}>
-            <Card
-              style={{
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-              }}
-              bodyStyle={{ padding: 0, flex: 1, position: "relative" }}
-            >
-              <GeoMap
-                geoData={geoData}
-                onPointClick={handlePointClick}
-                onMapLoaded={handleMapLoaded}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} lg={8} style={{ height: "100%" }}>
-            {renderSelectedPoint()}
-          </Col>
-        </Row>
-
+    <Flex vertical gap={"small"}>
+      <Flex gap={"small"} justify="space-between" align="center" wrap>
+        <Card
+          style={{
+            height: screens.xs ? 250 : 400,
+            minHeight: screens.xs ? 200 : 400,
+            display: "flex",
+            width: screens.xs ? "100%" : "65%",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "stretch",
+            background: "#f8fafc",
+            border: "1.5px solid #e3f2fd",
+          }}
+          bodyStyle={{ padding: 0, flex: 1, position: "relative" }}
+        >
+          <GeoMap geoData={geoData} onPointClick={handlePointClick} />
+        </Card>
+        {renderSelectedPoint()}
+      </Flex>
+      <Flex style={{ width: "100%" }}>
         <Table
           columns={columns}
           dataSource={geoData}
           bordered
           size="small"
           pagination={{ pageSize: 10 }}
+          style={{ width: "100%" }}
           scroll={{ x: "max-content" }}
-          summary={() =>
-            geoData.length > 0 ? (
-              <Table.Summary.Row>
-                <Table.Summary.Cell index={0} colSpan={3}>
-                  <Text strong>Totales</Text>
-                </Table.Summary.Cell>
-                <Table.Summary.Cell index={3} align="right">
-                  <Text strong>{formatFlow(stats.totalCaudal)} L/s</Text>
-                </Table.Summary.Cell>
-                <Table.Summary.Cell index={4} />
-                <Table.Summary.Cell index={5} />
-                <Table.Summary.Cell index={6} align="right">
-                  <Text strong>{formatInteger(stats.totalConsumption)} m³</Text>
-                </Table.Summary.Cell>
-                <Table.Summary.Cell index={7} />
-              </Table.Summary.Row>
-            ) : null
-          }
           rowKey="id"
         />
       </Flex>
-    </div>
+    </Flex>
   );
 };
 

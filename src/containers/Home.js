@@ -55,12 +55,14 @@ import { useResponsive } from "../hooks/useResponsive";
 import Documentation from "../components/documentation/Documentation";
 import UserDocumentation from "../components/documentation/UserDocumentation";
 import GeoSmart from "../components/geo_smart/GeoSmart";
+import GeneralSummary from "../components/geo_smart/GeneralSummary";
 
 const { Header, Sider, Content } = Layout;
 const { useToken } = theme;
 const { Title } = Typography;
 
 const MENU_ITEMS = [
+  { key: "0", icon: <HomeOutlined />, label: "Resumen", to: "/" },
   { key: "1", icon: <EnvironmentOutlined />, label: "GEO Smart", to: "/geo" },
   { key: "2", icon: <WifiOutlined />, label: "Telemetría", to: "/telemetria" },
   {
@@ -144,6 +146,10 @@ const AppRoutes = React.memo(() => {
 
   return (
     <Routes>
+      <Route
+        path="/"
+        element={<GeneralSummary profiles={state.profile_client} />}
+      />
       <Route path="/geo" element={<GeoSmart />} />
       <Route path="/telemetria" element={renderMainRoute()} />
       <Route path="/analisis" element={<ResponsiveSmartAnalysis />} />
@@ -167,7 +173,6 @@ const AppRoutes = React.memo(() => {
       <Route path="/supp" element={<Supp />} />
       <Route path="/documentation" element={<Documentation />} />
       <Route path="/user-documentation" element={<UserDocumentation />} />
-      <Route path="/" element={<Navigate to="/geo" replace />} />
     </Routes>
   );
 });
