@@ -10,23 +10,10 @@ const markerPulseStyle = `
   50% { transform: scale(1.8); opacity: 0.1; }
   100% { transform: scale(1.8); opacity: 0; }
 }
-.marker-pulse {
-  position: absolute;
-  width: 32px;
-  height: 32px;
-  left: -10px;
-  top: -18px;
-  border-radius: 50%;
-  background: #1f3461;
-  animation: marker-pulse 1.8s infinite;
-  z-index: 0;
-  opacity: 0.18;
-  box-shadow: 0 0 8px #1f3461;
-}
 .marker-favicon {
   position: absolute;
-  left: 0;
-  top: 0;
+  left: 8px;
+  top: 8px;
   width: 16px;
   height: 16px;
   z-index: 1;
@@ -37,6 +24,32 @@ const markerPulseStyle = `
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.marker-pulse {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #1f3461;
+  animation: marker-pulse 1.8s infinite;
+  z-index: 0;
+  opacity: 0.18;
+  box-shadow: 0 0 8px #1f3461;
+}
+.marker-pulse-red {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ff4d4f;
+  animation: marker-pulse 1.8s infinite;
+  z-index: 0;
+  opacity: 0.18;
+  box-shadow: 0 0 8px #ff4d4f;
 }
 .marker-favicon img {
   width: 100%;
@@ -54,17 +67,28 @@ const markerPulseStyle = `
 .marker-cluster-large div {
   background-color: rgba(29, 58, 112, 0.8) !important;
   color: #fff !important;
-  border-radius: 50%;
-  border: 2px solid #fff;
-  box-shadow: 0 0 0 3px rgba(29, 58, 112, 0.4);
+  border-radius: 50% !important;
+  border: 2px solid #fff !important;
+  box-shadow: 0 0 0 3px rgba(29, 58, 112, 0.4) !important;
+  width: 48px !important;
+  height: 48px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 1.5rem !important;
+  font-weight: bold !important;
+  text-align: center !important;
+  line-height: 48px !important;
+  margin: auto !important;
+  padding: 0 !important;
 }
 `;
 
-const createIcon = () => {
-  // Marker con favicon y pulso azul
+const createIcon = (isTelemetry) => {
   const faviconPath = require("../../assets/images/favicon.ico");
+  const pulseClass = isTelemetry ? "marker-pulse" : "marker-pulse-red";
   return new L.divIcon({
-    html: `<div class="marker-favicon"><img src="${faviconPath}" alt="marker" /></div><div class="marker-pulse"></div>`,
+    html: `<div class="marker-favicon"><img src="${faviconPath}" alt="marker" /></div><div class="${pulseClass}"></div>`,
     iconSize: [16, 16],
     className: "custom-marker-icon",
   });
@@ -76,10 +100,11 @@ const getMarkerColor = (caudal, flowGranted) => {
   return "#1890ff";
 };
 
-const GeoMap = ({ geoData, onPointClick, onMapLoaded }) => {
+const GeoMap = ({ geoData, onPointClick, onMapLoaded, selectedPoint }) => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef(null);
+  const labelLayerRef = useRef(null);
 
   useEffect(() => {
     if (!document.getElementById("geo-marker-pulse-style")) {
@@ -107,6 +132,9 @@ const GeoMap = ({ geoData, onPointClick, onMapLoaded }) => {
       markersRef.current = L.markerClusterGroup();
       map.addLayer(markersRef.current);
 
+      // Capa para labels
+      labelLayerRef.current = L.layerGroup().addTo(map);
+
       if (onMapLoaded) {
         onMapLoaded(map);
       }
@@ -123,29 +151,57 @@ const GeoMap = ({ geoData, onPointClick, onMapLoaded }) => {
   useEffect(() => {
     const map = mapInstanceRef.current;
     const markers = markersRef.current;
-    if (!map || !markers) return;
+    const labelLayer = labelLayerRef.current;
+    if (!map || !markers || !geoData) return;
 
     markers.clearLayers();
+    if (labelLayer) labelLayer.clearLayers();
 
     const validPoints = geoData.filter((p) => p.hasGPS);
     if (validPoints.length > 0) {
       validPoints.forEach((point) => {
-        const iconColor = getMarkerColor(
-          point.currentCaudal,
-          point.flowGranted
-        );
         const marker = L.marker([point.lat, point.lon], {
-          icon: createIcon(),
-        }).bindPopup(
-          `<b>${point.title}</b><br>Caudal: ${point.currentCaudal} L/s`
-        );
-
+          icon: createIcon(point.isTelemetry),
+        });
         marker.on("click", () => {
           onPointClick(point);
           map.setView([point.lat, point.lon], 15);
         });
-
         markers.addLayer(marker);
+
+        // Si es el punto seleccionado, agrega el label visual
+        if (selectedPoint && selectedPoint.id === point.id && labelLayer) {
+          const labelIcon = L.divIcon({
+            html: `
+              <div style="display: flex; align-items: center;">
+                <svg width="40" height="40" style="overflow: visible;">
+                  <line x1="0" y1="40" x2="30" y2="10" stroke="#2196f3" stroke-width="3" />
+                </svg>
+                <span style="
+                  background: #2196f3;
+                  color: #fff;
+                  font-weight: bold;
+                  font-size: 15px;
+                  border-radius: 8px;
+                  box-shadow: 0 2px 8px #e3f2fd;
+                  padding: 2px 12px;
+                  margin-left: 4px;
+                  text-shadow: 0 1px 4px #1976d2;
+                  ">
+                  ${point.title}
+                </span>
+              </div>
+            `,
+            className: "custom-label-icon",
+            iconAnchor: [-10, 40], // Ajusta para que la línea salga del favicon
+          });
+          const labelMarker = L.marker([point.lat, point.lon], {
+            icon: labelIcon,
+            interactive: false,
+            keyboard: false,
+          });
+          labelLayer.addLayer(labelMarker);
+        }
       });
 
       const bounds = L.latLngBounds(validPoints.map((p) => [p.lat, p.lon]));
@@ -153,7 +209,7 @@ const GeoMap = ({ geoData, onPointClick, onMapLoaded }) => {
         map.fitBounds(bounds, { padding: [50, 50] });
       }
     }
-  }, [geoData, onPointClick]);
+  }, [geoData, onPointClick, selectedPoint]);
 
   return (
     <div

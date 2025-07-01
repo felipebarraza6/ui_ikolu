@@ -9,6 +9,8 @@ import {
   Drawer,
   Avatar,
   Typography,
+  Popconfirm,
+  Divider,
 } from "antd";
 import {
   HomeOutlined,
@@ -21,6 +23,9 @@ import {
   EnvironmentOutlined,
   MenuOutlined,
   UserOutlined,
+  GlobalOutlined,
+  LogoutOutlined,
+  BookOutlined,
 } from "@ant-design/icons";
 import {
   Outlet,
@@ -56,13 +61,15 @@ import Documentation from "../components/documentation/Documentation";
 import UserDocumentation from "../components/documentation/UserDocumentation";
 import GeoSmart from "../components/geo_smart/GeoSmart";
 import GeneralSummary from "../components/geo_smart/GeneralSummary";
+import ListWells from "../components/home/ListWells";
+import { FcDoughnutChart } from "react-icons/fc";
 
 const { Header, Sider, Content } = Layout;
 const { useToken } = theme;
 const { Title } = Typography;
 
 const MENU_ITEMS = [
-  { key: "0", icon: <HomeOutlined />, label: "Resumen", to: "/" },
+  { key: "0", icon: <GlobalOutlined />, label: "Centro de Control", to: "/" },
   { key: "1", icon: <EnvironmentOutlined />, label: "GEO Smart", to: "/geo" },
   { key: "2", icon: <WifiOutlined />, label: "Telemetría", to: "/telemetria" },
   {
@@ -180,18 +187,80 @@ const AppRoutes = React.memo(() => {
 const SideMenu = ({ inDrawer = false, onLinkClick }) => {
   const location = useLocation();
   const { token } = useToken();
-
+  const { isMobile } = useResponsive();
+  const { state } = useContext(AppContext);
   const selectedKey = useMemo(() => {
     const currentPath = location.pathname;
-    const menuItem = MENU_ITEMS.find((item) => currentPath.startsWith(item.to));
-    return menuItem ? menuItem.key : "1";
+    // Ordena de mayor a menor longitud de 'to'
+    const sortedItems = [...MENU_ITEMS].sort(
+      (a, b) => b.to.length - a.to.length
+    );
+    const menuItem = sortedItems.find(
+      (item) => currentPath === item.to || currentPath.startsWith(item.to + "/")
+    );
+    return menuItem ? menuItem.key : "0";
   }, [location.pathname]);
 
   return (
     <Flex vertical style={{ height: "100%" }}>
-      <div style={{ textAlign: "center", padding: "24px 0" }}>
-        <img src={logo} alt="Logo Zivo" style={{ width: inDrawer ? 80 : 60 }} />
+      <Flex
+        align="center"
+        justify="center"
+        style={{ padding: "12px 0 8px 0", gap: 10, marginBottom: 10 }}
+      >
+        <img src={logo} alt="Logo Zivo" style={{ width: "30px" }} />
+        <span
+          style={{
+            color: "white",
+            fontWeight: 700,
+            fontSize: 18,
+            marginTop: 10,
+            letterSpacing: 1,
+          }}
+        >
+          Ikolu App
+        </span>
+      </Flex>
+
+      {/* Menú principal: Centro de Control y GEO Smart */}
+      <Menu
+        theme="dark"
+        mode="inline"
+        selectedKeys={[selectedKey]}
+        onClick={onLinkClick}
+        style={{
+          background: "transparent",
+          border: "none",
+          marginBottom: 4,
+        }}
+        items={MENU_ITEMS.filter(
+          (item) => item.key === "0" || item.key === "1"
+        ).map((item) => ({
+          key: item.key,
+          icon: item.icon,
+          label: <Link to={item.to}>{item.label}</Link>,
+        }))}
+      />
+      <Divider
+        style={{
+          margin: "20px 0",
+          color: "white",
+          fontSize: 16,
+          fontWeight: 600,
+          borderColor: "white",
+        }}
+        children="Por punto de captación"
+      />
+      <div
+        style={{
+          padding: isMobile ? "0 12px 8px 12px" : "0 8px 8px 8px",
+          minWidth: 0,
+        }}
+      >
+        <ListWells />
       </div>
+
+      {/* Menú secundario: resto de opciones */}
       <Menu
         theme="dark"
         mode="inline"
@@ -203,12 +272,37 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
           flex: 1,
           overflowY: "auto",
         }}
-        items={MENU_ITEMS.map((item) => ({
+        items={MENU_ITEMS.filter(
+          (item) => item.key !== "0" && item.key !== "1"
+        ).map((item) => ({
           key: item.key,
           icon: item.icon,
           label: <Link to={item.to}>{item.label}</Link>,
         }))}
       />
+      <Flex
+        gap={"small"}
+        wrap={"wrap"}
+        style={{ paddingLeft: 5, paddingRight: 5 }}
+      >
+        <Button
+          block
+          icon={<BookOutlined />}
+          onClick={() => window.location.assign("/documentation")}
+        >
+          Docs
+        </Button>
+        {state.user && state.user.username === "demosmart" && (
+          <Button
+            block
+            icon={<FcDoughnutChart />}
+            style={{ marginBottom: 8 }}
+            onClick={() => window.location.assign("/formmultidata")}
+          >
+            Cert B
+          </Button>
+        )}
+      </Flex>
       <div style={{ padding: "16px", textAlign: "center" }}>
         <img
           src={minLogo}
@@ -216,6 +310,26 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
           style={{ width: "80%", maxWidth: "120px", opacity: 0.8 }}
         />
       </div>
+      {isMobile && (
+        <div style={{ padding: "16px" }}>
+          <Popconfirm
+            title="¿Estás seguro de cerrar sesión?"
+            onConfirm={() => window.location.assign("/")}
+            okText="Sí"
+            cancelText="No"
+          >
+            <Button
+              type="primary"
+              danger
+              icon={<LogoutOutlined />}
+              block
+              style={{ borderRadius: "8px" }}
+            >
+              Cerrar Sesión
+            </Button>
+          </Popconfirm>
+        </div>
+      )}
     </Flex>
   );
 };
@@ -258,23 +372,17 @@ const AppLayout = ({ children }) => {
             top: 0,
             zIndex: 10,
             boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-            width: "100%",
           }}
         >
-          {isMobile && (
-            <Button
-              icon={<MenuOutlined />}
-              onClick={handleDrawerToggle}
-              style={{ marginRight: 16 }}
-            />
-          )}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <HeaderNav />
+            <HeaderNav
+              onMenuClick={isMobile ? handleDrawerToggle : undefined}
+            />
           </div>
         </Header>
         <Content
           style={{
-            margin: "24px 16px",
+            margin: isMobile ? "80px 8px 16px 8px" : "24px 16px",
             padding: 24,
             minHeight: 280,
             background: token.colorBgContainer,

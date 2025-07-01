@@ -1,6 +1,16 @@
 import React, { useContext, useCallback, useMemo, useEffect } from "react";
 import { AppContext } from "../../App";
-import { Row, Col, Tag, Badge, Select, Flex, Button, Dropdown } from "antd";
+import {
+  Row,
+  Col,
+  Tag,
+  Badge,
+  Select,
+  Flex,
+  Button,
+  Dropdown,
+  Tooltip,
+} from "antd";
 import { useNavigate } from "react-router";
 import {
   SendOutlined,
@@ -96,11 +106,11 @@ const ListWells = () => {
 
   const selectStyle = useMemo(
     () => ({
-      width: isMobile ? "100%" : "300px",
+      width: "100%",
       zIndex: 1000,
       color: "black",
     }),
-    [isMobile]
+    []
   );
 
   const options = useMemo(() => {
@@ -121,9 +131,17 @@ const ListWells = () => {
         }
 
         return (
-          <Select.Option key={e.id} value={e.id}>
-            <Flex gap="large" justify="space-between" align="center">
-              <Flex gap="small" align="center">
+          <Select.Option
+            key={e.id}
+            value={e.id}
+            label={e.title + " " + (e.dga.code_dga || "")}
+          >
+            <Flex direction="column" style={{ width: "100%", minWidth: 0 }}>
+              <Flex
+                gap="small"
+                align="center"
+                style={{ width: "100%", minWidth: 0, overflow: "hidden" }}
+              >
                 <Badge
                   status={
                     e.config_data.is_telemetry
@@ -133,12 +151,28 @@ const ListWells = () => {
                       : "warning"
                   }
                 />
-                <span>{e.title || `Perfil ${e.id}`}</span>
+                <span
+                  style={{
+                    fontWeight: 500,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    flex: 1,
+                  }}
+                >
+                  {e.title || `Perfil ${e.id}`}
+                </span>
               </Flex>
               <Tag
-                color={e.dga.send_dga ? "green-inverse" : "rgb(31, 52, 97)"}
-                icon={e.dga.send_dga ? <SendOutlined /> : <DatabaseFilled />}
-                style={{ margin: 0 }}
+                color="green-inverse"
+                style={{
+                  margin: "6px 0 0 24px",
+                  fontSize: 10,
+                  padding: "0 6px",
+                  height: 18,
+                  lineHeight: "16px",
+                  display: "inline-block",
+                }}
               >
                 {e.dga.code_dga || "N/A"}
               </Tag>
@@ -152,14 +186,40 @@ const ListWells = () => {
       const firstProfile = state.profile_client[0];
       if (firstProfile && firstProfile.code_dga_site) {
         wellOptions.push(
-          <Select.Option key="admin" value="admin">
-            <Flex gap="large" align="center">
-              <Badge status="success" />
-              <span>Total</span>
+          <Select.Option
+            key="admin"
+            value="admin"
+            label={"Total " + (firstProfile.code_dga_site || "")}
+          >
+            <Flex direction="column" style={{ width: "100%", minWidth: 0 }}>
+              <Flex
+                gap="small"
+                align="center"
+                style={{ width: "100%", minWidth: 0, overflow: "hidden" }}
+              >
+                <Badge status="success" />
+                <span
+                  style={{
+                    fontWeight: 500,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    flex: 1,
+                  }}
+                >
+                  Total
+                </span>
+              </Flex>
               <Tag
                 color="green-inverse"
-                icon={<DatabaseFilled />}
-                style={{ margin: 0 }}
+                style={{
+                  margin: "2px 0 0 24px",
+                  fontSize: 11,
+                  padding: "0 6px",
+                  height: 18,
+                  lineHeight: "16px",
+                  display: "inline-block",
+                }}
               >
                 {firstProfile.code_dga_site}
               </Tag>
@@ -195,41 +255,16 @@ const ListWells = () => {
         onSelect={onSelectWell}
         dropdownStyle={{ zIndex: 1001 }}
         loading={!hasValidData}
+        showSearch
+        optionFilterProp="label"
+        filterOption={(input, option) => {
+          if (!option) return false;
+          const label = option.label || "";
+          return label.toLowerCase().includes(input.toLowerCase());
+        }}
       >
         {options}
       </Select>
-
-      {state.user && state.user.username === "demosmart" && (
-        <Flex gap="small" align="center">
-          <Button
-            onClick={() => navigate("formmultidata")}
-            icon={<FcDoughnutChart />}
-          >
-            MODULO B
-          </Button>
-        </Flex>
-      )}
-      <Dropdown
-        menu={{
-          items: [
-            {
-              key: "user-doc",
-              icon: <UserOutlined />,
-              label: "Documentación Usuario",
-              onClick: () => navigate("/user-documentation"),
-            },
-            {
-              key: "tech-doc",
-              icon: <BookOutlined />,
-              label: "Documentación Técnica",
-              onClick: () => navigate("/documentation"),
-            },
-          ],
-        }}
-        placement="bottomRight"
-      >
-        <Button icon={<BookOutlined />}>Documentación</Button>
-      </Dropdown>
     </Flex>
   );
 };

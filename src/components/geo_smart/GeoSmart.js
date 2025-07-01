@@ -13,6 +13,7 @@ import {
   Divider,
   Skeleton,
   Statistic,
+  Button,
 } from "antd";
 import { AppContext } from "../../App";
 import GeoMap from "./GeoMap";
@@ -47,6 +48,7 @@ import favicon from "../../assets/images/favicon.ico";
 import moment from "moment";
 import { FaArrowUpFromGroundWater } from "react-icons/fa6";
 import { LiaLevelUpAltSolid } from "react-icons/lia";
+import { ReloadOutlined } from "@ant-design/icons";
 
 const { Title, Text, Paragraph } = Typography;
 const { useBreakpoint } = Grid;
@@ -72,7 +74,9 @@ const GeoSmart = () => {
         profile.lat &&
         profile.lon &&
         profile.lat !== "0" &&
-        profile.lon !== "0";
+        profile.lon !== "0" &&
+        profile.lat !== "" &&
+        profile.lon !== "";
       const lat = hasGPS ? parseFloat(profile.lat.replace(",", ".")) : null;
       const lon = hasGPS ? parseFloat(profile.lon.replace(",", ".")) : null;
       const lastM1Data = profile.modules?.m1 || {};
@@ -115,12 +119,6 @@ const GeoSmart = () => {
             processedData.length
           : 0,
     });
-    if (processedData.length > 0 && !selectedPoint) {
-      const firstPointWithGPS = processedData.find((p) => p.hasGPS);
-      if (firstPointWithGPS) {
-        setSelectedPoint(firstPointWithGPS);
-      }
-    }
   }, [state.profile_client]);
 
   const handlePointClick = useCallback((point) => {
@@ -201,30 +199,50 @@ const GeoSmart = () => {
       return (
         <Card
           style={{
-            height: "100%",
-            borderRadius: 12,
-            boxShadow: "0 2px 8px #e3f2fd",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            position: "relative",
+            overflow: "hidden",
+            height: screens.xs ? "auto" : 400,
           }}
         >
-          <Skeleton.Avatar
-            size={48}
-            shape="circle"
-            style={{ marginBottom: 16 }}
-          />
-          <Skeleton
-            active
-            paragraph={{ rows: 5 }}
-            title={false}
-            style={{ width: "100%" }}
-          />
-          <div style={{ textAlign: "center", width: "100%", marginTop: 16 }}>
-            <Text type="secondary">
-              Selecciona un punto en el mapa para ver detalles
-            </Text>
-          </div>
+          <Flex vertical style={{ width: "100%" }}>
+            <Flex align="center" gap={16} style={{ marginBottom: 8 }}>
+              <Skeleton.Avatar
+                size={48}
+                shape="circle"
+                style={{ marginBottom: 16 }}
+              />
+              <Skeleton
+                active
+                paragraph={{ rows: 5 }}
+                title={false}
+                style={{ width: "100%" }}
+              />
+            </Flex>
+            <div style={{ textAlign: "center", width: "100%", marginTop: 16 }}>
+              <Text type="secondary">
+                Selecciona un punto en el mapa para ver detalles
+              </Text>
+            </div>
+          </Flex>
+          {/* Onda plana, sin animación */}
+          <svg
+            viewBox="0 0 800 50"
+            width="200%"
+            height="50"
+            style={{
+              position: "absolute",
+              left: 0,
+              bottom: 0,
+              zIndex: 1,
+            }}
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M0,40 Q100,40 200,40 T400,40 T600,40 T800,40 V50 H0 Z"
+              fill="#e3f2fd"
+              opacity="0.7"
+            />
+          </svg>
         </Card>
       );
     }
@@ -353,18 +371,29 @@ const GeoSmart = () => {
     return (
       <Card
         style={{
-          height: "100%",
-          borderRadius: 12,
-          boxShadow: "0 2px 8px #e3f2fd",
-          padding: 0,
-          width: screens.xs ? "100%" : "30%",
+          position: "relative",
+          overflow: "hidden",
+          height: screens.xs ? "auto" : 400,
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
         }}
-        bodyStyle={{ padding: 24, height: "100%" }}
       >
-        <Flex vertical style={{ width: "100%" }}>
+        <Button
+          type="text"
+          size="small"
+          icon={<ReloadOutlined />}
+          style={{ position: "absolute", top: 8, right: 8, zIndex: 2 }}
+          onClick={() => setSelectedPoint(null)}
+        >
+          Limpiar
+        </Button>
+        <Flex
+          vertical
+          style={{ width: "100%" }}
+          align="stretch"
+          justify="space-between"
+        >
           <Flex align="center" gap={16} style={{ marginBottom: 8 }}>
             <FaMapMarkerAlt style={{ fontSize: 22, color: "#1f3461" }} />
             <div style={{ flex: 1 }}>
@@ -447,44 +476,127 @@ const GeoSmart = () => {
             </>
           )}
         </Flex>
+        {selectedPoint && selectedPoint.isTelemetry ? (
+          <>
+            <svg
+              viewBox="0 0 800 50"
+              width="200%"
+              height="50"
+              style={{
+                position: "absolute",
+                left: 0,
+                bottom: 0,
+                zIndex: 1,
+                animation: "waveMove 8s linear infinite",
+              }}
+              preserveAspectRatio="none"
+            >
+              <path
+                d="M0,30 Q100,50 200,30 T400,30 T600,30 T800,30 V50 H0 Z"
+                fill="#e3f2fd"
+                opacity="0.7"
+              />
+            </svg>
+            <style>
+              {`
+                @keyframes waveMove {
+                  0% { transform: translateX(0); }
+                  100% { transform: translateX(-50%); }
+                }
+              `}
+            </style>
+          </>
+        ) : (
+          <svg
+            viewBox="0 0 800 50"
+            width="200%"
+            height="50"
+            style={{
+              position: "absolute",
+              left: 0,
+              bottom: 0,
+              zIndex: 1,
+            }}
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M0,40 Q100,40 200,40 T400,40 T600,40 T800,40 V50 H0 Z"
+              fill="#e3f2fd"
+              opacity="0.7"
+            />
+          </svg>
+        )}
       </Card>
     );
   };
 
-  return (
-    <Flex vertical gap={"small"}>
-      <Flex gap={"small"} justify="space-between" align="center" wrap>
-        <Card
-          style={{
-            height: screens.xs ? 250 : 400,
-            minHeight: screens.xs ? 200 : 400,
-            display: "flex",
-            width: screens.xs ? "100%" : "65%",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "stretch",
-            background: "#f8fafc",
-            border: "1.5px solid #e3f2fd",
-          }}
-          bodyStyle={{ padding: 0, flex: 1, position: "relative" }}
+  const hasGeoPoints = geoData.some((p) => p.hasGPS === true);
+
+  if (!hasGeoPoints) {
+    return (
+      <div
+        style={{
+          width: "100%",
+          height: 400,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column",
+          background: "#f8fafc",
+          border: "1.5px solid #e3f2fd",
+          borderRadius: 12,
+        }}
+      >
+        <Typography.Title
+          level={4}
+          style={{ color: "#1f3461", marginBottom: 8 }}
         >
-          <GeoMap geoData={geoData} onPointClick={handlePointClick} />
-        </Card>
-        {renderSelectedPoint()}
-      </Flex>
-      <Flex style={{ width: "100%" }}>
-        <Table
-          columns={columns}
-          dataSource={geoData}
-          bordered
-          size="small"
-          pagination={{ pageSize: 10 }}
-          style={{ width: "100%" }}
-          scroll={{ x: "max-content" }}
-          rowKey="id"
-        />
-      </Flex>
-    </Flex>
+          Este módulo no está activo para tu sesión
+        </Typography.Title>
+        <Typography.Text type="secondary">
+          Contacta a soporte para activar la funcionalidad GEO Smart.
+        </Typography.Text>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Row gutter={[16, 16]}>
+        <Col xs={24} md={16}>
+          <Card
+            style={{
+              height: 400,
+              background: "#f8fafc",
+              border: "1.5px solid #e3f2fd",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+            }}
+            bodyStyle={{ padding: 0, flex: 1, position: "relative" }}
+          >
+            <GeoMap geoData={geoData} onPointClick={handlePointClick} />
+          </Card>
+        </Col>
+        <Col xs={24} md={8}>
+          {renderSelectedPoint()}
+        </Col>
+      </Row>
+      <Row>
+        <Col span={24}>
+          <Table
+            columns={columns}
+            dataSource={geoData}
+            bordered
+            size="small"
+            pagination={{ pageSize: 10 }}
+            style={{ width: "100%", marginTop: 16 }}
+            scroll={{ x: "max-content" }}
+            rowKey="id"
+          />
+        </Col>
+      </Row>
+    </>
   );
 };
 

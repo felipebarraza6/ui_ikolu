@@ -239,7 +239,7 @@ const MyWell = () => {
           ...result,
           total_hora: (result.total || 0) - (arr[i + 1]?.total || 0),
         }));
-        setLastRegisters(processedData);
+        setLastRegisters(modules.today);
       }
 
       setAcumAyer(total_consumed_yesterday);
@@ -659,7 +659,7 @@ const MyWell = () => {
           dataSource={lastRegisters}
           columns={columns}
           size="small"
-          pagination={{ pageSize: 20, hideOnSinglePage: true }}
+          pagination={{ pageSize: 10, hideOnSinglePage: true }}
           rowKey="id"
           scroll={{ y: "calc(100vh - 120px)" }}
         />
