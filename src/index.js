@@ -8,6 +8,7 @@ import reportWebVitals from "./reportWebVitals";
 import es_ES from "antd/lib/locale/es_ES";
 import { BrowserRouter } from "react-router-dom";
 import { hover } from "@testing-library/user-event/dist/hover";
+import "./components/smart_data/i18n";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 const theme = {

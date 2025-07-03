@@ -202,7 +202,7 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
   }, [location.pathname]);
 
   return (
-    <Flex vertical style={{ height: "100%" }}>
+    <Flex vertical style={{ height: "100%" }} justify="space-around">
       <Flex
         align="center"
         justify="center"
@@ -354,6 +354,8 @@ const AppLayout = ({ children }) => {
             height: "100%",
             left: 0,
             top: 0,
+            flex: 1,
+
             bottom: 0,
             zIndex: 1000,
           }}
