@@ -52,13 +52,14 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
           style={{ width: "100%", height: "100%", margin: "20px" }}
           justify="space-around"
           align="center"
+          vertical
         >
           <QRCode
             value={`https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${
               codeDga || "SinCodigo"
             }`}
             color="black"
-            size={300}
+            size={320}
             icon={logo}
             style={{
               borderColor: "transparent",
@@ -67,7 +68,7 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
           />
           <Descriptions
             style={{
-              width: "50%",
+              width: "320px",
               marginLeft: "10px",
               backgroundColor: "rgb(0, 111, 179)",
               borderRadius: "10px",

@@ -20,6 +20,19 @@
   }
 }
 
+/* Animación de parpadeo para última conexión */
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 /* Estilos adicionales para armonía visual */
 .general-summary-card {
   transition: all 0.3s ease;
@@ -94,4 +107,18 @@
 .card-content {
   position: relative;
   z-index: 1;
+}
+
+/* Estilos para filas alternadas de la tabla */
+.table-row-light {
+  background-color: #ffffff;
+}
+
+.table-row-dark {
+  background-color: #fafafa;
+}
+
+.table-row-light:hover,
+.table-row-dark:hover {
+  background-color: #f5f5f5 !important;
 } 

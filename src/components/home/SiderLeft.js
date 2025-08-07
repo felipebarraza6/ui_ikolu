@@ -135,7 +135,8 @@ const SiderLeft = () => {
                       Smart Análisis
                     </Flex>
                   </Button>
-                  {state.selected_profile.dga.code_dga && (
+                  {state.selected_profile.dga.code_dga &&
+                  state.selected_profile.dga.code_dga !== "1" ? (
                     <>
                       <Button
                         block
@@ -209,6 +210,8 @@ const SiderLeft = () => {
                         </Flex>
                       </Button>
                     </>
+                  ) : (
+                    ""
                   )}
                   <Button
                     block

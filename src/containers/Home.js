@@ -61,6 +61,7 @@ import Documentation from "../components/documentation/Documentation";
 import UserDocumentation from "../components/documentation/UserDocumentation";
 import GeoSmart from "../components/geo_smart/GeoSmart";
 import GeneralSummary from "../components/geo_smart/GeneralSummary";
+import GeneralSummaryUser34 from "../components/geo_smart/GeneralSummaryUser34";
 import ListWells from "../components/home/ListWells";
 import { FcDoughnutChart } from "react-icons/fc";
 
@@ -151,12 +152,19 @@ const AppRoutes = React.memo(() => {
     }
   };
 
+  // Función para determinar qué componente de centro de control usar
+  const renderCentroControl = () => {
+    // Si el usuario tiene ID 34, usar el componente personalizado
+    if (state.user && state.user.id === 34) {
+      return <GeneralSummaryUser34 profiles={state.profile_client} />;
+    }
+    // Si no, usar el componente original
+    return <GeneralSummary profiles={state.profile_client} />;
+  };
+
   return (
     <Routes>
-      <Route
-        path="/"
-        element={<GeneralSummary profiles={state.profile_client} />}
-      />
+      <Route path="/" element={renderCentroControl()} />
       <Route path="/geo" element={<GeoSmart />} />
       <Route path="/telemetria" element={renderMainRoute()} />
       <Route path="/analisis" element={<ResponsiveSmartAnalysis />} />
@@ -189,17 +197,30 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
   const { token } = useToken();
   const { isMobile } = useResponsive();
   const { state } = useContext(AppContext);
+
+  // Filtrar elementos del menú basado en el perfil seleccionado
+  // Ocultar DGA - MEE (key "4") cuando el selected_profile tenga id = 1
+  const filteredMenuItems = useMemo(() => {
+    return MENU_ITEMS.filter((item) => {
+      // Si es DGA - MEE (key "4") y el perfil seleccionado tiene id = 1, ocultarlo
+      if (item.key === "4" && state.selected_profile?.id === 1) {
+        return false;
+      }
+      return true;
+    });
+  }, [state.selected_profile?.id]);
+
   const selectedKey = useMemo(() => {
     const currentPath = location.pathname;
     // Ordena de mayor a menor longitud de 'to'
-    const sortedItems = [...MENU_ITEMS].sort(
+    const sortedItems = [...filteredMenuItems].sort(
       (a, b) => b.to.length - a.to.length
     );
     const menuItem = sortedItems.find(
       (item) => currentPath === item.to || currentPath.startsWith(item.to + "/")
     );
     return menuItem ? menuItem.key : "0";
-  }, [location.pathname]);
+  }, [location.pathname, filteredMenuItems]);
 
   return (
     <Flex vertical style={{ height: "100%" }} justify="space-around">
@@ -233,13 +254,13 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
           border: "none",
           marginBottom: 4,
         }}
-        items={MENU_ITEMS.filter(
-          (item) => item.key === "0" || item.key === "1"
-        ).map((item) => ({
-          key: item.key,
-          icon: item.icon,
-          label: <Link to={item.to}>{item.label}</Link>,
-        }))}
+        items={filteredMenuItems
+          .filter((item) => item.key === "0" || item.key === "1")
+          .map((item) => ({
+            key: item.key,
+            icon: item.icon,
+            label: <Link to={item.to}>{item.label}</Link>,
+          }))}
       />
       <Divider
         style={{
@@ -272,13 +293,13 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
           flex: 1,
           overflowY: "auto",
         }}
-        items={MENU_ITEMS.filter(
-          (item) => item.key !== "0" && item.key !== "1"
-        ).map((item) => ({
-          key: item.key,
-          icon: item.icon,
-          label: <Link to={item.to}>{item.label}</Link>,
-        }))}
+        items={filteredMenuItems
+          .filter((item) => item.key !== "0" && item.key !== "1")
+          .map((item) => ({
+            key: item.key,
+            icon: item.icon,
+            label: <Link to={item.to}>{item.label}</Link>,
+          }))}
       />
       <Flex
         gap={"small"}

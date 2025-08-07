@@ -66,8 +66,9 @@ const Sma = () => {
   const [countApi, setCountApi] = useState(0);
   const activate = state.selected_profile.profile_ikolu.m3;
 
-  useEffect(() => {
-    const fetchData = async (currentPage = 1) => {
+  // Función para obtener datos de la API
+  const fetchData = useCallback(
+    async (currentPage = 1) => {
       if (!initialDate || !finishDate) {
         setData([]);
         setCountApi(0);
@@ -94,10 +95,13 @@ const Sma = () => {
       } finally {
         setLoading(false);
       }
-    };
+    },
+    [initialDate, finishDate, state.selected_profile.id]
+  );
 
+  useEffect(() => {
     fetchData(1);
-  }, [initialDate, finishDate, state.selected_profile.id]);
+  }, [fetchData]);
 
   const downloadDataToExcel = useCallback(async () => {
     if (!initialDate || !finishDate) return;
@@ -115,7 +119,12 @@ const Sma = () => {
     } finally {
       setLoadingExcel(false);
     }
-  }, [initialDate, finishDate, state.selected_profile.id]);
+  }, [
+    initialDate,
+    finishDate,
+    state.selected_profile.id,
+    state.selected_profile.title,
+  ]);
 
   useEffect(() => {
     if (state.selected_profile) {
@@ -202,12 +211,22 @@ const Sma = () => {
           <div style={{ fontWeight: 600, color: "#722ed1" }}>{value}</div>
         ),
       },
+      {
+        title: "Comprobante SMA",
+        dataIndex: "n_voucher",
+        align: "center",
+        width: isMobile ? 120 : 150,
+        render: (value) => (
+          <div style={{ fontWeight: 600, color: "#722ed1" }}>{value}</div>
+        ),
+      },
     ],
     [isMobile, primaryColor, successColor]
   );
 
   const handlePageChange = (newPage) => {
-    setPage(newPage);
+    // Llamar a fetchData con la nueva página para obtener los datos correspondientes
+    fetchData(newPage);
   };
 
   // Variable para verificar si se ha seleccionado un rango completo de fechas
