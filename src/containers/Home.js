@@ -117,7 +117,7 @@ const AppRoutes = React.memo(() => {
     const hasValidUser = state.user && typeof state.user === "object";
 
     if (!hasValidDga) {
-      console.warn(
+      console.log(
         "Selected profile sin datos DGA válidos:",
         state.selected_profile
       );

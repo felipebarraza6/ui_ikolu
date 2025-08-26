@@ -1,44 +1,10 @@
 import React, { useContext, useCallback, useMemo, useEffect } from "react";
 import { AppContext } from "../../App";
-import {
-  Row,
-  Col,
-  Tag,
-  Badge,
-  Select,
-  Flex,
-  Button,
-  Dropdown,
-  Tooltip,
-} from "antd";
+import { Tag, Badge, Select, Flex, Button, Tooltip } from "antd";
 import { useNavigate } from "react-router";
-import {
-  SendOutlined,
-  DatabaseFilled,
-  BookOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
-import { GiConsoleController } from "react-icons/gi";
-import { FcDoughnutChart } from "react-icons/fc";
-import { useResponsive } from "../../hooks/useResponsive";
-
-// --- Helpers ---
-const safeParseJSON = (item, fallback = null) => {
-  try {
-    const value = localStorage.getItem(item);
-    if (value === null || value === "undefined" || value === "null") {
-      return fallback;
-    }
-    return JSON.parse(value);
-  } catch (error) {
-    console.warn(`Error parsing localStorage item "${item}":`, error);
-    return fallback;
-  }
-};
 
 const ListWells = () => {
   const { state, dispatch } = useContext(AppContext);
-  const { isMobile } = useResponsive();
   const navigate = useNavigate();
 
   // Validar que tengamos los datos necesarios
@@ -77,6 +43,12 @@ const ListWells = () => {
 
   const onSelectWell = useCallback(
     (key) => {
+      // Bloquear cambio si está cargando datos
+      if (state.isLoading) {
+        console.warn("No se puede cambiar de pozo mientras se cargan datos");
+        return;
+      }
+
       if (key === "admin") {
         navigate("/supp");
         return;
@@ -101,7 +73,7 @@ const ListWells = () => {
         navigate("/telemetria");
       }
     },
-    [navigate, state.profile_client, dispatch, hasValidData]
+    [navigate, state.profile_client, dispatch, hasValidData, state.isLoading]
   );
 
   const selectStyle = useMemo(
@@ -238,7 +210,7 @@ const ListWells = () => {
     }
 
     return wellOptions;
-  }, [state.profile_client, state.user, disabledWell, hasValidData]);
+  }, [state.profile_client, state.user, hasValidData]);
 
   // Obtener el valor actual del select de forma segura
   const currentValue = useMemo(() => {
@@ -249,12 +221,20 @@ const ListWells = () => {
   return (
     <Flex align="bottom" justify="end" gap="small" wrap="wrap">
       <Select
-        style={selectStyle}
-        placeholder="Seleccione punto de captación"
+        style={{
+          ...selectStyle,
+          opacity: state.isLoading ? 0.6 : 1,
+          pointerEvents: state.isLoading ? "none" : "auto",
+        }}
+        placeholder={
+          state.isLoading
+            ? "Cargando datos..."
+            : "Seleccione punto de captación"
+        }
         value={currentValue}
         onSelect={onSelectWell}
         dropdownStyle={{ zIndex: 1001 }}
-        loading={!hasValidData}
+        loading={!hasValidData || state.isLoading}
         showSearch
         optionFilterProp="label"
         filterOption={(input, option) => {
@@ -262,9 +242,24 @@ const ListWells = () => {
           const label = option.label || "";
           return label.toLowerCase().includes(input.toLowerCase());
         }}
+        disabled={state.isLoading}
       >
         {options}
       </Select>
+      {state.isLoading && (
+        <Tooltip title="Cargando datos del pozo actual...">
+          <Button
+            type="text"
+            loading
+            size="small"
+            style={{
+              color: "#1F3461",
+              border: "none",
+              boxShadow: "none",
+            }}
+          />
+        </Tooltip>
+      )}
     </Flex>
   );
 };

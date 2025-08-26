@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./Well.css";
 import { Typography } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 import QueueAnim from "rc-queue-anim"; // Importación de QueueAnim
 
 const { Text } = Typography;
@@ -35,7 +36,7 @@ const generateRandomBubblesForTube = () => {
   return bubbles;
 };
 
-const Well = ({ total, nivel, caudal, profW }) => {
+const Well = ({ total, nivel, caudal, profW, loading = false }) => {
   const [bubbles, setBubbles] = useState([]);
   const [tubeBubbles, setTubeBubbles] = useState([]);
   const [niveLevel, setNivelLevel] = useState(nivel);
@@ -129,7 +130,14 @@ const Well = ({ total, nivel, caudal, profW }) => {
       <div className="sensor">
         <div className="punta">
           <Text style={{ color: "white" }}>
-            {nivel && parseFloat(nivel).toFixed(2)} m
+            {loading ? (
+              <LoadingOutlined
+                spin
+                style={{ fontSize: "1.0em", color: "white" }}
+              />
+            ) : (
+              `${nivel && parseFloat(nivel).toFixed(2)} m`
+            )}
           </Text>
         </div>
       </div>
@@ -145,7 +153,14 @@ const Well = ({ total, nivel, caudal, profW }) => {
                 fontSize: "1.0em",
               }}
             >
-              {total && total.toLocaleString("es-CL")} m³
+              {loading ? (
+                <LoadingOutlined
+                  spin
+                  style={{ fontSize: "1.0em", color: "black" }}
+                />
+              ) : (
+                `${total && total.toLocaleString("es-CL")} m³`
+              )}
             </Text>
           </center>
         </div>
@@ -155,7 +170,14 @@ const Well = ({ total, nivel, caudal, profW }) => {
 
       <div className="caudalimetro">
         <Text style={{ textAlign: "center", color: "white" }}>
-          {caudal && parseFloat(caudal).toFixed(2)} lt/s
+          {loading ? (
+            <LoadingOutlined
+              spin
+              style={{ fontSize: "1.0em", color: "white" }}
+            />
+          ) : (
+            `${caudal && parseFloat(caudal).toFixed(2)} lt/s`
+          )}
         </Text>
       </div>
     </div>

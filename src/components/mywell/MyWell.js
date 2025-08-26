@@ -5,23 +5,15 @@ import {
   Typography,
   Statistic,
   Card,
-  Descriptions,
   Flex,
   Collapse,
   Table,
   Drawer,
   Button,
-  Tag,
-  Space,
 } from "antd";
 import {
-  CalendarOutlined,
   ClockCircleOutlined,
-  HistoryOutlined,
   DatabaseOutlined,
-  SettingOutlined,
-  CopyOutlined,
-  CheckCircleFilled,
   IdcardOutlined,
   ToolOutlined,
   AimOutlined,
@@ -30,43 +22,58 @@ import {
   ArrowDownOutlined,
   TableOutlined,
   CloseOutlined,
-  DashboardOutlined,
   RiseOutlined,
-  EyeOutlined,
+  SyncOutlined,
+  LoadingOutlined,
 } from "@ant-design/icons";
 import caudal_img from "../../assets/images/caudal.png";
 import nivel_img from "../../assets/images/nivel.png";
 import acumulado_img from "../../assets/images/acumulado.png";
-import logo_dga from "../../assets/images/channels4_profile.jpg";
 import { AppContext } from "../../App";
 import QueueAnim from "rc-queue-anim";
 import MyLastRegisters from "./MyLastRegisters";
 import sh from "../../api/sh/endpoints";
 import Well from "./Well";
 import { useResponsive } from "../../hooks/useResponsive";
-import { useMediaQuery } from "react-responsive";
 import moment from "moment";
 import "moment/locale/es";
 const { Countdown } = Statistic;
-const { Title, Text } = Typography;
-const { Panel } = Collapse;
+const { Text } = Typography;
 
 moment.locale("es");
 
 const numberForMiles = new Intl.NumberFormat("de-DE");
 
 // --- Fila de información para la Ficha Técnica ---
-const TechInfoRow = ({ icon, label, value }) => (
+const TechInfoRow = ({ icon, label, value, loading = false }) => (
   <Flex
     justify="space-between"
     align="center"
-    style={{ padding: "8px 4px", borderBottom: "1px solid #f0f0f0" }}
+    style={{ padding: "4px 2px", borderBottom: "1px solid #f0f0f0" }}
   >
     <Flex align="center" gap="small">
       {icon}
-      <Text type="secondary">{label}</Text>
+      <Text type="secondary" style={{ fontSize: 11 }}>
+        {label}
+      </Text>
     </Flex>
-    <Text strong>{value}</Text>
+    {loading ? (
+      <div
+        style={{
+          width: "60px",
+          height: "14px",
+          background:
+            "linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)",
+          backgroundSize: "200% 100%",
+          animation: "loading 1.5s infinite",
+          borderRadius: "3px",
+        }}
+      />
+    ) : (
+      <Text strong style={{ fontSize: 12 }}>
+        {value}
+      </Text>
+    )}
   </Flex>
 );
 
@@ -76,9 +83,10 @@ const SectionTitle = ({ children }) => (
       display: "block",
       color: "#8c8c8c",
       fontWeight: 500,
-      marginTop: "12px",
-      marginBottom: "4px",
-      paddingLeft: "4px",
+      marginTop: "6px",
+      marginBottom: "2px",
+      paddingLeft: "2px",
+      fontSize: 10,
     }}
   >
     {children}
@@ -86,7 +94,7 @@ const SectionTitle = ({ children }) => (
 );
 
 // --- Componente para Ficha Técnica (Rediseñado) ---
-const WellTechnicalSheet = ({ profile }) => {
+const WellTechnicalSheet = ({ profile, loading = false }) => {
   // Usamos optional chaining para acceder a los datos de forma segura.
   const config_data = profile?.config_data ?? {};
   const dga = profile?.dga ?? {};
@@ -107,45 +115,57 @@ const WellTechnicalSheet = ({ profile }) => {
         height: "100%",
       }}
     >
-      <div style={{ padding: "0 8px" }}>
+      <div style={{ padding: "0 4px" }}>
         <TechInfoRow
           icon={<IdcardOutlined />}
           label="DGA"
           value={<Text copyable>{dga.code_dga || "N/A"}</Text>}
+          loading={loading}
         />
-        <TechInfoRow icon={<IdcardOutlined />} label="Nombre" value={title} />
+        <TechInfoRow
+          icon={<IdcardOutlined />}
+          label="Nombre"
+          value={title}
+          loading={loading}
+        />
         <TechInfoRow
           icon={<ArrowDownOutlined />}
           label="Profundidad"
           value={`${parseFloat(config_data.d1 || 0).toFixed(2)} m`}
+          loading={loading}
         />
         <SectionTitle>Posicionamientos</SectionTitle>
         <TechInfoRow
           icon={<ToolOutlined />}
           label="Bomba"
           value={`${parseFloat(config_data.d2 || 0).toFixed(2)} m`}
+          loading={loading}
         />
         <TechInfoRow
           icon={<AimOutlined />}
           label="Nivel"
           value={`${parseFloat(config_data.d3 || 0).toFixed(2)} m`}
+          loading={loading}
         />
         <SectionTitle>Diámetros</SectionTitle>
         <TechInfoRow
           icon={<ExpandOutlined />}
           label="Ducto"
           value={`${parseFloat(config_data.d4 || 0).toFixed(2)} pulg`}
+          loading={loading}
         />
         <TechInfoRow
           icon={<ExpandOutlined />}
           label="Flujómetro"
           value={`${parseFloat(config_data.d5 || 0).toFixed(2)} pulg`}
+          loading={loading}
         />
         <SectionTitle>Totalizador</SectionTitle>
         <TechInfoRow
           icon={<CalculatorOutlined />}
           label="m³ Iniciales"
           value={`${numberForMiles.format(config_data.d6 || 0)}`}
+          loading={loading}
         />
       </div>
     </Card>
@@ -153,37 +173,71 @@ const WellTechnicalSheet = ({ profile }) => {
 };
 
 // --- Componente para Tarjetas de Métricas ---
-const MetricCard = ({ title, value, unit, icon }) => (
+const MetricCard = ({ title, value, unit, icon, loading = false }) => (
   <Card
     hoverable
     style={{
-      marginBottom: "16px",
-      borderRadius: "12px",
-      boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+      marginBottom: "8px",
+      borderRadius: "8px",
+      boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
     }}
   >
-    <Statistic
-      title={
-        <Flex align="center" gap="small">
+    <div style={{ textAlign: "center", padding: "8px 0" }}>
+      <div style={{ marginBottom: 6 }}>
+        <Flex align="center" gap="small" justify="center">
           {icon}
-          <Text style={{ fontSize: 12 }}>{title}</Text>
+          <Text style={{ fontSize: 11 }}>{title}</Text>
         </Flex>
-      }
-      value={value}
-      suffix={unit}
-      valueStyle={{
-        color: "#1F3461",
-        fontWeight: 600,
-        fontSize: 20,
-      }}
-    />
+      </div>
+      {loading ? (
+        <div>
+          <div
+            style={{
+              width: "50px",
+              height: "18px",
+              background:
+                "linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)",
+              backgroundSize: "200% 100%",
+              animation: "loading 1.5s infinite",
+              borderRadius: "3px",
+              margin: "0 auto 2px auto",
+            }}
+          />
+          <div
+            style={{
+              width: "40px",
+              height: "11px",
+              background:
+                "linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)",
+              backgroundSize: "200% 100%",
+              animation: "loading 1.5s infinite",
+              borderRadius: "2px",
+              margin: "0 auto",
+            }}
+          />
+        </div>
+      ) : (
+        <div>
+          <div
+            style={{
+              fontSize: 18,
+              fontWeight: 600,
+              color: "#1F3461",
+              marginBottom: 2,
+            }}
+          >
+            {value}
+          </div>
+          <div style={{ fontSize: 11, color: "#666" }}>{unit}</div>
+        </div>
+      )}
+    </div>
   </Card>
 );
 
 const MyWell = () => {
   const { state, dispatch } = useContext(AppContext);
   const { isMobile } = useResponsive();
-  const isMobileQuery = useMediaQuery({ maxWidth: 768 });
   const [loading, setLoading] = useState(true);
   const [nivel, setNivel] = useState(0);
   const [caudal, setCaudal] = useState(0);
@@ -196,84 +250,99 @@ const MyWell = () => {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const intervalRef = useRef(null);
 
-  const fetchData = async () => {
-    if (!state.selected_profile) return;
-    setLoading(true);
-
-    try {
-      const profileId = state.selected_profile.id;
-
-      const userProfileResponse = await sh.get_profile();
-      const allProfiles = userProfileResponse?.user?.catchment_points ?? [];
-      const selected_profile_data =
-        allProfiles.find((p) => p.id === profileId) || allProfiles[0] || {};
-
-      dispatch({
-        type: "UPDATE",
-        payload: { ...state, selected_profile: selected_profile_data },
-      });
-
-      const telemetryData = await sh.get_data_sh(profileId);
-
-      // Acceso seguro a los datos de telemetría y perfil
-      const modules = selected_profile_data?.modules ?? {};
-      const frecuency = selected_profile_data?.frecuency ?? 0;
-      const total_consumed_yesterday =
-        selected_profile_data?.total_consumed_yesterday ?? 0;
-
-      if (modules.m1) {
-        setLastCaption(modules.m1.date_time_medition ?? null);
-        setAcumDia(modules.m1.total_today_diff || 0);
-        setNivel(modules.m1.water_table || 0);
-        setCaudal(modules.m1.flow || 0);
-        setAcumulado(modules.m1.total || 0);
-      }
-
-      if (telemetryData?.results) {
-        const today = new Date().toISOString().slice(0, 10);
-        const todayRegisters = telemetryData.results.filter(
-          (reg) => reg.date_time_medition?.slice(0, 10) === today
-        );
-
-        const processedData = todayRegisters.map((result, i, arr) => ({
-          ...result,
-          total_hora: (result.total || 0) - (arr[i + 1]?.total || 0),
-        }));
-        setLastRegisters(modules.today);
-      }
-
-      setAcumAyer(total_consumed_yesterday);
-
-      if (frecuency > 0) {
-        const now = new Date();
-        const minutesUntilNext = frecuency - (now.getMinutes() % frecuency);
-        setDeadline(new Date(now.getTime() + minutesUntilNext * 60000));
-      }
-    } catch (error) {
-      console.error("Error fetching data in MyWell:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // useEffect consolidado para manejar carga inicial y actualizaciones periódicas
   useEffect(() => {
-    // Evita el parpadeo al no reiniciar los datos si ya existen.
+    // Función para obtener datos
+    const fetchData = async () => {
+      if (!state.selected_profile) return;
+
+      // Activar estado de carga global y local
+      dispatch({ type: "SET_LOADING", payload: { isLoading: true } });
+      setLoading(true);
+
+      try {
+        const profileId = state.selected_profile.id;
+
+        const userProfileResponse = await sh.get_profile();
+        const allProfiles = userProfileResponse?.user?.catchment_points ?? [];
+        const selected_profile_data =
+          allProfiles.find((p) => p.id === profileId) || allProfiles[0] || {};
+
+        // Solo actualizar si el perfil realmente cambió
+        if (selected_profile_data.id !== state.selected_profile.id) {
+          dispatch({
+            type: "UPDATE",
+            payload: { ...state, selected_profile: selected_profile_data },
+          });
+        }
+
+        const telemetryData = await sh.get_data_sh(profileId);
+
+        // Acceso seguro a los datos de telemetría y perfil
+        const modules = selected_profile_data?.modules ?? {};
+        const frecuency = selected_profile_data?.frecuency ?? 0;
+        const total_consumed_yesterday =
+          selected_profile_data?.total_consumed_yesterday ?? 0;
+
+        if (modules.m1) {
+          setLastCaption(modules.m1.date_time_medition ?? null);
+          setAcumDia(modules.m1.total_today_diff || 0);
+          setNivel(modules.m1.water_table || 0);
+          setCaudal(modules.m1.flow || 0);
+          setAcumulado(modules.m1.total || 0);
+        }
+
+        if (telemetryData?.results) {
+          const today = new Date().toISOString().slice(0, 10);
+          const todayRegisters = telemetryData.results.filter(
+            (reg) => reg.date_time_medition?.slice(0, 10) === today
+          );
+
+          setLastRegisters(modules.today);
+        }
+
+        setAcumAyer(total_consumed_yesterday);
+
+        if (frecuency > 0) {
+          const now = new Date();
+          const minutesUntilNext = frecuency - (now.getMinutes() % frecuency);
+          setDeadline(new Date(now.getTime() + minutesUntilNext * 60000));
+        }
+      } catch (error) {
+        console.error("Error fetching data in MyWell:", error);
+      } finally {
+        // Desactivar estado de carga global y local
+        dispatch({ type: "SET_LOADING", payload: { isLoading: false } });
+        setLoading(false);
+      }
+    };
+
+    // Función para limpiar intervalos existentes
+    const clearExistingInterval = () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+
+    // Cargar datos iniciales si hay un perfil seleccionado
     if (state.selected_profile?.id) {
       fetchData();
+
+      // Configurar intervalo de actualización periódica
+      clearExistingInterval();
+      intervalRef.current = setInterval(() => {
+        if (state.selected_profile?.id) {
+          fetchData();
+        }
+      }, 60000); // 1 minuto
     }
-  }, [state.selected_profile?.id]);
 
-  useEffect(() => {
-    // Configura el intervalo para la actualización periódica.
-    const interval = setInterval(() => {
-      if (state.selected_profile?.id) {
-        fetchData();
-      }
-    }, 60000); // 1 minuto
-
-    // Limpia el intervalo cuando el componente se desmonta.
-    return () => clearInterval(interval);
-  }, [state.selected_profile?.id, fetchData]);
+    // Limpiar intervalo al desmontar o cambiar de perfil
+    return () => {
+      clearExistingInterval();
+    };
+  }, [state.selected_profile?.id]); // Solo depende del ID del perfil
 
   const formatDate = (date) => {
     if (!date) return { date: "N/A", time: "" };
@@ -287,10 +356,6 @@ const MyWell = () => {
     return { date: datePart, time: timePart };
   };
 
-  const getDayMonth = (date) => {
-    return date.toLocaleDateString("es-CL", { month: "short", day: "numeric" });
-  };
-
   if (isMobile) {
     // --- VISTA MÓVIL ---
     return (
@@ -302,6 +367,7 @@ const MyWell = () => {
               value={(parseFloat(caudal) || 0).toFixed(2)}
               unit="L/s"
               icon={<img src={caudal_img} alt="caudal" style={{ width: 24 }} />}
+              loading={loading}
             />
           </Col>
           <Col span={24}>
@@ -310,6 +376,7 @@ const MyWell = () => {
               value={(parseFloat(nivel) || 0).toFixed(2)}
               unit="m"
               icon={<img src={nivel_img} alt="nivel" style={{ width: 24 }} />}
+              loading={loading}
             />
           </Col>
           <Col span={24}>
@@ -324,6 +391,7 @@ const MyWell = () => {
                   style={{ width: 24 }}
                 />
               }
+              loading={loading}
             />
           </Col>
           <Col span={24}>
@@ -332,6 +400,7 @@ const MyWell = () => {
               value={lastCaption ? formatDate(lastCaption).date : "N/A"}
               unit={lastCaption ? formatDate(lastCaption).time : ""}
               icon={<ClockCircleOutlined style={{ color: "#1F3461" }} />}
+              loading={loading}
             />
           </Col>
         </Row>
@@ -351,13 +420,17 @@ const MyWell = () => {
               nivel={nivel}
               caudal={caudal}
               profW={state.selected_profile?.config_data?.d1}
+              loading={loading}
             />
           </div>
         </Flex>
 
         <Flex vertical={true} gap="middle">
           {/* Ficha Técnica */}
-          <WellTechnicalSheet profile={state.selected_profile} />
+          <WellTechnicalSheet
+            profile={state.selected_profile}
+            loading={loading}
+          />
 
           {/* Consumos Combinados */}
           <Card
@@ -379,14 +452,32 @@ const MyWell = () => {
                     textAlign: "center",
                     background: "#fafafa",
                     border: "1px solid #f0f0f0",
+                    padding: "4px",
                   }}
                 >
-                  <Statistic
-                    title={`Hoy (${moment().format("DD MMM")})`}
-                    value={acumDia}
-                    suffix="m³"
-                    valueStyle={{ color: "#27AE60", fontSize: 18 }}
-                  />
+                  <div style={{ textAlign: "center" }}>
+                    <div
+                      style={{ fontSize: 11, color: "#666", marginBottom: 4 }}
+                    >
+                      Hoy ({moment().format("DD MMM")})
+                    </div>
+                    {loading ? (
+                      <LoadingOutlined
+                        spin
+                        style={{ fontSize: 16, color: "#27AE60" }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          fontSize: 16,
+                          fontWeight: 600,
+                          color: "#27AE60",
+                        }}
+                      >
+                        {acumDia} m³
+                      </div>
+                    )}
+                  </div>
                 </Card>
               </Col>
               <Col span={24}>
@@ -396,16 +487,32 @@ const MyWell = () => {
                     textAlign: "center",
                     background: "#fafafa",
                     border: "1px solid #f0f0f0",
+                    padding: "4px",
                   }}
                 >
-                  <Statistic
-                    title={`Ayer (${moment()
-                      .subtract(1, "days")
-                      .format("DD MMM")})`}
-                    value={acumAyer}
-                    suffix="m³"
-                    valueStyle={{ color: "#F2994A", fontSize: 18 }}
-                  />
+                  <div style={{ textAlign: "center" }}>
+                    <div
+                      style={{ fontSize: 11, color: "#666", marginBottom: 4 }}
+                    >
+                      Ayer ({moment().subtract(1, "days").format("DD MMM")})
+                    </div>
+                    {loading ? (
+                      <LoadingOutlined
+                        spin
+                        style={{ fontSize: 16, color: "#F2994A" }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          fontSize: 16,
+                          fontWeight: 600,
+                          color: "#F2994A",
+                        }}
+                      >
+                        {acumAyer} m³
+                      </div>
+                    )}
+                  </div>
                 </Card>
               </Col>
             </Row>
@@ -457,10 +564,6 @@ const MyWell = () => {
     },
   ];
 
-  const cardStyle = {
-    padding: "0 !important",
-  };
-
   // --- VISTA ESCRITORIO ---
   return (
     <div
@@ -481,6 +584,7 @@ const MyWell = () => {
                   icon={
                     <img src={caudal_img} alt="caudal" style={{ width: 24 }} />
                   }
+                  loading={loading}
                 />
                 <MetricCard
                   title="Nivel Freático"
@@ -489,6 +593,7 @@ const MyWell = () => {
                   icon={
                     <img src={nivel_img} alt="nivel" style={{ width: 24 }} />
                   }
+                  loading={loading}
                 />
                 <MetricCard
                   title="Acumulado Total"
@@ -501,12 +606,14 @@ const MyWell = () => {
                       style={{ width: 24 }}
                     />
                   }
+                  loading={loading}
                 />
                 <MetricCard
                   title="Último Registro"
                   value={lastCaption ? formatDate(lastCaption).date : "N/A"}
                   unit={lastCaption ? formatDate(lastCaption).time : ""}
                   icon={<ClockCircleOutlined style={{ color: "#1F3461" }} />}
+                  loading={loading}
                 />
               </div>
             </div>
@@ -530,14 +637,36 @@ const MyWell = () => {
                         textAlign: "center",
                         background: "#fafafa",
                         border: "1px solid #f0f0f0",
+                        padding: "4px",
                       }}
                     >
-                      <Statistic
-                        title={`Hoy (${moment().format("DD MMM")})`}
-                        value={acumDia}
-                        suffix="m³"
-                        valueStyle={{ color: "#27AE60", fontSize: 18 }}
-                      />
+                      <div style={{ textAlign: "center" }}>
+                        <div
+                          style={{
+                            fontSize: 11,
+                            color: "#666",
+                            marginBottom: 4,
+                          }}
+                        >
+                          Hoy ({moment().format("DD MMM")})
+                        </div>
+                        {loading ? (
+                          <LoadingOutlined
+                            spin
+                            style={{ fontSize: 16, color: "#27AE60" }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              fontSize: 16,
+                              fontWeight: 600,
+                              color: "#27AE60",
+                            }}
+                          >
+                            {acumDia} m³
+                          </div>
+                        )}
+                      </div>
                     </Card>
                   </Col>
                   <Col span={12}>
@@ -547,16 +676,36 @@ const MyWell = () => {
                         textAlign: "center",
                         background: "#fafafa",
                         border: "1px solid #f0f0f0",
+                        padding: "4px",
                       }}
                     >
-                      <Statistic
-                        title={`Ayer (${moment()
-                          .subtract(1, "days")
-                          .format("DD MMM")})`}
-                        value={acumAyer}
-                        suffix="m³"
-                        valueStyle={{ color: "#F2994A", fontSize: 18 }}
-                      />
+                      <div style={{ textAlign: "center" }}>
+                        <div
+                          style={{
+                            fontSize: 11,
+                            color: "#666",
+                            marginBottom: 4,
+                          }}
+                        >
+                          Ayer ({moment().subtract(1, "days").format("DD MMM")})
+                        </div>
+                        {loading ? (
+                          <LoadingOutlined
+                            spin
+                            style={{ fontSize: 16, color: "#F2994A" }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              fontSize: 16,
+                              fontWeight: 600,
+                              color: "#F2994A",
+                            }}
+                          >
+                            {acumAyer} m³
+                          </div>
+                        )}
+                      </div>
                     </Card>
                   </Col>
                 </Row>
@@ -583,10 +732,12 @@ const MyWell = () => {
               >
                 <Button
                   type="primary"
-                  icon={<TableOutlined />}
+                  icon={loading ? <LoadingOutlined spin /> : <TableOutlined />}
                   onClick={() => setDrawerVisible(true)}
+                  disabled={loading}
+                  loading={loading}
                 >
-                  Mediciones ({lastRegisters.length})
+                  Mediciones ({loading ? "..." : lastRegisters.length})
                 </Button>
               </Flex>
               <Flex
@@ -610,14 +761,40 @@ const MyWell = () => {
                       nivel={nivel}
                       caudal={caudal}
                       profW={state.selected_profile?.config_data?.d1}
+                      loading={loading}
                     />
                   </div>
                 </Flex>
-                {deadline && (
+                {loading ? (
                   <Flex align="center" gap="middle">
                     <ClockCircleOutlined
                       style={{ fontSize: 20, color: "#5D6983" }}
                     />
+                    <div>
+                      <div
+                        style={{
+                          color: "#5D6983",
+                          fontSize: 12,
+                          marginBottom: 4,
+                        }}
+                      >
+                        Próxima medición en:
+                      </div>
+                      <div
+                        style={{
+                          width: "80px",
+                          height: "22px",
+                          background:
+                            "linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)",
+                          backgroundSize: "200% 100%",
+                          animation: "loading 1.5s infinite",
+                          borderRadius: "4px",
+                        }}
+                      />
+                    </div>
+                  </Flex>
+                ) : deadline ? (
+                  <Flex align="center" gap="middle">
                     <Countdown
                       title={
                         <Text style={{ color: "#5D6983" }}>
@@ -629,7 +806,7 @@ const MyWell = () => {
                       valueStyle={{ color: "#1F3461", fontSize: 22 }}
                     />
                   </Flex>
-                )}
+                ) : null}
               </Flex>
             </Card>
           </QueueAnim>
@@ -639,7 +816,10 @@ const MyWell = () => {
         <Col xs={24} sm={24} md={7} lg={7} xl={7}>
           <QueueAnim type="right" delay={200}>
             <div key="d">
-              <WellTechnicalSheet profile={state.selected_profile} />
+              <WellTechnicalSheet
+                profile={state.selected_profile}
+                loading={loading}
+              />
             </div>
           </QueueAnim>
         </Col>
@@ -658,12 +838,21 @@ const MyWell = () => {
         <Table
           dataSource={lastRegisters}
           columns={columns}
-          size="small"
+          bordered={true}
           pagination={{ pageSize: 10, hideOnSinglePage: true }}
           rowKey="id"
-          scroll={{ y: "calc(100vh - 120px)" }}
         />
       </Drawer>
+
+      {/* Estilos CSS para la animación del skeleton */}
+      <style>
+        {`
+          @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+          }
+        `}
+      </style>
     </div>
   );
 };

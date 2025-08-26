@@ -66,6 +66,7 @@ function getInitialState() {
       modules: {},
       profile_ikolu: {},
     },
+    isLoading: false, // Estado de carga global
   };
 }
 

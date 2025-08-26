@@ -12,6 +12,12 @@ export const appReducer = (state, action) => {
         selected_profile: action.payload.selected_profile,
       };
 
+    case "SET_LOADING":
+      return {
+        ...state,
+        isLoading: action.payload.isLoading,
+      };
+
     case "LOGIN":
       console.log(action);
       localStorage.setItem(
