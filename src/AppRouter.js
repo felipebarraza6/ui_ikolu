@@ -64,6 +64,13 @@ const AppRouter = () => {
   // Verificar si el usuario está autenticado y tiene datos válidos
   const isAuth = isAuthenticated && user && user.username;
 
+  console.log("🔍 AppRouter - Estado de autenticación:", {
+    isAuthenticated,
+    hasUser: !!user,
+    username: user?.username,
+    isAuth,
+  });
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />

@@ -60,9 +60,16 @@ export const useAuth = () => {
       localStorage.setItem("token", JSON.stringify(response.access_token));
       localStorage.setItem("user", JSON.stringify(response.user));
 
+      // Actualizar estado de manera síncrona
       setToken(response.access_token);
       setUser(response.user);
       setIsAuthenticated(true);
+
+      console.log("✅ Login exitoso - Estado actualizado:", {
+        token: response.access_token,
+        user: response.user,
+        isAuthenticated: true,
+      });
 
       return response;
     } catch (err) {

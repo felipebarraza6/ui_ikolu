@@ -1,0 +1,765 @@
+/* ========================================
+   🔐 ESTILOS DEL COMPONENTE LOGIN
+   ======================================== */
+
+/* Prevenir scroll solo en el contenedor del login */
+/* NOTA: Estas reglas solo afectan al login, no a toda la aplicación */
+
+/* ========================================
+   CONTENEDOR PRINCIPAL
+   ======================================== */
+.login-container {
+  height: 100vh;
+  width: 100vw;
+  max-width: 100vw;
+  background: linear-gradient(135deg, rgba(31, 52, 97, 0.9) 0%, rgba(46, 91, 138, 0.9) 100%), url('../assets/images/walldga.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  /* Asegurar que solo este contenedor tenga scroll deshabilitado */
+  z-index: 1000;
+}
+
+/* ========================================
+   GOTAS REALISTAS COMO EN LA IMAGEN
+   ======================================== */
+
+/* Contenedor de gotas */
+.bubbles-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+/* Gota individual - estilo realista y elegante */
+.bubble {
+  position: absolute;
+  border-radius: 50%;
+  /* Gota completamente transparente con bordes ultra finos */
+  background: transparent;
+  border: 0.3px solid rgba(255, 255, 255, 0.15);
+  /* Efecto de refracción - fondo ligeramente distorsionado */
+  backdrop-filter: blur(0.3px);
+  -webkit-backdrop-filter: blur(0.3px);
+  /* Sombra ultra sutil para dar profundidad */
+  box-shadow: 
+    0 0.5px 1px rgba(0, 0, 0, 0.03),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.05);
+  /* Reflejo interno para efecto de cristal mojado */
+  position: relative;
+  /* Efecto de zoom/refracción más sutil */
+  transform: scale(1.01);
+  /* Asegurar movimiento continuo sin pausas */
+  will-change: transform;
+  backface-visibility: hidden;
+  /* Asegurar que las gotas empiecen a moverse inmediatamente */
+  animation-play-state: running;
+}
+
+/* Algunas gotas con formas ligeramente irregulares para mayor realismo */
+.bubble:nth-child(3n) {
+  border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+}
+
+.bubble:nth-child(5n) {
+  border-radius: 50% 60% 40% 50% / 50% 40% 60% 50%;
+}
+
+.bubble:nth-child(7n) {
+  border-radius: 40% 50% 60% 50% / 60% 50% 40% 50%;
+}
+
+/* Efecto de refracción interna - gota de agua real */
+.bubble::before {
+  content: '';
+  position: absolute;
+  top: 15%;
+  left: 15%;
+  width: 30%;
+  height: 30%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.8) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  border-radius: 50%;
+  /* Efecto de brillo interno */
+  filter: blur(0.5px);
+}
+
+/* Efecto de sombra interna para dar volumen */
+.bubble::after {
+  content: '';
+  position: absolute;
+  bottom: 10%;
+  right: 10%;
+  width: 40%;
+  height: 40%;
+  background: radial-gradient(
+    circle,
+    rgba(0, 0, 0, 0.1) 0%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  /* Sombra interna sutil */
+  filter: blur(1px);
+}
+
+/* Gota pequeña */
+.bubble.small {
+  width: 3px;
+  height: 3px;
+  animation: bubbleFloat 25s infinite linear;
+  border-width: 0.15px;
+  /* Efecto de refracción más sutil para gotas pequeñas */
+  backdrop-filter: blur(0.15px);
+  -webkit-backdrop-filter: blur(0.15px);
+}
+
+/* Gota mediana */
+.bubble.medium {
+  width: 5px;
+  height: 5px;
+  animation: bubbleFloat 20s infinite linear;
+  border-width: 0.25px;
+  /* Efecto de refracción estándar */
+  backdrop-filter: blur(0.3px);
+  -webkit-backdrop-filter: blur(0.3px);
+}
+
+/* Gota grande */
+.bubble.large {
+  width: 7px;
+  height: 7px;
+  animation: bubbleFloat 16s infinite linear;
+  border-width: 0.35px;
+  /* Efecto de refracción más pronunciado */
+  backdrop-filter: blur(0.4px);
+  -webkit-backdrop-filter: blur(0.4px);
+}
+
+/* Gota extra grande */
+.bubble.xlarge {
+  width: 10px;
+  height: 10px;
+  animation: bubbleFloat 12s infinite linear;
+  border-width: 0.45px;
+  /* Efecto de refracción más visible */
+  backdrop-filter: blur(0.5px);
+  -webkit-backdrop-filter: blur(0.5px);
+}
+
+/* Gota gigante */
+.bubble.giant {
+  width: 14px;
+  height: 14px;
+  animation: bubbleFloat 8s infinite linear;
+  border-width: 0.55px;
+  /* Efecto de refracción más intenso */
+  backdrop-filter: blur(0.6px);
+  -webkit-backdrop-filter: blur(0.6px);
+}
+
+/* ========================================
+   WRAPPER DEL CONTENIDO
+   ======================================== */
+.login-content-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* ========================================
+   CONTENEDOR DEL CARD
+   ======================================== */
+.login-card-container {
+  width: 100%;
+  max-width: 400px;
+  max-height: 90vh;
+  overflow: hidden;
+  position: relative;
+  z-index: 10;
+}
+
+/* ========================================
+   CARD PRINCIPAL
+   ======================================== */
+.login-card {
+  background: rgba(31, 52, 97, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 20px !important;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+  width: 100%;
+  position: relative;
+  z-index: 10;
+  overflow: hidden;
+  /* Forzar border-radius en todos los navegadores */
+  -webkit-border-radius: 20px !important;
+  -moz-border-radius: 20px !important;
+  border-radius: 20px !important;
+}
+
+/* ========================================
+   FORZAR BORDER-RADIUS EN TODOS LOS ELEMENTOS
+   ======================================== */
+
+/* Reglas muy específicas para sobrescribir Ant Design */
+.login-card,
+.login-card .ant-card,
+.login-card .ant-card-body,
+.login-card .ant-card-body *,
+.login-card * {
+  border-radius: 20px !important;
+  border-top-left-radius: 20px !important;
+  border-top-right-radius: 20px !important;
+  border-bottom-left-radius: 20px !important;
+  border-bottom-right-radius: 20px !important;
+  overflow: hidden !important;
+}
+
+/* Reglas globales para Ant Design */
+.ant-card,
+.ant-card-body,
+.ant-card-body * {
+  border-radius: 20px !important;
+  border-top-left-radius: 20px !important;
+  border-top-right-radius: 20px !important;
+  border-bottom-left-radius: 20px !important;
+  border-bottom-right-radius: 20px !important;
+  overflow: hidden !important;
+}
+
+/* Regla específica para el contenedor del card */
+.login-card-container .ant-card {
+  border-radius: 20px !important;
+  overflow: hidden !important;
+}
+
+/* Forzar border-radius en el wrapper del contenido */
+.login-content-wrapper .ant-card {
+  border-radius: 20px !important;
+  overflow: hidden !important;
+}
+
+/* Reglas adicionales para asegurar bordes redondeados */
+.login-card-container,
+.login-content-wrapper,
+.login-card-container *,
+.login-content-wrapper * {
+  border-radius: 20px !important;
+  overflow: hidden !important;
+}
+
+/* Regla específica para cualquier elemento que pueda tener esquinas */
+*[class*="card"],
+*[class*="Card"],
+*[class*="ant-card"] {
+  border-radius: 20px !important;
+  overflow: hidden !important;
+}
+
+/* ========================================
+   REGLAS FINALES PARA GARANTIZAR BORDER-RADIUS
+   ======================================== */
+
+/* Regla que se ejecuta después de Ant Design */
+.ant-card,
+.ant-card-body,
+.ant-card-body *,
+.ant-card * {
+  border-radius: 20px !important;
+  border-top-left-radius: 20px !important;
+  border-top-right-radius: 20px !important;
+  border-bottom-left-radius: 20px !important;
+  border-bottom-right-radius: 20px !important;
+  overflow: hidden !important;
+}
+
+/* Regla específica para el body del card */
+.ant-card-body {
+  border-radius: 20px !important;
+  overflow: hidden !important;
+  /* Forzar en todos los navegadores */
+  -webkit-border-radius: 20px !important;
+  -moz-border-radius: 20px !important;
+}
+
+/* Regla para el card completo */
+.ant-card {
+  border-radius: 20px !important;
+  overflow: hidden !important;
+  /* Forzar en todos los navegadores */
+  -webkit-border-radius: 20px !important;
+  -moz-border-radius: 20px !important;
+}
+
+/* ========================================
+   HEADER DEL LOGIN
+   ======================================== */
+.login-header {
+  text-align: center;
+  margin-bottom: clamp(20px, 4vh, 40px);
+  position: relative;
+  z-index: 20;
+}
+
+.logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: clamp(15px, 3vh, 20px);
+  /* Agregar padding para evitar que el logo se corte durante la animación */
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+.login-logo {
+  height: clamp(40px, 8vh, 60px);
+  width: auto;
+  max-width: 100%;
+  animation: logoFloat 2s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  position: relative;
+  z-index: 20;
+  /* Asegurar que el logo tenga espacio suficiente para la animación */
+  transform-origin: center center;
+}
+
+/* Sombra debajo del logo */
+.login-logo::after {
+  content: '';
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 8px;
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.4) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: shadowFloat 2s ease-in-out infinite;
+}
+
+.login-title {
+  color: white !important;
+  margin: clamp(15px, 3vh, 20px) 0 clamp(8px, 2vh, 10px) 0 !important;
+  font-size: clamp(20px, 4vw, 28px) !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+}
+
+.login-subtitle {
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: clamp(14px, 2.5vw, 16px) !important;
+  margin: 0 !important;
+  line-height: 1.4 !important;
+  display: block !important;
+}
+
+/* ========================================
+   FORMULARIO
+   ======================================== */
+.login-form {
+  margin-bottom: clamp(15px, 3vh, 20px);
+}
+
+.login-form .ant-form-item {
+  margin-bottom: clamp(15px, 3vh, 20px);
+}
+
+.login-buttons-container {
+  margin-bottom: clamp(15px, 3vh, 20px) !important;
+  margin-top: clamp(20px, 4vh, 30px) !important;
+}
+
+/* ========================================
+   INPUTS
+   ======================================== */
+.login-input {
+  border-radius: 12px !important;
+  height: 45px !important;
+  font-size: 16px !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+}
+
+.login-input::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.login-input input {
+  color: white !important;
+}
+
+.login-input input::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Iconos de los inputs */
+.input-icon {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.password-toggle-icon {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Icono de contraseña de Ant Design */
+.ant-input-password-icon {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* ========================================
+   BOTONES
+   ======================================== */
+.login-button {
+  border-radius: 12px !important;
+  height: 45px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  border: none !important;
+  background: linear-gradient(135deg, #27AE60 0%, #2ECC71 100%) !important;
+  box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3) !important;
+}
+
+.clear-button {
+  border-radius: 12px !important;
+  height: 45px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  background: transparent !important;
+  color: white !important;
+}
+
+/* ========================================
+   FOOTER
+   ======================================== */
+.login-footer {
+  text-align: center;
+  margin-top: clamp(20px, 4vh, 30px);
+  padding-top: clamp(15px, 3vh, 20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-text {
+  color: rgba(255, 255, 255, 0.6) !important;
+  font-size: clamp(12px, 2vw, 14px) !important;
+  margin: 0 !important;
+  line-height: 1.3 !important;
+  display: block !important;
+}
+
+.footer-subtext {
+  color: rgba(255, 255, 255, 0.4) !important;
+  font-size: clamp(10px, 1.8vw, 12px) !important;
+  margin: clamp(6px, 1.5vh, 8px) 0 0 0 !important;
+  line-height: 1.3 !important;
+  display: block !important;
+}
+
+/* ========================================
+   MENSAJES DE ERROR
+   ======================================== */
+.ant-form-item-explain-error {
+  color: #ff7875 !important;
+  font-size: clamp(10px, 2vw, 12px) !important;
+  margin-top: 4px !important;
+  line-height: 1.2 !important;
+}
+
+/* ========================================
+   MEDIA QUERIES RESPONSIVOS
+   ======================================== */
+
+/* Pantallas muy pequeñas en altura */
+@media (max-height: 600px) {
+  .login-card {
+    padding: 16px !important;
+  }
+  
+  .login-form .ant-form-item {
+    margin-bottom: 12px !important;
+  }
+  
+  .login-header {
+    margin-bottom: 15px;
+  }
+  
+  .login-buttons-container {
+    margin-top: 15px !important;
+  }
+}
+
+/* Pantallas muy anchas */
+@media (min-width: 1200px) {
+  .login-card-container {
+    max-width: 450px;
+  }
+}
+
+/* Dispositivos móviles */
+@media (max-width: 768px) {
+  .login-card {
+    margin: 5px !important;
+    border-radius: 16px !important;
+    width: calc(100% - 10px) !important;
+    max-width: calc(100vw - 20px) !important;
+    z-index: 20 !important;
+  }
+  
+  .login-input,
+  .login-button,
+  .clear-button {
+    height: 40px !important;
+    font-size: 14px !important;
+  }
+  
+  .login-content-wrapper {
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 15;
+  }
+  
+  .login-card-container {
+    max-width: 100%;
+    width: 100%;
+    padding: 0 5px;
+    box-sizing: border-box;
+    z-index: 15 !important;
+  }
+  
+  .login-title {
+    font-size: clamp(18px, 5vw, 24px) !important;
+  }
+  
+  .login-subtitle {
+    font-size: clamp(13px, 3vw, 15px) !important;
+  }
+  
+  /* Asegurar que las ondas del fondo NO pasen por encima en móvil */
+  .login-container::before,
+  .login-container::after {
+    z-index: 1 !important;
+  }
+}
+
+/* Pantallas extra pequeñas */
+@media (max-width: 480px) {
+  .login-content-wrapper {
+    padding: 5px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .login-card-container {
+    max-width: 100%;
+    width: 100%;
+    padding: 0 2px;
+    box-sizing: border-box;
+  }
+  
+  .login-card {
+    margin: 2px !important;
+    border-radius: 12px !important;
+    width: calc(100% - 4px) !important;
+    max-width: calc(100vw - 10px) !important;
+  }
+  
+  .login-input,
+  .login-button,
+  .clear-button {
+    height: 38px !important;
+    font-size: 13px !important;
+  }
+  
+  /* Asegurar que los botones no se desborden */
+  .login-buttons-container .ant-row {
+    margin: 0 !important;
+  }
+  
+  .login-buttons-container .ant-col {
+    padding: 0 2px !important;
+  }
+}
+
+/* Pantallas muy altas */
+@media (min-height: 900px) {
+  .login-card-container {
+    max-height: 85vh;
+  }
+  
+  .login-header {
+    margin-bottom: 50px;
+  }
+  
+  .login-footer {
+    margin-top: 40px;
+  }
+}
+
+/* Pantallas muy estrechas - prevenir cortes laterales */
+@media (max-width: 360px) {
+  .login-content-wrapper {
+    padding: 2px;
+  }
+  
+  .login-card-container {
+    padding: 0 1px;
+  }
+  
+  .login-card {
+    margin: 1px !important;
+    width: calc(100% - 2px) !important;
+    max-width: calc(100vw - 4px) !important;
+  }
+  
+  .login-title {
+    font-size: clamp(16px, 4.5vw, 20px) !important;
+  }
+  
+  .login-subtitle {
+    font-size: clamp(12px, 3.5vw, 14px) !important;
+  }
+  
+  .login-input,
+  .login-button,
+  .clear-button {
+    height: 36px !important;
+    font-size: 12px !important;
+  }
+}
+
+/* ========================================
+   ANIMACIONES Y TRANSICIONES
+   ======================================== */
+.login-card {
+  transition: all 0.3s ease;
+}
+
+.login-input,
+.login-button,
+.clear-button {
+  transition: all 0.2s ease;
+}
+
+.login-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4) !important;
+}
+
+.clear-button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.login-input:focus,
+.login-input:hover {
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ========================================
+   ANIMACIÓN DE FLOTACIÓN DEL LOGO
+   ======================================== */
+@keyframes logoFloat {
+  0% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-4px) scale(1.02);
+  }
+  100% {
+    transform: translateY(0px) scale(1);
+  }
+}
+
+/* ========================================
+   ANIMACIÓN SUAVE DE GOTAS REALISTAS
+   ======================================== */
+@keyframes bubbleFloat {
+  0% {
+    transform: translateX(-100px) scale(0.8);
+    opacity: 0;
+  }
+  2% {
+    transform: translateX(-80px) scale(0.85);
+    opacity: 0.3;
+  }
+  5% {
+    transform: translateX(-50px) scale(0.9);
+    opacity: 0.6;
+  }
+  95% {
+    transform: translateX(calc(100vw - 50px)) scale(0.9);
+    opacity: 0.6;
+  }
+  98% {
+    transform: translateX(calc(100vw - 20px)) scale(0.85);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateX(calc(100vw + 100px)) scale(0.8);
+    opacity: 0;
+  }
+}
+
+/* Asegurar que las gotas empiecen a moverse inmediatamente al cargar */
+.bubble {
+  animation-fill-mode: both;
+  animation-delay: 0s !important;
+}
+
+/* Animación de la sombra */
+@keyframes shadowFloat {
+  0% {
+    opacity: 0.4;
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    opacity: 0.2;
+    transform: translateX(-50%) scale(0.9);
+  }
+  100% {
+    opacity: 0.4;
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+/* Efecto de brillo sutil en el logo */
+.login-logo:hover {
+  animation: logoFloat 1.5s ease-in-out infinite, logoGlow 2s ease-in-out infinite;
+  filter: drop-shadow(0 6px 12px rgba(255, 255, 255, 0.2)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes logoGlow {
+  0%, 100% {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 0 rgba(255, 255, 255, 0));
+  }
+  50% {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));
+  }
+}

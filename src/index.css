@@ -91,65 +91,95 @@ code {
   padding-top: 2px
 }
 
-/* Estilos globales para ocultar scrollbars */
+/* Estilos globales para ocultar scrollbars visuales pero mantener funcionalidad */
 * {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  /* Solo ocultar scrollbars visuales, no deshabilitar scroll */
+  scrollbar-width: thin; /* Firefox - scrollbar fino en lugar de oculto */
+  -ms-overflow-style: auto; /* Internet Explorer 10+ - mantener scroll */
 }
 
 *::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  width: 6px; /* Chrome, Safari, Opera - scrollbar fino */
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.5);
 }
 
 /* ESTILOS ESPECÍFICOS PARA EL SIDEBAR */
 .ant-layout-sider {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
+  scrollbar-width: thin !important;
+  -ms-overflow-style: auto !important;
 }
 
 .ant-layout-sider::-webkit-scrollbar {
-  display: none !important;
+  width: 4px !important;
+  height: 4px !important;
+}
+
+.ant-layout-sider::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+.ant-layout-sider::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-radius: 2px !important;
 }
 
 .ant-layout-sider .ant-layout-sider-children {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
+  scrollbar-width: thin !important;
+  -ms-overflow-style: auto !important;
 }
 
 .ant-layout-sider .ant-layout-sider-children::-webkit-scrollbar {
-  display: none !important;
+  width: 4px !important;
+  height: 4px !important;
 }
 
 /* ESTILOS ESPECÍFICOS PARA EL CONTENIDO PRINCIPAL */
 .ant-layout-content {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
+  scrollbar-width: thin !important;
+  -ms-overflow-style: auto !important;
 }
 
 .ant-layout-content::-webkit-scrollbar {
-  display: none !important;
+  width: 6px !important;
+  height: 6px !important;
 }
 
 /* ESTILOS ESPECÍFICOS PARA TODOS LOS CONTENEDORES SCROLLABLES */
 div[style*="overflow-y: auto"],
 div[style*="overflow: auto"] {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
+  scrollbar-width: thin !important;
+  -ms-overflow-style: auto !important;
 }
 
 div[style*="overflow-y: auto"]::-webkit-scrollbar,
 div[style*="overflow: auto"]::-webkit-scrollbar {
-  display: none !important;
+  width: 6px !important;
+  height: 6px !important;
 }
 
 /* Estilos personalizados para el dropdown del select de pozos */
 .wells-select-dropdown .ant-select-dropdown-menu {
   max-height: 400px;
-  overflow: hidden;
+  overflow: auto; /* Cambiar de hidden a auto para permitir scroll */
 }
 
 .wells-select-dropdown .ant-select-dropdown-menu::-webkit-scrollbar {
-  display: none;
+  width: 4px;
+  height: 4px;
 }
 
 /* ELIMINAR ESTILOS PERSONALIZADOS DEL SELECT - USAR ANT DESIGN PURO */

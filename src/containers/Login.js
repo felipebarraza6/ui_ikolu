@@ -8,6 +8,7 @@ import {
   notification,
   Typography,
   Card,
+  Space,
 } from "antd";
 import {
   LoginOutlined,
@@ -17,31 +18,43 @@ import {
 } from "@ant-design/icons";
 import wallpaper from "../assets/images/walldga.png";
 import logo from "../assets/images/logozivo.png";
-import logo2 from "../assets/images/logogreen.png";
-import logoSmart from "../assets/images/logo-blanco.png";
 import QueueAnim from "rc-queue-anim";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { LuEye, LuEyeClosed } from "react-icons/lu";
+import "./Login.css";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 /**
- * 🔐 COMPONENTE LOGIN REFACTORIZADO
- *
- * Ahora usa el hook useAuth para manejar la autenticación
- * en lugar de depender del contexto del login.
+ * 🔐 COMPONENTE LOGIN REFACTORIZADO Y OPTIMIZADO
  *
  * Características principales:
+ * - Uso máximo de componentes Ant Design
+ * - Estilos separados en archivo CSS dedicado
+ * - 100% responsivo sin scroll
+ * - Código más limpio y mantenible
  * - Autenticación independiente del contexto
- * - Manejo de errores mejorado
- * - Redirección automática después del login
  */
 const Login = () => {
-  const { login, loading: authLoading, error: authError } = useAuth();
+  const {
+    login,
+    loading: authLoading,
+    error: authError,
+    isAuthenticated,
+    user,
+  } = useAuth();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const containerRef = useRef(null);
   const navigate = useNavigate();
+
+  // Redirigir si ya está autenticado
+  React.useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const finishLogin = async (values) => {
     setLoading(true);
@@ -51,7 +64,11 @@ const Login = () => {
         message: "¡Bienvenido!",
         description: "Has iniciado sesión correctamente",
       });
-      navigate("/");
+
+      // Pequeño delay para asegurar que el estado se actualice antes de navegar
+      setTimeout(() => {
+        navigate("/", { replace: true });
+      }, 100);
     } catch (err) {
       console.log(err);
       notification.error({
@@ -63,144 +80,139 @@ const Login = () => {
     }
   };
 
-  const loginCardStyle = {
-    background: "rgba(31, 52, 97, 0.95)",
-    border: "1px solid rgba(255, 255, 255, 0.2)",
-    borderRadius: "20px",
-    backdropFilter: "blur(10px)",
-    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
-  };
-
-  const inputStyle = {
-    borderRadius: "12px",
-    height: "45px",
-    fontSize: "16px",
-    border: "1px solid rgba(255, 255, 255, 0.3)",
-    background: "rgba(255, 255, 255, 0.1)",
-    color: "white",
-  };
-
-  const buttonStyle = {
-    borderRadius: "12px",
-    height: "45px",
-    fontSize: "16px",
-    fontWeight: "600",
-    border: "none",
-    background: "linear-gradient(135deg, #27AE60 0%, #2ECC71 100%)",
-    boxShadow: "0 4px 15px rgba(39, 174, 96, 0.3)",
-  };
-
-  const clearButtonStyle = {
-    borderRadius: "12px",
-    height: "45px",
-    fontSize: "16px",
-    fontWeight: "600",
-    border: "2px solid rgba(255, 255, 255, 0.3)",
-    background: "transparent",
-    color: "white",
-  };
-
   return (
-    <div
-      ref={containerRef}
-      style={{
-        minHeight: "100vh",
-        background: `linear-gradient(135deg, rgba(31, 52, 97, 0.9) 0%, rgba(46, 91, 138, 0.9) 100%), url(${wallpaper})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundAttachment: "fixed",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "20px",
-      }}
-    >
-      <Row justify="center" align="middle" style={{ width: "100%" }}>
-        <Col
-          xs={24}
-          sm={22}
-          md={20}
-          lg={18}
-          xl={16}
-          xxl={14}
-          style={{ maxWidth: "600px" }}
-        >
+    <div ref={containerRef} className="login-container">
+      {/* Contenedor de gotas realistas */}
+      <div className="bubbles-container">
+        {/* Generar múltiples gotas con diferentes tamaños y posiciones */}
+        {Array.from({ length: 500 }, (_, i) => {
+          // Distribución más proporcional de tamaños - más gotas pequeñas
+          let size;
+          const rand = Math.random();
+          if (rand < 0.4) {
+            size = "small"; // 40% gotas pequeñas
+          } else if (rand < 0.7) {
+            size = "medium"; // 30% gotas medianas
+          } else if (rand < 0.85) {
+            size = "large"; // 15% gotas grandes
+          } else if (rand < 0.95) {
+            size = "xlarge"; // 10% gotas extra grandes
+          } else {
+            size = "giant"; // 5% gotas gigantes
+          }
+
+          // Distribución proporcional por toda la pantalla
+          let top, left;
+
+          // Dividir la pantalla en una cuadrícula 12x42 para distribución uniforme
+          const gridRow = Math.floor(i / 42); // 12 filas
+          const gridCol = i % 42; // 42 columnas por fila
+
+          // Distribuir uniformemente en cada sección
+          if (gridRow === 0) {
+            // Fila superior (0-8% de la pantalla)
+            top = 0.5 + gridCol * 0.18; // 0.5% a 8%
+            left = Math.random() * 100;
+          } else if (gridRow === 1) {
+            // Segunda fila (8-16% de la pantalla)
+            top = 8 + gridCol * 0.19; // 8% a 16%
+            left = Math.random() * 100;
+          } else if (gridRow === 2) {
+            // Tercera fila (16-24% de la pantalla)
+            top = 16 + gridCol * 0.19; // 16% a 24%
+            left = Math.random() * 100;
+          } else if (gridRow === 3) {
+            // Cuarta fila (24-32% de la pantalla)
+            top = 24 + gridCol * 0.19; // 24% a 32%
+            left = Math.random() * 100;
+          } else if (gridRow === 4) {
+            // Quinta fila (32-40% de la pantalla)
+            top = 32 + gridCol * 0.19; // 32% a 40%
+            left = Math.random() * 100;
+          } else if (gridRow === 5) {
+            // Sexta fila (40-48% de la pantalla)
+            top = 40 + gridCol * 0.19; // 40% a 48%
+            left = Math.random() * 100;
+          } else if (gridRow === 6) {
+            // Séptima fila (48-56% de la pantalla)
+            top = 48 + gridCol * 0.19; // 48% a 56%
+            left = Math.random() * 100;
+          } else if (gridRow === 7) {
+            // Octava fila (56-64% de la pantalla)
+            top = 56 + gridCol * 0.19; // 56% a 64%
+            left = Math.random() * 100;
+          } else if (gridRow === 8) {
+            // Novena fila (64-72% de la pantalla)
+            top = 64 + gridCol * 0.19; // 64% a 72%
+            left = Math.random() * 100;
+          } else if (gridRow === 9) {
+            // Décima fila (72-80% de la pantalla)
+            top = 72 + gridCol * 0.19; // 72% a 80%
+            left = Math.random() * 100;
+          } else if (gridRow === 10) {
+            // Undécima fila (80-88% de la pantalla)
+            top = 80 + gridCol * 0.19; // 80% a 88%
+            left = Math.random() * 100;
+          } else {
+            // Duodécima fila (88-99.5% de la pantalla)
+            top = 88 + gridCol * 0.27; // 88% a 99.5%
+            left = Math.random() * 100;
+          }
+
+          // Agregar variación aleatoria para evitar patrones muy rígidos
+          top += (Math.random() - 0.5) * 6; // ±3px de variación
+          left += (Math.random() - 0.5) * 8; // ±4px de variación
+
+          // Asegurar que las gotas estén dentro de los límites de la pantalla
+          top = Math.max(1, Math.min(99, top));
+          left = Math.max(1, Math.min(99, left));
+
+          // Delay variado para que las gotas aparezcan escalonadamente
+          const delay = Math.random() * 15;
+
+          return (
+            <div
+              key={i}
+              className={`bubble ${size}`}
+              style={{
+                top: `${top}%`,
+                left: `${left}%`,
+                animationDelay: `${delay}s`,
+              }}
+            />
+          );
+        })}
+      </div>
+
+      {/* Contenedor principal responsivo */}
+      <div className="login-content-wrapper">
+        {/* Card de login centrado */}
+        <div className="login-card-container">
           <QueueAnim type="bottom" delay={300}>
             <div key="login-card">
-              <Card style={loginCardStyle}>
+              <Card className="login-card">
                 {/* Header del Login */}
-                <div
-                  style={{
-                    textAlign: "center",
-                    marginBottom: "40px",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: "16px",
-                      marginBottom: "20px",
-                    }}
-                  >
-                    <img
-                      src={logo}
-                      alt="Logo Zivo"
-                      style={{
-                        height: "60px",
-                        width: "auto",
-                        filter: "brightness(0) invert(1)",
-                      }}
-                    />
-                    <img
-                      src={logo2}
-                      alt="Logo Green"
-                      style={{
-                        height: "50px",
-                        width: "auto",
-                        filter: "brightness(0) invert(1)",
-                      }}
-                    />
+                <div className="login-header">
+                  <div className="logo-container">
+                    <img src={logo} alt="Logo Zivo" className="login-logo" />
                   </div>
-                  <img
-                    src={logoSmart}
-                    alt="Logo Smart"
-                    style={{
-                      height: "40px",
-                      width: "auto",
-                      filter: "brightness(0) invert(1)",
-                    }}
-                  />
-                  <Title
-                    level={2}
-                    style={{
-                      color: "white",
-                      margin: "20px 0 10px 0",
-                      fontSize: "28px",
-                      fontWeight: "700",
-                    }}
-                  >
+
+                  <Title level={2} className="login-title">
                     Bienvenido a Ikolu
                   </Title>
-                  <p
-                    style={{
-                      color: "rgba(255, 255, 255, 0.8)",
-                      fontSize: "16px",
-                      margin: 0,
-                    }}
-                  >
+                  <Text className="login-subtitle">
                     Sistema de Monitoreo Hídrico Inteligente
-                  </p>
+                  </Text>
                 </div>
 
-                {/* Formulario */}
+                {/* Formulario de autenticación */}
                 <Form
                   name="auth"
                   onFinish={finishLogin}
                   form={form}
                   layout="vertical"
                   size="large"
+                  className="login-form"
                 >
                   <Form.Item
                     name="email"
@@ -213,13 +225,8 @@ const Login = () => {
                     ]}
                   >
                     <Input
-                      prefix={
-                        <UserOutlined
-                          style={{ color: "rgba(255, 255, 255, 0.6)" }}
-                        />
-                      }
+                      prefix={<UserOutlined className="input-icon" />}
                       placeholder="Correo electrónico"
-                      style={inputStyle}
                       className="login-input"
                     />
                   </Form.Item>
@@ -234,34 +241,27 @@ const Login = () => {
                     ]}
                   >
                     <Input.Password
-                      prefix={
-                        <LockOutlined
-                          style={{ color: "rgba(255, 255, 255, 0.6)" }}
-                        />
-                      }
+                      prefix={<LockOutlined className="input-icon" />}
                       placeholder="Contraseña"
-                      style={inputStyle}
                       className="login-input"
                       iconRender={(visible) => (
-                        <span style={{ color: "rgba(255, 255, 255, 0.6)" }}>
-                          {visible ? "👁️" : "💧"}
+                        <span className="password-toggle-icon">
+                          {visible ? <LuEye /> : <LuEyeClosed />}
                         </span>
                       )}
                     />
                   </Form.Item>
 
-                  <Form.Item
-                    style={{ marginBottom: "20px", marginTop: "30px" }}
-                  >
+                  <Form.Item className="login-buttons-container">
                     <Row gutter={[16, 16]}>
                       <Col span={12}>
                         <Button
                           type="primary"
                           htmlType="submit"
                           icon={<LoginOutlined />}
-                          style={buttonStyle}
                           loading={loading || authLoading}
                           block
+                          className="login-button"
                         >
                           Iniciar Sesión
                         </Button>
@@ -270,7 +270,7 @@ const Login = () => {
                         <Button
                           icon={<ClearOutlined />}
                           onClick={() => form.resetFields()}
-                          style={clearButtonStyle}
+                          className="clear-button"
                           block
                         >
                           Limpiar
@@ -281,65 +281,19 @@ const Login = () => {
                 </Form>
 
                 {/* Footer del Login */}
-                <div
-                  style={{
-                    textAlign: "center",
-                    marginTop: "30px",
-                    paddingTop: "20px",
-                    borderTop: "1px solid rgba(255, 255, 255, 0.1)",
-                  }}
-                >
-                  <p
-                    style={{
-                      color: "rgba(255, 255, 255, 0.6)",
-                      fontSize: "14px",
-                      margin: 0,
-                    }}
-                  >
-                    © 2024 Ikolu App - Smart Hydro Monitoring
-                  </p>
-                  <p
-                    style={{
-                      color: "rgba(255, 255, 255, 0.4)",
-                      fontSize: "12px",
-                      margin: "8px 0 0 0",
-                    }}
-                  >
+                <div className="login-footer">
+                  <Text className="footer-text">
+                    © 2025 Ikolu App - Smart Hydro Monitoring
+                  </Text>
+                  <Text className="footer-subtext">
                     Sistema de Monitoreo Hídrico Inteligente
-                  </p>
+                  </Text>
                 </div>
               </Card>
             </div>
           </QueueAnim>
-        </Col>
-      </Row>
-
-      {/* Estilos CSS adicionales */}
-      <style>
-        {`
-          .login-input::placeholder {
-            color: rgba(255, 255, 255, 0.6) !important;
-          }
-          
-          .login-input input {
-            color: white !important;
-          }
-          
-          .login-input input::placeholder {
-            color: rgba(255, 255, 255, 0.6) !important;
-          }
-          
-          .ant-input-password-icon {
-            color: rgba(255, 255, 255, 0.6) !important;
-          }
-          
-          .ant-form-item-explain-error {
-            color: #ff7875 !important;
-            font-size: 12px;
-            margin-top: 4px;
-          }
-        `}
-      </style>
+        </div>
+      </div>
     </div>
   );
 };
