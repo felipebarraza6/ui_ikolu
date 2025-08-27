@@ -1,11 +1,4 @@
-import React, {
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-} from "react";
-import { AppContext } from "../App";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Table,
   Flex,
@@ -40,6 +33,8 @@ import {
 } from "@ant-design/icons";
 import sh from "../api/sh/endpoints";
 import { useResponsive } from "../hooks/useResponsive";
+import { useUserProfilesContext } from "../contexts/UserProfilesContext";
+import { useTelemetryData } from "../hooks/useTelemetryData";
 
 // Configurar dayjs correctamente
 dayjs.extend(customParseFormat);
@@ -53,23 +48,28 @@ dayjs.tz.setDefault("America/Santiago");
 const { Title } = Typography;
 
 const Sma = () => {
-  const { state } = useContext(AppContext);
+  // Usar los nuevos hooks en lugar de AppContext
+  const { selectedProfile } = useUserProfilesContext();
+  const { data: telemetryData } = useTelemetryData(selectedProfile?.id);
+
   const { isMobile, getSpacing, getColSpan, getTableScroll } = useResponsive();
-  const [selected, setSelect] = useState(state.user.catchment_points[0].id);
+  const [selected, setSelect] = useState(selectedProfile?.id || null);
   const [loading, setLoading] = useState(false);
   const [loadingExcel, setLoadingExcel] = useState(false);
-  const [dataSelected, setDataSelected] = useState(state.selected_profile);
+  const [dataSelected, setDataSelected] = useState(selectedProfile);
   const [page, setPage] = useState(1);
   const [initialDate, setInitialDate] = useState(null);
   const [finishDate, setFinishDate] = useState(null);
   const [data, setData] = useState([]);
   const [countApi, setCountApi] = useState(0);
-  const activate = state.selected_profile.profile_ikolu.m3;
+
+  // Verificar si el módulo M3 está activo
+  const activate = selectedProfile?.profile_ikolu?.m3 || false;
 
   // Función para obtener datos de la API
   const fetchData = useCallback(
     async (currentPage = 1) => {
-      if (!initialDate || !finishDate) {
+      if (!initialDate || !finishDate || !selectedProfile?.id) {
         setData([]);
         setCountApi(0);
         return;
@@ -81,7 +81,7 @@ const Sma = () => {
 
       try {
         const rq = await sh.get_data_sh_range(
-          state.selected_profile.id,
+          selectedProfile.id,
           format(initialDate),
           format(finishDate),
           currentPage
@@ -96,7 +96,7 @@ const Sma = () => {
         setLoading(false);
       }
     },
-    [initialDate, finishDate, state.selected_profile.id]
+    [initialDate, finishDate, selectedProfile?.id]
   );
 
   useEffect(() => {
@@ -104,38 +104,35 @@ const Sma = () => {
   }, [fetchData]);
 
   const downloadDataToExcel = useCallback(async () => {
-    if (!initialDate || !finishDate) return;
+    if (!initialDate || !finishDate || !selectedProfile?.id) return;
     setLoadingExcel(true);
     try {
       const format = (date) => new Date(date).toISOString().split("T")[0];
       await sh.get_data_sh_range_to_excel(
-        state.selected_profile.id,
+        selectedProfile.id,
         format(initialDate),
         format(finishDate),
-        state.selected_profile.title
+        selectedProfile.title
       );
     } catch (error) {
       console.error("Failed to download Excel file:", error);
     } finally {
       setLoadingExcel(false);
     }
-  }, [
-    initialDate,
-    finishDate,
-    state.selected_profile.id,
-    state.selected_profile.title,
-  ]);
+  }, [initialDate, finishDate, selectedProfile?.id, selectedProfile?.title]);
 
+  // Actualizar datos cuando cambie el perfil seleccionado
   useEffect(() => {
-    if (state.selected_profile) {
-      setDataSelected(state.selected_profile);
+    if (selectedProfile) {
+      setDataSelected(selectedProfile);
+      // setSelected(selectedProfile.id); // ← ELIMINADO: NO SE USA
       setInitialDate(null);
       setFinishDate(null);
       setData([]);
       setCountApi(0);
       setPage(1);
     }
-  }, [state.selected_profile]);
+  }, [selectedProfile]);
 
   // Configuración de estilos responsivos
   const primaryColor = "#1f3461";
@@ -234,6 +231,16 @@ const Sma = () => {
 
   const hasData = data && data.length > 0;
 
+  // Si no hay perfil seleccionado, mostrar loading
+  if (!selectedProfile) {
+    return (
+      <div style={{ textAlign: "center", padding: "40px 0" }}>
+        <Spin size="large" />
+        <div style={{ marginTop: "16px" }}>Cargando perfil...</div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <Row
@@ -266,7 +273,7 @@ const Sma = () => {
               </Title>
               <Statistic
                 value={
-                  dataSelected
+                  dataSelected?.modules?.m1?.date_time_medition
                     ? `${dataSelected.modules.m1.date_time_medition.slice(
                         5,
                         10
@@ -302,7 +309,8 @@ const Sma = () => {
               <div
                 style={{
                   background:
-                    dataSelected &&
+                    dataSelected?.modules?.total_consumed_today &&
+                    dataSelected?.modules?.total_consumed_yesterday &&
                     dataSelected.modules.total_consumed_today * 1000 >
                       dataSelected.modules.total_consumed_yesterday * 1000
                       ? successColor
@@ -317,7 +325,8 @@ const Sma = () => {
                   fontSize: 24,
                 }}
               >
-                {dataSelected &&
+                {dataSelected?.modules?.total_consumed_today &&
+                dataSelected?.modules?.total_consumed_yesterday &&
                 dataSelected.modules.total_consumed_today * 1000 >
                   dataSelected.modules.total_consumed_yesterday * 1000 ? (
                   <RiseOutlined />
@@ -337,7 +346,7 @@ const Sma = () => {
               </Title>
               <Statistic
                 value={
-                  dataSelected
+                  dataSelected?.modules?.total_consumed_today
                     ? (
                         dataSelected.modules.total_consumed_today * 1000
                       ).toLocaleString("es-ES")
@@ -348,7 +357,8 @@ const Sma = () => {
                   fontSize: isMobile ? 18 : 22,
                   fontWeight: 600,
                   color:
-                    dataSelected &&
+                    dataSelected?.modules?.total_consumed_today &&
+                    dataSelected?.modules?.total_consumed_yesterday &&
                     dataSelected.modules.total_consumed_today * 1000 >
                       dataSelected.modules.total_consumed_yesterday * 1000
                       ? successColor
@@ -369,7 +379,8 @@ const Sma = () => {
               <div
                 style={{
                   background:
-                    dataSelected &&
+                    dataSelected?.modules?.total_consumed_today &&
+                    dataSelected?.modules?.total_consumed_yesterday &&
                     dataSelected.modules.total_consumed_yesterday * 1000 >=
                       dataSelected.modules.total_consumed_today * 1000
                       ? successColor
@@ -384,7 +395,8 @@ const Sma = () => {
                   fontSize: 24,
                 }}
               >
-                {dataSelected &&
+                {dataSelected?.modules?.total_consumed_today &&
+                dataSelected?.modules?.total_consumed_yesterday &&
                 dataSelected.modules.total_consumed_yesterday * 1000 >=
                   dataSelected.modules.total_consumed_today * 1000 ? (
                   <RiseOutlined />
@@ -404,7 +416,7 @@ const Sma = () => {
               </Title>
               <Statistic
                 value={
-                  dataSelected
+                  dataSelected?.modules?.total_consumed_yesterday
                     ? (
                         dataSelected.modules.total_consumed_yesterday * 1000
                       ).toLocaleString("es-ES")
@@ -415,7 +427,8 @@ const Sma = () => {
                   fontSize: isMobile ? 18 : 22,
                   fontWeight: 600,
                   color:
-                    dataSelected &&
+                    dataSelected?.modules?.total_consumed_today &&
+                    dataSelected?.modules?.total_consumed_yesterday &&
                     dataSelected.modules.total_consumed_yesterday * 1000 >=
                       dataSelected.modules.total_consumed_today * 1000
                       ? successColor

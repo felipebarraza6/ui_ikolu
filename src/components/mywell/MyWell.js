@@ -1,349 +1,128 @@
-import React, { useContext, useEffect, useState, useRef } from "react";
+import React, { useState, useRef } from "react";
+import { Row, Col, Card, Typography, Button, Drawer, Table, Flex } from "antd";
 import {
-  Row,
-  Col,
-  Typography,
-  Statistic,
-  Card,
-  Flex,
-  Collapse,
-  Table,
-  Drawer,
-  Button,
-} from "antd";
-import {
-  ClockCircleOutlined,
-  DatabaseOutlined,
-  IdcardOutlined,
-  ToolOutlined,
-  AimOutlined,
-  ExpandOutlined,
-  CalculatorOutlined,
-  ArrowDownOutlined,
-  TableOutlined,
-  CloseOutlined,
-  RiseOutlined,
-  SyncOutlined,
   LoadingOutlined,
+  TableOutlined,
+  RiseOutlined,
+  ClockCircleOutlined,
+  CloseOutlined,
 } from "@ant-design/icons";
+import { Statistic } from "antd";
+import moment from "moment";
+import QueueAnim from "rc-queue-anim";
+import { useResponsive } from "../../hooks/useResponsive";
+import { useTelemetryData } from "../../hooks/useTelemetryData";
+import { useUserProfilesContext } from "../../contexts/UserProfilesContext";
+import Well from "./Well";
+import WellTechnicalSheet from "./WellTechnicalSheet";
+import MyLastRegisters from "./MyLastRegisters";
+
+// Importar imágenes
 import caudal_img from "../../assets/images/caudal.png";
 import nivel_img from "../../assets/images/nivel.png";
 import acumulado_img from "../../assets/images/acumulado.png";
-import { AppContext } from "../../App";
-import QueueAnim from "rc-queue-anim";
-import MyLastRegisters from "./MyLastRegisters";
-import sh from "../../api/sh/endpoints";
-import Well from "./Well";
-import { useResponsive } from "../../hooks/useResponsive";
-import moment from "moment";
-import "moment/locale/es";
-const { Countdown } = Statistic;
+
 const { Text } = Typography;
 
-moment.locale("es");
-
+// Formateador de números con puntos como separador de miles
 const numberForMiles = new Intl.NumberFormat("de-DE");
 
-// --- Fila de información para la Ficha Técnica ---
-const TechInfoRow = ({ icon, label, value, loading = false }) => (
-  <Flex
-    justify="space-between"
-    align="center"
-    style={{ padding: "4px 2px", borderBottom: "1px solid #f0f0f0" }}
-  >
-    <Flex align="center" gap="small">
-      {icon}
-      <Text type="secondary" style={{ fontSize: 11 }}>
-        {label}
-      </Text>
-    </Flex>
-    {loading ? (
-      <div
-        style={{
-          width: "60px",
-          height: "14px",
-          background:
-            "linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)",
-          backgroundSize: "200% 100%",
-          animation: "loading 1.5s infinite",
-          borderRadius: "3px",
-        }}
-      />
-    ) : (
-      <Text strong style={{ fontSize: 12 }}>
-        {value}
-      </Text>
-    )}
-  </Flex>
-);
-
-const SectionTitle = ({ children }) => (
-  <Text
-    style={{
-      display: "block",
-      color: "#8c8c8c",
-      fontWeight: 500,
-      marginTop: "6px",
-      marginBottom: "2px",
-      paddingLeft: "2px",
-      fontSize: 10,
-    }}
-  >
-    {children}
-  </Text>
-);
-
-// --- Componente para Ficha Técnica (Rediseñado) ---
-const WellTechnicalSheet = ({ profile, loading = false }) => {
-  // Usamos optional chaining para acceder a los datos de forma segura.
-  const config_data = profile?.config_data ?? {};
-  const dga = profile?.dga ?? {};
-  const title = profile?.title ?? "N/A";
-
-  if (!profile) return null;
-
-  return (
-    <Card
-      title={
-        <Flex align="center" gap="small">
-          <DatabaseOutlined /> Ficha Técnica
-        </Flex>
-      }
-      style={{
-        borderRadius: "12px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-        height: "100%",
-      }}
-    >
-      <div style={{ padding: "0 4px" }}>
-        <TechInfoRow
-          icon={<IdcardOutlined />}
-          label="DGA"
-          value={<Text copyable>{dga.code_dga || "N/A"}</Text>}
-          loading={loading}
-        />
-        <TechInfoRow
-          icon={<IdcardOutlined />}
-          label="Nombre"
-          value={title}
-          loading={loading}
-        />
-        <TechInfoRow
-          icon={<ArrowDownOutlined />}
-          label="Profundidad"
-          value={`${parseFloat(config_data.d1 || 0).toFixed(2)} m`}
-          loading={loading}
-        />
-        <SectionTitle>Posicionamientos</SectionTitle>
-        <TechInfoRow
-          icon={<ToolOutlined />}
-          label="Bomba"
-          value={`${parseFloat(config_data.d2 || 0).toFixed(2)} m`}
-          loading={loading}
-        />
-        <TechInfoRow
-          icon={<AimOutlined />}
-          label="Nivel"
-          value={`${parseFloat(config_data.d3 || 0).toFixed(2)} m`}
-          loading={loading}
-        />
-        <SectionTitle>Diámetros</SectionTitle>
-        <TechInfoRow
-          icon={<ExpandOutlined />}
-          label="Ducto"
-          value={`${parseFloat(config_data.d4 || 0).toFixed(2)} pulg`}
-          loading={loading}
-        />
-        <TechInfoRow
-          icon={<ExpandOutlined />}
-          label="Flujómetro"
-          value={`${parseFloat(config_data.d5 || 0).toFixed(2)} pulg`}
-          loading={loading}
-        />
-        <SectionTitle>Totalizador</SectionTitle>
-        <TechInfoRow
-          icon={<CalculatorOutlined />}
-          label="m³ Iniciales"
-          value={`${numberForMiles.format(config_data.d6 || 0)}`}
-          loading={loading}
-        />
-      </div>
-    </Card>
-  );
-};
-
-// --- Componente para Tarjetas de Métricas ---
-const MetricCard = ({ title, value, unit, icon, loading = false }) => (
+/**
+ * 🚰 COMPONENTE METRIC CARD
+ * Tarjeta reutilizable para mostrar métricas con icono y estado de carga
+ */
+const MetricCard = ({ title, value, unit, icon, loading }) => (
   <Card
-    hoverable
+    size="small"
     style={{
-      marginBottom: "8px",
-      borderRadius: "8px",
-      boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+      marginBottom: "16px",
+      borderRadius: "12px",
+      boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
     }}
   >
-    <div style={{ textAlign: "center", padding: "8px 0" }}>
-      <div style={{ marginBottom: 6 }}>
-        <Flex align="center" gap="small" justify="center">
-          {icon}
-          <Text style={{ fontSize: 11 }}>{title}</Text>
-        </Flex>
-      </div>
-      {loading ? (
-        <div>
-          <div
-            style={{
-              width: "50px",
-              height: "18px",
-              background:
-                "linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)",
-              backgroundSize: "200% 100%",
-              animation: "loading 1.5s infinite",
-              borderRadius: "3px",
-              margin: "0 auto 2px auto",
-            }}
-          />
-          <div
-            style={{
-              width: "40px",
-              height: "11px",
-              background:
-                "linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)",
-              backgroundSize: "200% 100%",
-              animation: "loading 1.5s infinite",
-              borderRadius: "2px",
-              margin: "0 auto",
-            }}
-          />
+    <Flex align="center" gap="middle">
+      <div style={{ fontSize: "24px" }}>{icon}</div>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>
+          {title}
         </div>
-      ) : (
-        <div>
+        {loading ? (
           <div
             style={{
-              fontSize: 18,
-              fontWeight: 600,
-              color: "#1F3461",
-              marginBottom: 2,
+              width: "60px",
+              height: "20px",
+              background:
+                "linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)",
+              backgroundSize: "200% 100%",
+              animation: "loading 1.5s infinite",
+              borderRadius: "4px",
             }}
+          />
+        ) : (
+          <div
+            style={{ fontSize: "20px", fontWeight: "600", color: "#1F3461" }}
           >
-            {value}
+            {value} {unit}
           </div>
-          <div style={{ fontSize: 11, color: "#666" }}>{unit}</div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </Flex>
   </Card>
 );
 
+/**
+ * 🏗️ COMPONENTE MYWELL REFACTORIZADO
+ *
+ * Ahora usa hooks personalizados para obtener datos desde la API
+ * en lugar de depender del contexto del login.
+ *
+ * Características principales:
+ * - Recarga automática basada en frecuencia real del punto de captación
+ * - Datos siempre actualizados desde la API
+ * - Título dinámico del punto de captación
+ * - Sistema de polling inteligente
+ */
 const MyWell = () => {
-  const { state, dispatch } = useContext(AppContext);
   const { isMobile } = useResponsive();
-  const [loading, setLoading] = useState(true);
-  const [nivel, setNivel] = useState(0);
-  const [caudal, setCaudal] = useState(0);
-  const [acumulado, setAcumulado] = useState(0);
-  const [acumDia, setAcumDia] = useState(0);
-  const [deadline, setDeadline] = useState(null);
-  const [lastCaption, setLastCaption] = useState(null);
-  const [acumAyer, setAcumAyer] = useState(0);
-  const [lastRegisters, setLastRegisters] = useState([]);
   const [drawerVisible, setDrawerVisible] = useState(false);
-  const intervalRef = useRef(null);
 
-  // useEffect consolidado para manejar carga inicial y actualizaciones periódicas
-  useEffect(() => {
-    // Función para obtener datos
-    const fetchData = async () => {
-      if (!state.selected_profile) return;
+  // Usar el contexto compartido en lugar del hook individual
+  const { selectedProfile, changeSelectedProfile } = useUserProfilesContext();
+  const {
+    data: telemetryData,
+    loading,
+    error,
+    nextMeasurement,
+    frecuency,
+    refreshData,
+  } = useTelemetryData(selectedProfile?.id);
 
-      // Activar estado de carga global y local
-      dispatch({ type: "SET_LOADING", payload: { isLoading: true } });
-      setLoading(true);
+  // Extraer datos del hook de telemetría
+  const profile = telemetryData?.profile;
+  const telemetry = telemetryData?.telemetry;
+  const currentData = telemetry?.currentData;
 
-      try {
-        const profileId = state.selected_profile.id;
+  // Estados locales para datos procesados
+  const [lastRegisters, setLastRegisters] = useState([]);
 
-        const userProfileResponse = await sh.get_profile();
-        const allProfiles = userProfileResponse?.user?.catchment_points ?? [];
-        const selected_profile_data =
-          allProfiles.find((p) => p.id === profileId) || allProfiles[0] || {};
+  // Procesar registros de hoy cuando cambien los datos
+  React.useEffect(() => {
+    if (telemetry?.todayRegisters) {
+      const today = new Date().toISOString().slice(0, 10);
+      const todayRegisters = telemetry.todayRegisters.filter(
+        (reg) => reg.date_time_medition?.slice(0, 10) === today
+      );
 
-        // Solo actualizar si el perfil realmente cambió
-        if (selected_profile_data.id !== state.selected_profile.id) {
-          dispatch({
-            type: "UPDATE",
-            payload: { ...state, selected_profile: selected_profile_data },
-          });
-        }
+      const processedData = todayRegisters.map((result, i, arr) => ({
+        ...result,
+        total_hora: (result.total || 0) - (arr[i + 1]?.total || 0),
+      }));
 
-        const telemetryData = await sh.get_data_sh(profileId);
-
-        // Acceso seguro a los datos de telemetría y perfil
-        const modules = selected_profile_data?.modules ?? {};
-        const frecuency = selected_profile_data?.frecuency ?? 0;
-        const total_consumed_yesterday =
-          selected_profile_data?.total_consumed_yesterday ?? 0;
-
-        if (modules.m1) {
-          setLastCaption(modules.m1.date_time_medition ?? null);
-          setAcumDia(modules.m1.total_today_diff || 0);
-          setNivel(modules.m1.water_table || 0);
-          setCaudal(modules.m1.flow || 0);
-          setAcumulado(modules.m1.total || 0);
-        }
-
-        if (telemetryData?.results) {
-          const today = new Date().toISOString().slice(0, 10);
-          const todayRegisters = telemetryData.results.filter(
-            (reg) => reg.date_time_medition?.slice(0, 10) === today
-          );
-
-          setLastRegisters(modules.today);
-        }
-
-        setAcumAyer(total_consumed_yesterday);
-
-        if (frecuency > 0) {
-          const now = new Date();
-          const minutesUntilNext = frecuency - (now.getMinutes() % frecuency);
-          setDeadline(new Date(now.getTime() + minutesUntilNext * 60000));
-        }
-      } catch (error) {
-        console.error("Error fetching data in MyWell:", error);
-      } finally {
-        // Desactivar estado de carga global y local
-        dispatch({ type: "SET_LOADING", payload: { isLoading: false } });
-        setLoading(false);
-      }
-    };
-
-    // Función para limpiar intervalos existentes
-    const clearExistingInterval = () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-
-    // Cargar datos iniciales si hay un perfil seleccionado
-    if (state.selected_profile?.id) {
-      fetchData();
-
-      // Configurar intervalo de actualización periódica
-      clearExistingInterval();
-      intervalRef.current = setInterval(() => {
-        if (state.selected_profile?.id) {
-          fetchData();
-        }
-      }, 60000); // 1 minuto
+      setLastRegisters(processedData);
     }
+  }, [telemetry?.todayRegisters]);
 
-    // Limpiar intervalo al desmontar o cambiar de perfil
-    return () => {
-      clearExistingInterval();
-    };
-  }, [state.selected_profile?.id]); // Solo depende del ID del perfil
-
+  // Función para formatear fechas
   const formatDate = (date) => {
     if (!date) return { date: "N/A", time: "" };
     const d = new Date(date);
@@ -356,175 +135,7 @@ const MyWell = () => {
     return { date: datePart, time: timePart };
   };
 
-  if (isMobile) {
-    // --- VISTA MÓVIL ---
-    return (
-      <div>
-        <Row gutter={[8, 8]}>
-          <Col span={24}>
-            <MetricCard
-              title="Caudal"
-              value={(parseFloat(caudal) || 0).toFixed(2)}
-              unit="L/s"
-              icon={<img src={caudal_img} alt="caudal" style={{ width: 24 }} />}
-              loading={loading}
-            />
-          </Col>
-          <Col span={24}>
-            <MetricCard
-              title="Nivel Freático"
-              value={(parseFloat(nivel) || 0).toFixed(2)}
-              unit="m"
-              icon={<img src={nivel_img} alt="nivel" style={{ width: 24 }} />}
-              loading={loading}
-            />
-          </Col>
-          <Col span={24}>
-            <MetricCard
-              title="Acumulado Total"
-              value={new Intl.NumberFormat("de-DE").format(acumulado)}
-              unit="m³"
-              icon={
-                <img
-                  src={acumulado_img}
-                  alt="acumulado"
-                  style={{ width: 24 }}
-                />
-              }
-              loading={loading}
-            />
-          </Col>
-          <Col span={24}>
-            <MetricCard
-              title="Último Registro"
-              value={lastCaption ? formatDate(lastCaption).date : "N/A"}
-              unit={lastCaption ? formatDate(lastCaption).time : ""}
-              icon={<ClockCircleOutlined style={{ color: "#1F3461" }} />}
-              loading={loading}
-            />
-          </Col>
-        </Row>
-
-        <Flex justify="center" style={{ margin: "16px 0" }}>
-          <div
-            style={{
-              width: "100%",
-              maxWidth: "280px",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Well
-              total={acumulado}
-              nivel={nivel}
-              caudal={caudal}
-              profW={state.selected_profile?.config_data?.d1}
-              loading={loading}
-            />
-          </div>
-        </Flex>
-
-        <Flex vertical={true} gap="middle">
-          {/* Ficha Técnica */}
-          <WellTechnicalSheet
-            profile={state.selected_profile}
-            loading={loading}
-          />
-
-          {/* Consumos Combinados */}
-          <Card
-            title={
-              <Flex align="center" gap="small">
-                <RiseOutlined /> Consumos
-              </Flex>
-            }
-            style={{
-              borderRadius: "12px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-            }}
-          >
-            <Row gutter={[8, 8]}>
-              <Col span={24}>
-                <Card
-                  size="small"
-                  style={{
-                    textAlign: "center",
-                    background: "#fafafa",
-                    border: "1px solid #f0f0f0",
-                    padding: "4px",
-                  }}
-                >
-                  <div style={{ textAlign: "center" }}>
-                    <div
-                      style={{ fontSize: 11, color: "#666", marginBottom: 4 }}
-                    >
-                      Hoy ({moment().format("DD MMM")})
-                    </div>
-                    {loading ? (
-                      <LoadingOutlined
-                        spin
-                        style={{ fontSize: 16, color: "#27AE60" }}
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          fontSize: 16,
-                          fontWeight: 600,
-                          color: "#27AE60",
-                        }}
-                      >
-                        {acumDia} m³
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              </Col>
-              <Col span={24}>
-                <Card
-                  size="small"
-                  style={{
-                    textAlign: "center",
-                    background: "#fafafa",
-                    border: "1px solid #f0f0f0",
-                    padding: "4px",
-                  }}
-                >
-                  <div style={{ textAlign: "center" }}>
-                    <div
-                      style={{ fontSize: 11, color: "#666", marginBottom: 4 }}
-                    >
-                      Ayer ({moment().subtract(1, "days").format("DD MMM")})
-                    </div>
-                    {loading ? (
-                      <LoadingOutlined
-                        spin
-                        style={{ fontSize: 16, color: "#F2994A" }}
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          fontSize: 16,
-                          fontWeight: 600,
-                          color: "#F2994A",
-                        }}
-                      >
-                        {acumAyer} m³
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              </Col>
-            </Row>
-            <div style={{ marginTop: "16px" }}>
-              <MyLastRegisters />
-            </div>
-          </Card>
-        </Flex>
-      </div>
-    );
-  }
-
+  // Configuración de columnas para la tabla de registros
   const columns = [
     {
       title: "Hora",
@@ -564,6 +175,251 @@ const MyWell = () => {
     },
   ];
 
+  // Mostrar error si hay problema con los datos
+  if (error) {
+    return (
+      <Card style={{ margin: "20px", textAlign: "center" }}>
+        <Text type="danger">Error cargando datos: {error}</Text>
+        <br />
+        <Button onClick={refreshData} style={{ marginTop: "16px" }}>
+          Reintentar
+        </Button>
+      </Card>
+    );
+  }
+
+  // Mostrar loading si no hay datos
+  if (!profile || !telemetry) {
+    return (
+      <Card style={{ margin: "20px", textAlign: "center" }}>
+        <LoadingOutlined spin style={{ fontSize: "24px" }} />
+        <br />
+        <Text>Cargando datos del punto de captación...</Text>
+      </Card>
+    );
+  }
+
+  // --- VISTA MÓVIL ---
+  if (isMobile) {
+    return (
+      <div>
+        {/* Header con título del punto de captación */}
+        <Card
+          style={{
+            marginBottom: "16px",
+            borderRadius: "12px",
+            background: "linear-gradient(135deg, #1F3461 0%, #2E5B8A 100%)",
+            color: "white",
+          }}
+        >
+          <Flex align="center" justify="space-between">
+            <div>
+              <Text
+                style={{ color: "white", fontSize: "18px", fontWeight: "600" }}
+              >
+                {profile.title}
+              </Text>
+              <br />
+              <Text
+                style={{ color: "rgba(255,255,255,0.8)", fontSize: "14px" }}
+              >
+                Frecuencia: {frecuency} min | Próxima:{" "}
+                {nextMeasurement
+                  ? moment(nextMeasurement).format("HH:mm")
+                  : "N/A"}
+              </Text>
+            </div>
+            <Button
+              type="primary"
+              icon={<LoadingOutlined spin={loading} />}
+              onClick={refreshData}
+              disabled={loading}
+            >
+              Actualizar
+            </Button>
+          </Flex>
+        </Card>
+
+        <Row gutter={[8, 8]}>
+          <Col span={24}>
+            <MetricCard
+              title="Caudal"
+              value={(parseFloat(currentData?.caudal) || 0).toFixed(2)}
+              unit="L/s"
+              icon={<img src={caudal_img} alt="caudal" style={{ width: 24 }} />}
+              loading={loading}
+            />
+          </Col>
+          <Col span={24}>
+            <MetricCard
+              title="Nivel Freático"
+              value={(parseFloat(currentData?.nivel) || 0).toFixed(2)}
+              unit="m"
+              icon={<img src={nivel_img} alt="nivel" style={{ width: 24 }} />}
+              loading={loading}
+            />
+          </Col>
+          <Col span={24}>
+            <MetricCard
+              title="Acumulado Total"
+              value={new Intl.NumberFormat("de-DE").format(
+                currentData?.acumulado || 0
+              )}
+              unit="m³"
+              icon={
+                <img
+                  src={acumulado_img}
+                  alt="acumulado"
+                  style={{ width: 24 }}
+                />
+              }
+              loading={loading}
+            />
+          </Col>
+          <Col span={24}>
+            <MetricCard
+              title="Último Registro"
+              value={
+                telemetry?.lastMeasurement
+                  ? formatDate(telemetry.lastMeasurement).date
+                  : "N/A"
+              }
+              unit={
+                telemetry?.lastMeasurement
+                  ? formatDate(telemetry.lastMeasurement).time
+                  : ""
+              }
+              icon={<ClockCircleOutlined style={{ color: "#1F3461" }} />}
+              loading={loading}
+            />
+          </Col>
+        </Row>
+
+        <Flex justify="center" style={{ margin: "16px 0" }}>
+          <div
+            style={{
+              width: "100%",
+              maxWidth: "280px",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Well
+              total={currentData?.acumulado || 0}
+              nivel={currentData?.nivel || 0}
+              caudal={currentData?.caudal || 0}
+              profW={profile?.config_data?.d1 || 0}
+              loading={loading}
+            />
+          </div>
+        </Flex>
+
+        <Flex vertical={true} gap="middle">
+          {/* Ficha Técnica */}
+          <WellTechnicalSheet profile={profile} loading={loading} />
+
+          {/* Consumos Combinados */}
+          <Card
+            title={
+              <Flex align="center" gap="small">
+                <RiseOutlined /> Consumos
+              </Flex>
+            }
+            style={{
+              borderRadius: "12px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+            }}
+          >
+            <Row gutter={[8, 8]}>
+              <Col span={24}>
+                <Card
+                  size="small"
+                  style={{
+                    textAlign: "center",
+                    background: "#fafafa",
+                    border: "1px solid #f0f0f0",
+                    padding: "4px",
+                  }}
+                >
+                  <div style={{ textAlign: "center" }}>
+                    <div
+                      style={{
+                        fontSize: "11",
+                        color: "#666",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      Hoy ({moment().format("DD MMM")})
+                    </div>
+                    {loading ? (
+                      <LoadingOutlined
+                        spin
+                        style={{ fontSize: 16, color: "#27AE60" }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          fontSize: 16,
+                          fontWeight: "600",
+                          color: "#27AE60",
+                        }}
+                      >
+                        {currentData?.acumDia || 0} m³
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              </Col>
+              <Col span={24}>
+                <Card
+                  size="small"
+                  style={{
+                    textAlign: "center",
+                    background: "#fafafa",
+                    border: "1px solid #f0f0f0",
+                    padding: "4px",
+                  }}
+                >
+                  <div style={{ textAlign: "center" }}>
+                    <div
+                      style={{
+                        fontSize: "11",
+                        color: "#666",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      Ayer ({moment().subtract(1, "days").format("DD MMM")})
+                    </div>
+                    {loading ? (
+                      <LoadingOutlined
+                        spin
+                        style={{ fontSize: 16, color: "#F2994A" }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          fontSize: 16,
+                          fontWeight: "600",
+                          color: "#F2994A",
+                        }}
+                      >
+                        {currentData?.acumAyer || 0} m³
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              </Col>
+            </Row>
+            <div style={{ marginTop: "16px" }}>
+              <MyLastRegisters />
+            </div>
+          </Card>
+        </Flex>
+      </div>
+    );
+  }
+
   // --- VISTA ESCRITORIO ---
   return (
     <div
@@ -571,6 +427,42 @@ const MyWell = () => {
         minHeight: "calc(100vh - 64px)",
       }}
     >
+      {/* Header con título del punto de captación */}
+      <Card
+        style={{
+          marginBottom: "16px",
+          borderRadius: "12px",
+          background: "linear-gradient(135deg, #1F3461 0%, #2E5B8A 100%)",
+          color: "white",
+        }}
+      >
+        <Flex align="center" justify="space-between">
+          <div>
+            <Text
+              style={{ color: "white", fontSize: "24px", fontWeight: "600" }}
+            >
+              {profile.title}
+            </Text>
+            <br />
+            <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: "16px" }}>
+              Frecuencia de medición: {frecuency} minutos | Próxima medición:{" "}
+              {nextMeasurement
+                ? moment(nextMeasurement).format("HH:mm:ss")
+                : "N/A"}
+            </Text>
+          </div>
+          <Button
+            type="primary"
+            size="large"
+            icon={<LoadingOutlined spin={loading} />}
+            onClick={refreshData}
+            disabled={loading}
+          >
+            Actualizar Datos
+          </Button>
+        </Flex>
+      </Card>
+
       <Row gutter={[16, 16]}>
         {/* Columna Izquierda: Indicadores */}
         <Col xs={24} sm={24} md={7} lg={7} xl={7}>
@@ -579,7 +471,7 @@ const MyWell = () => {
               <div>
                 <MetricCard
                   title="Caudal"
-                  value={(parseFloat(caudal) || 0).toFixed(2)}
+                  value={(parseFloat(currentData?.caudal) || 0).toFixed(2)}
                   unit="(Lt/s)"
                   icon={
                     <img src={caudal_img} alt="caudal" style={{ width: 24 }} />
@@ -588,7 +480,7 @@ const MyWell = () => {
                 />
                 <MetricCard
                   title="Nivel Freático"
-                  value={(parseFloat(nivel) || 0).toFixed(2)}
+                  value={(parseFloat(currentData?.nivel) || 0).toFixed(2)}
                   unit="(m)"
                   icon={
                     <img src={nivel_img} alt="nivel" style={{ width: 24 }} />
@@ -597,7 +489,7 @@ const MyWell = () => {
                 />
                 <MetricCard
                   title="Acumulado Total"
-                  value={numberForMiles.format(acumulado || 0)}
+                  value={numberForMiles.format(currentData?.acumulado || 0)}
                   unit="(m³)"
                   icon={
                     <img
@@ -610,8 +502,16 @@ const MyWell = () => {
                 />
                 <MetricCard
                   title="Último Registro"
-                  value={lastCaption ? formatDate(lastCaption).date : "N/A"}
-                  unit={lastCaption ? formatDate(lastCaption).time : ""}
+                  value={
+                    telemetry?.lastMeasurement
+                      ? formatDate(telemetry.lastMeasurement).date
+                      : "N/A"
+                  }
+                  unit={
+                    telemetry?.lastMeasurement
+                      ? formatDate(telemetry.lastMeasurement).time
+                      : ""
+                  }
                   icon={<ClockCircleOutlined style={{ color: "#1F3461" }} />}
                   loading={loading}
                 />
@@ -643,9 +543,9 @@ const MyWell = () => {
                       <div style={{ textAlign: "center" }}>
                         <div
                           style={{
-                            fontSize: 11,
+                            fontSize: "11",
                             color: "#666",
-                            marginBottom: 4,
+                            marginBottom: "4px",
                           }}
                         >
                           Hoy ({moment().format("DD MMM")})
@@ -658,12 +558,12 @@ const MyWell = () => {
                         ) : (
                           <div
                             style={{
-                              fontSize: 16,
-                              fontWeight: 600,
+                              fontSize: "16",
+                              fontWeight: "600",
                               color: "#27AE60",
                             }}
                           >
-                            {acumDia} m³
+                            {currentData?.acumDia || 0} m³
                           </div>
                         )}
                       </div>
@@ -682,9 +582,9 @@ const MyWell = () => {
                       <div style={{ textAlign: "center" }}>
                         <div
                           style={{
-                            fontSize: 11,
+                            fontSize: "11",
                             color: "#666",
-                            marginBottom: 4,
+                            marginBottom: "4px",
                           }}
                         >
                           Ayer ({moment().subtract(1, "days").format("DD MMM")})
@@ -697,12 +597,12 @@ const MyWell = () => {
                         ) : (
                           <div
                             style={{
-                              fontSize: 16,
-                              fontWeight: 600,
+                              fontSize: "16",
+                              fontWeight: "600",
                               color: "#F2994A",
                             }}
                           >
-                            {acumAyer} m³
+                            {currentData?.acumAyer || 0} m³
                           </div>
                         )}
                       </div>
@@ -714,7 +614,7 @@ const MyWell = () => {
           </QueueAnim>
         </Col>
 
-        {/* Columna Central: Pozo y Mediciones (Más angosta) */}
+        {/* Columna Central: Pozo y Mediciones */}
         <Col xs={24} sm={24} md={10} lg={10} xl={10}>
           <QueueAnim delay={400} type="bottom">
             <Card
@@ -728,7 +628,7 @@ const MyWell = () => {
             >
               <Flex
                 justify="flex-end"
-                style={{ position: "absolute", top: 16, right: 16, zIndex: 10 }}
+                style={{ position: "absolute", top: 16, right: 16, zIndex: 1 }}
               >
                 <Button
                   type="primary"
@@ -757,10 +657,10 @@ const MyWell = () => {
                     }}
                   >
                     <Well
-                      total={acumulado}
-                      nivel={nivel}
-                      caudal={caudal}
-                      profW={state.selected_profile?.config_data?.d1}
+                      total={currentData?.acumulado || 0}
+                      nivel={currentData?.nivel || 0}
+                      caudal={currentData?.caudal || 0}
+                      profW={profile?.config_data?.d1 || 0}
                       loading={loading}
                     />
                   </div>
@@ -774,8 +674,8 @@ const MyWell = () => {
                       <div
                         style={{
                           color: "#5D6983",
-                          fontSize: 12,
-                          marginBottom: 4,
+                          fontSize: "12",
+                          marginBottom: "4px",
                         }}
                       >
                         Próxima medición en:
@@ -793,15 +693,15 @@ const MyWell = () => {
                       />
                     </div>
                   </Flex>
-                ) : deadline ? (
+                ) : nextMeasurement ? (
                   <Flex align="center" gap="middle">
-                    <Countdown
+                    <Statistic.Countdown
                       title={
                         <Text style={{ color: "#5D6983" }}>
                           Próxima medición en:
                         </Text>
                       }
-                      value={deadline}
+                      value={nextMeasurement}
                       format="HH:mm:ss"
                       valueStyle={{ color: "#1F3461", fontSize: 22 }}
                     />
@@ -812,18 +712,17 @@ const MyWell = () => {
           </QueueAnim>
         </Col>
 
-        {/* Columna Derecha: Ficha Técnica (Layout Flex/Tag con datos correctos) */}
+        {/* Columna Derecha: Ficha Técnica */}
         <Col xs={24} sm={24} md={7} lg={7} xl={7}>
           <QueueAnim type="right" delay={200}>
             <div key="d">
-              <WellTechnicalSheet
-                profile={state.selected_profile}
-                loading={loading}
-              />
+              <WellTechnicalSheet profile={profile} loading={loading} />
             </div>
           </QueueAnim>
         </Col>
       </Row>
+
+      {/* Drawer para mostrar registros */}
       <Drawer
         title={<Text style={{ color: "white" }}>Registros de Hoy</Text>}
         placement="right"

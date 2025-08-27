@@ -1,16 +1,29 @@
-import React, { useEffect, useContext } from "react";
+import React, { useEffect } from "react";
 import { Flex } from "antd";
 import QueueAnim from "rc-queue-anim";
 import Registers from "./Registers";
-import { AppContext } from "../../App";
+import { useUserProfilesContext } from "../../contexts/UserProfilesContext";
 import CodeQR from "./CodeQR";
 
 const Dga = () => {
-  const { state } = useContext(AppContext);
+  const { selectedProfile } = useUserProfilesContext();
 
-  const dataDga = state.selected_profile.modules.m2;
-  const profileDga = state.selected_profile.dga;
-  useEffect(() => {}, []);
+  // useEffect DEBE ir ANTES de cualquier return condicional
+  useEffect(() => {
+    // Aquí puedes agregar lógica si es necesaria
+  }, []);
+
+  // Verificar que el perfil tenga los datos necesarios
+  if (!selectedProfile) {
+    return (
+      <div style={{ textAlign: "center", padding: "40px 0" }}>
+        <div>Cargando perfil...</div>
+      </div>
+    );
+  }
+
+  const dataDga = selectedProfile.modules?.m2 || {};
+  const profileDga = selectedProfile.dga || {};
 
   return (
     <QueueAnim delay={300} type={["top", "left"]}>

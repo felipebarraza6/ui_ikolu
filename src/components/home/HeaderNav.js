@@ -1,203 +1,162 @@
-import React, { useContext, useMemo } from "react";
-import { AppContext } from "../../App";
+import { Flex, Typography, Button, Avatar, Breadcrumb } from "antd";
+import React, { useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  LogoutOutlined,
-  WifiOutlined,
-  UserOutlined,
-  BarChartOutlined,
-  FileTextOutlined,
-  AlertOutlined,
-  CustomerServiceOutlined,
-  DownloadOutlined,
-  EnvironmentOutlined,
-  GlobalOutlined,
-  MenuOutlined,
-} from "@ant-design/icons";
-import { Typography, Button, Popconfirm, Flex, Breadcrumb } from "antd";
-import ListWells from "./ListWells";
-import { useResponsive } from "../../hooks/useResponsive";
+import { useAuth } from "../../hooks/useAuth";
+import { useUserProfilesContext } from "../../contexts/UserProfilesContext";
 import logo from "../../assets/images/logozivo.png";
+import {
+  SettingOutlined,
+  UserOutlined,
+  LogoutOutlined,
+} from "@ant-design/icons";
 
 const { Title } = Typography;
 
-const MENU_ITEMS = [
-  { key: "0", icon: <GlobalOutlined />, label: "Centro de Control", to: "/" },
-  { key: "1", icon: <EnvironmentOutlined />, label: "GEO Smart", to: "/geo" },
-  { key: "2", icon: <WifiOutlined />, label: "Telemetría", to: "/telemetria" },
-  {
-    key: "3",
-    icon: <BarChartOutlined />,
-    label: "Smart Análisis",
-    to: "/analisis",
-  },
-  { key: "4", icon: <FileTextOutlined />, label: "DGA - MEE", to: "/dga" },
-  { key: "5", icon: <DownloadOutlined />, label: "Descarga", to: "/descarga" },
-  {
-    key: "6",
-    icon: <FileTextOutlined />,
-    label: "Documentos",
-    to: "/documentos",
-  },
-  { key: "7", icon: <AlertOutlined />, label: "Alertas", to: "/alertas" },
-  {
-    key: "8",
-    icon: <CustomerServiceOutlined />,
-    label: "Soporte",
-    to: "/soporte",
-  },
-];
-
-const UserInfo = React.memo(({ state, onlyIcons }) => (
-  <Flex align="center" gap="small">
-    <UserOutlined
-      style={{
-        color: "#1F3461",
-        fontSize: "14px",
-        backgroundColor: "#F0F2F5",
-        padding: "4px",
-        borderRadius: "50%",
-      }}
-    />
-    {!onlyIcons && (
-      <span style={{ color: "#1F3461", fontSize: "14px", fontWeight: "500" }}>
-        @{state.user?.username || "Usuario"}
-      </span>
-    )}
-  </Flex>
-));
-
+/**
+ * 🧭 COMPONENTE HEADERNAV COMPLETO
+ *
+ * Logo + Breadcrumb + Usuario + Logout
+ * El breadcrumb va en el header global como debe ser
+ */
 const HeaderNav = ({ onMenuClick }) => {
-  const { state, dispatch } = useContext(AppContext);
   const location = useLocation();
-  const { isMobile } = useResponsive();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const { selectedProfile, loading: profilesLoading } =
+    useUserProfilesContext();
 
-  const isDocOrEmpresas =
-    location.pathname.startsWith("/documentation") ||
-    location.pathname.startsWith("/user-documentation") ||
-    location.pathname.startsWith("/empresas-b");
+  // Debug logs para selectedProfile
+  console.log("🔍 HeaderNav - selectedProfile:", selectedProfile);
+  console.log("🔍 HeaderNav - profilesLoading:", profilesLoading);
 
-  const handleLogout = () => {
-    dispatch({ type: "LOGOUT" });
-    // No es necesario navegar aquí, el AppRouter se encargará
+  // Función para obtener el nombre del módulo
+  const getModuleName = () => {
+    const path = location.pathname;
+    if (path === "/") return "Centro de Control";
+    if (path === "/geo") return "GEO Smart";
+    if (path === "/telemetria") return "Telemetría";
+    if (path === "/analisis") return "Smart Análisis";
+    if (path === "/dga") return "DGA - MEE";
+    if (path === "/dga_analisis") return "DGA Análisis";
+    if (path === "/descarga") return "Descarga";
+    if (path === "/documentos") return "Documentos";
+    if (path === "/alertas") return "Alertas";
+    if (path === "/soporte") return "Soporte";
+    if (path === "/registers_pti") return "Registros";
+    return "Módulo";
   };
 
-  const moduleName = useMemo(() => {
-    const currentPath = location.pathname;
-    // Buscar el item de menú más largo que haga match con la ruta
-    const sortedItems = [...MENU_ITEMS].sort(
-      (a, b) => b.to.length - a.to.length
-    );
-    const menuItem = sortedItems.find(
-      (item) => currentPath === item.to || currentPath.startsWith(item.to + "/")
-    );
-    return menuItem ? menuItem.label : "Módulo";
-  }, [location.pathname]);
+  // Función para manejar logout
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
-  // Breadcrumb dinámico: nombre del pozo/sector y módulo
+  // Items del breadcrumb
   const breadcrumbItems = [
     {
-      title: state.selected_profile?.title || "Punto de Captación",
+      title: profilesLoading
+        ? "Cargando..."
+        : selectedProfile?.title || "Punto de Captación",
+      path: "/",
+      onClick: () => navigate("/"),
     },
     {
-      title: moduleName,
+      title: getModuleName(),
     },
   ];
 
-  // Estilos para el header y breadcrumb en mobile
-  const headerMobileStyle = isMobile
-    ? {
+  return (
+    <div
+      style={{
         position: "fixed",
         top: 0,
         left: 0,
-        width: "100%",
-        zIndex: 100,
-        background: "#1F3461",
-        boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
-        padding: "0 0 0 0",
-        minHeight: 56,
-        height: 56,
+        right: 0,
+        height: "64px",
+        background: "white",
+        borderBottom: "1px solid #f0f0f0",
+        zIndex: 1000,
+        padding: "0 24px",
         display: "flex",
         alignItems: "center",
-        justifyContent: "center",
-      }
-    : {};
-
-  const breadcrumbMobileStyle = isMobile
-    ? {
-        flex: 1,
-        textAlign: "center",
-        color: "white",
-        fontSize: 18,
-        fontWeight: 600,
-        background: "transparent",
-        padding: "0 8px",
-        overflow: "hidden",
-        whiteSpace: "nowrap",
-        textOverflow: "ellipsis",
-      }
-    : { fontSize: "16px", fontWeight: 500 };
-
-  return isMobile ? (
-    <div style={headerMobileStyle}>
-      <Button
-        type="text"
-        icon={<MenuOutlined style={{ color: "white", fontSize: 18 }} />}
-        onClick={onMenuClick}
-        style={{ marginLeft: 4, marginRight: 8 }}
-      />
-      <img src={logo} alt="Logo" style={{ height: 32, marginRight: 8 }} />
-      <div style={breadcrumbMobileStyle}>
-        <span style={{ color: "white", opacity: 0.85 }}>
-          {state.selected_profile?.title || "Punto de Captación"}
-        </span>
-        <span style={{ color: "white", opacity: 0.5, margin: "0 8px" }}>
-          {">"}
-        </span>
-        <span style={{ color: "white" }}>{moduleName}</span>
-      </div>
-      <Popconfirm
-        cancelText="Volver"
-        okText="SALIR"
-        title="¿Estás seguro de querer cerrar la sesión?"
-        onConfirm={handleLogout}
-      >
-        <Button
-          type="text"
-          icon={<LogoutOutlined style={{ color: "white", fontSize: 20 }} />}
-          style={{ marginRight: 8 }}
+        justifyContent: "space-between",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+      }}
+    >
+      {/* Logo y título */}
+      <Flex align="center" gap="16px">
+        <img
+          src={logo}
+          alt="Ikolu App"
+          style={{ height: "32px", width: "auto" }}
         />
-      </Popconfirm>
-    </div>
-  ) : (
-    <Flex align="center" justify="space-between" style={{ height: "100%" }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          flex: 1,
-          minWidth: 0,
-          gap: 16,
-        }}
-      >
+        <Title
+          level={4}
+          style={{ margin: 0, color: "#1F3461", fontWeight: "600" }}
+        >
+          Ikolu App
+        </Title>
+      </Flex>
+
+      {/* BREADCRUMB EN EL CENTRO */}
+      <Flex align="center" style={{ flex: 1, justifyContent: "center" }}>
         <Breadcrumb
           separator=">"
-          style={{ fontSize: "16px", fontWeight: 500 }}
+          style={{ fontSize: "16px", fontWeight: "500" }}
           items={breadcrumbItems}
         />
-      </div>
-      <Flex align="center" gap={8}>
-        <UserInfo state={state} onlyIcons={false} />
-        <Popconfirm
-          cancelText="Volver"
-          okText="SALIR"
-          title="¿Estás seguro de querer cerrar la sesión?"
-          onConfirm={handleLogout}
-        >
-          <Button type="text" icon={<LogoutOutlined />} />
-        </Popconfirm>
       </Flex>
-    </Flex>
+
+      {/* Usuario y acciones */}
+      <Flex align="center" gap="16px">
+        {/* Botón de menú para móvil */}
+        <Button
+          type="text"
+          icon={<SettingOutlined />}
+          onClick={onMenuClick}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "40px",
+            height: "40px",
+            borderRadius: "8px",
+            border: "1px solid #d9d9d9",
+          }}
+        />
+
+        {/* Usuario */}
+        <Flex align="center" gap="8px">
+          <Avatar
+            icon={<UserOutlined />}
+            style={{
+              backgroundColor: "#1F3461",
+              color: "white",
+            }}
+          />
+          <span style={{ color: "#666", fontWeight: "500" }}>
+            @{user?.username || "usuario"}
+          </span>
+        </Flex>
+
+        {/* Botón de logout */}
+        <Button
+          type="text"
+          icon={<LogoutOutlined />}
+          onClick={handleLogout}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "40px",
+            height: "40px",
+            borderRadius: "8px",
+            border: "1px solid #d9d9d9",
+          }}
+        />
+      </Flex>
+    </div>
   );
 };
 

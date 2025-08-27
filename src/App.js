@@ -1,6 +1,7 @@
 import React, { createContext, useReducer } from "react";
 import AppRouter from "./AppRouter";
 import { appReducer } from "./reducers/appReducer";
+import { UserProfilesProvider } from "./contexts/UserProfilesContext";
 
 export const AppContext = createContext();
 
@@ -75,7 +76,9 @@ const App = () => {
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>
-      <AppRouter />
+      <UserProfilesProvider>
+        <AppRouter />
+      </UserProfilesProvider>
     </AppContext.Provider>
   );
 };

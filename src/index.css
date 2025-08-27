@@ -90,3 +90,66 @@ code {
   border-radius: 3px;
   padding-top: 2px
 }
+
+/* Estilos globales para ocultar scrollbars */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* ESTILOS ESPECÍFICOS PARA EL SIDEBAR */
+.ant-layout-sider {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.ant-layout-sider::-webkit-scrollbar {
+  display: none !important;
+}
+
+.ant-layout-sider .ant-layout-sider-children {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.ant-layout-sider .ant-layout-sider-children::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* ESTILOS ESPECÍFICOS PARA EL CONTENIDO PRINCIPAL */
+.ant-layout-content {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.ant-layout-content::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* ESTILOS ESPECÍFICOS PARA TODOS LOS CONTENEDORES SCROLLABLES */
+div[style*="overflow-y: auto"],
+div[style*="overflow: auto"] {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+div[style*="overflow-y: auto"]::-webkit-scrollbar,
+div[style*="overflow: auto"]::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* Estilos personalizados para el dropdown del select de pozos */
+.wells-select-dropdown .ant-select-dropdown-menu {
+  max-height: 400px;
+  overflow: hidden;
+}
+
+.wells-select-dropdown .ant-select-dropdown-menu::-webkit-scrollbar {
+  display: none;
+}
+
+/* ELIMINAR ESTILOS PERSONALIZADOS DEL SELECT - USAR ANT DESIGN PURO */

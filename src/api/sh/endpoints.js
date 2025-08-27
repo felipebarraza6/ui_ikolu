@@ -56,13 +56,36 @@ const downloadDataMonthToExcel = async (
 };
 const get_profile = async () => {
   const user = JSON.parse(localStorage.getItem("user") || null);
+
+  console.log("🔍 get_profile - user from localStorage:", user);
+  console.log(
+    "🔍 get_profile - token from localStorage:",
+    localStorage.getItem("token")
+  );
+
+  // Validar que el usuario exista
+  if (!user || !user.username) {
+    console.error(
+      "❌ get_profile - Usuario no autenticado o datos de usuario inválidos"
+    );
+    throw new Error("Usuario no autenticado o datos de usuario inválidos");
+  }
+
+  console.log(
+    "🌐 get_profile - Haciendo petición GET a:",
+    `users/${user.username}/`
+  );
   const rq = await GET(`users/${user.username}/`);
+  console.log("✅ get_profile - Respuesta exitosa:", rq);
+  console.log("🔍 get_profile - rq.data:", rq.data);
+  console.log("🔍 get_profile - rq.data.user:", rq.data?.user);
 
   rq.data.user.catchment_points.forEach((item, index) => {
     item.key = index;
   });
 
-  return rq.data;
+  // RETORNAR LA ESTRUCTURA CORRECTA
+  return rq.data; // ← ESTO RETORNA {user: {...}, ...}
 };
 
 const deleteFile = async (id) => {
