@@ -10,6 +10,7 @@ import {
   Popconfirm,
   Badge,
   Dropdown,
+  Modal,
 } from "antd";
 import {
   MenuOutlined,
@@ -37,6 +38,7 @@ const { Title, Text } = Typography;
 const ResponsiveLayout = ({ children }) => {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const { state, dispatch } = useContext(AppContext);
   const location = useLocation();
   const navigate = useNavigate();
@@ -106,9 +108,18 @@ const ResponsiveLayout = ({ children }) => {
     setDrawerVisible(false);
   };
 
-  const handleLogout = () => {
+  const showLogoutModal = () => {
+    setLogoutModalVisible(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    setLogoutModalVisible(false);
     dispatch({ type: "LOGOUT" });
     window.location.assign("/");
+  };
+
+  const handleLogoutCancel = () => {
+    setLogoutModalVisible(false);
   };
 
   // Menu de usuario para dropdown
@@ -123,7 +134,7 @@ const ResponsiveLayout = ({ children }) => {
       key: "logout",
       icon: <LogoutOutlined />,
       label: "Cerrar Sesión",
-      onClick: handleLogout,
+      onClick: showLogoutModal,
       danger: true,
     },
   ];
@@ -356,22 +367,16 @@ const ResponsiveLayout = ({ children }) => {
 
       {/* Acciones del usuario */}
       <div style={{ position: "absolute", bottom: 16, left: 16, right: 16 }}>
-        <Popconfirm
-          title="¿Estás seguro de cerrar sesión?"
-          onConfirm={handleLogout}
-          okText="Sí"
-          cancelText="No"
+        <Button
+          type="primary"
+          danger
+          icon={<LogoutOutlined />}
+          block
+          style={{ borderRadius: "8px" }}
+          onClick={showLogoutModal}
         >
-          <Button
-            type="primary"
-            danger
-            icon={<LogoutOutlined />}
-            block
-            style={{ borderRadius: "8px" }}
-          >
-            Cerrar Sesión
-          </Button>
-        </Popconfirm>
+          Cerrar Sesión
+        </Button>
       </div>
     </Drawer>
   );
@@ -491,6 +496,41 @@ const ResponsiveLayout = ({ children }) => {
 
       {renderMobileDrawer()}
       {renderBottomNavigation()}
+
+      {/* Modal de confirmación de logout */}
+      <Modal
+        title="Cerrar Sesión"
+        open={logoutModalVisible}
+        onOk={handleLogoutConfirm}
+        onCancel={handleLogoutCancel}
+        okText="Sí, Cerrar Sesión"
+        cancelText="Cancelar"
+        okButtonProps={{
+          danger: true,
+          style: { backgroundColor: "#ff4d4f", borderColor: "#ff4d4f" },
+        }}
+        cancelButtonProps={{
+          style: { borderColor: "#d9d9d9" },
+        }}
+        centered
+        width={400}
+      >
+        <div style={{ textAlign: "center", padding: "20px 0" }}>
+          <LogoutOutlined
+            style={{
+              fontSize: "48px",
+              color: "#ff4d4f",
+              marginBottom: "16px",
+            }}
+          />
+          <p style={{ fontSize: "16px", margin: "8px 0", color: "#666" }}>
+            ¿Estás seguro de que quieres cerrar tu sesión?
+          </p>
+          <p style={{ fontSize: "14px", margin: "8px 0", color: "#999" }}>
+            Serás redirigido a la página de inicio de sesión.
+          </p>
+        </div>
+      </Modal>
     </Layout>
   );
 };

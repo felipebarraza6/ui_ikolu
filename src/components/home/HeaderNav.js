@@ -1,5 +1,5 @@
-import { Flex, Typography, Button, Avatar, Breadcrumb } from "antd";
-import React, { useMemo } from "react";
+import { Flex, Typography, Button, Avatar, Breadcrumb, Modal } from "antd";
+import React, { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useUserProfilesContext } from "../../contexts/UserProfilesContext";
@@ -25,6 +25,9 @@ const HeaderNav = ({ onMenuClick }) => {
   const { selectedProfile, loading: profilesLoading } =
     useUserProfilesContext();
 
+  // Estado para el modal de confirmación de logout
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+
   // Debug logs para selectedProfile
   console.log("🔍 HeaderNav - selectedProfile:", selectedProfile);
   console.log("🔍 HeaderNav - profilesLoading:", profilesLoading);
@@ -46,10 +49,21 @@ const HeaderNav = ({ onMenuClick }) => {
     return "Módulo";
   };
 
-  // Función para manejar logout
-  const handleLogout = () => {
+  // Función para mostrar modal de confirmación de logout
+  const showLogoutModal = () => {
+    setLogoutModalVisible(true);
+  };
+
+  // Función para confirmar logout
+  const handleLogoutConfirm = () => {
+    setLogoutModalVisible(false);
     logout();
     navigate("/login");
+  };
+
+  // Función para cancelar logout
+  const handleLogoutCancel = () => {
+    setLogoutModalVisible(false);
   };
 
   // Items del breadcrumb
@@ -144,7 +158,7 @@ const HeaderNav = ({ onMenuClick }) => {
         <Button
           type="text"
           icon={<LogoutOutlined />}
-          onClick={handleLogout}
+          onClick={showLogoutModal}
           style={{
             display: "flex",
             alignItems: "center",
@@ -156,6 +170,41 @@ const HeaderNav = ({ onMenuClick }) => {
           }}
         />
       </Flex>
+
+      {/* Modal de confirmación de logout */}
+      <Modal
+        title="Cerrar Sesión"
+        open={logoutModalVisible}
+        onOk={handleLogoutConfirm}
+        onCancel={handleLogoutCancel}
+        okText="Sí, Cerrar Sesión"
+        cancelText="Cancelar"
+        okButtonProps={{
+          danger: true,
+          style: { backgroundColor: "#ff4d4f", borderColor: "#ff4d4f" },
+        }}
+        cancelButtonProps={{
+          style: { borderColor: "#d9d9d9" },
+        }}
+        centered
+        width={400}
+      >
+        <div style={{ textAlign: "center", padding: "20px 0" }}>
+          <LogoutOutlined
+            style={{
+              fontSize: "48px",
+              color: "#ff4d4f",
+              marginBottom: "16px",
+            }}
+          />
+          <p style={{ fontSize: "16px", margin: "8px 0", color: "#666" }}>
+            ¿Estás seguro de que quieres cerrar tu sesión?
+          </p>
+          <p style={{ fontSize: "14px", margin: "8px 0", color: "#999" }}>
+            Serás redirigido a la página de inicio de sesión.
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 };
