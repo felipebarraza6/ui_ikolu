@@ -83,6 +83,9 @@ code {
 
 }
 
+/* Estilos específicos para la tabla del centro de control */
+
+
 .ant-carousel .slick-prev:hover, .ant-carousel .slick-next:hover, .ant-carousel .slick-prev:focus, .ant-carousel .slick-next:focus {
   color: currentColor;
   background-color: white;

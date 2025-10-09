@@ -26,7 +26,6 @@ const Home = () => {
     return (
       <div>
         <CentroControl />
-        <Sma />
       </div>
     );
   };
@@ -79,11 +78,10 @@ const Home = () => {
         <Content
           style={{
             marginLeft: isMobile ? 0 : 280,
-            padding: isMobile ? "16px 8px" : "24px 20px",
+            padding: isMobile ? "0" : "0",
             background: "#f8f9fa",
             minHeight: "calc(100vh - 64px)",
             transition: "margin-left 0.3s ease",
-            marginTop: "64px",
             overflow: "hidden", // Ocultar scroll del content
           }}
         >

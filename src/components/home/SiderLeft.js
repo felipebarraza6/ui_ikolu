@@ -90,6 +90,7 @@ const SiderLeft = ({
                 width="40px"
                 alt="Ikolu App"
                 style={{ display: "block", margin: "0 auto 8px" }}
+                loading="eager"
               />
             </div>
             <Title

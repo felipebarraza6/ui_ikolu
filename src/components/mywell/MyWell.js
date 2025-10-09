@@ -17,7 +17,7 @@ import Well from "./Well";
 import WellTechnicalSheet from "./WellTechnicalSheet";
 import MyLastRegisters from "./MyLastRegisters";
 
-// Importar imágenes
+// Importar imágenes optimizadas
 import caudal_img from "../../assets/images/caudal.png";
 import nivel_img from "../../assets/images/nivel.png";
 import acumulado_img from "../../assets/images/acumulado.png";

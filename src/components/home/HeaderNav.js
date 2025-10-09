@@ -104,6 +104,7 @@ const HeaderNav = ({ onMenuClick }) => {
           src={logo}
           alt="Ikolu App"
           style={{ height: "32px", width: "auto" }}
+          loading="eager"
         />
         <Title
           level={4}
