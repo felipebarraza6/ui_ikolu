@@ -16,37 +16,6 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Función para verificar token almacenado
-  const checkStoredAuth = useCallback(() => {
-    try {
-      const storedToken = localStorage.getItem("token");
-      const storedUser = localStorage.getItem("user");
-
-      console.log("🔍 checkStoredAuth - storedToken:", storedToken);
-      console.log("🔍 checkStoredAuth - storedUser:", storedUser);
-
-      if (storedToken && storedUser) {
-        const parsedToken = JSON.parse(storedToken);
-        const parsedUser = JSON.parse(storedUser);
-
-        console.log("🔍 checkStoredAuth - parsedToken:", parsedToken);
-        console.log("🔍 checkStoredAuth - parsedUser:", parsedUser);
-
-        if (parsedToken && parsedUser) {
-          setToken(parsedToken);
-          setUser(parsedUser);
-          setIsAuthenticated(true); // ← ESTABLECER AQUÍ TAMBIÉN
-          console.log("✅ checkStoredAuth - Datos válidos encontrados");
-          return true;
-        }
-      }
-      console.log("❌ checkStoredAuth - No hay datos válidos");
-      return false;
-    } catch (err) {
-      console.error("❌ checkStoredAuth - Error:", err);
-      return false;
-    }
-  }, []);
 
   // Función para iniciar sesión
   const login = useCallback(async (credentials) => {
@@ -111,28 +80,43 @@ export const useAuth = () => {
     }
   }, [token, logout]);
 
-  // Efecto para verificar autenticación al montar
+  // Efecto para verificar autenticación al montar (SOLO UNA VEZ)
   useEffect(() => {
     console.log(
       "🔍 useAuth useEffect - Iniciando verificación de autenticación"
     );
-    const hasStoredAuth = checkStoredAuth();
 
-    // Si hay datos almacenados, establecer isAuthenticated = true
-    if (hasStoredAuth) {
-      setIsAuthenticated(true);
-      console.log("✅ useAuth - Usuario autenticado desde localStorage");
-    } else {
-      console.log("❌ useAuth - No hay usuario autenticado en localStorage");
+    try {
+      const storedToken = localStorage.getItem("token");
+      const storedUser = localStorage.getItem("user");
+
+      console.log("🔍 checkStoredAuth - storedToken:", storedToken);
+      console.log("🔍 checkStoredAuth - storedUser:", storedUser);
+
+      if (storedToken && storedUser) {
+        const parsedToken = JSON.parse(storedToken);
+        const parsedUser = JSON.parse(storedUser);
+
+        console.log("🔍 checkStoredAuth - parsedToken:", parsedToken);
+        console.log("🔍 checkStoredAuth - parsedUser:", parsedUser);
+
+        if (parsedToken && parsedUser) {
+          setToken(parsedToken);
+          setUser(parsedUser);
+          setIsAuthenticated(true);
+          console.log("✅ useAuth - Usuario autenticado desde localStorage");
+        } else {
+          console.log("❌ useAuth - Datos inválidos en localStorage");
+        }
+      } else {
+        console.log("❌ useAuth - No hay usuario autenticado en localStorage");
+      }
+    } catch (err) {
+      console.error("❌ useAuth - Error al verificar autenticación:", err);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
-    console.log("🔍 useAuth useEffect - Estado final:", {
-      isAuthenticated: hasStoredAuth,
-      hasUser: !!localStorage.getItem("user"),
-      hasToken: !!localStorage.getItem("token"),
-    });
-  }, [checkStoredAuth]);
+  }, []); // ← Sin dependencias, se ejecuta SOLO una vez al montar
 
   // Efecto para validar token periódicamente - ELIMINADO PARA EVITAR MÚLTIPLES PETICIONES
   // useEffect(() => {

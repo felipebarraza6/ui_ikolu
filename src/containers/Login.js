@@ -49,12 +49,13 @@ const Login = () => {
   const containerRef = useRef(null);
   const navigate = useNavigate();
 
-  // Redirigir si ya está autenticado
+  // Redirigir si ya está autenticado (solo después de que termine de cargar)
   React.useEffect(() => {
-    if (isAuthenticated && user) {
+    if (!authLoading && isAuthenticated && user) {
+      console.log("🔄 Login - Redirigiendo a home porque ya está autenticado");
       navigate("/", { replace: true });
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, authLoading]);
 
   const finishLogin = async (values) => {
     setLoading(true);
