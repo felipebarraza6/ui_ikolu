@@ -142,10 +142,13 @@ const CentroControl = () => {
       const dga = point.dga || p.dga;
       return !!dga?.code_dga;
     }).length,
+    // CORREGIDO: Conectados solo debe contar puntos con telemetría activa que están conectados
     connectedPoints: profiles.filter((p) => {
       const point = getPointData(p);
+      const isTelemetry = point.config_data?.is_telemetry === true;
       const m1 = point.modules?.m1;
-      return m1 && m1.days_not_conection === 0;
+      // Solo contar si tiene telemetría Y está conectado (days_not_conection === 0)
+      return isTelemetry && m1 && m1.days_not_conection === 0;
     }).length,
     withErrors: profiles.filter((p) => {
       const point = getPointData(p);
@@ -169,7 +172,9 @@ const CentroControl = () => {
     PEQUENO: profiles.filter((p) => {
       const point = getPointData(p);
       const dga = point.dga || p.dga;
-      return dga?.standard === "PEQUENO" || dga?.standard === "CAUDALES_MUY_PEQUENOS";
+      return (
+        dga?.standard === "PEQUENO" || dga?.standard === "CAUDALES_MUY_PEQUENOS"
+      );
     }).length,
   };
 
@@ -530,11 +535,99 @@ const CentroControl = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: "40px", textAlign: "center" }}>
-        <ReloadOutlined
-          style={{ fontSize: "24px", marginBottom: "16px", color: "#1890ff" }}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "70vh",
+          background:
+            "linear-gradient(135deg, #e3f2fd 0%, #bbdefb 50%, #90caf9 100%)",
+          borderRadius: "12px",
+          margin: "20px",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        {/* Efecto de burbujas de agua */}
+        <style>
+          {`
+            @keyframes float {
+              0%, 100% { transform: translateY(0) scale(1); opacity: 0.7; }
+              50% { transform: translateY(-30px) scale(1.1); opacity: 1; }
+            }
+            @keyframes pulse {
+              0%, 100% { transform: scale(1); opacity: 0.8; }
+              50% { transform: scale(1.15); opacity: 1; }
+            }
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+            @keyframes wave {
+              0% { transform: translateX(-100%); }
+              100% { transform: translateX(100%); }
+            }
+            .bubble {
+              position: absolute;
+              bottom: -100px;
+              width: 40px;
+              height: 40px;
+              background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(33,150,243,0.3));
+              border-radius: 50%;
+              animation: float 4s ease-in-out infinite;
+            }
+            .bubble:nth-child(2) { left: 15%; width: 60px; height: 60px; animation-delay: 1s; animation-duration: 5s; }
+            .bubble:nth-child(3) { left: 35%; width: 30px; height: 30px; animation-delay: 2s; animation-duration: 6s; }
+            .bubble:nth-child(4) { left: 55%; width: 50px; height: 50px; animation-delay: 0.5s; animation-duration: 5.5s; }
+            .bubble:nth-child(5) { left: 75%; width: 35px; height: 35px; animation-delay: 1.5s; animation-duration: 4.5s; }
+            .bubble:nth-child(6) { left: 85%; width: 45px; height: 45px; animation-delay: 3s; animation-duration: 5s; }
+          `}
+        </style>
+
+        {/* Burbujas */}
+        <div className="bubble"></div>
+        <div className="bubble"></div>
+        <div className="bubble"></div>
+        <div className="bubble"></div>
+        <div className="bubble"></div>
+        <div className="bubble"></div>
+
+        {/* Spinner de agua */}
+        <div
+          style={{
+            width: "60px",
+            height: "60px",
+            border: "4px solid rgba(33, 150, 243, 0.2)",
+            borderTop: "4px solid #2196f3",
+            borderRadius: "50%",
+            animation: "spin 1s linear infinite",
+            marginBottom: "20px",
+          }}
         />
-        <Text>Cargando datos del sistema...</Text>
+
+        <Text
+          style={{
+            fontSize: "18px",
+            fontWeight: "500",
+            color: "#1565c0",
+            textShadow: "0 2px 4px rgba(255,255,255,0.8)",
+          }}
+        >
+          Cargando datos del sistema...
+        </Text>
+
+        <Text
+          type="secondary"
+          style={{
+            fontSize: "14px",
+            marginTop: "8px",
+            color: "#1976d2",
+          }}
+        >
+          Preparando centro de control
+        </Text>
       </div>
     );
   }
@@ -626,20 +719,31 @@ const CentroControl = () => {
         <Col xs={24} sm={12} lg={6}>
           <Card hoverable style={{ textAlign: "center" }} size="small">
             <Statistic
-              title="Conectados"
+              title="Conectados con Telemetría"
               value={stats.connectedPoints}
               prefix={<CheckCircleOutlined style={{ color: "#52c41a" }} />}
               valueStyle={{ color: "#52c41a", fontSize: "24px" }}
             />
             <Progress
-              percent={percentages.connected}
+              percent={
+                stats.telemetryPoints > 0
+                  ? Math.round(
+                      (stats.connectedPoints / stats.telemetryPoints) * 100
+                    )
+                  : 0
+              }
               showInfo={false}
               strokeColor="#52c41a"
               size="small"
               style={{ marginTop: "4px" }}
             />
             <Text type="secondary" style={{ fontSize: "11px" }}>
-              {percentages.connected}% del total
+              {stats.telemetryPoints > 0
+                ? Math.round(
+                    (stats.connectedPoints / stats.telemetryPoints) * 100
+                  )
+                : 0}
+              % de telemetrías
             </Text>
           </Card>
         </Col>
@@ -672,14 +776,19 @@ const CentroControl = () => {
               valueStyle={{ color: "#722ed1", fontSize: "24px" }}
             />
             <Progress
-              percent={stats.totalWithCode > 0 ? Math.round((stats.dgaSending / stats.totalWithCode) * 100) : 0}
+              percent={
+                stats.totalWithCode > 0
+                  ? Math.round((stats.dgaSending / stats.totalWithCode) * 100)
+                  : 0
+              }
               showInfo={false}
               strokeColor="#722ed1"
               size="small"
               style={{ marginTop: "4px" }}
             />
             <Text type="secondary" style={{ fontSize: "11px" }}>
-              {stats.dgaPoints} DGA{stats.smaPoints > 0 ? ` · ${stats.smaPoints} SMA` : ''}
+              {stats.dgaPoints} DGA
+              {stats.smaPoints > 0 ? ` · ${stats.smaPoints} SMA` : ""}
             </Text>
           </Card>
         </Col>
@@ -868,7 +977,9 @@ const CentroControl = () => {
                 borderTop: "1px solid #f0f0f0",
               }}
             >
-              <Text strong style={{ fontSize: "11px" }}>Estándares:</Text>
+              <Text strong style={{ fontSize: "11px" }}>
+                Estándares:
+              </Text>
               <Space size={4}>
                 {standardStats.MEDIO > 0 && (
                   <Tag color="orange" style={{ margin: 0, fontSize: "10px" }}>

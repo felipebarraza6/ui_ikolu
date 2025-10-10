@@ -5,7 +5,7 @@ import { useResponsive } from "../hooks/useResponsive";
 import { useUserProfilesContext } from "../contexts/UserProfilesContext";
 import HeaderNav from "../components/home/HeaderNav";
 import SiderLeft from "../components/home/SiderLeft";
-import CentroControl from "../components/home/CentroControl";
+import ControlCenter from "../components/controlCenter/ControlCenter";
 import MyWell from "../components/mywell/MyWell";
 import Sma from "../components/Sma";
 import GeoSmart from "../components/geo_smart/GeoSmart";
@@ -22,10 +22,10 @@ const Home = () => {
   const [drawerVisible, setDrawerVisible] = useState(false);
 
   // Función para renderizar el centro de control
-  const renderCentroControl = () => {
+  const renderControlCenter = () => {
     return (
       <div>
-        <CentroControl />
+        <ControlCenter />
       </div>
     );
   };
@@ -88,7 +88,7 @@ const Home = () => {
           {/* Contenido de las rutas */}
           <div style={{ height: "100%", overflowY: "auto" }}>
             <Routes>
-              <Route path="/" element={renderCentroControl()} />
+              <Route path="/" element={renderControlCenter()} />
               <Route path="/geo" element={<GeoSmart />} />
               <Route path="/telemetria" element={<MyWell />} />
               <Route path="/analisis" element={<DataSummary />} />
