@@ -23,7 +23,7 @@ import {
   TableOutlined,
   CloseOutlined,
   RiseOutlined,
-  SyncOutlined,
+  CalendarOutlined,
   LoadingOutlined,
 } from "@ant-design/icons";
 import caudal_img from "../../assets/images/caudal.png";
@@ -99,6 +99,7 @@ const WellTechnicalSheet = ({ profile, loading = false }) => {
   const config_data = profile?.config_data ?? {};
   const dga = profile?.dga ?? {};
   const title = profile?.title ?? "N/A";
+  const date_init = config_data?.date_start_telemetry ?? "N/A";
 
   if (!profile) return null;
 
@@ -126,6 +127,12 @@ const WellTechnicalSheet = ({ profile, loading = false }) => {
           icon={<IdcardOutlined />}
           label="Nombre"
           value={title}
+          loading={loading}
+        />
+        <TechInfoRow
+          icon={<CalendarOutlined />}
+          label="Fecha inicio telemetría"
+          value={date_init}
           loading={loading}
         />
         <TechInfoRow
@@ -282,7 +289,7 @@ const MyWell = () => {
         const modules = selected_profile_data?.modules ?? {};
         const frecuency = selected_profile_data?.frecuency ?? 0;
         const total_consumed_yesterday =
-          selected_profile_data?.total_consumed_yesterday ?? 0;
+          selected_profile_data?.modules.total_consumed_yesterday ?? 0;
 
         if (modules.m1) {
           setLastCaption(modules.m1.date_time_medition ?? null);

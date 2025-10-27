@@ -57,6 +57,8 @@ const CodeQR = ({ onDiagnoseClick }) => {
     send_dga,
     total_granted_dga,
     flow_granted_dga,
+    date_start_compliance,
+    date_created_code,
     compliance_days: complianceDays = "N/A",
     type_dga,
     standard,
@@ -69,11 +71,15 @@ const CodeQR = ({ onDiagnoseClick }) => {
 
   // Obtener datos de consumo desde el perfil (módulo m2)
   const dataDga = state.selected_profile?.modules?.m2 || [];
+  console.log(state.selected_profile.config_data.d6);
+  const d6_profile = state?.selected_profile?.config_data?.d6 || 0;
 
   // Calcular el consumo total desde los registros
   const totalConsumption =
     dataDga.length > 0
-      ? Math.max(...dataDga.map((record) => parseFloat(record.total) || 0))
+      ? Math.max(
+          ...dataDga.map((record) => parseFloat(record.total) + d6_profile || 0)
+        )
       : 0;
 
   // Obtener la fecha del registro más reciente (última sincronización)
@@ -152,6 +158,24 @@ const CodeQR = ({ onDiagnoseClick }) => {
                 }
               />
               <DetailItem
+                icon={<CalendarOutlined />}
+                title="Creación código"
+                content={
+                  date_created_code
+                    ? dayjs(date_created_code).format("DD/MM/YYYY")
+                    : "N/A"
+                }
+              />
+              <DetailItem
+                icon={<CalendarOutlined />}
+                title="Inicio cumplimiento"
+                content={
+                  date_start_compliance
+                    ? dayjs(date_start_compliance).format("DD/MM/YYYY")
+                    : "N/A"
+                }
+              />
+              <DetailItem
                 icon={<CheckCircleOutlined />}
                 title="Estado MEE"
                 content={
@@ -160,13 +184,14 @@ const CodeQR = ({ onDiagnoseClick }) => {
                   </Tag>
                 }
               />
+
               <DetailItem
                 icon={<CalendarOutlined />}
                 title="Última Sincronización"
                 content={
                   <div style={{ textAlign: "right" }}>
                     {lastSyncDate
-                      ? dayjs(lastSyncDate).format("DD/MM/YYYY HH:mm") + " hrs"
+                      ? dayjs(lastSyncDate).format("DD/MM/YYYY HH:mm")
                       : "N/A"}
                   </div>
                 }
