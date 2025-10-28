@@ -89,16 +89,18 @@ const formUploadFile = async (values) => {
 
 const downloadFile = async (id_profile, initialDate, finishDate, title) => {
   const now_date = new Date();
+  // Endpoint con parámetro type=xlsx para forzar respuesta en formato Excel
   const rq = await DOWNLOAD(
-    `interaction_detail/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}`,
+    `interaction_detail/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}&type=xlsx`,
     `${title}.xlsx`
   );
 };
 
 const downloadFileDga = async (id_profile, initialDate, finishDate, title) => {
   const now_date = new Date();
+  // Endpoint con parámetro type=xlsx para forzar respuesta en formato Excel
   const rq = await DOWNLOAD(
-    `interaction_detail_dga/?point_catchment=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}`,
+    `interaction_detail_dga/?point_catchment=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}&type=xlsx`,
     `${title}.xlsx`
   );
 };

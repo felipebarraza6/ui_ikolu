@@ -71,14 +71,20 @@ const CodeQR = ({ onDiagnoseClick }) => {
 
   // Obtener datos de consumo desde el perfil (módulo m2)
   const dataDga = state.selected_profile?.modules?.m2 || [];
-  console.log(state.selected_profile.config_data.d6);
+  const first_actual_year =
+    state.selected_profile?.modules?.first_actual_year?.total || 0;
+  console.log(first_actual_year);
+
   const d6_profile = state?.selected_profile?.config_data?.d6 || 0;
 
   // Calcular el consumo total desde los registros
   const totalConsumption =
     dataDga.length > 0
       ? Math.max(
-          ...dataDga.map((record) => parseFloat(record.total) + d6_profile || 0)
+          ...dataDga.map(
+            (record) =>
+              first_actual_year - (parseFloat(record.total) + d6_profile) || 0
+          )
         )
       : 0;
 

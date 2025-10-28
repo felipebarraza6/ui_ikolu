@@ -1,4 +1,4 @@
-# build environment
+#ude build environment
 FROM node as build
 WORKDIR /app
 ENV PATH /app/node_modules/.bin:$PATH

@@ -50,20 +50,31 @@ export const DELETE = async (endpoint) => {
 
 export const DOWNLOAD = async (endpoint, name_file) => {
   const token = JSON.parse(localStorage.getItem("token"));
+  
+  // Configuración para la descarga con tipo blob
   const download = {
     responseType: "blob",
     headers: {
       Authorization: `Token ${token}`,
+      Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     },
   };
 
   const request = await Axios.get(endpoint, download).then((response) => {
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    // Crear el blob con el tipo MIME correcto para archivos Excel
+    const blob = new Blob([response.data], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
     link.setAttribute("download", name_file);
     document.body.appendChild(link);
     link.click();
+    
+    // Limpiar después de la descarga
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(link);
   });
 
   notification.open({
