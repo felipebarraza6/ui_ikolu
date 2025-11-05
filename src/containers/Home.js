@@ -405,8 +405,8 @@ const AppLayout = ({ children }) => {
         </Header>
         <Content
           style={{
-            margin: isMobile ? "80px 8px 16px 8px" : "24px 16px",
-            padding: 24,
+            margin: isMobile ? "80px 4px 8px 4px" : "16px 12px",
+            padding: isMobile ? 12 : 16,
             minHeight: 280,
             background: token.colorBgContainer,
             borderRadius: token.borderRadiusLG,

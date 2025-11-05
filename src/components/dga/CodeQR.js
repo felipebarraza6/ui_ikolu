@@ -80,10 +80,12 @@ const CodeQR = ({ onDiagnoseClick }) => {
   // Calcular el consumo total desde los registros
   const totalConsumption =
     dataDga.length > 0
-      ? Math.max(
-          ...dataDga.map(
-            (record) =>
-              first_actual_year - (parseFloat(record.total) + d6_profile) || 0
+      ? Math.abs(
+          Math.max(
+            ...dataDga.map(
+              (record) =>
+                first_actual_year - (parseFloat(record.total) + d6_profile) || 0
+            )
           )
         )
       : 0;
@@ -139,7 +141,7 @@ const CodeQR = ({ onDiagnoseClick }) => {
       <Row gutter={[16, 16]}>
         {/* Columna Izquierda - Detalles */}
         <Col xs={24} md={12} lg={8}>
-          <Card className="dga-details-card">
+          <Card className="dga-details-card" style={{ height: "100%" }}>
             <Space direction="vertical" size="middle" style={{ width: "100%" }}>
               <Flex align="center" gap="middle">
                 <img
@@ -268,54 +270,55 @@ const CodeQR = ({ onDiagnoseClick }) => {
 
         {/* Columna Derecha - Acciones */}
         <Col xs={24} md={24} lg={8}>
-          <Row gutter={[16, 16]}>
-            <Col span={24}>
-              <Card
-                hoverable
-                className="dga-card"
-                onClick={handleOpenDgaPortal}
+          <Flex vertical style={{ height: "100%" }} gap={16}>
+            <Card
+              hoverable
+              className="dga-card"
+              onClick={handleOpenDgaPortal}
+              style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}
+            >
+              <Space
+                direction="vertical"
+                align="center"
+                style={{ width: "100%" }}
               >
-                <Space
-                  direction="vertical"
-                  align="center"
-                  style={{ width: "100%" }}
-                >
-                  <LinkOutlined
-                    style={{ fontSize: "24px", color: "#1890ff" }}
-                  />
-                  <Text strong>Validar Sync DGA</Text>
-                </Space>
-              </Card>
-            </Col>
-            <Col xs={12} span={12}>
-              <Card hoverable className="dga-card" onClick={onDiagnoseClick}>
-                <Space
-                  direction="vertical"
-                  align="center"
-                  style={{ width: "100%" }}
-                >
-                  <BarChartOutlined
-                    style={{ fontSize: "24px", color: "#1890ff" }}
-                  />
-                  <Text strong>Diagnóstico Inteligente</Text>
-                </Space>
-              </Card>
-            </Col>
-            <Col xs={12} span={12}>
-              <Card hoverable className="dga-card" onClick={showModal}>
-                <Space
-                  direction="vertical"
-                  align="center"
-                  style={{ width: "100%" }}
-                >
-                  <QrcodeOutlined
-                    style={{ fontSize: "24px", color: "#1890ff" }}
-                  />
-                  <Text strong>Ver Código QR</Text>
-                </Space>
-              </Card>
-            </Col>
-          </Row>
+                <LinkOutlined
+                  style={{ fontSize: "24px", color: "#1890ff" }}
+                />
+                <Text strong>Validar Sync DGA</Text>
+              </Space>
+            </Card>
+            <Row gutter={16} style={{ flex: 1 }}>
+              <Col xs={12} span={12}>
+                <Card hoverable className="dga-card" onClick={onDiagnoseClick} style={{ height: "100%" }}>
+                  <Space
+                    direction="vertical"
+                    align="center"
+                    style={{ width: "100%" }}
+                  >
+                    <BarChartOutlined
+                      style={{ fontSize: "24px", color: "#1890ff" }}
+                    />
+                    <Text strong>Diagnóstico Inteligente</Text>
+                  </Space>
+                </Card>
+              </Col>
+              <Col xs={12} span={12}>
+                <Card hoverable className="dga-card" onClick={showModal} style={{ height: "100%" }}>
+                  <Space
+                    direction="vertical"
+                    align="center"
+                    style={{ width: "100%" }}
+                  >
+                    <QrcodeOutlined
+                      style={{ fontSize: "24px", color: "#1890ff" }}
+                    />
+                    <Text strong>Ver Código QR</Text>
+                  </Space>
+                </Card>
+              </Col>
+            </Row>
+          </Flex>
         </Col>
       </Row>
       <ModalQR

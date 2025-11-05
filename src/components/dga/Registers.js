@@ -280,6 +280,7 @@ const Registers = () => {
             onClick={() => {
               Modal.info({
                 title: "Detalle del Envío a la DGA",
+                centered: true,
                 content: (
                   <div>
                     <p>
@@ -345,7 +346,7 @@ const Registers = () => {
           style={{ marginBottom: 20 }}
         >
           <Col>
-            <Title level={4}>Registros de las últimas 48 horas</Title>
+            <Title level={4}>Registros de los últimos 48 registros</Title>
           </Col>
           <Col>
             <Tooltip
