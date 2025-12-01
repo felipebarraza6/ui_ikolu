@@ -11,6 +11,11 @@ import {
   Row,
   Col,
 } from "antd";
+import {
+  CalendarOutlined,
+  ClockCircleOutlined,
+  BarChartOutlined,
+} from "@ant-design/icons";
 import { AppContext } from "../../App";
 import moment from "moment";
 import { formatVolume } from "../../utils/numberFormatter";
@@ -282,11 +287,18 @@ const ConsumptionChart = () => {
                   alignItems: "center",
                 }}
               >
-                <Text type="secondary">📅 {currentDate}</Text>
                 <Text type="secondary">
-                  🕐 Rango: {firstTime} - {lastTime}
+                  <CalendarOutlined style={{ marginRight: 4 }} />
+                  {currentDate}
                 </Text>
-                <Text type="secondary">📊 {pointData.length} mediciones</Text>
+                <Text type="secondary">
+                  <ClockCircleOutlined style={{ marginRight: 4 }} />
+                  Rango: {firstTime} - {lastTime}
+                </Text>
+                <Text type="secondary">
+                  <BarChartOutlined style={{ marginRight: 4 }} />
+                  {pointData.length} mediciones
+                </Text>
               </div>
               {chartType === "area" ? (
                 <Area {...getChartConfig(pointData, pointName, "area")} />

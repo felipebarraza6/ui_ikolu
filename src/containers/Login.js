@@ -37,10 +37,22 @@ const Login = () => {
     setLoading(true);
     try {
       const response = await sh.authenticated(values);
+
+      // Después del login exitoso, obtener datos frescos del perfil
+      const profileResponse = await sh.get_profile();
+
+      // Combinar respuesta de login con datos actualizados del perfil
       dispatch({
         type: "LOGIN",
-        payload: response,
+        payload: {
+          ...response,
+          user: {
+            ...response.user,
+            catchment_points: profileResponse.user.catchment_points, // Datos frescos
+          },
+        },
       });
+
       notification.success({
         message: "¡Bienvenido!",
         description: "Has iniciado sesión correctamente",

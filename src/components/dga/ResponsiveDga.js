@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
-import { Space, Modal, Typography, Button } from "antd";
+import { Space, Modal } from "antd";
 import Registers from "./Registers";
 import CodeQR from "./CodeQR";
 import DgaCompliance from "./DgaCompliance";
@@ -7,8 +7,6 @@ import { useResponsive } from "../../hooks/useResponsive";
 import { AppContext } from "../../App";
 import { BarChartOutlined } from "@ant-design/icons";
 import sh from "../../api/sh/endpoints";
-
-const { Title } = Typography;
 
 /**
  * 📊 DGA RESPONSIVO
@@ -24,36 +22,58 @@ const ResponsiveDga = () => {
   const [isDiagnosticModalVisible, setIsDiagnosticModalVisible] =
     useState(false);
 
-  // Obtener datos desde el perfil (módulo m2)
-  const dataDga = state.selected_profile?.modules?.m2 || [];
+  const [dataDga, setDataDga] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Recargar datos del perfil al montar el componente
+  // Siempre obtener datos frescos de la API, no del localStorage
   useEffect(() => {
-    const loadProfileData = async () => {
-      try {
-        const profileId = state.selected_profile?.id;
-        if (!profileId) return;
+    const fetchDgaData = async () => {
+      const profileId = state.selected_profile?.id;
+      if (!profileId) {
+        setDataDga([]);
+        setLoading(false);
+        return;
+      }
 
+      setLoading(true);
+      try {
+        // Obtener perfil completo desde la API para tener datos actualizados
         const userProfileResponse = await sh.get_profile();
         const allProfiles = userProfileResponse?.user?.catchment_points ?? [];
         const selected_profile_data =
           allProfiles.find((p) => p.id === profileId) || allProfiles[0] || {};
 
-        // Actualizar el perfil con los datos más recientes
-        dispatch({
-          type: "UPDATE",
-          payload: {
-            user: userProfileResponse.user,
-            selected_profile: selected_profile_data,
-          },
-        });
+        // Actualizar el estado con datos frescos
+        if (selected_profile_data) {
+          dispatch({
+            type: "UPDATE",
+            payload: {
+              user: userProfileResponse.user,
+              selected_profile: selected_profile_data,
+            },
+          });
+
+          // Obtener datos del módulo m2 directamente del perfil actualizado
+          const freshM2Data = selected_profile_data?.modules?.m2 || [];
+          setDataDga(freshM2Data);
+        }
       } catch (error) {
-        console.error("Error al cargar datos del perfil DGA:", error);
+        console.error("Error al cargar datos DGA desde la API:", error);
+        setDataDga([]);
+      } finally {
+        setLoading(false);
       }
     };
 
-    loadProfileData();
-  }, [state.selected_profile?.id]);
+    fetchDgaData();
+
+    // Configurar actualización periódica cada 5 minutos
+    const intervalId = setInterval(() => {
+      fetchDgaData();
+    }, 5 * 60 * 1000);
+
+    return () => clearInterval(intervalId);
+  }, [state.selected_profile?.id, dispatch]);
 
   const showDiagnosticModal = () => {
     setIsDiagnosticModalVisible(true);
@@ -64,10 +84,20 @@ const ResponsiveDga = () => {
   };
 
   return (
-    <div style={{ maxWidth: "1600px", margin: isMobile ? "12px auto" : "0 auto", padding: isMobile ? "0 8px" : "0" }}>
-      <Space direction="vertical" size={isMobile ? "middle" : "large"} style={{ width: "100%" }}>
+    <div
+      style={{
+        maxWidth: "1600px",
+        margin: isMobile ? "12px auto" : "0 auto",
+        padding: isMobile ? "0 8px" : "0",
+      }}
+    >
+      <Space
+        direction="vertical"
+        size={isMobile ? "middle" : "large"}
+        style={{ width: "100%" }}
+      >
         <CodeQR onDiagnoseClick={showDiagnosticModal} />
-        <Registers />
+        <Registers dataDga={dataDga} loading={loading} />
       </Space>
       <Modal
         title={
@@ -87,7 +117,7 @@ const ResponsiveDga = () => {
           background: "#f5f5f5",
         }}
       >
-        <DgaCompliance dataDga={dataDga} />
+        <DgaCompliance dataDga={dataDga || []} />
       </Modal>
     </div>
   );

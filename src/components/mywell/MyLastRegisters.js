@@ -14,7 +14,10 @@ const numberForMiles = new Intl.NumberFormat("de-DE");
 const MyLastRegisters = () => {
   const { state } = useContext(AppContext);
   const [visible, setVisible] = useState(false);
-  console.log(state.selected_profile.modules.today);
+  
+  // Validar que existan los datos antes de renderizar
+  const todayData = state.selected_profile?.modules?.today || [];
+  
   return (
     <>
       <Drawer
@@ -44,7 +47,7 @@ const MyLastRegisters = () => {
         }
         children={
           <Table
-            dataSource={state.selected_profile.modules.today}
+            dataSource={todayData}
             key={"id"}
             scroll={{ x: 1000 }}
             bordered
@@ -105,7 +108,7 @@ const MyLastRegisters = () => {
         icon={<TableOutlined />}
         onClick={() => setVisible(true)}
       >
-        Mediciones ({state.selected_profile.modules.today.length})
+        Mediciones ({todayData.length})
       </Button>
     </>
   );

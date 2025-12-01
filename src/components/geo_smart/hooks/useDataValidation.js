@@ -216,7 +216,12 @@ export const useDataStatistics = (profiles) => {
         const todayData = validators.getTodayData(profile);
         const yesterdayData = validators.getYesterdayData(profile);
 
-        const todaySum = validators.calculateTotalConsumption(todayData);
+        // Si el backend entrega total_consumed_today, úsalo directamente para evitar reprocesar
+        // y mantener consistencia con otros módulos. Si no, se calcula desde todayData.
+        const todaySum =
+          validators.getSafeNumber(profile.modules?.total_consumed_today, null) !== null
+            ? validators.getSafeNumber(profile.modules.total_consumed_today, 0)
+            : validators.calculateTotalConsumption(todayData);
         const yesterdaySum =
           validators.calculateTotalConsumption(yesterdayData);
         const todayHasData = todayData.length > 0;

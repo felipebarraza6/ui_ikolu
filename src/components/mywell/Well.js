@@ -70,7 +70,6 @@ const Well = ({ total, nivel, caudal, profW, loading = false }) => {
   const styles = {
     nivel: {
       position: "absolute",
-
       bottom: "0",
       width: "100%",
       height: percentageString,
@@ -80,8 +79,6 @@ const Well = ({ total, nivel, caudal, profW, loading = false }) => {
       animation: "ondulacion-nivel 2s infinite",
     },
   };
-
-  console.log(prof);
 
   return (
     <div className="pozo">

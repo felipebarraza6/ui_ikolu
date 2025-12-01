@@ -45,7 +45,7 @@ const DetailItem = ({ icon, title, content }) => (
   </Flex>
 );
 
-const CodeQR = ({ onDiagnoseClick }) => {
+const CodeQR = ({ onDiagnoseClick, loading = false }) => {
   const { state } = useContext(AppContext);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -69,11 +69,10 @@ const CodeQR = ({ onDiagnoseClick }) => {
 
   const hasDgaData = flow_granted_dga && total_granted_dga;
 
-  // Obtener datos de consumo desde el perfil (módulo m2)
+  // Obtener datos de consumo desde el perfil (módulo m2) - estos vienen actualizados desde ResponsiveDga
   const dataDga = state.selected_profile?.modules?.m2 || [];
   const first_actual_year =
     state.selected_profile?.modules?.first_actual_year?.total || 0;
-  console.log(first_actual_year);
 
   const d6_profile = state?.selected_profile?.config_data?.d6 || 0;
 
@@ -275,22 +274,30 @@ const CodeQR = ({ onDiagnoseClick }) => {
               hoverable
               className="dga-card"
               onClick={handleOpenDgaPortal}
-              style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
             >
               <Space
                 direction="vertical"
                 align="center"
                 style={{ width: "100%" }}
               >
-                <LinkOutlined
-                  style={{ fontSize: "24px", color: "#1890ff" }}
-                />
+                <LinkOutlined style={{ fontSize: "24px", color: "#1890ff" }} />
                 <Text strong>Validar Sync DGA</Text>
               </Space>
             </Card>
             <Row gutter={16} style={{ flex: 1 }}>
               <Col xs={12} span={12}>
-                <Card hoverable className="dga-card" onClick={onDiagnoseClick} style={{ height: "100%" }}>
+                <Card
+                  hoverable
+                  className="dga-card"
+                  onClick={onDiagnoseClick}
+                  style={{ height: "100%" }}
+                >
                   <Space
                     direction="vertical"
                     align="center"
@@ -304,7 +311,12 @@ const CodeQR = ({ onDiagnoseClick }) => {
                 </Card>
               </Col>
               <Col xs={12} span={12}>
-                <Card hoverable className="dga-card" onClick={showModal} style={{ height: "100%" }}>
+                <Card
+                  hoverable
+                  className="dga-card"
+                  onClick={showModal}
+                  style={{ height: "100%" }}
+                >
                   <Space
                     direction="vertical"
                     align="center"

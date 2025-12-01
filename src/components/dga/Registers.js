@@ -138,15 +138,11 @@ const ExportModal = ({ open, onCancel, profile }) => {
 };
 
 // --- Componente Principal de Registros ---
-const Registers = () => {
+const Registers = ({ dataDga = [], loading: externalLoading = false }) => {
   const { state } = useContext(AppContext);
-  const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const m2_permission = state.selected_profile?.profile_ikolu?.m2 || false;
-
-  // Obtener datos desde el perfil (módulo m2)
-  const dataDga = state.selected_profile?.modules?.m2 || [];
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
@@ -371,7 +367,7 @@ const Registers = () => {
           columns={columns}
           dataSource={dataDga}
           bordered
-          loading={loading}
+          loading={externalLoading}
           size="small"
           rowKey="id"
           scroll={{ x: "max-content" }}

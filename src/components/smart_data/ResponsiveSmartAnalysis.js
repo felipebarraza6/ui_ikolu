@@ -107,16 +107,17 @@ const ResponsiveSmartAnalysis = () => {
     fetchData();
   }, [dayDate, monthDate, monthMode, state.selected_profile.id]);
 
+  // Resetear datos cuando cambia el perfil seleccionado
   useEffect(() => {
-    if (state.selected_profile) {
+    if (state.selected_profile?.id) {
       setDateType("1");
       setMonthMode(false);
       setDayDate(null);
       setMonthDate(null);
-      setData(state.selected_profile.modules.today || []);
+      setData(state.selected_profile.modules?.today || []);
       setDataMonth([]);
     }
-  }, [state.selected_profile]);
+  }, [state.selected_profile?.id]); // Solo depende del ID, no del objeto completo
 
   const hasData = monthMode ? dataMonth.length > 0 : data.length > 0;
   const dateIsSelected = monthMode ? !!monthDate : !!dayDate;

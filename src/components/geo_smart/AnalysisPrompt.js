@@ -148,7 +148,7 @@ const AnalysisPrompt = ({ profiles }) => {
   // --- Mejoras: agregar hora real a highestFlows y usar m1 en loggerStatuses ---
   // Mapear highestFlows para agregar la hora real del máximo caudal
   const highestFlowsWithTime = React.useMemo(() => {
-    return analysis.highestFlows.map((item) => {
+    return (analysis.highestFlows || []).map((item) => {
       // Buscar el registro con el valor máximo
       const profile = profiles.find((p) => p.title === item.name);
       let maxTime = null;
@@ -178,6 +178,22 @@ const AnalysisPrompt = ({ profiles }) => {
     });
   }, [analysis.loggerStatuses, profiles]);
 
+  // Enlazar ranking de consumo con la hora del pico (usando highestFlowsWithTime)
+  // Para cada punto mostramos:
+  // - Consumo total del día (m³)
+  // - Fecha y hora del pico de caudal del día (si existe)
+  const todayConsumersWithPeakTime = React.useMemo(() => {
+    const peakByName = new Map();
+    highestFlowsWithTime.forEach((item) => {
+      peakByName.set(item.name, item.time || null);
+    });
+
+    return (analysis.todayConsumers || []).map((item) => ({
+      ...item,
+      peakTime: peakByName.get(item.name) || null,
+    }));
+  }, [analysis.todayConsumers, highestFlowsWithTime]);
+
   const mainCardTitle = (
     <Flex align="center" gap="small">
       <LuBrain />
@@ -205,31 +221,6 @@ const AnalysisPrompt = ({ profiles }) => {
       />
 
       <Row gutter={[16, 16]} style={{ height: "100%" }}>
-        {/* Indicadores de Caudal - PRIMERO */}
-        <Col span={24}>
-          <Card
-            type="inner"
-            title={
-              <Flex align="center" gap="small">
-                <FaStream style={{ color: "#1976d2" }} />
-                <Text>Estado de Caudales</Text>
-              </Flex>
-            }
-            style={{ marginBottom: 32 }}
-          >
-            <Paragraph
-              type="secondary"
-              style={{
-                fontSize: "0.8rem",
-                marginBottom: "1rem",
-              }}
-            >
-              Caudales actuales de todos los puntos de captación activos hoy.
-            </Paragraph>
-            <FlowStatusGauges profiles={profiles} />
-          </Card>
-        </Col>
-
         {/* Resumen General */}
         <Col span={24}>
           <div
@@ -278,7 +269,7 @@ const AnalysisPrompt = ({ profiles }) => {
         </Col>
 
         {/* Picos de Consumo */}
-        <Col xs={24} lg={12}>
+        <Col xs={24} lg={8}>
           <Card
             style={{ width: "100%", height: "100%" }}
             type="inner"
@@ -306,14 +297,28 @@ const AnalysisPrompt = ({ profiles }) => {
               }}
             >
               Ranking de los puntos de captación ordenados por su consumo total
-              durante el día de hoy.
+              durante el día de hoy, indicando además la fecha y hora del pico
+              de caudal registrado.
             </Paragraph>
             <DataList
-              data={analysis.todayConsumers}
+              data={todayConsumersWithPeakTime}
               type="consumidores"
               renderItem={(item) => (
                 <List.Item style={{ padding: "8px 0" }}>
-                  <Text style={{ flex: 1 }}>{item.name}</Text>
+                  <div style={{ flex: 1 }}>
+                    <Text>{item.name}</Text>
+                    {item.peakTime && (
+                      <div
+                        style={{
+                          fontSize: "0.75rem",
+                          color: "#888",
+                        }}
+                      >
+                        Pico:{" "}
+                        {moment(item.peakTime).format("DD/MM HH:mm")}
+                      </div>
+                    )}
+                  </div>
                   <Text strong>{formatInteger(item.value)} m³</Text>
                 </List.Item>
               )}
@@ -321,75 +326,8 @@ const AnalysisPrompt = ({ profiles }) => {
           </Card>
         </Col>
 
-        {/* Mayores Caudales */}
-        <Col xs={24} lg={12}>
-          <Card
-            style={{ width: "100%", height: "100%" }}
-            type="inner"
-            title={
-              <Title
-                level={5}
-                style={{
-                  margin: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                }}
-              >
-                <FaStream style={{ color: "#52c41a" }} />
-                Mayores Caudales
-              </Title>
-            }
-          >
-            <Paragraph
-              type="secondary"
-              style={{
-                minHeight: "auto",
-                fontSize: "0.8rem",
-                marginBottom: "1rem",
-              }}
-            >
-              Ranking de los puntos de captación con el mayor caudal instantáneo
-              registrado durante el día.
-            </Paragraph>
-            <DataList
-              data={highestFlowsWithTime}
-              type="caudales"
-              renderItem={(item) => (
-                <List.Item style={{ padding: "8px 0" }}>
-                  <Text style={{ flex: 1 }}>{item.name}</Text>
-                  <Text strong>
-                    {formatFlow(item.value)} L/s
-                    {item.time ? (
-                      <span
-                        style={{
-                          color: "#888",
-                          fontWeight: 400,
-                          marginLeft: 8,
-                        }}
-                      >
-                        a las {moment(item.time).format("HH:mm")}
-                      </span>
-                    ) : (
-                      <span
-                        style={{
-                          color: "#888",
-                          fontWeight: 400,
-                          marginLeft: 8,
-                        }}
-                      >
-                        N/A
-                      </span>
-                    )}
-                  </Text>
-                </List.Item>
-              )}
-            />
-          </Card>
-        </Col>
-
         {/* Mayores Bajas */}
-        <Col xs={24} lg={12}>
+        <Col xs={24} lg={8}>
           <Card
             style={{ width: "100%", height: "100%" }}
             type="inner"
@@ -433,7 +371,7 @@ const AnalysisPrompt = ({ profiles }) => {
         </Col>
 
         {/* Estado de Conexión */}
-        <Col xs={24} lg={12}>
+        <Col xs={24} lg={8}>
           <Card
             style={{ width: "100%", height: "100%" }}
             type="inner"
@@ -494,182 +432,6 @@ const AnalysisPrompt = ({ profiles }) => {
             />
           </Card>
         </Col>
-
-        {/* Análisis del Nivel Freático */}
-        {analysis.waterLevelAnalysis.filter((pointAnalysis) => {
-          // Buscar el perfil original para obtener type_dga
-          const profile = profiles.find((p) => p.title === pointAnalysis.name);
-          return (
-            profile &&
-            profile.dga?.type_dga === "SUBTERRANEO" &&
-            ((pointAnalysis.deepestLevel &&
-              Number(pointAnalysis.deepestLevel.level) > 0) ||
-              (pointAnalysis.shallowestLevel &&
-                Number(pointAnalysis.shallowestLevel.level) > 0))
-          );
-        }).length > 0 && (
-          <Col span={24}>
-            <Card
-              type="inner"
-              title={
-                <Flex align="center" gap="small">
-                  <FaWater style={{ color: "#1890ff" }} />
-                  <Text>Análisis del Nivel Freático - Puntos Extremos</Text>
-                </Flex>
-              }
-            >
-              <Paragraph
-                type="secondary"
-                style={{
-                  fontSize: "0.8rem",
-                  marginBottom: "1rem",
-                }}
-              >
-                Puntos de captación SUBTERRÁNEOS con los niveles freáticos más
-                extremos registrados hoy.
-              </Paragraph>
-              <Row gutter={[16, 16]}>
-                {analysis.waterLevelAnalysis
-                  .filter((pointAnalysis) => {
-                    const profile = profiles.find(
-                      (p) => p.title === pointAnalysis.name
-                    );
-                    return (
-                      profile &&
-                      profile.dga?.type_dga === "SUBTERRANEO" &&
-                      ((pointAnalysis.deepestLevel &&
-                        Number(pointAnalysis.deepestLevel.level) > 0) ||
-                        (pointAnalysis.shallowestLevel &&
-                          Number(pointAnalysis.shallowestLevel.level) > 0))
-                    );
-                  })
-                  .map((pointAnalysis, index) => (
-                    <Col xs={24} sm={12} lg={8} key={index}>
-                      <Card
-                        size="small"
-                        title={
-                          <Flex align="center" gap="small">
-                            <FaBroadcastTower style={{ color: "#1890ff" }} />
-                            <Text strong style={{ fontSize: "14px" }}>
-                              {pointAnalysis.name}
-                            </Text>
-                          </Flex>
-                        }
-                        style={{
-                          background:
-                            "linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%)",
-                          border: "1px solid #91d5ff",
-                        }}
-                      >
-                        <Row gutter={[8, 8]}>
-                          {/* Nivel más Profundo */}
-                          <Col span={12}>
-                            <div style={{ textAlign: "center" }}>
-                              <VerticalAlignBottomOutlined
-                                style={{ color: "#d32f2f", fontSize: "16px" }}
-                              />
-                              <Text
-                                style={{
-                                  color: "#d32f2f",
-                                  fontSize: "12px",
-                                  display: "block",
-                                  fontWeight: 600,
-                                }}
-                              >
-                                Más Profundo
-                              </Text>
-                              <Text
-                                style={{
-                                  color: "#d32f2f",
-                                  fontSize: "16px",
-                                  fontWeight: "bold",
-                                }}
-                              >
-                                {formatFlow(pointAnalysis.deepestLevel.level)} m
-                              </Text>
-                              <Text
-                                style={{
-                                  color: "#666",
-                                  fontSize: "10px",
-                                  marginLeft: 6,
-                                }}
-                              >
-                                {pointAnalysis.deepestLevel.time
-                                  ? moment(
-                                      pointAnalysis.deepestLevel.time
-                                    ).format("HH:mm") + " hrs"
-                                  : "N/A"}
-                              </Text>
-                            </div>
-                          </Col>
-
-                          {/* Nivel más Superficial */}
-                          <Col span={12}>
-                            <div style={{ textAlign: "center" }}>
-                              <VerticalAlignTopOutlined
-                                style={{ color: "#388e3c", fontSize: "16px" }}
-                              />
-                              <Text
-                                style={{
-                                  color: "#388e3c",
-                                  fontSize: "12px",
-                                  display: "block",
-                                  fontWeight: 600,
-                                }}
-                              >
-                                Más Superficial
-                              </Text>
-                              <Text
-                                style={{
-                                  color: "#388e3c",
-                                  fontSize: "16px",
-                                  fontWeight: "bold",
-                                }}
-                              >
-                                {formatFlow(
-                                  pointAnalysis.shallowestLevel.level
-                                )}{" "}
-                                m
-                              </Text>
-                              <Text
-                                style={{
-                                  color: "#666",
-                                  fontSize: "10px",
-                                  marginLeft: 6,
-                                }}
-                              >
-                                {pointAnalysis.shallowestLevel.time
-                                  ? moment(
-                                      pointAnalysis.shallowestLevel.time
-                                    ).format("HH:mm") + " hrs"
-                                  : "N/A"}
-                              </Text>
-                            </div>
-                          </Col>
-                        </Row>
-
-                        {/* Información adicional */}
-                        <div
-                          style={{
-                            marginTop: "8px",
-                            padding: "4px 8px",
-                            background: "rgba(24, 144, 255, 0.1)",
-                            borderRadius: "4px",
-                            textAlign: "center",
-                          }}
-                        >
-                          <Text style={{ fontSize: "10px", color: "#666" }}>
-                            <FaTint style={{ marginRight: 4 }} />
-                            {pointAnalysis.totalReadings} lecturas hoy
-                          </Text>
-                        </div>
-                      </Card>
-                    </Col>
-                  ))}
-              </Row>
-            </Card>
-          </Col>
-        )}
       </Row>
     </>
   );

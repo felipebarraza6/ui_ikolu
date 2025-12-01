@@ -1,4 +1,5 @@
 import sh from "../api/sh/endpoints";
+import { clearCacheOnLogout, invalidateProfileCache } from "../utils/dataCache";
 
 export const appReducer = (state, action) => {
   switch (action.type) {
@@ -7,6 +8,8 @@ export const appReducer = (state, action) => {
         "selected_profile",
         JSON.stringify(action.payload.selected_profile)
       );
+      // Invalidar caché cuando cambia el perfil seleccionado
+      invalidateProfileCache();
       return {
         ...state,
         selected_profile: action.payload.selected_profile,
@@ -100,6 +103,8 @@ export const appReducer = (state, action) => {
 
     case "LOGOUT":
       localStorage.clear();
+      // Limpiar caché al hacer logout
+      clearCacheOnLogout();
       return {
         ...state,
         isAuth: false,

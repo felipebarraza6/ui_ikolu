@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { AppContext } from "../../App";
+import sh from "../../api/sh/endpoints";
 import AnalysisPrompt from "./AnalysisPrompt";
-import FlowStatusGauges from "./FlowStatusGauges";
 import ConsumptionChart from "./ConsumptionChart";
+import CombinedVariablesChart from "./CombinedVariablesChart";
 import {
   Card,
   Row,
@@ -14,27 +16,17 @@ import {
   List,
   Typography,
   Badge,
-  theme,
   Modal,
   Table,
+  Spin,
 } from "antd";
-import {
-  FaMapMarkerAlt,
-  FaSatelliteDish,
-  FaCheckCircle,
-  FaChartBar,
-  FaWifi,
-  FaExclamationTriangle,
-  FaArrowUp,
-  FaArrowDown,
-} from "react-icons/fa";
-import { CloseOutlined } from "@ant-design/icons";
+import { FaMapMarkerAlt, FaSatelliteDish, FaChartBar } from "react-icons/fa";
+import { CloseOutlined, ReloadOutlined } from "@ant-design/icons";
 import { useDataStatistics } from "./hooks/useDataValidation";
 import { formatInteger } from "../../utils/numberFormatter";
 import { IoIosWater } from "react-icons/io";
 
 import "./GeneralSummary.css";
-import { CheckCircleOutlined } from "@ant-design/icons";
 
 const { useBreakpoint } = Grid;
 const { Text } = Typography;
@@ -54,9 +46,49 @@ try {
 /**
  * GeneralSummary
  * Dashboard principal con resumen completo de todos los puntos de captación
+ * IMPORTANTE: Siempre consulta la API para obtener datos frescos, no usa localStorage
  */
-const GeneralSummary = ({ profiles }) => {
-  const screens = useBreakpoint();
+const GeneralSummary = ({ profiles: initialProfiles }) => {
+  const { state, dispatch } = useContext(AppContext);
+  const [profiles, setProfiles] = useState(initialProfiles || []);
+  const [loading, setLoading] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState(null);
+
+  useBreakpoint(); // se mantiene la llamada para futura lógica responsiva
+
+  // Función para obtener datos frescos de la API
+  const fetchFreshData = async () => {
+    setLoading(true);
+    try {
+      const response = await sh.get_profile();
+      if (response && response.user && response.user.catchment_points) {
+        const freshProfiles = response.user.catchment_points;
+        setProfiles(freshProfiles);
+        setLastRefresh(new Date());
+
+        // Actualizar el contexto global con los datos frescos
+        dispatch({
+          type: "UPDATE",
+          payload: {
+            user: response.user,
+            selected_profile: state.selected_profile || freshProfiles[0],
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching fresh profile data:", error);
+      // Si falla, usar los datos del contexto o los iniciales
+      setProfiles(state.profile_client || initialProfiles || []);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Cargar datos frescos al montar el componente
+  useEffect(() => {
+    fetchFreshData();
+  }, []); // Solo al montar
+
   const stats = useDataStatistics(profiles);
 
   // Función para fusionar profiles duplicados por nombre, sumando los consumos
@@ -86,52 +118,31 @@ const GeneralSummary = ({ profiles }) => {
 
   const mergedProfiles = mergeProfilesByName(profiles);
 
-  // Filtrar solo los puntos con is_telemetry === true (usando mergedProfiles)
-  const perfilesTelemetria = mergedProfiles.filter(
-    (p) => p.config_data?.is_telemetry
-  );
-  const activosTelemetria = perfilesTelemetria; // Mostrar todos los puntos con is_telemetry
-  const offlineTelemetria = [];
-  const totalTelemetria = perfilesTelemetria.length;
-  const activosTelemetriaCount = totalTelemetria;
+  // --- Mapa auxiliar por nombre de punto ---
+  const profilesByName = profiles.reduce((acc, p) => {
+    if (p?.title) {
+      acc[p.title] = p;
+    }
+    return acc;
+  }, {});
 
-  // Consumo individual por punto
-  const consumoIndividual = stats.todayConsumers.map((tc) => ({
-    name: tc.name,
-    consumo: tc.value,
+  // --- RESUMEN DE CONSUMO BASADO EN TELEMETRÍA REAL ---
+  // Usamos las estadísticas del hook (modules.today/yesterday) para
+  // que el centro de control muestre lo mismo que el módulo de telemetría.
+  const totalHoy = stats.totals?.today || 0;
+  const totalAyer = stats.totals?.yesterday || 0;
+
+  // Lista por punto usando consumptionChanges (todaySum / yesterdaySum)
+  const consumoPorPunto = (stats.consumptionChanges || []).map((c) => ({
+    name: c.name,
+    hoy: c.todaySum || 0,
+    ayer: c.yesterdaySum || 0,
   }));
 
-  // Acumulado individual por punto
-  const acumuladoIndividual = profiles
-    .map((p) => {
-      const today = Array.isArray(p.modules?.today) ? p.modules.today : [];
-      const last = today[today.length - 1];
-      return {
-        name: p.title,
-        acumulado: last && last.total ? Number(last.total) : 0,
-      };
-    })
-    .filter((item) => item.acumulado > 0);
-
-  // Consumo por punto HOY y AYER, directo de mergedProfiles
-  const consumoPorPuntoHoy = mergedProfiles.map((p) => ({
-    name: p.title,
-    value: Number(p.modules?.total_consumed_today) || 0,
-  }));
-  const consumoPorPuntoAyer = mergedProfiles.map((p) => ({
-    name: p.title,
-    value: Number(p.modules?.total_consumed_yesterday) || 0,
-  }));
-  // Total de hoy (debería ser igual a la suma de la columna Hoy de la tabla)
-  const totalHoy = consumoPorPuntoHoy.reduce((acc, p) => acc + p.value, 0);
-
-  const formatVolume = (value) => {
-    return value >= 1000000
-      ? (value / 1000000).toFixed(1) + "M"
-      : value >= 1000
-      ? (value / 1000).toFixed(1) + "K"
-      : value;
-  };
+  const consumoPorNombre = consumoPorPunto.reduce((acc, item) => {
+    acc[item.name] = item;
+    return acc;
+  }, {});
 
   const getStatusColor = (health) => {
     if (health >= 90) return "#52c41a";
@@ -155,38 +166,6 @@ const GeneralSummary = ({ profiles }) => {
       p.lat !== "" &&
       p.lon !== ""
   );
-
-  // 3. Mayores Caudales: todos los puntos con today, ordenados de mayor a menor consumo hoy, sin hora
-  const picosConsumo = profiles
-    .filter(
-      (p) => Array.isArray(p.modules?.today) && p.modules.today.length > 0
-    )
-    .map((p) => ({
-      name: p.title,
-      value: p.modules?.total_consumed_today
-        ? Number(p.modules.total_consumed_today)
-        : 0,
-    }))
-    .sort((a, b) => b.value - a.value);
-
-  // 4. Mayores Bajas: todos los puntos con today, ordenados por mayor baja (hoy vs ayer)
-  const bajasConsumo = profiles
-    .filter(
-      (p) => Array.isArray(p.modules?.today) && p.modules.today.length > 0
-    )
-    .map((p) => {
-      const hoy = p.modules?.total_consumed_today
-        ? Number(p.modules.total_consumed_today)
-        : 0;
-      const ayer = p.modules?.total_consumed_yesterday
-        ? Number(p.modules.total_consumed_yesterday)
-        : 0;
-      return {
-        name: p.title,
-        change: ayer - hoy,
-      };
-    })
-    .sort((a, b) => b.change - a.change);
 
   // 5. Total Histórico: mostrar el último total (m1.total o último total disponible) de todos los puntos y la fecha de esa medición
   const totalHistoricoPorPunto = profiles.map((p) => {
@@ -214,16 +193,82 @@ const GeneralSummary = ({ profiles }) => {
 
   const [modalVisible, setModalVisible] = useState(false);
 
-  // Cálculo de salud del sistema basado en todos los perfiles
-  const totalPerfiles = mergedProfiles.length;
-  const activosHoy = mergedProfiles.filter(
-    (p) => Array.isArray(p.modules?.today) && p.modules.today.length > 0
-  ).length;
+  // --- ESTADO DEL SERVICIO Y CONECTIVIDAD ---
+  const loggerStatuses = stats.loggerStatuses || [];
+  const totalPerfiles = loggerStatuses.length || mergedProfiles.length;
+
+  const activosHoy = loggerStatuses.filter((s) => s.is_today).length;
+  const inactivosHoy = totalPerfiles - activosHoy;
+
   const serviceHealth =
     totalPerfiles > 0 ? Math.round((activosHoy / totalPerfiles) * 100) : 0;
 
+  const puntosDesconectados = loggerStatuses
+    .filter((s) => !s.is_today && s.is_telemetry)
+    .map((s) => s.name);
+
+  // --- DETECCIÓN DE CAUDALES ELEVADOS/EXCEDIDOS ---
+  // Usamos highestFlows (máximo caudal del día) y el caudal autorizado DGA (flow_granted_dga).
+  const caudalesExcedidos = (stats.highestFlows || [])
+    .map((hf) => {
+      const profile = profilesByName[hf.name];
+      const flowGranted =
+        profile?.dga?.flow_granted_dga !== undefined
+          ? Number(profile.dga.flow_granted_dga) || 0
+          : 0;
+
+      const excedido =
+        flowGranted > 0 && hf.value !== null && hf.value > flowGranted;
+
+      return {
+        name: hf.name,
+        maxFlow: hf.value,
+        flowGranted,
+        excedido,
+      };
+    })
+    .filter((item) => item.excedido);
+
+  // Mostrar indicador de carga mientras se obtienen datos frescos
+  if (loading && profiles.length === 0) {
+    return (
+      <Flex align="center" justify="center" style={{ minHeight: "50vh" }}>
+        <Spin size="large" tip="Cargando datos actualizados desde la API..." />
+      </Flex>
+    );
+  }
+
   return (
     <div style={{ marginBottom: 24 }}>
+      {/* Botón de refresco manual */}
+      <Flex justify="flex-end" style={{ marginBottom: 16 }}>
+        <Flex align="center" gap={12}>
+          {lastRefresh && (
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              Última actualización: {lastRefresh.toLocaleTimeString()}
+            </Text>
+          )}
+          <button
+            onClick={fetchFreshData}
+            disabled={loading}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "6px 12px",
+              border: "1px solid #d9d9d9",
+              borderRadius: 6,
+              background: loading ? "#f5f5f5" : "white",
+              cursor: loading ? "not-allowed" : "pointer",
+              fontSize: 13,
+            }}
+          >
+            <ReloadOutlined spin={loading} />
+            {loading ? "Actualizando..." : "Actualizar datos"}
+          </button>
+        </Flex>
+      </Flex>
+
       {/* Indicadores principales */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         {/* Total de Puntos */}
@@ -391,10 +436,11 @@ const GeneralSummary = ({ profiles }) => {
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} md={8}>
           <Card title="Estado del Servicio" bordered style={{ height: "100%" }}>
+            {/* Indicador global de salud del sistema basado en puntos con datos HOY */}
             <Flex
               align="center"
               justify="space-between"
-              style={{ marginBottom: 16 }}
+              style={{ marginBottom: 8 }}
             >
               <span>Salud del sistema</span>
               <Tag color={getStatusColor(serviceHealth)}>
@@ -406,36 +452,93 @@ const GeneralSummary = ({ profiles }) => {
               strokeColor={getStatusColor(serviceHealth)}
               format={(percent) => `${Math.round(percent)}%`}
             />
+            <div
+              style={{
+                marginTop: 8,
+                fontSize: 12,
+                color: "#666",
+                display: "flex",
+                justifyContent: "space-between",
+              }}
+            >
+              <span>
+                Activos hoy: <b>{activosHoy}</b> / {totalPerfiles}
+              </span>
+              <span style={{ color: inactivosHoy > 0 ? "#ff4d4f" : "#999" }}>
+                Sin datos hoy: <b>{inactivosHoy}</b>
+              </span>
+            </div>
             <div style={{ marginTop: 16, display: "flex", gap: 24 }}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 500, marginBottom: 4 }}>Activos</div>
+                <div style={{ fontWeight: 500, marginBottom: 4 }}>
+                  Puntos de telemetría
+                </div>
                 <List
                   size="small"
-                  dataSource={mergedProfiles}
-                  renderItem={(item) => (
-                    <List.Item
-                      style={{
-                        padding: "2px 0",
-                        border: "none",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                      }}
-                    >
-                      {item.config_data?.is_telemetry ? (
-                        <CheckCircleOutlined
-                          style={{ color: "green", marginRight: 4 }}
-                        />
-                      ) : (
-                        <CloseOutlined
-                          style={{ color: "red", marginRight: 4 }}
-                        />
-                      )}
-                      <span>{item.title || "Sin nombre"}</span>
-                    </List.Item>
-                  )}
+                  dataSource={
+                    loggerStatuses.length ? loggerStatuses : mergedProfiles
+                  }
+                  renderItem={(item) => {
+                    // item puede venir de loggerStatuses o de mergedProfiles
+                    const name = item.name || item.title || "Sin nombre";
+                    const isTelemetry =
+                      item.is_telemetry ??
+                      item.config_data?.is_telemetry === true;
+                    const isToday = item.is_today ?? false;
+
+                    return (
+                      <List.Item
+                        style={{
+                          padding: "2px 0",
+                          border: "none",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          fontSize: 12,
+                        }}
+                      >
+                        {isTelemetry ? (
+                          isToday ? (
+                            <Badge
+                              status="processing"
+                              color="#52c41a"
+                              text={
+                                <span style={{ color: "#52c41a" }}>OK hoy</span>
+                              }
+                            />
+                          ) : (
+                            <Badge
+                              status="error"
+                              color="#ff4d4f"
+                              text={
+                                <span style={{ color: "#ff4d4f" }}>
+                                  Sin datos hoy
+                                </span>
+                              }
+                            />
+                          )
+                        ) : (
+                          <CloseOutlined
+                            style={{ color: "red", marginRight: 4 }}
+                          />
+                        )}
+                        <span>{name}</span>
+                      </List.Item>
+                    );
+                  }}
                   locale={{ emptyText: "—" }}
                 />
+                {puntosDesconectados.length > 0 && (
+                  <div
+                    style={{
+                      marginTop: 8,
+                      fontSize: 11,
+                      color: "#ff4d4f",
+                    }}
+                  >
+                    Posibles desconexiones: {puntosDesconectados.join(", ")}
+                  </div>
+                )}
               </div>
             </div>
           </Card>
@@ -454,9 +557,7 @@ const GeneralSummary = ({ profiles }) => {
               <Col span={8}>
                 <Statistic
                   title="Diferencia"
-                  value={formatInteger(
-                    Math.max(0, stats.totals.yesterday - totalHoy)
-                  )}
+                  value={formatInteger(Math.max(0, totalAyer - totalHoy))}
                   suffix="m³"
                   valueStyle={{ color: "orange" }}
                 />
@@ -465,7 +566,7 @@ const GeneralSummary = ({ profiles }) => {
               <Col span={8}>
                 <Statistic
                   title="Ayer"
-                  value={formatInteger(stats.totals.yesterday)}
+                  value={formatInteger(totalAyer)}
                   suffix="m³"
                   valueStyle={{ color: "#666" }}
                 />
@@ -490,66 +591,100 @@ const GeneralSummary = ({ profiles }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {(() => {
-                    // Unir todos los puntos únicos
-                    const puntosSet = new Set([
-                      ...consumoPorPuntoHoy.map((p) => p.name),
-                      ...consumoPorPuntoAyer.map((p) => p.name),
-                    ]);
-                    const puntos = Array.from(puntosSet);
-                    return puntos.map((punto) => {
-                      const hoy =
-                        consumoPorPuntoHoy.find((x) => x.name === punto)
-                          ?.value || 0;
-                      const ayer =
-                        consumoPorPuntoAyer.find((x) => x.name === punto)
-                          ?.value || 0;
-                      const diferencia = hoy - ayer;
-                      let color = "#666";
-                      if (diferencia > 0) color = "#fa8c16";
-                      else if (diferencia < 0) color = "#1976d2";
-                      return (
-                        <tr key={punto}>
-                          <td style={{ padding: "2px 0" }}>{punto}</td>
-                          <td
-                            style={{
-                              textAlign: "right",
-                              color,
-                              fontWeight: 600,
-                            }}
-                          >
-                            {diferencia > 0 ? "+" : diferencia < 0 ? "-" : ""}
-                            {formatInteger(Math.abs(diferencia))} m³
-                          </td>
-                          <td style={{ textAlign: "right", fontWeight: 600 }}>
-                            {formatInteger(hoy)} m³
-                          </td>
-                          <td style={{ textAlign: "right", fontWeight: 600 }}>
-                            {formatInteger(ayer)} m³
-                          </td>
-                        </tr>
-                      );
-                    });
-                  })()}
+                  {Object.keys(consumoPorNombre).map((punto) => {
+                    const hoy = consumoPorNombre[punto].hoy || 0;
+                    const ayer = consumoPorNombre[punto].ayer || 0;
+                    const diferencia = hoy - ayer;
+                    let color = "#666";
+                    if (diferencia > 0) color = "#fa8c16";
+                    else if (diferencia < 0) color = "#1976d2";
+                    return (
+                      <tr key={punto}>
+                        <td style={{ padding: "2px 0" }}>{punto}</td>
+                        <td
+                          style={{
+                            textAlign: "right",
+                            color,
+                            fontWeight: 600,
+                          }}
+                        >
+                          {diferencia > 0 ? "+" : diferencia < 0 ? "-" : ""}
+                          {formatInteger(Math.abs(diferencia))} m³
+                        </td>
+                        <td style={{ textAlign: "right", fontWeight: 600 }}>
+                          {formatInteger(hoy)} m³
+                        </td>
+                        <td style={{ textAlign: "right", fontWeight: 600 }}>
+                          {formatInteger(ayer)} m³
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
               {/* Línea de debug para validar suma de columna Hoy */}
               <div style={{ marginTop: 8, fontSize: 12, color: "#888" }}>
                 Suma columna Hoy: {formatInteger(totalHoy)} m³
               </div>
+              {/* Resumen rápido de caudales excedidos según caudal autorizado (DGA) */}
+              {caudalesExcedidos.length > 0 && (
+                <div
+                  style={{
+                    marginTop: 8,
+                    fontSize: 12,
+                    color: "#ff4d4f",
+                  }}
+                >
+                  Puntos con caudal sobre el autorizado:{" "}
+                  {caudalesExcedidos
+                    .map(
+                      (c) =>
+                        `${c.name} (máx ${
+                          c.maxFlow?.toFixed?.(1) || 0
+                        } L/s vs ${c.flowGranted} L/s)`
+                    )
+                    .join(", ")}
+                </div>
+              )}
             </div>
           </Card>
         </Col>
       </Row>
 
       {/* Análisis general y tarjetas */}
+      {/* Sección de análisis para que el usuario entienda el contexto del día */}
+      <div style={{ marginTop: 8, marginBottom: 8 }}>
+        <Text strong style={{ fontSize: 14 }}>
+          Análisis inteligente del día
+        </Text>
+        <br />
+        <Text type="secondary" style={{ fontSize: 12 }}>
+          Aquí se resume cómo han cambiado los consumos, qué puntos bajaron y
+          cómo está la conexión de los loggers.
+        </Text>
+      </div>
       <AnalysisPrompt profiles={profiles} />
 
-      {/* Gráficas de caudal y gauges */}
-
-      <div style={{ marginTop: 24 }}>
-        <ConsumptionChart />
+      {/* Gráfico combinado de variables en tiempo real */}
+      {/* Sección de detalle por punto: caudal, consumo y niveles */}
+      <div style={{ marginTop: 32 }}>
+        <Text
+          strong
+          style={{ fontSize: 14, display: "block", marginBottom: 4 }}
+        >
+          Detalle por punto en tiempo real
+        </Text>
+        <Text
+          type="secondary"
+          style={{ fontSize: 12, display: "block", marginBottom: 12 }}
+        >
+          Selecciona un punto en el desplegable para ver sus variables (caudal,
+          consumo, niveles) en un solo gráfico y en una tabla navegable.
+        </Text>
+        <CombinedVariablesChart profiles={profiles} />
       </div>
+
+      {/* Gráfica de consumo histórico */}
 
       <Modal
         open={modalVisible}

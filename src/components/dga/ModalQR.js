@@ -1,31 +1,13 @@
 import React from "react";
-import {
-  Flex,
-  QRCode,
-  Button,
-  Modal,
-  Descriptions,
-  Typography,
-  Card,
-  Divider,
-  Row,
-  Col,
-  Tag,
-} from "antd";
+import { Flex, QRCode, Button, Modal, Typography, Card, Row, Col } from "antd";
 import logo from "../../assets/images/channels4_profile.jpg";
-import logoDga from "../../assets/images/logo_dga.png";
 import logoSh from "../../assets/images/logo-blanco.png";
-import {
-  ArrowRightOutlined,
-  DownloadOutlined,
-  QrcodeOutlined,
-  InfoCircleOutlined,
-  SafetyOutlined,
-} from "@ant-design/icons";
+import { ArrowRightOutlined, DownloadOutlined } from "@ant-design/icons";
 import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import dayjs from "dayjs";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
   // Extraer datos del perfil de forma segura
@@ -36,6 +18,7 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
     shac,
     date_created_code,
     date_start_compliance,
+    region,
     standard,
   } = profile?.dga || {};
 
@@ -81,14 +64,21 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
 
   const measurementSystem = getMeasurementSystem();
 
+  // Función para descargar la ficha como PDF
   const handleDownload = () => {
     const input = document.getElementById("qr-and-table");
-    html2canvas(input, { padding: 10 }).then((canvas) => {
+    html2canvas(input, { padding: 10, scale: 2 }).then((canvas) => {
       const imgData = canvas.toDataURL("image/png");
-      const link = document.createElement("a");
-      link.href = imgData;
-      link.download = `Ficha_DGA_${codeDga || "SinCodigo"}.png`;
-      link.click();
+      // Crear un nuevo documento PDF con dimensiones A4 (595x842 puntos)
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "pt",
+        format: [595, 842],
+      });
+      // Agregar la imagen al PDF ajustando al tamaño completo
+      pdf.addImage(imgData, "PNG", 0, 0, 595, 842);
+      // Descargar el PDF
+      pdf.save(`Ficha_DGA_${codeDga || "SinCodigo"}.pdf`);
     });
   };
 
@@ -146,7 +136,7 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
                 }}
               >
                 Servicio de Monitoreo de agua subterránea
-                <br /> para cumplimiento RES_DGA_1.238_MEE y 50
+                <br /> para cumplimiento RES_DGA_1.238_MEE
               </Text>
             </div>
           </Flex>
@@ -185,8 +175,6 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
 
             <div style={{ textAlign: "center", width: "100%" }}>
               <Text strong style={{ fontSize: 16, color: "#1F3461" }}>
-                <QrcodeOutlined style={{ marginRight: 8 }} />
-
                 {profileTitle}
               </Text>
               <div
@@ -211,9 +199,10 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
                   <div
                     style={{
                       background: "#f5f7fa",
-                      padding: "5px 15px",
+                      padding: "10px 15px",
                       borderRadius: "8px",
                       borderLeft: "3px solid #1F3461",
+                      minHeight: "60px",
                     }}
                   >
                     <Text
@@ -226,8 +215,8 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
                     >
                       Fecha Creación
                     </Text>
-                    <div style={{ marginTop: 4 }}>
-                      <Text strong style={{ fontSize: 14 }}>
+                    <div style={{ marginTop: 6 }}>
+                      <Text strong style={{ fontSize: 14, lineHeight: "1.5" }}>
                         {date_created_code
                           ? dayjs(date_created_code).format("DD/MM/YYYY")
                           : "N/A"}
@@ -239,7 +228,8 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
                   <div
                     style={{
                       background: "#f5f7fa",
-                      padding: "5px 15px",
+                      padding: "10px 15px",
+                      minHeight: "60px",
                       borderRadius: "8px",
                       borderLeft: "3px solid #1F3461",
                     }}
@@ -254,8 +244,8 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
                     >
                       Inicio Cumplimiento
                     </Text>
-                    <div style={{ marginTop: 4 }}>
-                      <Text strong style={{ fontSize: 14 }}>
+                    <div style={{ marginTop: 6 }}>
+                      <Text strong style={{ fontSize: 14, lineHeight: "1.5" }}>
                         {date_start_compliance
                           ? dayjs(date_start_compliance).format("DD/MM/YYYY")
                           : "N/A"}
@@ -267,7 +257,8 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
                   <div
                     style={{
                       background: "#f5f7fa",
-                      padding: "5px 15px",
+                      padding: "10px 15px",
+                      minHeight: "60px",
                       borderRadius: "8px",
                       borderLeft: "3px solid #1F3461",
                     }}
@@ -282,8 +273,8 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
                     >
                       Tipo de Captación
                     </Text>
-                    <div style={{ marginTop: 4 }}>
-                      <Text strong style={{ fontSize: 14 }}>
+                    <div style={{ marginTop: 6 }}>
+                      <Text strong style={{ fontSize: 14, lineHeight: "1.5" }}>
                         {type_dga || "N/A"}
                       </Text>
                     </div>
@@ -293,7 +284,8 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
                   <div
                     style={{
                       background: "#f5f7fa",
-                      padding: "5px 15px",
+                      padding: "10px 15px",
+                      minHeight: "60px",
                       borderRadius: "8px",
                       borderLeft: "3px solid #1F3461",
                     }}
@@ -308,8 +300,8 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
                     >
                       Sistema de Medición
                     </Text>
-                    <div style={{ marginTop: 4 }}>
-                      <Text strong style={{ fontSize: 14 }}>
+                    <div style={{ marginTop: 6 }}>
+                      <Text strong style={{ fontSize: 14, lineHeight: "1.5" }}>
                         {measurementSystem}
                       </Text>
                     </div>
@@ -319,7 +311,8 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
                   <div
                     style={{
                       background: "#f5f7fa",
-                      padding: "5px 15px",
+                      padding: "10px 15px",
+                      minHeight: "60px",
                       borderRadius: "8px",
                       borderLeft: "3px solid #1F3461",
                     }}
@@ -334,8 +327,8 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
                     >
                       Caudal Autorizado
                     </Text>
-                    <div style={{ marginTop: 4 }}>
-                      <Text strong style={{ fontSize: 14 }}>
+                    <div style={{ marginTop: 6 }}>
+                      <Text strong style={{ fontSize: 14, lineHeight: "1.5" }}>
                         {flow_granted_dga || "N/A"}{" "}
                         <span style={{ fontSize: 12 }}>lt/s</span>
                       </Text>
@@ -346,7 +339,8 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
                   <div
                     style={{
                       background: "#f5f7fa",
-                      padding: "5px 15px",
+                      padding: "10px 15px",
+                      minHeight: "60px",
                       borderRadius: "8px",
                       borderLeft: "3px solid #1F3461",
                     }}
@@ -361,8 +355,8 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
                     >
                       Volumen Autorizado
                     </Text>
-                    <div style={{ marginTop: 4 }}>
-                      <Text strong style={{ fontSize: 14 }}>
+                    <div style={{ marginTop: 6 }}>
+                      <Text strong style={{ fontSize: 14, lineHeight: "1.5" }}>
                         {total_granted_dga
                           ? total_granted_dga.toLocaleString("es-CL")
                           : "N/A"}{" "}
@@ -375,7 +369,8 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
                   <div
                     style={{
                       background: "#f5f7fa",
-                      padding: "5px 15px",
+                      padding: "10px 15px",
+                      minHeight: "60px",
                       borderRadius: "8px",
                       borderLeft: "3px solid #1F3461",
                     }}
@@ -390,8 +385,8 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
                     >
                       SHAC
                     </Text>
-                    <div style={{ marginTop: 4 }}>
-                      <Text strong style={{ fontSize: 14 }}>
+                    <div style={{ marginTop: 6 }}>
+                      <Text strong style={{ fontSize: 14, lineHeight: "1.5" }}>
                         {shac || "N/A"}
                       </Text>
                     </div>
@@ -401,7 +396,8 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
                   <div
                     style={{
                       background: "#f5f7fa",
-                      padding: "5px 15px",
+                      padding: "10px 15px",
+                      minHeight: "60px",
                       borderRadius: "8px",
                       borderLeft: "3px solid #1F3461",
                     }}
@@ -416,8 +412,8 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
                     >
                       Estándar
                     </Text>
-                    <div style={{ marginTop: 4 }}>
-                      <Text strong style={{ fontSize: 14 }}>
+                    <div style={{ marginTop: 6 }}>
+                      <Text strong style={{ fontSize: 14, lineHeight: "1.5" }}>
                         {standard === "CAUDALES_MUY_PEQUENOS"
                           ? "Muy Pequeños"
                           : standard || "N/A"}
@@ -425,11 +421,12 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
                     </div>
                   </div>
                 </Col>
-                <Col span={24}>
+                <Col span={12}>
                   <div
                     style={{
                       background: "#f5f7fa",
-                      padding: "5px 15px",
+                      padding: "10px 15px",
+                      minHeight: "60px",
                       borderRadius: "8px",
                       borderLeft: "3px solid #1F3461",
                     }}
@@ -444,9 +441,36 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
                     >
                       Frecuencia de Envío
                     </Text>
-                    <div style={{ marginTop: 4 }}>
-                      <Text strong style={{ fontSize: 14 }}>
+                    <div style={{ marginTop: 6 }}>
+                      <Text strong style={{ fontSize: 14, lineHeight: "1.5" }}>
                         {frequency}
+                      </Text>
+                    </div>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div
+                    style={{
+                      background: "#f5f7fa",
+                      padding: "10px 15px",
+                      minHeight: "60px",
+                      borderRadius: "8px",
+                      borderLeft: "3px solid #1F3461",
+                    }}
+                  >
+                    <Text
+                      type="secondary"
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: "#1F3461",
+                      }}
+                    >
+                      Región
+                    </Text>
+                    <div style={{ marginTop: 6 }}>
+                      <Text strong style={{ fontSize: 14, lineHeight: "1.5" }}>
+                        {region ? region.toUpperCase() : "N/A"}
                       </Text>
                     </div>
                   </div>

@@ -47,10 +47,13 @@ const ResponsiveAlerts = () => {
       });
   };
 
+  // Recargar alertas cuando cambia el perfil seleccionado o se actualiza
   useEffect(() => {
-    getActiveTickets();
-    getTickets();
-  }, [update]);
+    if (selected_id) {
+      getActiveTickets();
+      getTickets();
+    }
+  }, [update, selected_id]);
 
   const totalAlertas = tickets ? tickets.length : 0;
   const alertasActivas = ticketsActives ? ticketsActives.length : 0;

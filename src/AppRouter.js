@@ -2,6 +2,7 @@ import React, { useContext } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./containers/Home";
 import Login from "./containers/Login";
+import PreviewModalQR from "./components/dga/PreviewModalQR";
 import { AppContext } from "./App";
 
 const AppRouter = () => {
@@ -10,6 +11,8 @@ const AppRouter = () => {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      {/* Ruta pública para preview del certificado - no requiere autenticación */}
+      <Route path="/preview-certificado" element={<PreviewModalQR />} />
       <Route
         path="/"
         element={isAuth ? <Home /> : <Navigate to="/login" replace />}
