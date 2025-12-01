@@ -10,16 +10,49 @@ export const Axios = axios.create({
 });
 
 export const POST_LOGIN = async (endpoint, data) => {
-  const request = await Axios.post(endpoint, data);
-  console.log(request);
-  return request;
+  try {
+    const request = await Axios.post(endpoint, data);
+    // Solo validar errores si NO tiene los campos de éxito
+    // Una respuesta exitosa de login debe tener user y access_token
+    if (request.data) {
+      const hasError =
+        request.data.error && !request.data.user && !request.data.access_token;
+      // Si tiene error pero no tiene los campos de éxito, es un error real
+      if (hasError) {
+        const error = new Error(
+          request.data.error || request.data.message || "Error de autenticación"
+        );
+        error.response = { data: request.data };
+        throw error;
+      }
+    }
+    return request;
+  } catch (error) {
+    // Si es un error de axios (status != 200), propagarlo
+    if (error.response) {
+      throw error;
+    }
+    // Si es un error que lanzamos nosotros, propagarlo
+    throw error;
+  }
 };
 
-export const GET = async (endpoint) => {
-  const token = JSON.parse(localStorage.getItem("token"));
+export const GET = async (endpoint, token = null) => {
+  // Si se proporciona token, usarlo; si no, intentar obtenerlo de localStorage
+  let authToken = token;
+  if (!authToken) {
+    authToken = JSON.parse(localStorage.getItem("token") || "null");
+  }
+
+  if (!authToken) {
+    throw new Error(
+      "No se encontró token de autenticación. Por favor, inicia sesión nuevamente."
+    );
+  }
+
   const options = {
     headers: {
-      Authorization: `Token ${token}`,
+      Authorization: `Token ${authToken}`,
     },
   };
   const request = await Axios.get(endpoint, options);
@@ -50,13 +83,14 @@ export const DELETE = async (endpoint) => {
 
 export const DOWNLOAD = async (endpoint, name_file) => {
   const token = JSON.parse(localStorage.getItem("token"));
-  
+
   // Configuración para la descarga con tipo blob
   const download = {
     responseType: "blob",
     headers: {
       Authorization: `Token ${token}`,
-      Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      Accept:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     },
   };
 
@@ -71,7 +105,7 @@ export const DOWNLOAD = async (endpoint, name_file) => {
     link.setAttribute("download", name_file);
     document.body.appendChild(link);
     link.click();
-    
+
     // Limpiar después de la descarga
     window.URL.revokeObjectURL(url);
     document.body.removeChild(link);

@@ -38,8 +38,17 @@ const Login = () => {
     try {
       const response = await sh.authenticated(values);
 
+      // Guardar el token en localStorage ANTES de llamar a get_profile
+      // para que esté disponible cuando se haga la petición
+      localStorage.setItem("token", JSON.stringify(response.access_token));
+      localStorage.setItem("user", JSON.stringify(response.user));
+
       // Después del login exitoso, obtener datos frescos del perfil
-      const profileResponse = await sh.get_profile();
+      // Pasar el username y token de la respuesta del login para evitar problemas de timing
+      const profileResponse = await sh.get_profile(
+        response.user?.username,
+        response.access_token
+      );
 
       // Combinar respuesta de login con datos actualizados del perfil
       dispatch({
@@ -59,10 +68,17 @@ const Login = () => {
       });
       navigate("/");
     } catch (err) {
-      console.log(err);
+      console.error("Error en login:", err);
+      // Extraer mensaje de error más específico si está disponible
+      const errorMessage =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        err?.message ||
+        "Usuario o contraseña incorrectos";
+
       notification.error({
         message: "Error de autenticación",
-        description: "Usuario o contraseña incorrectos",
+        description: errorMessage,
       });
     } finally {
       setLoading(false);

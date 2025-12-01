@@ -7,9 +7,42 @@ const login = async (data) => {
     password: data.password,
   });
 
-  request.data.user.catchment_points.sort(
-    (a, b) => b.is_monitoring - a.is_monitoring
-  );
+  // Validar que la respuesta tenga la estructura esperada
+  if (!request || !request.data) {
+    throw new Error("Respuesta inválida del servidor");
+  }
+
+  // Validar que tenga los datos del usuario (esto indica éxito)
+  if (!request.data.user) {
+    // Si no tiene user pero tiene error, mostrar ese error
+    const errorMessage =
+      request.data.error ||
+      request.data.message ||
+      "Usuario no encontrado en la respuesta";
+    throw new Error(errorMessage);
+  }
+
+  // Validar que tenga access_token (esto indica éxito)
+  if (!request.data.access_token) {
+    // Si no tiene token pero tiene error, mostrar ese error
+    const errorMessage =
+      request.data.error ||
+      request.data.message ||
+      "Token de acceso no encontrado";
+    throw new Error(errorMessage);
+  }
+
+  // Si llegamos aquí, el login fue exitoso (tiene user y access_token)
+
+  // Validar y ordenar catchment_points si existen
+  if (
+    request.data.user.catchment_points &&
+    Array.isArray(request.data.user.catchment_points)
+  ) {
+    request.data.user.catchment_points.sort(
+      (a, b) => b.is_monitoring - a.is_monitoring
+    );
+  }
 
   return request.data;
 };
@@ -54,13 +87,29 @@ const downloadDataMonthToExcel = async (
     `data.xlsx`
   );
 };
-const get_profile = async () => {
-  const user = JSON.parse(localStorage.getItem("user") || null);
-  const rq = await GET(`users/${user.username}/`);
+const get_profile = async (username = null, token = null) => {
+  // Si se proporciona username, usarlo; si no, intentar obtenerlo de localStorage
+  let userUsername = username;
 
-  rq.data.user.catchment_points.forEach((item, index) => {
-    item.key = index;
-  });
+  if (!userUsername) {
+    const user = JSON.parse(localStorage.getItem("user") || "null");
+    if (user && user.username) {
+      userUsername = user.username;
+    } else {
+      throw new Error(
+        "No se pudo obtener el nombre de usuario. Por favor, inicia sesión nuevamente."
+      );
+    }
+  }
+
+  // Pasar el token a GET para evitar problemas de timing con localStorage
+  const rq = await GET(`users/${userUsername}/`, token);
+
+  if (rq.data && rq.data.user && rq.data.user.catchment_points) {
+    rq.data.user.catchment_points.forEach((item, index) => {
+      item.key = index;
+    });
+  }
 
   return rq.data;
 };

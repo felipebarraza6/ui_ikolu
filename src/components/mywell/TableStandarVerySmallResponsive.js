@@ -15,22 +15,20 @@ import {
   QRCode,
   Card,
   Space,
+  Divider,
 } from "antd";
 
 import {
-  CloudUploadOutlined,
   SecurityScanFilled,
   DeleteFilled,
-  ClearOutlined,
-  CheckCircleFilled,
+  CheckCircleOutlined,
   ClockCircleOutlined,
-  DropboxOutlined,
   LineChartOutlined,
   DatabaseOutlined,
 } from "@ant-design/icons";
+import { FaTint } from "react-icons/fa";
 import { AppContext } from "../../App";
 import api from "../../api/sh/endpoints";
-import logo from "../../assets/images/favicon.ico";
 import {
   formatFlow,
   formatLevel,
@@ -40,16 +38,11 @@ import {
 const { Title, Text } = Typography;
 
 /**
- * 📱 COMPONENTE TELEMETRÍA RESPONSIVO
- *
- * Estructura:
- * - Indicadores arriba (flex responsivo)
- * - Formulario y datos del punto de captación abajo
- * - Optimizado para móvil y desktop
+ * Componente de registro manual de mediciones
+ * Optimizado para móvil y desktop
  */
 const TableStandarVerySmallResponsive = ({ data }) => {
   const [form] = Form.useForm();
-  const [count, setCount] = useState(0);
   const [dataForm, setDataForm] = useState([]);
   const { state } = useContext(AppContext);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -125,6 +118,7 @@ const TableStandarVerySmallResponsive = ({ data }) => {
       lastLevel: lastRecord ? parseFloat(lastRecord.water_table) : 0,
       lastTotal: lastRecord ? parseInt(lastRecord.total) : 0,
       totalRecords: dataForm.length,
+      historicalTotal: lastRecord ? parseInt(lastRecord.total) : 0,
     };
   };
 
@@ -142,16 +136,16 @@ const TableStandarVerySmallResponsive = ({ data }) => {
     return (
       <div
         style={{
-          textAlign: "center",
-          padding: "12px",
-          background: "#f0f2f5",
-          borderRadius: 8,
+          padding: "12px 16px",
+          background: "#f0f5ff",
+          borderRadius: 6,
           margin: "16px 0",
+          border: "1px solid #d6e4ff",
         }}
       >
-        <Text style={{ fontSize: 12, color: "#666" }}>
-          Debes cargar datos antes del:{" "}
-          <Tag color="blue">
+        <Text style={{ fontSize: 13, color: "#1F3461" }}>
+          Fecha límite de carga:{" "}
+          <Tag color="blue" style={{ marginLeft: 4 }}>
             {state.selected_profile.dga.standard === "CAUDALES_MUY_PEQUENOS" &&
               endOfYear.toLocaleDateString()}
             {state.selected_profile.dga.standard === "MENOR" &&
@@ -164,123 +158,136 @@ const TableStandarVerySmallResponsive = ({ data }) => {
 
   useEffect(() => {
     getData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <div style={{ padding: isMobile ? "8px" : "20px" }}>
-      {/* 📊 INDICADORES ARRIBA */}
-      <Card style={{ marginBottom: 20 }}>
-        <Title
-          level={5}
-          style={{ textAlign: "center", color: "#1f3461", marginBottom: 20 }}
-        >
-          📊 Estado Actual del Punto de Captación
-        </Title>
-
+    <div style={{ padding: isMobile ? "12px" : "24px" }}>
+      {/* Indicadores resumidos */}
+      <Card
+        style={{
+          marginBottom: 24,
+          borderRadius: 8,
+        }}
+        bodyStyle={{ padding: "16px" }}
+      >
         <Row gutter={[16, 16]}>
           <Col xs={12} sm={6}>
-            <Card
-              size="small"
-              style={{ textAlign: "center", background: "#f8f9fa" }}
-            >
+            <div style={{ textAlign: "center" }}>
               <ClockCircleOutlined
-                style={{ fontSize: 24, color: "#1890ff", marginBottom: 8 }}
+                style={{ fontSize: 20, color: "#1890ff", marginBottom: 4 }}
               />
-              <div style={{ fontSize: 12, color: "#666" }}>Última Medición</div>
-              <div
-                style={{ fontSize: 14, fontWeight: "bold", color: "#1f3461" }}
-              >
+              <div style={{ fontSize: 11, color: "#666", marginBottom: 4 }}>
+                Última Medición
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#1F3461" }}>
                 {indicators.lastUpdate}
               </div>
-            </Card>
+            </div>
           </Col>
 
           <Col xs={12} sm={6}>
-            <Card
-              size="small"
-              style={{ textAlign: "center", background: "#f8f9fa" }}
-            >
-              <DropboxOutlined
-                style={{ fontSize: 24, color: "#52c41a", marginBottom: 8 }}
+            <div style={{ textAlign: "center" }}>
+              <FaTint
+                style={{ fontSize: 20, color: "#1890ff", marginBottom: 4 }}
               />
-              <div style={{ fontSize: 12, color: "#666" }}>Caudal</div>
-              <div
-                style={{ fontSize: 14, fontWeight: "bold", color: "#1f3461" }}
-              >
+              <div style={{ fontSize: 11, color: "#666", marginBottom: 4 }}>
+                Caudal
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#1F3461" }}>
                 {formatFlow(indicators.lastFlow)}
               </div>
-            </Card>
+            </div>
           </Col>
 
           <Col xs={12} sm={6}>
-            <Card
-              size="small"
-              style={{ textAlign: "center", background: "#f8f9fa" }}
-            >
+            <div style={{ textAlign: "center" }}>
               <LineChartOutlined
-                style={{ fontSize: 24, color: "#faad14", marginBottom: 8 }}
+                style={{ fontSize: 20, color: "#faad14", marginBottom: 4 }}
               />
-              <div style={{ fontSize: 12, color: "#666" }}>Nivel Freático</div>
-              <div
-                style={{ fontSize: 14, fontWeight: "bold", color: "#1f3461" }}
-              >
+              <div style={{ fontSize: 11, color: "#666", marginBottom: 4 }}>
+                Nivel Freático
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#1F3461" }}>
                 {formatLevel(indicators.lastLevel)}
               </div>
-            </Card>
+            </div>
           </Col>
 
           <Col xs={12} sm={6}>
-            <Card
-              size="small"
-              style={{ textAlign: "center", background: "#f8f9fa" }}
-            >
+            <div style={{ textAlign: "center" }}>
               <DatabaseOutlined
-                style={{ fontSize: 24, color: "#722ed1", marginBottom: 8 }}
+                style={{ fontSize: 20, color: "#722ed1", marginBottom: 4 }}
               />
-              <div style={{ fontSize: 12, color: "#666" }}>Total Registros</div>
-              <div
-                style={{ fontSize: 14, fontWeight: "bold", color: "#1f3461" }}
-              >
-                {indicators.totalRecords}
+              <div style={{ fontSize: 11, color: "#666", marginBottom: 4 }}>
+                Totalizado Histórico
               </div>
-            </Card>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#1F3461" }}>
+                {formatVolume(indicators.historicalTotal)}
+              </div>
+            </div>
           </Col>
         </Row>
       </Card>
 
-      {/* 🏗️ SECCIÓN DEL PUNTO DE CAPTACIÓN Y DATOS (ABAJO) */}
-      <Card>
-        <Title level={5} style={{ color: "#1f3461", marginBottom: 20 }}>
-          🏗️ Registro de Mediciones
+      {/* Formulario y tabla */}
+      <Card
+        style={{
+          borderRadius: 8,
+        }}
+        bodyStyle={{ padding: "20px" }}
+      >
+        <Title
+          level={4}
+          style={{
+            color: "#1F3461",
+            marginBottom: 20,
+            fontSize: 16,
+            fontWeight: 600,
+          }}
+        >
+          Registro de Mediciones
         </Title>
+
+        <Divider style={{ margin: "16px 0" }} />
 
         {/* Formulario */}
         <Form
           form={form}
-          layout={isMobile ? "vertical" : "inline"}
+          layout={isMobile ? "vertical" : "horizontal"}
           onFinish={createData}
           style={{ marginBottom: 20 }}
+          colon={false}
+          labelCol={
+            isMobile ? undefined : { span: 10, style: { whiteSpace: "normal" } }
+          }
+          wrapperCol={isMobile ? undefined : { span: 14 }}
         >
-          <Row gutter={[16, 16]}>
+          <Row gutter={[16, 12]}>
             <Col xs={24} sm={12} md={6}>
               <Form.Item
                 label="Fecha de captación"
                 name="date_time_medition"
                 rules={[{ required: true, message: "Ingresa la fecha" }]}
+                style={{ marginBottom: isMobile ? 16 : 0 }}
+                labelWrap
               >
                 <DatePicker
                   placeholder="Selecciona fecha"
                   style={{ width: "100%" }}
                   size={isMobile ? "large" : "middle"}
+                  format="DD/MM/YYYY"
                 />
               </Form.Item>
             </Col>
 
-            <Col xs={24} sm={12} md={4}>
+            <Col xs={24} sm={12} md={5}>
               <Form.Item
                 label="Caudal"
                 name="flow"
                 rules={[{ required: true, message: "Ingresa el caudal" }]}
+                style={{ marginBottom: isMobile ? 16 : 0 }}
+                labelWrap
               >
                 <Input
                   placeholder="0.0"
@@ -291,11 +298,13 @@ const TableStandarVerySmallResponsive = ({ data }) => {
               </Form.Item>
             </Col>
 
-            <Col xs={24} sm={12} md={4}>
+            <Col xs={24} sm={12} md={5}>
               <Form.Item
                 label="Nivel freático"
                 name="water_table"
                 rules={[{ required: true, message: "Ingresa el nivel" }]}
+                style={{ marginBottom: isMobile ? 16 : 0 }}
+                labelWrap
               >
                 <Input
                   placeholder="0.0"
@@ -306,11 +315,13 @@ const TableStandarVerySmallResponsive = ({ data }) => {
               </Form.Item>
             </Col>
 
-            <Col xs={24} sm={12} md={4}>
+            <Col xs={24} sm={12} md={5}>
               <Form.Item
                 label="Totalizado"
                 name="total"
                 rules={[{ required: true, message: "Ingresa el total" }]}
+                style={{ marginBottom: isMobile ? 16 : 0 }}
+                labelWrap
               >
                 <Input
                   placeholder="0"
@@ -321,21 +332,29 @@ const TableStandarVerySmallResponsive = ({ data }) => {
               </Form.Item>
             </Col>
 
-            <Col xs={24} sm={24} md={6}>
-              <Form.Item label={isMobile ? "Acciones" : " "}>
-                <Space>
+            <Col xs={24} sm={24} md={3}>
+              <Form.Item
+                label={isMobile ? "Acciones" : " "}
+                style={{ marginBottom: isMobile ? 16 : 0 }}
+              >
+                <Space
+                  direction={isMobile ? "horizontal" : "vertical"}
+                  style={{ width: "100%" }}
+                >
                   <Button
                     type="primary"
-                    icon={<CloudUploadOutlined />}
                     htmlType="submit"
                     size={isMobile ? "large" : "middle"}
+                    block={isMobile}
+                    style={{ width: isMobile ? "100%" : "auto" }}
                   >
                     Guardar
                   </Button>
                   <Button
-                    icon={<ClearOutlined />}
                     onClick={() => form.resetFields()}
                     size={isMobile ? "large" : "middle"}
+                    block={isMobile}
+                    style={{ width: isMobile ? "100%" : "auto" }}
                   >
                     Limpiar
                   </Button>
@@ -363,25 +382,25 @@ const TableStandarVerySmallResponsive = ({ data }) => {
                   width: isMobile ? 100 : undefined,
                 },
                 {
-                  title: "Caudal(l/s)",
+                  title: "Caudal (l/s)",
                   dataIndex: "flow",
                   render: (flow) => formatFlow(parseFloat(flow)),
                   width: isMobile ? 90 : undefined,
                 },
                 {
-                  title: "Nivel(m)",
+                  title: "Nivel (m)",
                   dataIndex: "water_table",
                   render: (nivel) => formatLevel(parseFloat(nivel)),
                   width: isMobile ? 80 : undefined,
                 },
                 {
-                  title: "Total(m³)",
+                  title: "Total (m³)",
                   dataIndex: "total",
                   render: (total) => formatVolume(parseInt(total)),
                   width: isMobile ? 100 : undefined,
                 },
                 {
-                  title: "Acción",
+                  title: "Estado",
                   render: (record) => (
                     <div style={{ textAlign: "center" }}>
                       {!record.is_error && !record.return_dga ? (
@@ -391,36 +410,73 @@ const TableStandarVerySmallResponsive = ({ data }) => {
                           okText="Sí"
                           cancelText="No"
                         >
-                          <Button
-                            danger
-                            type="primary"
-                            size="small"
-                            icon={<DeleteFilled />}
-                          >
+                          <Button danger size="small" icon={<DeleteFilled />}>
                             {isMobile ? "" : "Eliminar"}
                           </Button>
                         </Popconfirm>
                       ) : (
-                        <Tag icon={<CheckCircleFilled />} color="green">
-                          {isMobile ? "DGA" : "ENVIADO DGA"}
-                        </Tag>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 4,
+                            alignItems: "center",
+                          }}
+                        >
+                          <Tag icon={<CheckCircleOutlined />} color="success">
+                            {isMobile ? "DGA" : "Enviado DGA"}
+                          </Tag>
+                          {record.n_voucher &&
+                            record.n_voucher !== "..." &&
+                            record.n_voucher !== "-" && (
+                              <Text
+                                style={{
+                                  fontSize: 10,
+                                  color: "#52c41a",
+                                  fontWeight: 500,
+                                  wordBreak: "break-word",
+                                  textAlign: "center",
+                                }}
+                              >
+                                {record.n_voucher}
+                              </Text>
+                            )}
+                        </div>
                       )}
                     </div>
                   ),
-                  width: isMobile ? 80 : undefined,
+                  width: isMobile ? 100 : 150,
                 },
               ]}
               dataSource={dataForm}
               pagination={{
                 pageSize: isMobile ? 5 : 10,
-                showSizeChanger: !isMobile,
+                showSizeChanger: false,
+                showTotal: (total) => `Total: ${total} registros`,
               }}
             />
           </Col>
 
           {/* Panel QR */}
           <Col xs={24} lg={6}>
-            <Card size="small" style={{ textAlign: "center" }}>
+            <Card
+              size="small"
+              style={{
+                textAlign: "center",
+                borderRadius: 8,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              bodyStyle={{
+                padding: "20px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <Tooltip
                 color="#1F3461"
                 title="Datos proporcionados por DGA. Consultas: soporte@smarthydro.cl"
@@ -435,19 +491,27 @@ const TableStandarVerySmallResponsive = ({ data }) => {
                       "_blank"
                     );
                   }}
-                  style={{ marginBottom: 16 }}
+                  style={{ marginBottom: 16, maxWidth: "200px" }}
                 >
                   {state.selected_profile.dga.code_dga}
                 </Button>
               </Tooltip>
 
               {state.selected_profile.dga.code_dga ? (
-                <QRCode
-                  errorLevel="H"
-                  color="#1F3461"
-                  value={`https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.dga.code_dga}`}
-                  size={isMobile ? 120 : 150}
-                />
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <QRCode
+                    errorLevel="H"
+                    color="#1F3461"
+                    value={`https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${state.selected_profile.dga.code_dga}`}
+                    size={isMobile ? 120 : 150}
+                  />
+                </div>
               ) : (
                 <Text type="danger" strong>
                   SIN CÓDIGO DE OBRA
