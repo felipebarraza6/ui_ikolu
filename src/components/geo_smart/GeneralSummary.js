@@ -24,6 +24,7 @@ import { FaMapMarkerAlt, FaSatelliteDish, FaChartBar } from "react-icons/fa";
 import { CloseOutlined, ReloadOutlined } from "@ant-design/icons";
 import { useDataStatistics } from "./hooks/useDataValidation";
 import { formatInteger } from "../../utils/numberFormatter";
+import { parseSafeDate, formatSafeDate } from "../../utils/dateFormatter";
 import { IoIosWater } from "react-icons/io";
 
 import "./GeneralSummary.css";
@@ -91,32 +92,8 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
 
   const stats = useDataStatistics(profiles);
 
-  // Función para fusionar profiles duplicados por nombre, sumando los consumos
-  function mergeProfilesByName(profiles) {
-    const merged = {};
-    profiles.forEach((p) => {
-      const name = p.title;
-      if (!merged[name]) {
-        merged[name] = {
-          ...p,
-          modules: {
-            ...p.modules,
-            total_consumed_today: Number(p.modules?.total_consumed_today) || 0,
-            total_consumed_yesterday:
-              Number(p.modules?.total_consumed_yesterday) || 0,
-          },
-        };
-      } else {
-        merged[name].modules.total_consumed_today +=
-          Number(p.modules?.total_consumed_today) || 0;
-        merged[name].modules.total_consumed_yesterday +=
-          Number(p.modules?.total_consumed_yesterday) || 0;
-      }
-    });
-    return Object.values(merged);
-  }
-
-  const mergedProfiles = mergeProfilesByName(profiles);
+  // Logger statuses ya vienen robustos desde el hook useDataStatistics
+  const loggerStatusesFinal = stats.loggerStatuses || [];
 
   // --- Mapa auxiliar por nombre de punto ---
   const profilesByName = profiles.reduce((acc, p) => {
@@ -169,25 +146,13 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
 
   // 5. Total Histórico: mostrar el último total (m1.total o último total disponible) de todos los puntos y la fecha de esa medición
   const totalHistoricoPorPunto = profiles.map((p) => {
-    let total = 0;
-    let fecha = "";
-    if (p.modules?.m1 && p.modules.m1.total) {
-      total = Number(p.modules.m1.total);
-      fecha = p.modules.m1.date_time_medition
-        ? p.modules.m1.date_time_medition.slice(0, 10)
-        : "";
-    } else if (Array.isArray(p.modules?.today) && p.modules.today.length > 0) {
-      const last = p.modules.today[p.modules.today.length - 1];
-      total = last && last.total ? Number(last.total) : 0;
-      fecha =
-        last && last.date_time_medition
-          ? last.date_time_medition.slice(0, 10)
-          : "";
-    }
+    // Usar los datos pre-calculados por useDataStatistics si existen (vienen en _computed)
+    const computedHist = p._computed?.historical;
+    
     return {
       name: p.title,
-      total,
-      fecha,
+      total: computedHist?.total ?? 0,
+      fecha: computedHist?.date ?? "—",
     };
   });
 
@@ -195,7 +160,7 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
 
   // --- ESTADO DEL SERVICIO Y CONECTIVIDAD ---
   const loggerStatuses = stats.loggerStatuses || [];
-  const totalPerfiles = loggerStatuses.length || mergedProfiles.length;
+  const totalPerfiles = loggerStatuses.length || profiles.length; // Usar profiles.length si loggerStatuses está vacío
 
   const activosHoy = loggerStatuses.filter((s) => s.is_today).length;
   const inactivosHoy = totalPerfiles - activosHoy;
@@ -475,12 +440,8 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
                 </div>
                 <List
                   size="small"
-                  dataSource={
-                    loggerStatuses.length ? loggerStatuses : mergedProfiles
-                  }
+                  dataSource={loggerStatusesFinal}
                   renderItem={(item) => {
-                    // item puede venir de loggerStatuses o de mergedProfiles
-                    const name = item.name || item.title || "Sin nombre";
                     const isTelemetry =
                       item.is_telemetry ??
                       item.config_data?.is_telemetry === true;
@@ -522,7 +483,7 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
                             style={{ color: "red", marginRight: 4 }}
                           />
                         )}
-                        <span>{name}</span>
+                        <span>{item.name}</span>
                       </List.Item>
                     );
                   }}

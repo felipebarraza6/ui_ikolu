@@ -3,6 +3,7 @@ import { Typography, Flex, Card, Row, Col } from "antd";
 import { FaClock, FaWater, FaTint } from "react-icons/fa";
 import { WarningOutlined } from "@ant-design/icons";
 import moment from "moment";
+import { formatSafeDate } from "../../utils/dateFormatter";
 import { formatFlow } from "../../utils/numberFormatter";
 
 const { Text } = Typography;
@@ -77,9 +78,7 @@ const FlowStatusGauges = ({ profiles }) => {
         const emptyLength = circumference - arcLength;
 
         // Formatear hora
-        const formattedTime = lastMeasurement
-          ? moment(lastMeasurement).format("DD/MM HH:mm")
-          : "Sin datos";
+        const formattedTime = formatSafeDate(lastMeasurement, "DD/MM HH:mm", "Sin datos");
 
         return (
           <Col

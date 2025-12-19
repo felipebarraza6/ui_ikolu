@@ -8,6 +8,7 @@ import {
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import moment from "moment";
+import { parseSafeDate } from "../../utils/dateFormatter";
 
 const StatusTag = ({ point }) => {
   const {
@@ -44,7 +45,7 @@ const StatusTag = ({ point }) => {
   }
 
   const hoursSinceLastMeasurement = moment().diff(
-    moment(lastMeasurement),
+    parseSafeDate(lastMeasurement),
     "hours"
   );
   if (hoursSinceLastMeasurement > 24) {

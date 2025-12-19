@@ -42,6 +42,9 @@ import QueueAnim from "rc-queue-anim";
 import MyLastRegisters from "./MyLastRegisters";
 import sh from "../../api/sh/endpoints";
 import Well from "./Well";
+import { formatInteger, formatFlow } from "../../utils/numberFormatter";
+import { parseSafeDate, formatSafeDate } from "../../utils/dateFormatter";
+import { useDataValidation } from "../geo_smart/hooks/useDataValidation";
 import { useResponsive } from "../../hooks/useResponsive";
 import moment from "moment";
 import "moment/locale/es";
@@ -649,6 +652,28 @@ const MyWell = () => {
   const [error, setError] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const intervalRef = useRef(null);
+  const validators = useDataValidation();
+
+  // Función auxiliar para obtener el registro más reciente
+  const getLatest = (profile) => {
+    if (!profile) return null;
+    const m1 = profile.modules?.m1;
+    const today = profile.modules?.today || [];
+    const yesterday = profile.modules?.yesterday || [];
+    
+    const candidates = [];
+    if (m1 && m1.date_time_medition) candidates.push(m1);
+    if (today.length > 0) candidates.push(today[today.length - 1]);
+    if (yesterday.length > 0) candidates.push(yesterday[yesterday.length - 1]);
+    
+    if (candidates.length === 0) return m1 || null;
+
+    return candidates.sort((a, b) => {
+      const dateA = parseSafeDate(a.date_time_medition);
+      const dateB = parseSafeDate(b.date_time_medition);
+      return dateB.valueOf() - dateA.valueOf();
+    })[0];
+  };
 
   // useEffect consolidado para manejar carga inicial y actualizaciones periódicas
   useEffect(() => {
@@ -668,13 +693,15 @@ const MyWell = () => {
         const total_consumed_yesterday =
           state.selected_profile?.modules?.total_consumed_yesterday ?? 0;
 
-        if (modules.m1) {
-          setLastCaption(modules.m1.date_time_medition ?? null);
-          setLastLogger(modules.m1.date_time_last_logger ?? null);
-          setAcumDia(modules.m1.total_today_diff || 0);
-          setNivel(modules.m1.water_table || 0);
-          setCaudal(modules.m1.flow || 0);
-          setAcumulado(modules.m1.total || 0);
+        const lastData = getLatest(state.selected_profile);
+
+        if (lastData) {
+          setLastCaption(lastData.date_time_medition ?? null);
+          setLastLogger(lastData.date_time_last_logger ?? null);
+          setAcumDia(lastData.total_today_diff || 0);
+          setNivel(lastData.water_table || 0);
+          setCaudal(lastData.flow || 0);
+          setAcumulado(lastData.total || 0);
         }
 
         if (telemetryData?.results) {
@@ -817,12 +844,15 @@ const MyWell = () => {
       const total_consumed_yesterday =
         state.selected_profile?.modules?.total_consumed_yesterday ?? 0;
 
-      if (modules.m1) {
-        setLastCaption(modules.m1.date_time_medition ?? null);
-        setAcumDia(modules.m1.total_today_diff || 0);
-        setNivel(modules.m1.water_table || 0);
-        setCaudal(modules.m1.flow || 0);
-        setAcumulado(modules.m1.total || 0);
+      const lastData = getLatest(state.selected_profile);
+
+      if (lastData) {
+        setLastCaption(lastData.date_time_medition ?? null);
+        setLastLogger(lastData.date_time_last_logger ?? null);
+        setAcumDia(lastData.total_today_diff || 0);
+        setNivel(lastData.water_table || 0);
+        setCaudal(lastData.flow || 0);
+        setAcumulado(lastData.total || 0);
       }
 
       if (telemetryData?.results) {

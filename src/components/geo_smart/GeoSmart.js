@@ -44,17 +44,17 @@ import {
   MdWater,
 } from "react-icons/md";
 import { WiHumidity, WiThermometer } from "react-icons/wi";
-import favicon from "../../assets/images/favicon.ico";
 import moment from "moment";
-import { FaArrowUpFromGroundWater } from "react-icons/fa6";
-import { LiaLevelUpAltSolid } from "react-icons/lia";
+import { parseSafeDate, formatSafeDate } from "../../utils/dateFormatter";
 import { ReloadOutlined } from "@ant-design/icons";
+import { useDataValidation } from "./hooks/useDataValidation";
 
 const { Title, Text, Paragraph } = Typography;
 const { useBreakpoint } = Grid;
 
 const GeoSmart = () => {
   const { state } = useContext(AppContext);
+  const validators = useDataValidation();
   const screens = useBreakpoint();
   const [geoData, setGeoData] = useState([]);
   const [selectedPoint, setSelectedPoint] = useState(null);
@@ -79,28 +79,32 @@ const GeoSmart = () => {
         profile.lon !== "";
       const lat = hasGPS ? parseFloat(profile.lat.replace(",", ".")) : null;
       const lon = hasGPS ? parseFloat(profile.lon.replace(",", ".")) : null;
-      const lastM1Data = profile.modules?.m1 || {};
+      
+      // Obtener el registro más reciente de forma robusta
+      const latest = validators.getLatestRecord(profile);
+      const lastData = latest || profile.modules?.m1 || {};
+      
       return {
         id: profile.id,
         title: profile.title,
         lat,
         lon,
         hasGPS,
-        currentCaudal: Number(lastM1Data.flow) || 0,
+        currentCaudal: Number(lastData.flow) || 0,
         totalConsumption:
-          Number(lastM1Data.total_today_diff) ||
-          Number(lastM1Data.total_consumed_today) ||
+          Number(lastData.total_today_diff) ||
+          Number(lastData.total_consumed_today) ||
           0,
         flowGranted: profile.dga?.flow_granted_dga || 0,
-        lastMeasurement: lastM1Data.date_time_medition,
-        lastLogger: lastM1Data.date_time_last_logger,
-        daysNotConnection: lastM1Data.days_not_conection,
+        lastMeasurement: lastData.date_time_medition,
+        lastLogger: lastData.date_time_last_logger,
+        daysNotConnection: lastData.days_not_conection,
         isTelemetry: profile.config_data?.is_telemetry === true,
         codeDga: profile.dga?.code_dga,
         typeDga: profile.dga?.type_dga,
-        waterTable: lastM1Data.water_table,
-        total: lastM1Data.total,
-        total_today_diff: lastM1Data.total_today_diff,
+        waterTable: lastData.water_table,
+        total: lastData.total,
+        total_today_diff: lastData.total_today_diff,
       };
     });
     setGeoData(processedData);
@@ -186,7 +190,7 @@ const GeoSmart = () => {
       render: (value) =>
         value ? (
           <span>
-            {value.split("T")[0]} <b>{value.split("T")[1]?.slice(0, 5)} hrs</b>
+            {formatSafeDate(value, "YYYY-MM-DD")} <b>{formatSafeDate(value, "HH:mm")} hrs</b>
           </span>
         ) : (
           <span style={{ color: "#bdbdbd" }}>-</span>
@@ -265,10 +269,10 @@ const GeoSmart = () => {
     // Estado de fechas
     const today = moment().format("YYYY-MM-DD");
     const lastMedDate = lastMeasurement
-      ? moment(lastMeasurement).format("YYYY-MM-DD")
+      ? formatSafeDate(lastMeasurement, "YYYY-MM-DD")
       : null;
     const lastLoggerDate = lastLogger
-      ? moment(lastLogger).format("YYYY-MM-DD")
+      ? formatSafeDate(lastLogger, "YYYY-MM-DD")
       : null;
     let estado = "";
     let estadoColor = "success";
@@ -297,7 +301,7 @@ const GeoSmart = () => {
     let diffTag = null;
     if (lastMeasurement && lastLogger) {
       const diffMin = Math.abs(
-        moment(lastMeasurement).diff(moment(lastLogger), "minutes")
+        parseSafeDate(lastMeasurement).diff(parseSafeDate(lastLogger), "minutes")
       );
       if (diffMin >= 60) {
         diffTag = (
@@ -450,15 +454,11 @@ const GeoSmart = () => {
           <Flex vertical gap={8}>
             <Text>
               <FaClock style={{ color: "#1F3461", marginRight: 5 }} />{" "}
-              {lastMeasurement
-                ? moment(lastMeasurement).format("YYYY-MM-DD HH:mm") + " hrs"
-                : "Sin datos"}
+              {formatSafeDate(lastMeasurement, "YYYY-MM-DD HH:mm") + " hrs"}
             </Text>
             <Text>
               <FaCalendarAlt style={{ color: "#1F3461", marginRight: 5 }} />{" "}
-              {lastLogger
-                ? moment(lastLogger).format("YYYY-MM-DD HH:mm") + " hrs"
-                : "Sin datos"}
+              {formatSafeDate(lastLogger, "YYYY-MM-DD HH:mm") + " hrs"}
             </Text>
             {diffTag}
           </Flex>

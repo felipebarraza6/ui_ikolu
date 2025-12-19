@@ -18,6 +18,7 @@ import {
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
 import moment from "moment";
+import { parseSafeDate, formatSafeDate } from "../../utils/dateFormatter";
 import { formatVolume } from "../../utils/numberFormatter";
 import sh from "../../api/sh/endpoints";
 import { FaCalendarAlt, FaChartLine } from "react-icons/fa";
@@ -57,15 +58,13 @@ const ConsumptionChart = () => {
           // Procesar datos de hoy, ordenados por hora
           const todayData = profile.modules.today
             .map((d) => ({
-              time: moment(d.date_time_medition).format("HH:mm"),
-              fullTime: moment(d.date_time_medition).format(
-                "YYYY-MM-DD HH:mm:ss"
-              ),
+              time: formatSafeDate(d.date_time_medition, "HH:mm"),
+              fullTime: formatSafeDate(d.date_time_medition, "YYYY-MM-DD HH:mm:ss"),
               value: Number(d.total_diff) || 0,
               flow: Number(d.flow) || 0,
               total: Number(d.total) || 0,
             }))
-            .sort((a, b) => moment(a.fullTime) - moment(b.fullTime));
+            .sort((a, b) => parseSafeDate(a.fullTime).valueOf() - parseSafeDate(b.fullTime).valueOf());
 
           pointsData[profileName] = todayData;
         }

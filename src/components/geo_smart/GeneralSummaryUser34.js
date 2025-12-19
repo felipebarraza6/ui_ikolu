@@ -27,7 +27,7 @@ import {
   FaArrowUp,
   FaArrowDown,
 } from "react-icons/fa";
-import { CloseOutlined } from "@ant-design/icons";
+import { CheckCircleOutlined, CloseOutlined } from "@ant-design/icons";
 import { useDataStatistics } from "./hooks/useDataValidation";
 import { formatInteger } from "../../utils/numberFormatter";
 import { IoIosWater } from "react-icons/io";
@@ -35,8 +35,8 @@ import ConsumptionChart from "./ConsumptionChart";
 import FlowStatusGauges from "./FlowStatusGauges";
 
 import "./GeneralSummary.css";
-import { CheckCircleOutlined } from "@ant-design/icons";
 import moment from "moment";
+import { parseSafeDate, formatSafeDate } from "../../utils/dateFormatter";
 
 const { useBreakpoint } = Grid;
 const { Text } = Typography;
@@ -101,17 +101,19 @@ const GeneralSummaryUser34 = ({ profiles }) => {
   const totalTelemetria = perfilesTelemetria.length;
   const activosTelemetriaCount = totalTelemetria;
 
-  // Consumo por punto HOY y AYER, directo de mergedProfiles
-  const consumoPorPuntoHoy = mergedProfiles.map((p) => ({
-    name: p.title,
-    value: Number(p.modules?.total_consumed_today) || 0,
+  // Consumo por punto HOY y AYER, usando los datos procesados del hook
+  const consumoPorPuntoHoy = (stats.todayConsumers || []).map(c => ({
+    name: c.name,
+    value: c.value
   }));
-  const consumoPorPuntoAyer = mergedProfiles.map((p) => ({
-    name: p.title,
-    value: Number(p.modules?.total_consumed_yesterday) || 0,
+  const consumoPorPuntoAyer = (stats.consumptionChanges || []).map(c => ({
+    name: c.name,
+    value: c.yesterdaySum || 0
   }));
-  // Total de hoy (debería ser igual a la suma de la columna Hoy de la tabla)
-  const totalHoy = consumoPorPuntoHoy.reduce((acc, p) => acc + p.value, 0);
+
+  // En realidad useDataStatistics ya tiene las sumas
+  const totalHoy = stats.totals?.today || 0;
+  const totalAyer = stats.totals?.yesterday || 0;
 
   const formatVolume = (value) => {
     return value >= 1000000
@@ -224,30 +226,16 @@ const GeneralSummaryUser34 = ({ profiles }) => {
                 if (diferencia > 0) color = "#fa8c16";
                 else if (diferencia < 0) color = "#1976d2";
 
-                // Obtener la última medición del punto
-                const puntoData = state.profile_client.find(
-                  (x) => x.title === punto
-                );
+                // Obtener el estado del logger robusto desde stats
+                const loggerStat = (stats.loggerStatuses || []).find(s => s.name === punto);
                 let ultimaConexion = "Sin datos";
                 let isToday = false;
                 let isConnected = false;
-                let ultimaFecha = null;
 
-                if (
-                  puntoData &&
-                  puntoData.modules &&
-                  puntoData.modules.today &&
-                  puntoData.modules.today.length > 0
-                ) {
-                  // Obtener la última medición (la más reciente)
-                  const ultimaMedicion =
-                    puntoData.modules.today[puntoData.modules.today.length - 1];
-                  if (ultimaMedicion && ultimaMedicion.date_time_medition) {
-                    ultimaFecha = moment(ultimaMedicion.date_time_medition);
-                    ultimaConexion = ultimaFecha.format("DD/MM/YYYY HH:mm");
-                    isToday = ultimaFecha.isSame(moment(), "day");
-                    isConnected = true;
-                  }
+                if (loggerStat && loggerStat.last_updated) {
+                  ultimaConexion = formatSafeDate(loggerStat.last_updated);
+                  isToday = loggerStat.is_today;
+                  isConnected = true;
                 }
 
                 return {

@@ -35,6 +35,7 @@ import moment from "moment";
 import "moment/locale/es";
 import { WiThermometer } from "react-icons/wi";
 import { useDataStatistics } from "./hooks/useDataValidation";
+import { parseSafeDate, formatSafeDate } from "../../utils/dateFormatter";
 import FlowStatusGauges from "./FlowStatusGauges";
 
 moment.locale("es");
@@ -162,21 +163,8 @@ const AnalysisPrompt = ({ profiles }) => {
     });
   }, [analysis.highestFlows, profiles]);
 
-  // Mapear loggerStatuses para usar m1 si existe
-  const loggerStatusesWithM1 = React.useMemo(() => {
-    return analysis.loggerStatuses.map((item) => {
-      const profile = profiles.find((p) => p.title === item.name);
-      let lastUpdated = item.last_updated;
-      if (
-        profile &&
-        profile.modules?.m1 &&
-        profile.modules.m1.date_time_medition
-      ) {
-        lastUpdated = moment(profile.modules.m1.date_time_medition);
-      }
-      return { ...item, last_updated: lastUpdated };
-    });
-  }, [analysis.loggerStatuses, profiles]);
+  // Logger statuses ya vienen robustos desde el hook useDataStatistics (incluyen m1, today, yesterday)
+  const loggerStatusesFinal = analysis.loggerStatuses || [];
 
   // Enlazar ranking de consumo con la hora del pico (usando highestFlowsWithTime)
   // Para cada punto mostramos:
@@ -315,7 +303,7 @@ const AnalysisPrompt = ({ profiles }) => {
                         }}
                       >
                         Pico:{" "}
-                        {moment(item.peakTime).format("DD/MM HH:mm")}
+                        {formatSafeDate(item.peakTime, "DD/MM HH:mm")}
                       </div>
                     )}
                   </div>
@@ -402,7 +390,7 @@ const AnalysisPrompt = ({ profiles }) => {
               pueden requerir atención.
             </Paragraph>
             <DataList
-              data={loggerStatusesWithM1}
+              data={loggerStatusesFinal}
               type="estados"
               renderItem={(item) => (
                 <List.Item style={{ padding: "8px 0" }}>

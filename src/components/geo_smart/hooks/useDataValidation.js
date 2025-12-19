@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import moment from "moment";
+import { parseSafeDate, formatSafeDate, FLEXIBLE_DATE_FORMATS } from "../../../utils/dateFormatter";
 
 /**
  * Hook personalizado para validación y procesamiento seguro de datos de perfiles
@@ -64,7 +65,16 @@ export const useDataValidation = () => {
               return false;
             }
 
-            return record.date_time_medition.slice(0, 10) === todayStr;
+            // Usar moment para comparar fechas de forma flexible (soporta YYYY-MM-DD y YYYY-DD-MM)
+            const recordDate = moment(record.date_time_medition, [
+              moment.ISO_8601,
+              "YYYY-DD-MM",
+              "YYYY-MM-DD",
+              "YYYY-DD-MM HH:mm",
+              "YYYY-MM-DD HH:mm",
+            ]);
+
+            return recordDate.isValid() && recordDate.isSame(moment(), "day");
           });
         } catch (error) {
           console.error("Error al obtener datos de hoy:", error);
@@ -169,6 +179,68 @@ export const useDataValidation = () => {
           return [];
         }
       },
+
+      // Obtiene el registro más reciente de cualquier módulo
+      getLatestRecord: (profile) => {
+        if (!validators.isValidProfile(profile)) return null;
+        
+        const candidateRecords = [];
+        
+        // Candidato 1: m1
+        if (profile.modules?.m1 && profile.modules.m1.date_time_medition) {
+          candidateRecords.push(profile.modules.m1);
+        }
+        
+        // Candidato 2: Último de today
+        if (Array.isArray(profile.modules?.today) && profile.modules.today.length > 0) {
+          candidateRecords.push(profile.modules.today[profile.modules.today.length - 1]);
+        }
+        
+        // Candidato 3: Último de yesterday
+        if (Array.isArray(profile.modules?.yesterday) && profile.modules.yesterday.length > 0) {
+          candidateRecords.push(profile.modules.yesterday[profile.modules.yesterday.length - 1]);
+        }
+
+        if (candidateRecords.length === 0) return null;
+
+        // Ordenar por fecha descendente
+        return candidateRecords.sort((a, b) => {
+          const dateA = parseSafeDate(a.date_time_medition || a.created);
+          const dateB = parseSafeDate(b.date_time_medition || b.created);
+          return dateB.valueOf() - dateA.valueOf();
+        })[0];
+      },
+
+      // Obtiene el total histórico y su fecha de forma robusta
+      getHistoricalSummary: (profile) => {
+        if (!validators.isValidProfile(profile)) return { total: 0, date: "" };
+
+        let total = 0;
+        let date = "";
+
+        // Preferencia 1: m1 (si tiene total y fecha)
+        if (profile.modules?.m1 && profile.modules.m1.total) {
+          total = Number(profile.modules.m1.total) || 0;
+          date = profile.modules.m1.date_time_medition || "";
+        }
+
+        // Si no hay fecha en m1, buscar en el último registro disponible para la FECHA
+        if (!date || date === "") {
+          const latest = validators.getLatestRecord(profile);
+          if (latest) {
+            date = latest.date_time_medition || "";
+            // Si el total de m1 era 0 o no existía, usar el del registro más reciente
+            if (total === 0 && latest.total) {
+              total = Number(latest.total) || 0;
+            }
+          }
+        }
+
+        return { 
+          total, 
+          date: date ? formatSafeDate(date, "YYYY-MM-DD") : "" 
+        };
+      },
     }),
     []
   );
@@ -216,12 +288,12 @@ export const useDataStatistics = (profiles) => {
         const todayData = validators.getTodayData(profile);
         const yesterdayData = validators.getYesterdayData(profile);
 
-        // Si el backend entrega total_consumed_today, úsalo directamente para evitar reprocesar
-        // y mantener consistencia con otros módulos. Si no, se calcula desde todayData.
-        const todaySum =
-          validators.getSafeNumber(profile.modules?.total_consumed_today, null) !== null
-            ? validators.getSafeNumber(profile.modules.total_consumed_today, 0)
-            : validators.calculateTotalConsumption(todayData);
+        // Priorizar el cálculo basado en registros individuales (telemetría) si hay datos disponibles,
+        // ya que el campo total_consumed_today puede estar desincronizado o con formato inconsistente.
+        const telemetrySum = validators.calculateTotalConsumption(todayData);
+        const todaySum = todayData.length > 0 
+          ? telemetrySum 
+          : validators.getSafeNumber(profile.modules?.total_consumed_today, 0);
         const yesterdaySum =
           validators.calculateTotalConsumption(yesterdayData);
         const todayHasData = todayData.length > 0;
@@ -307,21 +379,23 @@ export const useDataStatistics = (profiles) => {
           });
         }
 
-        // Estado de los loggers
-        if (todayData.length > 0) {
-          const lastRecord = todayData[todayData.length - 1];
-          const lastUpdated = lastRecord?.date_time_medition;
+        // Estado de los loggers (Incluimos TODOS los puntos)
+        const latestRecord = validators.getLatestRecord(profile);
+        const lastUpdatedDate = latestRecord?.date_time_medition;
+        const lastMoment = lastUpdatedDate ? parseSafeDate(lastUpdatedDate) : null;
 
-          stats.loggerStatuses.push({
-            name: profile.title,
-            last_updated: lastUpdated ? moment(lastUpdated) : null,
-            is_today: lastUpdated
-              ? moment(lastUpdated).isSame(moment(), "day")
-              : false,
-            is_telemetry: profile.config_data?.is_telemetry === true,
-            dataPoints: todayData.length,
-          });
-        }
+        stats.loggerStatuses.push({
+          name: profile.title,
+          last_updated: lastMoment,
+          is_today: lastMoment ? lastMoment.isSame(moment(), "day") : false,
+          is_telemetry: profile.config_data?.is_telemetry === true,
+          dataPoints: todayData.length,
+        });
+
+        // Almacenar resumen histórico calculado robustamente
+        const histSummary = validators.getHistoricalSummary(profile);
+        if (!profile._computed) profile._computed = {};
+        profile._computed.historical = histSummary;
       } catch (error) {
         console.error(`Error procesando perfil ${profile.title}:`, error);
         stats.errors.push({

@@ -13,6 +13,7 @@ import {
 } from "antd";
 import { Line } from "@ant-design/plots";
 import moment from "moment";
+import { parseSafeDate, formatSafeDate } from "../../utils/dateFormatter";
 import { FaChartLine } from "react-icons/fa";
 import { IoIosWater } from "react-icons/io";
 import {
@@ -62,13 +63,8 @@ const CombinedVariablesChart = ({ profiles }) => {
 
     const mapped = profile.modules.today
       .map((record, index) => {
-        const timeMedition = record.date_time_medition
-          ? moment(record.date_time_medition).format("DD/MM HH:mm")
-          : "";
-
-        const timeLogger = record.date_time_last_logger
-          ? moment(record.date_time_last_logger).format("DD/MM HH:mm")
-          : "";
+        const timeMedition = formatSafeDate(record.date_time_medition, "DD/MM HH:mm", "");
+        const timeLogger = formatSafeDate(record.date_time_last_logger, "DD/MM HH:mm", "");
 
         // Determinar tipo de caudal usando los nuevos campos de la API:
         // - flow_type: "INSTANTANEO" | "MEDIO" (u otros)
