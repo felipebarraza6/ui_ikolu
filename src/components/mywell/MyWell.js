@@ -11,6 +11,8 @@ import {
   Button,
   Tooltip,
   Alert,
+  Spin,
+  Tag,
 } from "antd";
 import {
   ClockCircleOutlined,
@@ -33,10 +35,10 @@ import {
   ExclamationCircleOutlined,
   WifiOutlined,
   InfoCircleOutlined,
+  FallOutlined,
+  DashboardOutlined,
+  ColumnHeightOutlined,
 } from "@ant-design/icons";
-import caudal_img from "../../assets/images/caudal.png";
-import nivel_img from "../../assets/images/nivel.png";
-import acumulado_img from "../../assets/images/acumulado.png";
 import { AppContext } from "../../App";
 import QueueAnim from "rc-queue-anim";
 import MyLastRegisters from "./MyLastRegisters";
@@ -123,7 +125,7 @@ const SectionTitle = ({ children }) => (
 );
 
 // --- Componente para Stats de Consumos y Timer en una fila ---
-const ConsumptionStats = ({ acumDia, acumAyer, loading, deadline }) => {
+const ConsumptionStats = ({ acumDia, acumAyer, loading, deadline, onRefresh }) => {
   // Validar y formatear valores
   const validHoy = validateNumericValue(acumDia, 0);
   const validAyer = validateNumericValue(acumAyer, 0);
@@ -132,135 +134,109 @@ const ConsumptionStats = ({ acumDia, acumAyer, loading, deadline }) => {
   const isDecrease = changePercent !== null && changePercent < 0;
 
   return (
-    <Flex
-      gap="small"
-      wrap="wrap"
-      justify="space-around"
-      align="center"
-      style={{
-        padding: "2px 0",
-        marginTop: "0px",
-        borderTop: "1px solid #f0f0f0",
-        width: "100%",
-      }}
-    >
-      {/* Consumo Hoy */}
-      <Tooltip title="Consumo acumulado del día de hoy">
-        <Flex
-          vertical
-          align="center"
-          gap={1}
-          style={{ minWidth: "70px", flex: 1 }}
-        >
-          <Flex align="center" gap={4}>
-            <Text type="secondary" style={{ fontSize: 9, fontWeight: 500 }}>
-              Hoy ({moment().format("DD MMM")})
-            </Text>
-            {changePercent !== null && (
-              <Tooltip
-                title={`${isIncrease ? "Aumento" : "Disminución"} de ${Math.abs(
-                  changePercent
-                ).toFixed(1)}% respecto a ayer`}
-              >
+    <div style={{ 
+      width: "100%", 
+      padding: "12px 16px", 
+      background: "rgba(255, 255, 255, 0.4)", 
+      backdropFilter: "blur(5px)", 
+      borderRadius: "12px", 
+      border: "1px solid rgba(255, 255, 255, 0.5)",
+      marginTop: "16px",
+      boxShadow: "0 2px 10px rgba(0,0,0,0.02)"
+    }}>
+      <Flex
+        gap="middle"
+        wrap="wrap"
+        justify="space-between"
+        align="center"
+      >
+        {/* Consumo Hoy */}
+        <Tooltip title="Consumo acumulado del día de hoy">
+          <Flex
+            vertical
+            align="center"
+            gap={2}
+            style={{ flex: 1, minWidth: "70px" }}
+          >
+            <Flex align="center" gap={4}>
+              <Text style={{ fontSize: 10, fontWeight: 700, color: "#8c8c8c", textTransform: "uppercase" }}>
+                Hoy
+              </Text>
+              {changePercent !== null && (
                 <Flex align="center" gap={2}>
                   {isIncrease ? (
-                    <ArrowUpOutlined
-                      style={{ fontSize: 10, color: "#F2994A" }}
-                    />
-                  ) : isDecrease ? (
-                    <ArrowDownOutlined
-                      style={{ fontSize: 10, color: "#27AE60" }}
-                    />
-                  ) : null}
-                  <Text
-                    style={{
-                      fontSize: 8,
-                      color: isIncrease ? "#F2994A" : "#27AE60",
-                      fontWeight: 600,
-                    }}
-                  >
+                    <ArrowUpOutlined style={{ fontSize: 10, color: "#faad14" }} />
+                  ) : (
+                    <ArrowDownOutlined style={{ fontSize: 10, color: "#52c41a" }} />
+                  )}
+                  <Text style={{ fontSize: 10, color: isIncrease ? "#faad14" : "#52c41a", fontWeight: 800 }}>
                     {Math.abs(changePercent).toFixed(1)}%
                   </Text>
                 </Flex>
-              </Tooltip>
+              )}
+            </Flex>
+            {loading ? (
+              <Spin size="small" />
+            ) : (
+              <Text style={{ fontSize: 18, fontWeight: 900, color: "#52c41a", lineHeight: 1 }}>
+                {validHoy !== null ? `${validHoy}` : "0"} <span style={{ fontSize: 10, fontWeight: 600 }}>m³</span>
+              </Text>
             )}
           </Flex>
-          {loading ? (
-            <LoadingOutlined spin style={{ fontSize: 14, color: "#27AE60" }} />
-          ) : (
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: 700,
-                color: "#27AE60",
-                lineHeight: 1.1,
-              }}
-            >
-              {validHoy !== null ? `${validHoy} m³` : "N/A"}
-            </Text>
-          )}
-        </Flex>
-      </Tooltip>
+        </Tooltip>
 
-      {/* Consumo Ayer */}
-      <Tooltip title="Consumo acumulado del día anterior">
-        <Flex
-          vertical
-          align="center"
-          gap={1}
-          style={{ minWidth: "70px", flex: 1 }}
-        >
-          <Text type="secondary" style={{ fontSize: 9, fontWeight: 500 }}>
-            Ayer ({moment().subtract(1, "days").format("DD MMM")})
-          </Text>
-          {loading ? (
-            <LoadingOutlined spin style={{ fontSize: 14, color: "#F2994A" }} />
-          ) : (
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: 700,
-                color: "#F2994A",
-                lineHeight: 1.1,
-              }}
-            >
-              {validAyer !== null ? `${validAyer} m³` : "N/A"}
-            </Text>
-          )}
-        </Flex>
-      </Tooltip>
+        <div style={{ width: "1px", height: "30px", background: "rgba(0,0,0,0.05)" }}></div>
 
-      {/* Timer */}
-      <Tooltip
-        title={
-          deadline
-            ? "Tiempo restante hasta la próxima medición automática"
-            : "Frecuencia de medición no configurada"
-        }
-      >
-        <Flex
-          vertical
-          align="center"
-          gap={1}
-          style={{ minWidth: "90px", flex: 1 }}
-        >
-          <Text type="secondary" style={{ fontSize: 9, fontWeight: 500 }}>
-            Próxima medición en:
-          </Text>
-          {loading ? (
-            <LoadingOutlined spin style={{ fontSize: 14, color: "#1F3461" }} />
-          ) : deadline ? (
-            <Countdown
-              value={deadline}
-              format="HH:mm:ss"
-              valueStyle={{ color: "#1F3461", fontSize: 14, fontWeight: 700 }}
-            />
-          ) : (
-            <Text style={{ fontSize: 11, color: "#999" }}>N/A</Text>
-          )}
-        </Flex>
-      </Tooltip>
-    </Flex>
+        {/* Consumo Ayer */}
+        <Tooltip title="Consumo acumulado del día anterior">
+          <Flex
+            vertical
+            align="center"
+            gap={2}
+            style={{ flex: 1, minWidth: "70px" }}
+          >
+            <Text style={{ fontSize: 10, fontWeight: 700, color: "#8c8c8c", textTransform: "uppercase" }}>
+              Ayer
+            </Text>
+            {loading ? (
+              <Spin size="small" />
+            ) : (
+              <Text style={{ fontSize: 18, fontWeight: 900, color: "#faad14", lineHeight: 1 }}>
+                {validAyer !== null ? `${validAyer}` : "0"} <span style={{ fontSize: 10, fontWeight: 600 }}>m³</span>
+              </Text>
+            )}
+          </Flex>
+        </Tooltip>
+
+        <div style={{ width: "1px", height: "30px", background: "rgba(0,0,0,0.05)" }}></div>
+
+        {/* Timer */}
+        <Tooltip title={deadline ? "Tiempo hasta la próxima medición" : "No configurado"}>
+          <Flex
+            vertical
+            align="center"
+            gap={2}
+            style={{ flex: 1, minWidth: "90px" }}
+          >
+            <Text style={{ fontSize: 10, fontWeight: 700, color: "#8c8c8c", textTransform: "uppercase" }}>
+              Refresco
+            </Text>
+            {loading ? (
+              <Spin size="small" />
+            ) : deadline ? (
+              <Countdown
+                value={deadline}
+                format="mm:ss"
+                valueStyle={{ color: "#1F3461", fontSize: 18, fontWeight: 900, lineHeight: 1 }}
+                onFinish={onRefresh}
+              />
+            ) : (
+              <Text style={{ fontSize: 14, color: "#bfbfbf", fontWeight: 700 }}>N/A</Text>
+            )}
+          </Flex>
+        </Tooltip>
+      </Flex>
+    </div>
   );
 };
 
@@ -284,98 +260,48 @@ const ConfiguredVariables = ({ variables, loading = false }) => {
           Variables Configuradas
         </Text>
       </Flex>
-      <Flex wrap="wrap" gap="small">
+      <Row gutter={[12, 12]} style={{ width: "100%" }}>
         {variables.map((variable, index) => (
-          <div
-            key={variable.id || index}
-            style={{
-              padding: "6px",
-              background: "#fafafa",
-              borderRadius: "6px",
-              border: "1px solid #e8e8e8",
-              flex: "0 1 calc(33.333% - 8px)",
-              minWidth: "100px",
-              maxWidth: "calc(33.333% - 8px)",
-            }}
-          >
-            <Flex vertical gap={4}>
-              {/* Nombre y tipo en la misma línea */}
-              <Flex justify="center" align="center" gap="small" vertical>
-                <Text
-                  strong
-                  style={{
-                    fontSize: 10,
-                    color: "#1F3461",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    flex: 1,
-                  }}
-                >
-                  {variable.str_variable ||
-                    variable.label ||
-                    `Variable ${variable.id}`}
+          <Col key={variable.id || index} xs={12} sm={8} md={12} lg={12}>
+            <div style={{
+              padding: "12px",
+              borderRadius: "16px",
+              background: "rgba(255, 255, 255, 0.5)",
+              backdropFilter: "blur(8px)",
+              border: "1px solid rgba(255, 255, 255, 0.4)",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+              position: "relative",
+              overflow: "hidden"
+            }}>
+              <div style={{ position: "absolute", top: 0, left: 0, width: "3px", height: "100%", background: "#1890ff" }}></div>
+              <Flex justify="space-between" align="center">
+                <Text strong style={{ fontSize: 9, color: "#8c8c8c", textTransform: "uppercase", letterSpacing: 1 }}>
+                  {variable.str_variable || `Var ${variable.id}`}
                 </Text>
-                <Text
-                  style={{
-                    fontSize: 12,
-                    color: "black",
-                    fontWeight: 500,
-                  }}
-                >
+                <Tag color="processing" style={{ fontSize: 8, margin: 0, borderRadius: 4, border: "none" }}>
                   {typeLabels[variable.type_variable] || variable.type_variable}
-                </Text>
+                </Tag>
               </Flex>
-
-              {/* Descripción técnica (sin servicio) */}
-              <div>
-                <Flex vertical gap={1}>
-                  {/* Factor de pulsos: sólo para TOTALIZADO */}
-                  {variable.type_variable === "TOTALIZADO" &&
-                    variable.pulses_factor && (
-                      <Text type="secondary" style={{ fontSize: 12 }}>
-                        {numberForMiles.format(variable.pulses_factor)}{" "}
-                        Lt/pulsos
-                      </Text>
-                    )}
-
-                  {/* Constante aditiva: sólo para TOTALIZADO distinta de 0 */}
-                  {variable.type_variable === "TOTALIZADO" &&
-                    variable.addition !== undefined &&
-                    variable.addition !== 0 && (
-                      <Text type="secondary" style={{ fontSize: 12 }}>
-                        Aditivo: {variable.addition}
-                      </Text>
-                    )}
-
-                  {/* Conversión a litros: sólo para TOTALIZADO */}
-                  {variable.type_variable === "TOTALIZADO" &&
-                    variable.convert_to_lt && (
-                      <Text
-                        style={{
-                          fontSize: 8,
-                          color: "#52c41a",
-                          fontWeight: 500,
-                        }}
-                      >
-                        A litros
-                      </Text>
-                    )}
-
-                  {/* Base de cálculo (n_base): para NIVEL y CAUDAL instantáneo */}
-                  {variable.calculate_nivel &&
-                    (variable.type_variable === "NIVEL" ||
-                      variable.type_variable === "CAUDAL") && (
-                      <Text type="secondary" style={{ fontSize: 12 }}>
-                        Base calculo: {variable.calculate_nivel}
-                      </Text>
-                    )}
+              <Text strong style={{ fontSize: 13, color: "#1F3461" }}>
+                {variable.label || "Sin Etiqueta"}
+              </Text>
+              
+              {variable.pulses_factor && (
+                <Flex align="center" gap={4}>
+                  <CalculatorOutlined style={{ fontSize: 10, color: "#1890ff" }} />
+                  <Text style={{ fontSize: 10, color: "#595959" }}>
+                    {numberForMiles.format(variable.pulses_factor)} Lt/p
+                  </Text>
                 </Flex>
-              </div>
-            </Flex>
-          </div>
+              )}
+            </div>
+          </Col>
         ))}
-      </Flex>
+      </Row>
     </div>
   );
 };
@@ -514,112 +440,177 @@ const MetricCard = ({
   extraInfo,
   helpText,
   syncStatus,
-}) => (
-  <Card
-    hoverable
-    style={{
-      marginBottom: "8px",
-      borderRadius: "8px",
-      boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-    }}
-    aria-label={`Métrica ${title}: ${value} ${unit}`}
-  >
-    <div style={{ textAlign: "center", padding: "8px 0" }}>
-      <div style={{ marginBottom: 6 }}>
-        <Flex align="center" gap="small" justify="center">
-          {icon}
-          <Text style={{ fontSize: 11 }}>{title}</Text>
-          {helpText && (
-            <Tooltip title={helpText}>
-              <InfoCircleOutlined
-                style={{ fontSize: 12, color: "#999", cursor: "help" }}
-              />
-            </Tooltip>
+  variation,
+  animationType = "none", // "waves", "level", "depth", "rising", "pulse", "none"
+}) => {
+  const renderAnimation = () => {
+    switch (animationType) {
+      case "waves":
+        return (
+          <div className="card-waves-container">
+            <div className="card-wave"></div>
+          </div>
+        );
+      case "level":
+        return (
+          <div className="card-level-container">
+            <div className="card-level-bar"></div>
+          </div>
+        );
+      case "depth":
+        return (
+          <div className="card-depth-container">
+            <div className="card-depth-indicator"></div>
+          </div>
+        );
+      case "rising":
+        return (
+          <div className="card-rising-container">
+            <div className="card-rising-wave"></div>
+            <div className="card-rising-wave wave-2"></div>
+          </div>
+        );
+      case "pulse":
+        return (
+          <div className="card-pulse-container">
+            <div className="card-pulse-ring"></div>
+            <div className="card-pulse-ring ring-2"></div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <Card
+      hoverable
+      style={{
+        marginBottom: "8px",
+        borderRadius: "16px",
+        boxShadow: "0 4px 20px rgba(0, 50, 150, 0.08)",
+        border: "1px solid rgba(255, 255, 255, 0.6)",
+        overflow: "hidden",
+        position: "relative",
+        background: "rgba(255, 255, 255, 0.8)",
+        backdropFilter: "blur(10px)",
+      }}
+      bodyStyle={{ padding: "16px", zIndex: 1, position: "relative" }}
+      aria-label={`Métrica ${title}: ${value} ${unit}`}
+    >
+      {!loading && renderAnimation()}
+      
+      {/* Header with left-aligned icon */}
+      <Flex align="center" gap="small" style={{ marginBottom: 12 }}>
+        <div style={{ 
+          background: "linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)", 
+          padding: 8, 
+          borderRadius: 10, 
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: "center",
+          boxShadow: "0 2px 6px rgba(24, 144, 255, 0.2)",
+          flexShrink: 0
+        }}>
+          {React.cloneElement(icon, { style: { fontSize: 18, color: "#1890ff" } })}
+        </div>
+        <Flex vertical gap={2} style={{ flex: 1 }}>
+          <Flex align="center" gap={4}>
+            <Text strong style={{ fontSize: 11, color: "#1F3461", textTransform: "uppercase", letterSpacing: 0.5 }}>{title}</Text>
+            {helpText && (
+              <Tooltip title={helpText}>
+                <InfoCircleOutlined
+                  style={{ fontSize: 10, color: "#999", cursor: "help" }}
+                />
+              </Tooltip>
+            )}
+          </Flex>
+          {variation !== undefined && variation !== null && Math.abs(variation) > 0.1 && (
+            <Flex align="center" gap={3}>
+              {variation > 0 ? 
+                <RiseOutlined style={{ color: "#52c41a", fontSize: 10 }} /> : 
+                <FallOutlined style={{ color: "#ff4d4f", fontSize: 10 }} />
+              }
+              <Text 
+                style={{ 
+                  fontWeight: 700, 
+                  fontSize: 9,
+                  color: variation > 0 ? "#52c41a" : "#ff4d4f",
+                }}
+              >
+                {variation > 0 ? "+" : ""}{variation.toFixed(1)}%
+              </Text>
+            </Flex>
           )}
         </Flex>
-      </div>
+      </Flex>
+      
+      {/* Value section */}
       {loading ? (
-        <div>
-          <div
-            style={{
-              width: "50px",
-              height: "18px",
-              background:
-                "linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)",
-              backgroundSize: "200% 100%",
-              animation: "loading 1.5s infinite",
-              borderRadius: "3px",
-              margin: "0 auto 2px auto",
-            }}
-          />
-          <div
-            style={{
-              width: "40px",
-              height: "11px",
-              background:
-                "linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)",
-              backgroundSize: "200% 100%",
-              animation: "loading 1.5s infinite",
-              borderRadius: "2px",
-              margin: "0 auto",
-            }}
-          />
+        <div style={{ padding: "12px 0", textAlign: "center" }}>
+          <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
         </div>
       ) : (
         <div>
-          <div
-            style={{
-              fontSize: 18,
-              fontWeight: 600,
-              color: "#1F3461",
-              marginBottom: 2,
-            }}
-          >
-            {value}
-          </div>
-          <div style={{ fontSize: 11, color: "#666" }}>{unit}</div>
+          <Flex align="baseline" gap={4} style={{ marginBottom: 8 }}>
+            <div
+              style={{
+                fontSize: 32,
+                fontWeight: 900,
+                color: "#1F3461",
+                lineHeight: 1,
+                textShadow: "0 2px 4px rgba(0,0,0,0.05)"
+              }}
+            >
+              {value}
+            </div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#597ef7" }}>{unit}</div>
+          </Flex>
+
           {extraInfo && (
-            <Tooltip title="Último registro que tenía el datalogger al momento de la medición">
-              <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 500,
-                  color: "#999",
-                  marginTop: 4,
-                  cursor: "help",
-                }}
-              >
-                {extraInfo}
-              </div>
-            </Tooltip>
+            <div
+              style={{
+                fontSize: 10,
+                fontWeight: 500,
+                color: "#8c8c8c",
+                marginTop: 8,
+                fontStyle: "italic",
+                opacity: 0.8
+              }}
+            >
+              {extraInfo}
+            </div>
           )}
           {syncStatus && (
-            <div style={{ marginTop: 4 }}>
+            <div style={{ marginTop: 8 }}>
               <Tooltip title={syncStatus.status}>
                 <div
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
-                    gap: 4,
-                    padding: "2px 6px",
-                    borderRadius: "4px",
+                    gap: 5,
+                    padding: "3px 10px",
+                    borderRadius: "20px",
                     backgroundColor: `${syncStatus.color}15`,
                     border: `1px solid ${syncStatus.color}40`,
+                    boxShadow: `0 2px 4px ${syncStatus.color}10`
                   }}
                 >
                   <div
                     style={{
-                      width: 6,
-                      height: 6,
+                      width: 7,
+                      height: 7,
                       borderRadius: "50%",
                       backgroundColor: syncStatus.color,
+                      boxShadow: `0 0 5px ${syncStatus.color}`
                     }}
                   />
                   <Text
                     style={{
-                      fontSize: 11,
+                      fontSize: 10,
                       color: syncStatus.color,
-                      fontWeight: 500,
+                      fontWeight: 800,
+                      textTransform: "uppercase"
                     }}
                   >
                     {syncStatus.status}
@@ -630,15 +621,17 @@ const MetricCard = ({
           )}
         </div>
       )}
-    </div>
-  </Card>
-);
+    </Card>
+  );
+};
 
 const MyWell = () => {
   const { state, dispatch } = useContext(AppContext);
   const { isMobile } = useResponsive();
+  const vars = state.selected_profile?.config_data?.variables || [];
   const [loading, setLoading] = useState(true);
   const [nivel, setNivel] = useState(0);
+  const [waterTable, setWaterTable] = useState(0);
   const [caudal, setCaudal] = useState(0);
   const [acumulado, setAcumulado] = useState(0);
   const [acumDia, setAcumDia] = useState(0);
@@ -646,11 +639,12 @@ const MyWell = () => {
   const [lastCaption, setLastCaption] = useState(null);
   const [lastLogger, setLastLogger] = useState(null);
   const [acumAyer, setAcumAyer] = useState(0);
-  const [lastRegisters, setLastRegisters] = useState([]);
-  const [drawerVisible, setDrawerVisible] = useState(false);
   const [lastUpdateTime, setLastUpdateTime] = useState(null);
   const [error, setError] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [varCaudal, setVarCaudal] = useState(null);
+  const [varNivel, setVarNivel] = useState(null);
+  const [lastRegisters, setLastRegisters] = useState([]);
   const intervalRef = useRef(null);
   const validators = useDataValidation();
 
@@ -699,9 +693,27 @@ const MyWell = () => {
           setLastCaption(lastData.date_time_medition ?? null);
           setLastLogger(lastData.date_time_last_logger ?? null);
           setAcumDia(lastData.total_today_diff || 0);
-          setNivel(lastData.water_table || 0);
+          // nivel = Nivel del agua
+          setNivel(parseFloat(lastData.nivel) || 0);
+          // water_table = Nivel Freático
+          setWaterTable(parseFloat(lastData.water_table) || 0);
           setCaudal(lastData.flow || 0);
           setAcumulado(lastData.total || 0);
+          // Calcular variaciones
+          const today = state.selected_profile?.modules?.today || [];
+          if (today.length >= 2) {
+            const current = today[today.length - 1];
+            const previous = today[today.length - 2];
+            
+            if (previous.flow > 0) {
+              setVarCaudal(((current.flow - previous.flow) / previous.flow) * 100);
+            }
+            if (parseFloat(previous.nivel) > 0) {
+              const currentNivel = parseFloat(current.nivel) || 0;
+              const previousNivel = parseFloat(previous.nivel) || 0;
+              setVarNivel(((currentNivel - previousNivel) / previousNivel) * 100);
+            }
+          }
         }
 
         if (telemetryData?.results) {
@@ -713,7 +725,10 @@ const MyWell = () => {
         if (frecuency > 0) {
           const now = new Date();
           const minutesUntilNext = frecuency - (now.getMinutes() % frecuency);
-          setDeadline(new Date(now.getTime() + minutesUntilNext * 60000));
+          const nextDeadline = new Date(now.getTime() + minutesUntilNext * 60000);
+          nextDeadline.setSeconds(0);
+          nextDeadline.setMilliseconds(0);
+          setDeadline(nextDeadline);
         }
       } catch (error) {
         console.error("Error fetching telemetry data in MyWell:", error);
@@ -850,7 +865,10 @@ const MyWell = () => {
         setLastCaption(lastData.date_time_medition ?? null);
         setLastLogger(lastData.date_time_last_logger ?? null);
         setAcumDia(lastData.total_today_diff || 0);
-        setNivel(lastData.water_table || 0);
+        // nivel = Nivel del agua
+        setNivel(parseFloat(lastData.nivel) || 0);
+        // water_table = Nivel Freático
+        setWaterTable(parseFloat(lastData.water_table) || 0);
         setCaudal(lastData.flow || 0);
         setAcumulado(lastData.total || 0);
       }
@@ -933,42 +951,58 @@ const MyWell = () => {
           </Flex>
         </Flex>
         <Row gutter={[8, 8]}>
+          {(vars.some(v => v.type_variable?.includes("CAUDAL")) || vars.length === 0) && (
+            <Col span={24}>
+              <MetricCard
+                title={vars.find(v => v.type_variable?.includes("CAUDAL"))?.label || "Caudal"}
+                value={(parseFloat(caudal) || 0).toFixed(2)}
+                unit="L/s"
+                icon={<DashboardOutlined />}
+                loading={loading}
+                variation={varCaudal}
+                helpText="Caudal instantáneo de agua medido en litros por segundo"
+                animationType="waves"
+              />
+            </Col>
+          )}
           <Col span={24}>
             <MetricCard
-              title="Caudal"
-              value={(parseFloat(caudal) || 0).toFixed(2)}
-              unit="L/s"
-              icon={<img src={caudal_img} alt="caudal" style={{ width: 24 }} />}
-              loading={loading}
-              helpText="Caudal instantáneo de agua medido en litros por segundo"
-            />
-          </Col>
-          <Col span={24}>
-            <MetricCard
-              title="Nivel Freático"
+              title="Nivel de Agua"
               value={(parseFloat(nivel) || 0).toFixed(2)}
               unit="m"
-              icon={<img src={nivel_img} alt="nivel" style={{ width: 24 }} />}
+              icon={<ColumnHeightOutlined />}
               loading={loading}
-              helpText="Profundidad del nivel de agua freática medida desde la superficie en metros"
+              variation={varNivel}
+              helpText="Altura de la columna de agua dentro del pozo medida por el sensor"
+              animationType="level"
             />
           </Col>
-          <Col span={24}>
-            <MetricCard
-              title="Acumulado Total"
-              value={new Intl.NumberFormat("de-DE").format(acumulado)}
-              unit="m³"
-              icon={
-                <img
-                  src={acumulado_img}
-                  alt="acumulado"
-                  style={{ width: 24 }}
-                />
-              }
-              loading={loading}
-              helpText="Volumen total acumulado de agua extraída desde el inicio del monitoreo en metros cúbicos"
-            />
-          </Col>
+          {(vars.some(v => v.type_variable?.includes("NIVEL")) || vars.length === 0) && (
+            <Col span={24}>
+              <MetricCard
+                title="Nivel Freático"
+                value={(parseFloat(waterTable) || 0).toFixed(2)}
+                unit="m"
+                icon={<ArrowDownOutlined />}
+                loading={loading}
+                helpText="Profundidad desde la superficie del suelo hasta el nivel freático (napa de agua)"
+                animationType="depth"
+              />
+            </Col>
+          )}
+          {(vars.some(v => v.type_variable?.includes("TOTALIZADO")) || vars.length === 0) && (
+            <Col span={24}>
+              <MetricCard
+                title={vars.find(v => v.type_variable?.includes("TOTALIZADO"))?.label || "Acumulado Total"}
+                value={new Intl.NumberFormat("de-DE").format(acumulado)}
+                unit="m³"
+                icon={<DatabaseOutlined />}
+                loading={loading}
+                helpText="Volumen total acumulado de agua extraída desde el inicio del monitoreo en metros cúbicos"
+                animationType="rising"
+              />
+            </Col>
+          )}
           <Col span={24}>
             <MetricCard
               title="Último Registro"
@@ -985,6 +1019,7 @@ const MyWell = () => {
                   : null
               }
               syncStatus={getSyncStatus(lastCaption, lastLogger)}
+              animationType="pulse"
             />
           </Col>
         </Row>
@@ -1014,6 +1049,8 @@ const MyWell = () => {
           acumDia={acumDia}
           acumAyer={acumAyer}
           loading={loading}
+          deadline={deadline}
+          onRefresh={handleRefresh}
         />
 
         <Flex vertical={true} gap="small">
@@ -1114,11 +1151,16 @@ const MyWell = () => {
               title={`Última actualización: ${lastUpdateTime.toLocaleString()}`}
             >
               <Flex align="center" gap="small">
-                <CheckCircleOutlined
-                  style={{ color: "#52c41a", fontSize: 14 }}
-                />
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  Actualizado {formatLastUpdate()}
+                <div style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  backgroundColor: "#52c41a",
+                  boxShadow: "0 0 8px #52c41a",
+                  animation: "pulse-green 2s infinite"
+                }} />
+                <Text type="secondary" style={{ fontSize: 12, fontWeight: 600 }}>
+                  LIVE: {formatLastUpdate()}
                 </Text>
               </Flex>
             </Tooltip>
@@ -1144,46 +1186,57 @@ const MyWell = () => {
         </Button>
       </Flex>
 
-      <Row gutter={[16, 16]}>
+      <Row gutter={[16, 16]} align="stretch" style={{ display: 'flex' }}>
         {/* Columna Izquierda: Indicadores */}
-        <Col xs={24} sm={24} md={6} lg={6} xl={6}>
-          <QueueAnim delay={200} type="left">
-            <div key="metrics">
-              <div>
+        <Col xs={24} sm={24} md={6} lg={6} xl={6} style={{ display: 'flex', flexDirection: 'column' }}>
+          <QueueAnim delay={200} type="left" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <div key="metrics" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '8px' }}>
+                {(vars.some(v => v.type_variable?.includes("CAUDAL")) || vars.length === 0) && (
+                  <MetricCard
+                    title={vars.find(v => v.type_variable?.includes("CAUDAL"))?.label || "Caudal"}
+                    value={(parseFloat(caudal) || 0).toFixed(2)}
+                    unit="(Lt/s)"
+                    variation={varCaudal}
+                    icon={<DashboardOutlined />}
+                    loading={loading}
+                    helpText="Caudal instantáneo de agua medido en litros por segundo"
+                    animationType="waves"
+                  />
+                )}
                 <MetricCard
-                  title="Caudal"
-                  value={(parseFloat(caudal) || 0).toFixed(2)}
-                  unit="(Lt/s)"
-                  icon={
-                    <img src={caudal_img} alt="caudal" style={{ width: 24 }} />
-                  }
-                  loading={loading}
-                  helpText="Caudal instantáneo de agua medido en litros por segundo"
-                />
-                <MetricCard
-                  title="Nivel Freático"
+                  title="Nivel de Agua"
                   value={(parseFloat(nivel) || 0).toFixed(2)}
                   unit="(m)"
-                  icon={
-                    <img src={nivel_img} alt="nivel" style={{ width: 24 }} />
-                  }
+                  variation={varNivel}
+                  icon={<ColumnHeightOutlined />}
                   loading={loading}
-                  helpText="Profundidad del nivel de agua freática medida desde la superficie en metros"
+                  helpText="Altura de la columna de agua dentro del pozo medida por el sensor"
+                  animationType="level"
                 />
-                <MetricCard
-                  title="Acumulado Total"
-                  value={numberForMiles.format(acumulado || 0)}
-                  unit="(m³)"
-                  icon={
-                    <img
-                      src={acumulado_img}
-                      alt="acumulado"
-                      style={{ width: 24 }}
-                    />
-                  }
-                  loading={loading}
-                  helpText="Volumen total acumulado de agua extraída desde el inicio del monitoreo en metros cúbicos"
-                />
+                {(vars.some(v => v.type_variable?.includes("NIVEL")) || vars.length === 0) && (
+                  <MetricCard
+                    title="Profundidad Freática"
+                    value={(parseFloat(waterTable) || 0).toFixed(2)}
+                    unit="(m)"
+                    icon={<ArrowDownOutlined />}
+                    loading={loading}
+                    helpText="Profundidad desde la superficie del suelo hasta el nivel freático (napa de agua)"
+                    animationType="depth"
+                  />
+                )}
+                {(vars.some(v => v.type_variable?.includes("TOTALIZADO")) || vars.length === 0) && (
+                  <MetricCard
+                    title={vars.find(v => v.type_variable?.includes("TOTALIZADO"))?.label || "Acumulado Total"}
+                    value={numberForMiles.format(acumulado || 0)}
+                    unit="(m³)"
+                    icon={<DatabaseOutlined />}
+                    loading={loading}
+                    helpText="Volumen total acumulado de agua extraída desde el inicio del monitoreo en metros cúbicos"
+                    animationType="rising"
+                  />
+                )}
+                <div style={{ flex: 1 }}></div> {/* Spacer to push Last Register to bottom if needed */}
                 <MetricCard
                   title="Último Registro"
                   value={lastCaption ? formatDate(lastCaption).date : "N/A"}
@@ -1199,6 +1252,7 @@ const MyWell = () => {
                       : null
                   }
                   syncStatus={getSyncStatus(lastCaption, lastLogger)}
+                  animationType="pulse"
                 />
               </div>
             </div>
@@ -1206,67 +1260,58 @@ const MyWell = () => {
         </Col>
 
         {/* Columna Central: Pozo y Mediciones */}
-        <Col xs={24} sm={24} md={9} lg={9} xl={9}>
-          <QueueAnim delay={400} type="bottom">
+        <Col xs={24} sm={24} md={9} lg={9} xl={9} style={{ display: 'flex' }}>
+          <QueueAnim delay={400} type="bottom" style={{ width: '100%', height: '100%' }}>
             <Card
+              key="well-card"
               style={{
-                borderRadius: "12px",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                padding: "16px",
-                position: "relative",
-                maxHeight: "650px",
+                borderRadius: "16px",
+                boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+                background: "rgba(255,255,255,0.9)",
+                backdropFilter: "blur(10px)",
+                border: "1px solid rgba(255,255,255,0.4)",
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                overflow: "hidden"
+              }}
+              bodyStyle={{ 
+                padding: "20px", 
+                flex: 1, 
+                display: "flex", 
+                flexDirection: "column",
+                position: "relative" 
               }}
             >
-              <Flex
-                justify="flex-end"
-                style={{ position: "absolute", top: 16, right: 16, zIndex: 10 }}
-              >
-                <Button
-                  type="primary"
-                  size="small"
-                  icon={loading ? <LoadingOutlined spin /> : <TableOutlined />}
-                  onClick={() => setDrawerVisible(true)}
-                  disabled={loading}
-                  loading={loading}
-                  aria-label={`Ver ${lastRegisters.length} mediciones`}
-                >
-                  Mediciones ({loading ? "..." : lastRegisters.length})
-                </Button>
-              </Flex>
+              <div style={{ position: "absolute", top: 16, right: 16, zIndex: 10 }}>
+                <MyLastRegisters />
+              </div>
+              
               <Flex
                 vertical
                 align="center"
-                justify="flex-start"
-                style={{ width: "100%" }}
+                justify="center"
+                style={{ flex: 1, width: "100%" }}
               >
                 {/* Pozo */}
-                <Flex
-                  justify="center"
-                  align="center"
+                <div
                   style={{
                     width: "100%",
+                    flex: 1,
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    padding: "20px 0",
                   }}
                 >
-                  <div
-                    style={{
-                      width: "100%",
-                      maxWidth: "320px",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      margin: "0 auto",
-                      padding: "20px 0",
-                    }}
-                  >
-                    <Well
-                      total={acumulado}
-                      nivel={nivel}
-                      caudal={caudal}
-                      profW={state.selected_profile?.config_data?.d1}
-                      loading={loading}
-                    />
-                  </div>
-                </Flex>
+                  <Well
+                    total={acumulado}
+                    nivel={nivel}
+                    caudal={caudal}
+                    profW={state.selected_profile?.config_data?.d1}
+                    loading={loading}
+                  />
+                </div>
 
                 {/* Stats de Consumos y Timer en una fila */}
                 <ConsumptionStats
@@ -1274,6 +1319,7 @@ const MyWell = () => {
                   acumAyer={acumAyer}
                   loading={loading}
                   deadline={deadline}
+                  onRefresh={handleRefresh}
                 />
               </Flex>
             </Card>
@@ -1281,9 +1327,9 @@ const MyWell = () => {
         </Col>
 
         {/* Columna Derecha: Ficha Técnica */}
-        <Col xs={24} sm={24} md={9} lg={9} xl={9}>
-          <QueueAnim type="right" delay={200}>
-            <div key="tabs">
+        <Col xs={24} sm={24} md={9} lg={9} xl={9} style={{ display: 'flex' }}>
+          <QueueAnim type="right" delay={200} style={{ width: '100%', height: '100%' }}>
+            <div key="tabs" style={{ height: '100%' }}>
               <TechnicalSheetWithTabs
                 profile={state.selected_profile}
                 loading={loading}
@@ -1292,33 +1338,45 @@ const MyWell = () => {
           </QueueAnim>
         </Col>
       </Row>
-      <Drawer
-        title={<Text style={{ color: "white" }}>Registros de Hoy</Text>}
-        placement="right"
-        onClose={() => setDrawerVisible(false)}
-        open={drawerVisible}
-        width={700}
-        closable={true}
-        closeIcon={<CloseOutlined style={{ color: "white" }} />}
-        headerStyle={{ backgroundColor: "#1F3461" }}
-        bodyStyle={{ padding: "8px" }}
-      >
-        <Table
-          dataSource={lastRegisters}
-          columns={columns}
-          bordered={true}
-          pagination={{ pageSize: 10, hideOnSinglePage: true }}
-          rowKey="id"
-        />
-      </Drawer>
-
-      {/* Estilos CSS para la animación del skeleton y tabs */}
       <style>
         {`
           @keyframes loading {
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
           }
+          
+          @keyframes cardWave {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+
+          .card-water-container {
+            position: absolute;
+            bottom: -80px;
+            left: -50%;
+            width: 200%;
+            height: 150px;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.1;
+          }
+
+          .card-water-wave {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, transparent 0%, #1890ff 100%);
+            border-radius: 43%;
+            animation: cardWave 10s infinite linear;
+          }
+
+          .wave-2 {
+            border-radius: 40%;
+            animation-duration: 13s;
+            opacity: 0.5;
+            background: linear-gradient(180deg, transparent 0%, #096dd9 100%);
+          }
+
           /* Estilos para tabs más visibles */
           .ant-tabs-tab {
             font-weight: 500 !important;
@@ -1334,8 +1392,11 @@ const MyWell = () => {
             background: #1F3461 !important;
             height: 3px !important;
           }
-          .ant-tabs-tab:hover {
-            color: #1F3461 !important;
+
+          @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(82, 196, 26, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(82, 196, 26, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(82, 196, 26, 0); }
           }
         `}
       </style>

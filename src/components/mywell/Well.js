@@ -87,50 +87,47 @@ const Well = ({ total, nivel, caudal, profW, loading = false }) => {
       <div className="nivel-agua">
         <div className="tierra"></div>
         <div className="agua-inferior">
-          <QueueAnim type={["bottom", "top"]} duration={1000}>
-            {bubbles.map((bubble, index) => (
+          {bubbles.map((bubble, index) => (
+            <div
+              key={`bubble-${index}`}
+              className="burbuja"
+              style={{
+                width: bubble.size,
+                height: bubble.size,
+                left: bubble.left,
+                bottom: '0',
+                animationDuration: bubble.animationDuration,
+                animationDelay: bubble.animationDelay,
+              }}
+            ></div>
+          ))}
+        </div>
+        <div className="tubo-pozo">
+          <div style={styles.nivel} className="nivel" key="nivel">
+            {tubeBubbles.map((bubble, index) => (
               <div
-                key={index}
-                className="burbuja"
+                key={`tube-bubble-${index}`}
+                className="burbuja-tubo"
                 style={{
                   width: bubble.size,
                   height: bubble.size,
-                  top: bubble.top,
                   left: bubble.left,
+                  bottom: '0',
                   animationDuration: bubble.animationDuration,
                   animationDelay: bubble.animationDelay,
                 }}
               ></div>
             ))}
-          </QueueAnim>
-        </div>
-        <div className="tubo-pozo">
-          <QueueAnim type={["bottom", "top"]} duration={1000}>
-            <div style={styles.nivel} className="nivel" key="nivel">
-              {tubeBubbles.map((bubble, index) => (
-                <div
-                  key={index}
-                  className="burbuja-tubo"
-                  style={{
-                    width: bubble.size,
-                    height: bubble.size,
-                    left: bubble.left,
-                    animationDuration: bubble.animationDuration,
-                    animationDelay: bubble.animationDelay,
-                  }}
-                ></div>
-              ))}
-            </div>
-          </QueueAnim>
+          </div>
         </div>
       </div>
       <div className="sensor">
         <div className="punta">
-          <Text style={{ color: "white" }}>
+          <Text style={{ color: "white", fontSize: 11, fontWeight: 700 }}>
             {loading ? (
               <LoadingOutlined
                 spin
-                style={{ fontSize: "1.0em", color: "white" }}
+                style={{ fontSize: "12px", color: "white" }}
               />
             ) : (
               `${nivel && parseFloat(nivel).toFixed(2)} m`
@@ -142,38 +139,37 @@ const Well = ({ total, nivel, caudal, profW, loading = false }) => {
       <div className="linea-caudalimetro"></div>
       <div className="datalogger">
         <div className="tablero">
-          <center>
-            <Text
-              style={{
-                color: "black",
-                fontWeight: "500",
-                fontSize: "1.0em",
-              }}
-            >
-              {loading ? (
-                <LoadingOutlined
-                  spin
-                  style={{ fontSize: "1.0em", color: "black" }}
-                />
-              ) : (
-                `${total && total.toLocaleString("es-CL")} m³`
-              )}
-            </Text>
-          </center>
+          <Text
+            style={{
+              color: "#1F3461",
+              fontWeight: 700,
+              fontSize: 11,
+              textAlign: "center",
+            }}
+          >
+            {loading ? (
+              <LoadingOutlined
+                spin
+                style={{ fontSize: "12px", color: "#1F3461" }}
+              />
+            ) : (
+              `${total && total.toLocaleString("es-CL")} m³`
+            )}
+          </Text>
         </div>
         <div className="pata-izquierda"></div>
         <div className="pata-derecha"></div>
       </div>
 
       <div className="caudalimetro">
-        <Text style={{ textAlign: "center", color: "white" }}>
+        <Text style={{ textAlign: "center", color: "white", fontSize: 11, fontWeight: 700 }}>
           {loading ? (
             <LoadingOutlined
               spin
-              style={{ fontSize: "1.0em", color: "white" }}
+              style={{ fontSize: "12px", color: "white" }}
             />
           ) : (
-            `${caudal && parseFloat(caudal).toFixed(2)} lt/s`
+            `${caudal && parseFloat(caudal).toFixed(2)} L/s`
           )}
         </Text>
       </div>

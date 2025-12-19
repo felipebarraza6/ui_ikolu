@@ -6,7 +6,7 @@ import DgaCompliance from "./DgaCompliance";
 import { useResponsive } from "../../hooks/useResponsive";
 import { AppContext } from "../../App";
 import { BarChartOutlined } from "@ant-design/icons";
-import sh from "../../api/sh/endpoints";
+import optimizedSh from "../../api/sh/optimizedEndpoints";
 
 /**
  * 📊 DGA RESPONSIVO
@@ -15,6 +15,7 @@ import sh from "../../api/sh/endpoints";
  * - Indicadores arriba (registros totales, caudal autorizado, último registro, estado QR)
  * - Información del punto de captación DGA abajo
  * - Optimizado para móvil y desktop
+ * - OPTIMIZADO: Usa endpoints con deduplicación y caché
  */
 const ResponsiveDga = () => {
   const { isMobile } = useResponsive();
@@ -25,7 +26,7 @@ const ResponsiveDga = () => {
   const [dataDga, setDataDga] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Siempre obtener datos frescos de la API, no del localStorage
+  // ✅ OPTIMIZADO: Usa endpoint con deduplicación y caché
   useEffect(() => {
     const fetchDgaData = async () => {
       const profileId = state.selected_profile?.id;
@@ -37,8 +38,8 @@ const ResponsiveDga = () => {
 
       setLoading(true);
       try {
-        // Obtener perfil completo desde la API para tener datos actualizados
-        const userProfileResponse = await sh.get_profile();
+        // Usa versión optimizada que incluye deduplicación y caché
+        const userProfileResponse = await optimizedSh.get_profile();
         const allProfiles = userProfileResponse?.user?.catchment_points ?? [];
         const selected_profile_data =
           allProfiles.find((p) => p.id === profileId) || allProfiles[0] || {};

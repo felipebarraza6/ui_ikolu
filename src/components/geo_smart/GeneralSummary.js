@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { AppContext } from "../../App";
-import sh from "../../api/sh/endpoints";
+import optimizedSh from "../../api/sh/optimizedEndpoints";
 import AnalysisPrompt from "./AnalysisPrompt";
 import ConsumptionChart from "./ConsumptionChart";
 import CombinedVariablesChart from "./CombinedVariablesChart";
@@ -47,7 +47,7 @@ try {
 /**
  * GeneralSummary
  * Dashboard principal con resumen completo de todos los puntos de captación
- * IMPORTANTE: Siempre consulta la API para obtener datos frescos, no usa localStorage
+ * OPTIMIZADO: Usa endpoints con deduplicación y caché automático
  */
 const GeneralSummary = ({ profiles: initialProfiles }) => {
   const { state, dispatch } = useContext(AppContext);
@@ -57,11 +57,12 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
 
   useBreakpoint(); // se mantiene la llamada para futura lógica responsiva
 
-  // Función para obtener datos frescos de la API
+  // ✅ OPTIMIZADO: Usa endpoint con deduplicación y caché
   const fetchFreshData = async () => {
     setLoading(true);
     try {
-      const response = await sh.get_profile();
+      // Usa versión optimizada que incluye deduplicación
+      const response = await optimizedSh.get_profile();
       if (response && response.user && response.user.catchment_points) {
         const freshProfiles = response.user.catchment_points;
         setProfiles(freshProfiles);

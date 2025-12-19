@@ -1,5 +1,6 @@
 import sh from "../api/sh/endpoints";
 import { clearCacheOnLogout, invalidateProfileCache } from "../utils/dataCache";
+import { clearPendingRequests } from "../utils/requestDeduplication";
 
 export const appReducer = (state, action) => {
   switch (action.type) {
@@ -105,6 +106,8 @@ export const appReducer = (state, action) => {
       localStorage.clear();
       // Limpiar caché al hacer logout
       clearCacheOnLogout();
+      // ✅ NUEVO: Limpiar requests pendientes
+      clearPendingRequests();
       return {
         ...state,
         isAuth: false,

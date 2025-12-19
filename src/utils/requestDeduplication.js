@@ -1,0 +1,60 @@
+/**
+ * Request Deduplication System
+ * 
+ * Evita llamadas API duplicadas cuando múltiples componentes
+ * solicitan los mismos datos simultáneamente.
+ * 
+ * Ejemplo:
+ * - Componente A pide get_profile()
+ * - Componente B pide get_profile() 100ms después
+ * - Solo se hace 1 llamada real, ambos reciben el mismo resultado
+ */
+
+const pendingRequests = new Map();
+
+/**
+ * Deduplica requests basados en una clave única
+ * @param {string} key - Identificador único del request
+ * @param {Function} fetcher - Función que hace el request real
+ * @returns {Promise} - Promesa del request (compartida si ya existe)
+ */
+export const deduplicateRequest = async (key, fetcher) => {
+  // Si ya hay un request pendiente con esta clave, retornar esa promesa
+  if (pendingRequests.has(key)) {
+    console.log(`[Dedup HIT] ${key} - Reutilizando request existente`);
+    return pendingRequests.get(key);
+  }
+
+  console.log(`[Dedup MISS] ${key} - Creando nuevo request`);
+
+  // Crear nueva promesa y limpiarla cuando termine
+  const promise = fetcher()
+    .finally(() => {
+      pendingRequests.delete(key);
+    });
+
+  pendingRequests.set(key, promise);
+  return promise;
+};
+
+/**
+ * Genera claves consistentes para deduplicación
+ */
+export const DedupKeys = {
+  profile: (username) => `profile_${username || 'current'}`,
+  telemetry: (profileId) => `telemetry_${profileId}`,
+  telemetryRange: (profileId, start, end) => `telemetry_${profileId}_${start}_${end}`,
+  dayData: (profileId, date) => `day_${profileId}_${date}`,
+  monthData: (profileId, yearMonth) => `month_${profileId}_${yearMonth}`,
+  notifications: (profileId, page, type) => `notifications_${profileId}_${page}_${type}`,
+};
+
+/**
+ * Limpia todos los requests pendientes (útil en logout)
+ */
+export const clearPendingRequests = () => {
+  pendingRequests.clear();
+  console.log('[Dedup] Cleared all pending requests');
+};
+
+export default deduplicateRequest;
