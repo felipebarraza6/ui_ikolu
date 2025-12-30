@@ -199,16 +199,19 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
   const { state } = useContext(AppContext);
 
   // Filtrar elementos del menú basado en el perfil seleccionado
-  // Ocultar DGA - MEE (key "4") cuando el selected_profile tenga id = 1
+  // Ocultar DGA - MEE (key "4") cuando el selected_profile no tenga código DGA
   const filteredMenuItems = useMemo(() => {
     return MENU_ITEMS.filter((item) => {
-      // Si es DGA - MEE (key "4") y el perfil seleccionado tiene id = 1, ocultarlo
-      if (item.key === "4" && state.selected_profile?.id === 1) {
-        return false;
+      // Si es DGA - MEE (key "4") y el perfil seleccionado no tiene código DGA, ocultarlo
+      if (item.key === "4") {
+        const hasDgaCode = state.selected_profile?.dga?.code_dga;
+        if (!hasDgaCode) {
+          return false;
+        }
       }
       return true;
     });
-  }, [state.selected_profile?.id]);
+  }, [state.selected_profile?.dga?.code_dga]);
 
   const selectedKey = useMemo(() => {
     const currentPath = location.pathname;

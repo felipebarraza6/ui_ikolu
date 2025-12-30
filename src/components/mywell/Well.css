@@ -1,293 +1,399 @@
+/* --- Contenedor Principal --- */
 .pozo {
   position: relative;
-  width: 320px;
+  width: 100%;
+  max-width: 380px;
+  height: 460px;
   margin: 0 auto;
-  top: 0;
-  height: 480px;
-  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.15));
+  /* Margen reducido - solo centrado */
+  background: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.8) 0%, rgba(240, 242, 245, 0.5) 100%);
+  border-radius: 20px;
 }
 
 @media (max-width: 768px) {
   .pozo {
-    top: 0;
-    margin-bottom: 0;
     width: 280px;
     height: 420px;
   }
 }
 
+/* ... (Rest of CSS unchanged until badges) ... */
+/* ... Use existing unchanged styles for terra, tubo, etc ... */
+
+/* Posiciones específicas para badges - Integrados en el "Cielo" */
+.badge-caudal {
+  top: 15%;
+  right: 20px;
+}
+
+.badge-total {
+  top: 15%;
+  left: 20px;
+}
+
+
+
+/* --- Tierra (Fondo Minimalista Moderno) --- */
 .tierra {
   position: absolute;
   width: 100%;
-  height: 50%;
-  bottom: 0;
-  background: linear-gradient(180deg, #5d4a3a 0%, #3d2b1f 50%, #2a1810 100%);
-  border-radius: 0 0 20px 20px;
-  box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.agua-inferior {
-  position: absolute;
-  top: 75%;
-  width: 100%;
-  height: 25%;
-  background: linear-gradient(180deg,
-      rgba(100, 181, 246, 0.4) 100%,
-      rgba(66, 165, 245, 0.6) 100%,
-      rgba(33, 150, 243, 0.75) 100%,
-      rgba(25, 118, 210, 0.85) 100%);
-  backdrop-filter: blur(2px);
-  border-radius: 0 0 20px 20px;
+  height: calc(100% - 20px);
+  /* Reducir padding superior para menos margen */
+  top: 0;
+  bottom: auto;
+  padding-top: 20px;
+  /* Fondo minimal moderno - gradiente suave blanco/gris claro */
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.95) 0%, 
+    rgba(250, 250, 252, 0.9) 50%,
+    rgba(245, 247, 250, 0.85) 100%);
+  border-radius: 20px;
   overflow: hidden;
-  position: relative;
-  z-index: 0;
+  z-index: 1;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
-.agua-inferior::before {
+/* Si hay stats, reducimos la altura para dejar espacio abajo */
+.tierra.with-stats {
+  height: calc(100% - 90px);
+}
+
+/* Patrón de grilla minimal blanco moderno */
+.tierra::before {
   content: '';
   position: absolute;
   top: 0;
-  left: -100%;
-  width: 300%;
-  height: 100%;
-  background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.1) 25%,
-      transparent 50%,
-      rgba(255, 255, 255, 0.1) 75%,
-      transparent 100%);
-  animation: waterShimmer 8s linear infinite;
-}
-
-@keyframes waterShimmer {
-  0% {
-    transform: translateX(0);
-  }
-
-  100% {
-    transform: translateX(33.333%);
-  }
-}
-
-.superficie {
-  position: absolute;
-  top: 50%;
-  width: 100%;
-  height: 10px;
-  background: linear-gradient(90deg,
-      #5a7c4f 0%,
-      #6b8e5f 25%,
-      #7a9d6e 50%,
-      #6b8e5f 75%,
-      #5a7c4f 100%);
-  border-radius: 5px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.pavimento {
-  position: absolute;
-  top: 50%;
-  width: 100%;
-  height: 5px;
-  background: linear-gradient(180deg, #a0a0a0 0%, #707070 100%);
-  opacity: 0.4;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.nivel-agua {
-  position: absolute;
-  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.6;
   pointer-events: none;
 }
 
-.tubo-pozo {
+/* --- Superficie (Línea de Suelo) --- */
+.superficie {
   position: absolute;
-  width: 65px;
-  height: 88%;
-  bottom: 6%;
-  left: 50%;
-  transform: translateX(-50%);
-  border-left: 3px solid rgba(139, 90, 43, 0.7);
-  border-right: 3px solid rgba(139, 90, 43, 0.7);
-  border-bottom: 3px solid rgba(139, 90, 43, 0.7);
-  border-radius: 0 0 32px 32px;
-  background: linear-gradient(to right,
-      rgba(0, 0, 0, 0.08) 0%,
-      rgba(255, 255, 255, 0.05) 50%,
-      rgba(0, 0, 0, 0.08) 100%);
-  overflow: hidden;
-  z-index: 2;
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
+  top: 55%;
+  /* Coincide con el inicio de la tierra (100 - 45%) */
+  width: 100%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+  z-index: 5;
 }
 
+/* --- Tubo del Pozo (Cilindro de Vidrio Minimal) --- */
+.tubo-pozo {
+  position: absolute;
+  width: 80px;
+  height: calc(100% - 80px);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+
+  /* Efecto Vidrio Premium Minimal Moderno */
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0.15) 0%,
+      rgba(255, 255, 255, 0.08) 25%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0.08) 75%,
+      rgba(255, 255, 255, 0.15) 100%);
+  border-left: 2px solid rgba(0, 0, 0, 0.08);
+  border-right: 2px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 3px solid rgba(0, 0, 0, 0.1);
+  border-radius: 0 0 20px 20px;
+  box-shadow: 
+    inset 0 0 20px rgba(255, 255, 255, 0.3),
+    0 2px 10px rgba(0, 0, 0, 0.05),
+    0 0 30px rgba(0, 0, 0, 0.03);
+
+  overflow: visible;
+  z-index: 10;
+  backdrop-filter: blur(1px);
+}
+
+/* Brillo del tubo - Efecto de luz minimal */
+.tubo-pozo::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12%;
+  width: 8%;
+  height: 100%;
+  background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.5) 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0.05) 100%);
+  border-radius: 10px;
+  filter: blur(0.5px);
+  pointer-events: none;
+}
+
+/* --- Agua Interior (Un solo cuerpo: Columna de Agua + Nivel Estático) --- */
 .nivel {
   position: absolute;
   bottom: 0;
   width: 100%;
-  background: linear-gradient(180deg,
-      rgba(144, 202, 249, 0.8) 0%,
-      rgba(100, 181, 246, 0.85) 20%,
-      rgba(66, 165, 245, 0.9) 50%,
-      rgba(42, 150, 243, 0.95) 80%,
-      rgba(30, 136, 229, 1) 100%);
-  border-radius: 0 0 30px 30px;
-  animation: waterWave 3s ease-in-out infinite;
-  position: relative;
-  overflow: hidden;
+  left: 0;
+  /* El gradiente se define dinámicamente en el componente según si hay nivel estático */
+  /* Por defecto, gradiente simple para columna de agua sola */
+  box-shadow: 0 0 30px rgba(0, 200, 255, 0.5);
+  border-radius: 0 0 20px 20px;
+  transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: visible;
+  z-index: 2;
+  clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  box-sizing: border-box;
 }
 
+/* Superficie del agua con ondulaciones realistas - Línea de nivel animada */
 .nivel::before {
   content: '';
   position: absolute;
-  top: -10px;
-  left: -50%;
-  width: 200%;
-  height: 20px;
-  background: radial-gradient(ellipse at center,
-      rgba(255, 255, 255, 0.3) 0%,
-      transparent 70%);
-  animation: waterSurface 4s ease-in-out infinite;
-}
-
-@keyframes waterWave {
-
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-3px);
-  }
-}
-
-@keyframes waterSurface {
-  0% {
-    transform: translateX(0) scaleX(1);
-  }
-
-  50% {
-    transform: translateX(10%) scaleX(1.1);
-  }
-
-  100% {
-    transform: translateX(0) scaleX(1);
-  }
-}
-
-.burbuja,
-.burbuja-tubo {
-  position: absolute;
-  background: radial-gradient(circle at 30% 30%,
-      rgba(255, 255, 255, 0.8) 0%,
-      rgba(255, 255, 255, 0.4) 40%,
-      rgba(100, 181, 246, 0.3) 100%);
+  top: -15px;
+  left: -10%;
+  width: 120%;
+  height: 30px;
+  /* Crear ondulaciones usando múltiples capas de gradientes radiales */
+  background: 
+    radial-gradient(ellipse 80% 15px at 20% 50%, rgba(255, 255, 255, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 15px at 50% 50%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 15px at 80% 50%, rgba(255, 255, 255, 0.4) 0%, transparent 50%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, transparent 100%);
   border-radius: 50%;
-  animation: bubbleRise 6s ease-in infinite;
-  box-shadow: inset -2px -2px 4px rgba(255, 255, 255, 0.5),
-    0 2px 4px rgba(0, 0, 0, 0.1);
+  animation: waterSurfaceWaves 4s ease-in-out infinite;
+  z-index: 3;
+  /* Efecto de reflejo en los bordes */
+  box-shadow: 
+    inset -5px 0 10px rgba(255, 255, 255, 0.2),
+    inset 5px 0 10px rgba(255, 255, 255, 0.2);
+}
+
+/* Línea de nivel visible con ondulaciones */
+.nivel::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  /* Línea de nivel con brillo y ondulaciones */
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.6) 10%,
+    rgba(255, 255, 255, 0.9) 25%,
+    rgba(255, 255, 255, 0.95) 50%,
+    rgba(255, 255, 255, 0.9) 75%,
+    rgba(255, 255, 255, 0.6) 90%,
+    transparent 100%);
+  box-shadow: 
+    0 1px 3px rgba(255, 255, 255, 0.8),
+    0 -1px 2px rgba(0, 200, 255, 0.4),
+    0 0 8px rgba(255, 255, 255, 0.3);
+  z-index: 4;
+  animation: waterLevelLine 3s ease-in-out infinite;
+  /* Ondulaciones usando clip-path */
+  clip-path: polygon(
+    0% 0%,
+    5% 10%,
+    10% 0%,
+    15% 8%,
+    20% 0%,
+    25% 6%,
+    30% 0%,
+    35% 7%,
+    40% 0%,
+    45% 5%,
+    50% 0%,
+    55% 6%,
+    60% 0%,
+    65% 8%,
+    70% 0%,
+    75% 7%,
+    80% 0%,
+    85% 5%,
+    90% 0%,
+    95% 6%,
+    100% 0%,
+    100% 100%,
+    0% 100%
+  );
+}
+
+/* Ondas que interactúan con los bordes del tubo */
+.water-wave {
+  position: absolute;
+  width: 100%;
+  height: 15px;
+  background: radial-gradient(ellipse at center,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0.15) 40%,
+    transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.water-wave.wave-left {
+  top: 0;
+  left: -5px;
+  width: 30%;
+  animation: waveBounceLeft 3s ease-in-out infinite;
+  transform-origin: left center;
+}
+
+.water-wave.wave-right {
+  top: 0;
+  right: -5px;
+  width: 30%;
+  animation: waveBounceRight 3.5s ease-in-out infinite;
+  transform-origin: right center;
+}
+
+.water-wave.wave-center {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40%;
+  animation: waveCenter 4s ease-in-out infinite;
+}
+
+/* Animaciones de ondas que rebotan en los bordes */
+@keyframes waveBounceLeft {
+  0%, 100% {
+    transform: translateX(0) scaleX(1) scaleY(1);
+    opacity: 0.4;
+  }
+  25% {
+    transform: translateX(10px) scaleX(1.2) scaleY(0.8);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateX(5px) scaleX(1.1) scaleY(1.1);
+    opacity: 0.9;
+  }
+  75% {
+    transform: translateX(8px) scaleX(1.15) scaleY(0.9);
+    opacity: 0.6;
+  }
+}
+
+@keyframes waveBounceRight {
+  0%, 100% {
+    transform: translateX(0) scaleX(1) scaleY(1);
+    opacity: 0.4;
+  }
+  25% {
+    transform: translateX(-10px) scaleX(1.2) scaleY(0.8);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateX(-5px) scaleX(1.1) scaleY(1.1);
+    opacity: 0.9;
+  }
+  75% {
+    transform: translateX(-8px) scaleX(1.15) scaleY(0.9);
+    opacity: 0.6;
+  }
+}
+
+@keyframes waveCenter {
+  0%, 100% {
+    transform: translateX(-50%) scaleX(1) scaleY(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateX(-50%) scaleX(1.3) scaleY(0.7);
+    opacity: 0.8;
+  }
+}
+
+/* Burbujas Flotantes */
+.burbuja-minimal {
+  position: absolute;
+  bottom: -20px;
+  background: radial-gradient(circle at 30% 30%,
+      rgba(255, 255, 255, 0.8),
+      rgba(255, 255, 255, 0.2));
+  border-radius: 50%;
+  opacity: 0;
+  animation: bubbleRise 4s infinite ease-in;
+}
+
+/* Animación de ondas en la superficie con interacción en los bordes */
+@keyframes waterSurfaceWaves {
+  0% {
+    transform: translateX(0) translateY(0) scaleX(1);
+    opacity: 0.6;
+  }
+  25% {
+    transform: translateX(5%) translateY(-2px) scaleX(1.05);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateX(0) translateY(-3px) scaleX(1.1);
+    opacity: 1;
+  }
+  75% {
+    transform: translateX(-5%) translateY(-2px) scaleX(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(0) translateY(0) scaleX(1);
+    opacity: 0.6;
+  }
+}
+
+/* Animación de la línea de nivel con ondulaciones */
+@keyframes waterLevelLine {
+  0%, 100% {
+    transform: translateY(0);
+    clip-path: polygon(
+      0% 0%, 5% 8%, 10% 0%, 15% 6%, 20% 0%, 25% 7%, 30% 0%, 35% 5%, 
+      40% 0%, 45% 8%, 50% 0%, 55% 6%, 60% 0%, 65% 7%, 70% 0%, 75% 5%, 
+      80% 0%, 85% 8%, 90% 0%, 95% 6%, 100% 0%, 100% 100%, 0% 100%
+    );
+  }
+  50% {
+    transform: translateY(-1px);
+    clip-path: polygon(
+      0% 0%, 5% 6%, 10% 0%, 15% 8%, 20% 0%, 25% 5%, 30% 0%, 35% 7%, 
+      40% 0%, 45% 6%, 50% 0%, 55% 8%, 60% 0%, 65% 5%, 70% 0%, 75% 7%, 
+      80% 0%, 85% 6%, 90% 0%, 95% 8%, 100% 0%, 100% 100%, 0% 100%
+    );
+  }
 }
 
 @keyframes bubbleRise {
   0% {
-    bottom: 0;
+    bottom: -10px;
     opacity: 0;
-    transform: translateX(0) scale(1);
+    transform: translateX(0);
   }
 
-  10% {
-    opacity: 1;
-  }
-
-  90% {
+  20% {
     opacity: 0.8;
   }
 
-  100% {
-    bottom: 100%;
-    opacity: 0;
-    transform: translateX(20px) scale(0.8);
-  }
-}
-
-.sensor {
-  width: 5px;
-  height: 35%;
-  background: linear-gradient(to bottom,
-      #424242 0%,
-      #616161 50%,
-      #424242 100%);
-  position: absolute;
-  top: 20%;
-  left: calc(50% + 42px);
-  border-radius: 3px;
-  z-index: 3;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-.punta {
-  width: 90px;
-  height: 28px;
-  right: -100px;
-  border-radius: 14px;
-  background: linear-gradient(135deg,
-      rgba(66, 165, 245, 0.95) 0%,
-      rgba(33, 150, 243, 0.9) 100%);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  display: flex;
-  position: absolute;
-  justify-content: center;
-  align-items: center;
-  bottom: 10%;
-  box-shadow: 0 4px 16px rgba(33, 150, 243, 0.4),
-    inset 0 1px 2px rgba(255, 255, 255, 0.3);
-  animation: sensorPulse 2s ease-in-out infinite;
-  font-weight: 700;
-  font-size: 11px;
-}
-
-@keyframes sensorPulse {
-
-  0%,
-  100% {
-    box-shadow: 0 4px 16px rgba(33, 150, 243, 0.4),
-      inset 0 1px 2px rgba(255, 255, 255, 0.3);
-  }
-
   50% {
-    box-shadow: 0 4px 20px rgba(33, 150, 243, 0.6),
-      inset 0 1px 2px rgba(255, 255, 255, 0.5);
+    transform: translateX(2px);
   }
-}
 
-.linea-logger {
-  width: 45px;
-  height: 2px;
-  background: linear-gradient(to right,
-      rgba(255, 82, 82, 0.6),
-      rgba(244, 67, 54, 0.4));
-  position: absolute;
-  top: 25%;
-  left: calc(50% + 5px);
-  z-index: 1;
-  box-shadow: 0 1px 3px rgba(244, 67, 54, 0.3);
-}
+  80% {
+    opacity: 0.4;
+    transform: translateX(-2px);
+  }
 
-.linea-caudalimetro {
-  width: 65px;
-  height: 7px;
-  background: linear-gradient(to right,
-      #37474f 0%,
-      #455a64 50%,
-      #263238 100%);
-  border-radius: 4px;
-  position: absolute;
-  top: 15%;
-  left: calc(50% - 110px);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  100% {
+    bottom: 110%;
+    /* Salen del agua */
+    opacity: 0;
+  }
 }
 
 .datalogger {
@@ -386,5 +492,54 @@
     border-color: rgba(255, 255, 255, 0.7);
     box-shadow: 0 6px 22px rgba(96, 125, 139, 0.4),
       inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  }
+}
+
+/* Mejora del efecto shimmer en la superficie del agua según caudal */
+.pozo.caudal-bajo .agua-inferior::before {
+  animation: waterShimmer 12s linear infinite;
+}
+
+.pozo.caudal-medio .agua-inferior::before {
+  animation: waterShimmer 8s linear infinite;
+}
+
+.pozo.caudal-alto .agua-inferior::before {
+  animation: waterShimmer 5s linear infinite;
+}
+
+/* Rising Animation for Volume Card */
+.card-rising-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+  opacity: 0.1;
+}
+
+.card-rising-wave {
+  position: absolute;
+  bottom: -100%;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(0deg, rgba(24, 144, 255, 0) 0%, rgba(24, 144, 255, 0.2) 50%, rgba(24, 144, 255, 0) 100%);
+  animation: risingWave 4s infinite linear;
+}
+
+.card-rising-wave.wave-2 {
+  animation-delay: 2s;
+}
+
+@keyframes risingWave {
+  0% {
+    bottom: -100%;
+  }
+
+  100% {
+    bottom: 100%;
   }
 }

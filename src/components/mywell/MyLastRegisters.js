@@ -45,46 +45,98 @@ const MyLastRegisters = () => {
       const unit = v.unit_measurement || (type?.includes("CAUDAL") ? "lt/s" : type?.includes("NIVEL") ? "m" : "m³");
       const dataIndex = type?.includes("CAUDAL") ? "flow" : type?.includes("NIVEL") ? "water_table" : "total";
       
-      const col = {
-        title: `${label} (${unit})`,
-        dataIndex: dataIndex,
-        align: "right",
-        render: (value, record, index) => {
-          const nextRecord = todayData[index + 1];
-          const prevValue = nextRecord?.[dataIndex];
-          let variation = null;
-          
-          if (prevValue && prevValue > 0 && typeof value === 'number') {
-            variation = ((value - prevValue) / prevValue) * 100;
+      // Si es variable de NIVEL, generamos dos columnas: Nivel de Agua y Profundidad Freática
+      if (type?.includes("NIVEL")) {
+        // Columna 1: Nivel de Agua
+        cols.push({
+          title: `Nivel de Agua (m)`,
+          dataIndex: "nivel",
+          align: "right",
+          render: (value, record, index) => {
+            const nextRecord = todayData[index + 1];
+            const prevValue = nextRecord?.["nivel"];
+            let variation = null;
+            if (prevValue && prevValue > 0 && typeof value === 'number') {
+              variation = ((value - prevValue) / prevValue) * 100;
+            }
+            return (
+              <Flex vertical align="end">
+                <Text strong style={{ color: "#fa8c16" }}>
+                   {typeof value === 'number' ? value.toFixed(2) : value || "0"}
+                </Text>
+                {variation !== null && Math.abs(variation) > 0.1 && (
+                  <Flex align="center" gap={2}>
+                    {variation > 0 ? <RiseOutlined style={{ color: "#52c41a", fontSize: 10 }} /> : <FallOutlined style={{ color: "#ff4d4f", fontSize: 10 }} />}
+                    <Text style={{ fontSize: 10, color: variation > 0 ? "#52c41a" : "#ff4d4f", fontWeight: 700 }}>
+                      {variation > 0 ? "+" : ""}{variation.toFixed(1)}%
+                    </Text>
+                  </Flex>
+                )}
+              </Flex>
+            );
           }
+        });
 
-          const color = type?.includes("CAUDAL") ? "#1890ff" : type?.includes("NIVEL") ? "#fa8c16" : "#1F3461";
+        // Columna 2: Profundidad Freática
+        cols.push({
+          title: `Nivel Freático (m)`,
+          dataIndex: "water_table",
+          align: "right",
+          render: (value, record, index) => {
+            return (
+              <Flex vertical align="end">
+                <Text strong style={{ color: "#1F3461" }}>
+                   {typeof value === 'number' ? value.toFixed(2) : value || "0"}
+                </Text>
+              </Flex>
+            );
+          }
+        });
+      } else {
+        // Lógica estándar para otras variables (Caudal, Totalizado, etc.)
+        
+        const col = {
+          title: `${label} (${unit})`,
+          dataIndex: dataIndex,
+          align: "right",
+          render: (value, record, index) => {
+            const nextRecord = todayData[index + 1];
+            const prevValue = nextRecord?.[dataIndex];
+            let variation = null;
+            
+            if (prevValue && prevValue > 0 && typeof value === 'number') {
+              variation = ((value - prevValue) / prevValue) * 100;
+            }
 
-          return (
-            <Flex vertical align="end">
-              <Text strong style={{ color: color }}>
-                {typeof value === 'number' ? 
-                  (type === "TOTALIZADO" ? numberForMiles.format(value) : value.toFixed(2)) 
-                  : value || "0"}
-              </Text>
-              {variation !== null && Math.abs(variation) > 0.1 && (
-                <Flex align="center" gap={2}>
-                  {variation > 0 ? <RiseOutlined style={{ color: "#52c41a", fontSize: 10 }} /> : <FallOutlined style={{ color: "#ff4d4f", fontSize: 10 }} />}
-                  <Text style={{ fontSize: 10, color: variation > 0 ? "#52c41a" : "#ff4d4f", fontWeight: 700 }}>
-                    {variation > 0 ? "+" : ""}{variation.toFixed(1)}%
-                  </Text>
-                </Flex>
-              )}
-            </Flex>
-          );
-        }
-      };
-      
-      cols.push(col);
+            const color = type?.includes("CAUDAL") ? "#1890ff" : "#1F3461";
+
+            return (
+              <Flex vertical align="end">
+                <Text strong style={{ color: color }}>
+                  {typeof value === 'number' ? 
+                    (type === "TOTALIZADO" ? numberForMiles.format(value) : value.toFixed(2)) 
+                    : value || "0"}
+                </Text>
+                {variation !== null && Math.abs(variation) > 0.1 && (
+                  <Flex align="center" gap={2}>
+                    {variation > 0 ? <RiseOutlined style={{ color: "#52c41a", fontSize: 10 }} /> : <FallOutlined style={{ color: "#ff4d4f", fontSize: 10 }} />}
+                    <Text style={{ fontSize: 10, color: variation > 0 ? "#52c41a" : "#ff4d4f", fontWeight: 700 }}>
+                      {variation > 0 ? "+" : ""}{variation.toFixed(1)}%
+                    </Text>
+                  </Flex>
+                )}
+              </Flex>
+            );
+          }
+        };
+        
+        cols.push(col);
+      }
     });
 
-    // Siempre agregar la columna de Consumo (Diferencia) si no está explícitamente en vars
-    if (!configVariables.some(v => v.type_variable === "CONSUMO")) {
+    // Modificación: Solo mostrar Consumo si existe la variable TOTALIZADO (ya que se deriva de ella) 
+    // y no está explícitamente configurada como variable CONSUMO
+    if (configVariables.some(v => v.type_variable?.includes("TOTALIZADO")) && !configVariables.some(v => v.type_variable === "CONSUMO")) {
       cols.push({
         title: "Consumo (m³)",
         dataIndex: "total_diff",
@@ -144,10 +196,10 @@ const MyLastRegisters = () => {
           rowKey="id"
           scroll={{ x: 600 }}
           bordered
-          size="middle"
+          size="small"
           style={{ borderRadius: "12px", overflow: "hidden", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}
           pagination={{
-            pageSize: 15,
+            pageSize: 10,
             showSizeChanger: false,
             position: ["bottomCenter"]
           }}

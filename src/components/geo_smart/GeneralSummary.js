@@ -96,6 +96,22 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
   // Logger statuses ya vienen robustos desde el hook useDataStatistics
   const loggerStatusesFinal = stats.loggerStatuses || [];
 
+  // --- Detectar si AL MENOS UN punto tiene TOTALIZADO o CAUDAL ---
+  const hasAnyTotalizado = profiles.some(p => {
+    const vars = p?.profile_ikolu?.vars || p?.config_data?.vars || p?.config_data?.variables || [];
+    return vars.some(v => v.type_variable?.includes("TOTALIZADO"));
+  });
+
+  const hasAnyCaudal = profiles.some(p => {
+    const vars = p?.profile_ikolu?.vars || p?.config_data?.vars || p?.config_data?.variables || [];
+    return vars.some(v => v.type_variable?.includes("CAUDAL"));
+  });
+
+  // Mostrar secciones solo si hay al menos un punto con la variable correspondiente
+  const showConsumoSection = hasAnyTotalizado;
+  const showAnalysisSection = hasAnyTotalizado || hasAnyCaudal; // Solo si hay datos de consumo/caudal
+  const showServiceSection = true; // Estado del Servicio siempre visible
+
   // --- Mapa auxiliar por nombre de punto ---
   const profilesByName = profiles.reduce((acc, p) => {
     if (p?.title) {
@@ -235,8 +251,8 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
         </Flex>
       </Flex>
 
-      {/* Indicadores principales */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+      {/* Indicadores principales - Siempre visibles */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }} justify="center">
         {/* Total de Puntos */}
         <Col xs={24} sm={12} md={6}>
           <Card
@@ -292,7 +308,8 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
           </Card>
         </Col>
 
-        {/* Consumo Hoy */}
+        {/* Consumo Hoy - Solo si hay TOTALIZADO */}
+        {showConsumoSection && (
         <Col xs={24} sm={12} md={6}>
           <Card
             bordered
@@ -339,8 +356,10 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
             />
           </Card>
         </Col>
+        )}
 
-        {/* Total Acumulado */}
+        {/* Total Acumulado - Solo si hay TOTALIZADO */}
+        {showConsumoSection && (
         <Col xs={24} sm={12} md={6}>
           <Card
             bordered
@@ -396,9 +415,11 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
             </div>
           </Card>
         </Col>
+        )}
       </Row>
 
-      {/* Estado del servicio */}
+      {/* Estado del servicio - Solo si hay TOTALIZADO o CAUDAL */}
+      {showServiceSection && (
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} md={8}>
           <Card title="Estado del Servicio" bordered style={{ height: "100%" }}>
@@ -553,7 +574,34 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {Object.keys(consumoPorNombre).map((punto) => {
+                  {Object.keys(consumoPorNombre)
+                    .map((punto) => {
+                    // Verificar si el punto tiene TOTALIZADO
+                    const profile = profilesByName[punto];
+                    const vars = profile?.profile_ikolu?.vars || profile?.config_data?.vars || profile?.config_data?.variables || [];
+                    const hasTotalizado = vars.some(v => v.type_variable?.includes("TOTALIZADO"));
+                    
+                    if (!hasTotalizado) {
+                      // Mostrar fila indicando que no tiene totalizado
+                      return (
+                        <tr key={punto}>
+                          <td style={{ padding: "2px 0" }}>{punto}</td>
+                          <td
+                            colSpan={3}
+                            style={{
+                              textAlign: "center",
+                              color: "#999",
+                              fontStyle: "italic",
+                              fontSize: 11,
+                            }}
+                          >
+                            Punto sin totalizado
+                          </td>
+                        </tr>
+                      );
+                    }
+                    
+                    // Mostrar datos normales para puntos con totalizado
                     const hoy = consumoPorNombre[punto].hoy || 0;
                     const ayer = consumoPorNombre[punto].ayer || 0;
                     const diferencia = hoy - ayer;
@@ -612,9 +660,10 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
           </Card>
         </Col>
       </Row>
+      )}
 
-      {/* Análisis general y tarjetas */}
-      {/* Sección de análisis para que el usuario entienda el contexto del día */}
+      {/* Análisis inteligente del día - Solo si hay TOTALIZADO o CAUDAL */}
+      {showAnalysisSection && (
       <div style={{ marginTop: 8, marginBottom: 8 }}>
         <Text strong style={{ fontSize: 14 }}>
           Análisis inteligente del día
@@ -625,10 +674,12 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
           cómo está la conexión de los loggers.
         </Text>
       </div>
+      )}
+      {showAnalysisSection && (
       <AnalysisPrompt profiles={profiles} />
+      )}
 
-      {/* Gráfico combinado de variables en tiempo real */}
-      {/* Sección de detalle por punto: caudal, consumo y niveles */}
+      {/* Variables en Tiempo Real - Siempre visible */}
       <div style={{ marginTop: 32 }}>
         <Text
           strong

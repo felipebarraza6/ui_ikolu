@@ -57,6 +57,18 @@ const CombinedVariablesChart = ({ profiles }) => {
     return profilesWithData.find((p) => (p.id || p.title) === selectedProfile);
   }, [profilesWithData, selectedProfile]);
 
+  // Detectar variables configuradas para el perfil seleccionado
+  const configuredVars = useMemo(() => {
+    if (!profile) return { hasCaudal: false, hasTotalizado: false, hasNivel: false };
+    
+    const vars = profile?.profile_ikolu?.vars || profile?.config_data?.vars || profile?.config_data?.variables || [];
+    return {
+      hasCaudal: vars.some(v => v.type_variable?.includes("CAUDAL")),
+      hasTotalizado: vars.some(v => v.type_variable?.includes("TOTALIZADO")),
+      hasNivel: vars.some(v => v.type_variable?.includes("NIVEL")),
+    };
+  }, [profile]);
+
   // Preparar datos en orden cronológico (más antiguo primero) para el gráfico
   const tableData = useMemo(() => {
     if (!profile || !profile.modules?.today) return [];
@@ -192,7 +204,7 @@ const CombinedVariablesChart = ({ profiles }) => {
     [tableData]
   );
 
-  // Columnas de la tabla
+  // Columnas de la tabla - Condicionales según variables configuradas
   const columns = [
     {
       title: "Hora Medición",
@@ -208,7 +220,8 @@ const CombinedVariablesChart = ({ profiles }) => {
       width: 120,
       render: (val) => val || <span style={{ color: "#ccc" }}>—</span>,
     },
-    {
+    // Caudal - Solo si está configurado
+    ...(configuredVars.hasCaudal ? [{
       title: isCaudalMedioDia ? "Caudal Medio (L/s)" : "Caudal (L/s)",
       dataIndex: "caudal",
       key: "caudal",
@@ -221,34 +234,38 @@ const CombinedVariablesChart = ({ profiles }) => {
           {val.toFixed(2)}
         </span>
       ),
-    },
-    {
-      title: "Consumo (m³)",
-      dataIndex: "consumo",
-      key: "consumo",
-      width: 110,
-      align: "right",
-      render: (val) => (
-        <span style={{ color: "#722ed1", fontWeight: 600 }}>
-          {Number(val || 0).toFixed(0)}
-        </span>
-      ),
-    },
-    {
-      title: "Total Acum. (m³)",
-      dataIndex: "total",
-      key: "total",
-      width: 130,
-      align: "right",
-      render: (val) => (
-        <Flex align="center" justify="flex-end" gap={4}>
-          <IoIosWater style={{ color: "#1890ff" }} />
-          <span style={{ color: "#1890ff", fontWeight: 600 }}>
+    }] : []),
+    // Consumo y Total - Solo si está configurado TOTALIZADO
+    ...(configuredVars.hasTotalizado ? [
+      {
+        title: "Consumo (m³)",
+        dataIndex: "consumo",
+        key: "consumo",
+        width: 110,
+        align: "right",
+        render: (val) => (
+          <span style={{ color: "#722ed1", fontWeight: 600 }}>
             {Number(val || 0).toFixed(0)}
           </span>
-        </Flex>
-      ),
-    },
+        ),
+      },
+      {
+        title: "Total Acum. (m³)",
+        dataIndex: "total",
+        key: "total",
+        width: 130,
+        align: "right",
+        render: (val) => (
+          <Flex align="center" justify="flex-end" gap={4}>
+            <IoIosWater style={{ color: "#1890ff" }} />
+            <span style={{ color: "#1890ff", fontWeight: 600 }}>
+              {Number(val || 0).toFixed(0)}
+            </span>
+          </Flex>
+        ),
+      },
+    ] : []),
+    // Nivel Freático - Solo para pozos subterráneos (ya existente)
     ...(hasNivelFreatico
       ? [
           {
@@ -329,7 +346,10 @@ const CombinedVariablesChart = ({ profiles }) => {
 
       {/* Estadísticas rápidas */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} md={6}>
+        {/* Caudal stats - Solo si está configurado */}
+        {configuredVars.hasCaudal && (
+          <>
+            <Col xs={24} sm={12} md={6}>
           <Card size="small" style={{ background: "#f0f8ff" }}>
             <Statistic
               title={
@@ -402,8 +422,12 @@ const CombinedVariablesChart = ({ profiles }) => {
             />
           </Card>
         </Col>
+          </>
+        )}
 
-        <Col xs={24} sm={12} md={6}>
+        {/* Consumo Total - Solo si está configurado TOTALIZADO */}
+        {configuredVars.hasTotalizado && (
+          <Col xs={24} sm={12} md={6}>
           <Card size="small" style={{ background: "#fff7e6" }}>
             <Statistic
               title={
@@ -418,7 +442,9 @@ const CombinedVariablesChart = ({ profiles }) => {
             />
           </Card>
         </Col>
+        )}
 
+        {/* Nivel Freático - Solo para pozos subterráneos */}
         {hasNivelFreatico && (
           <>
             <Col xs={24} sm={12} md={6}>
@@ -499,53 +525,81 @@ const CombinedVariablesChart = ({ profiles }) => {
                 >
                   {/* Leyenda de colores */}
                   <Flex gap={16} wrap="wrap" style={{ marginBottom: 12 }}>
-                    <Flex align="center" gap={6}>
-                      <div
-                        style={{ width: 12, height: 3, background: "#1976d2" }}
-                      />
-                      <Text style={{ fontSize: 12 }}>Caudal (L/s)</Text>
-                    </Flex>
-                    <Flex align="center" gap={6}>
-                      <div
-                        style={{ width: 12, height: 3, background: "#722ed1" }}
-                      />
-                      <Text style={{ fontSize: 12 }}>Consumo (m³)</Text>
-                    </Flex>
-                    {hasNivelFreatico && (
+                    {configuredVars.hasCaudal && (
                       <Flex align="center" gap={6}>
                         <div
-                          style={{
-                            width: 12,
-                            height: 3,
-                            background: "#fa8c16",
-                          }}
+                          style={{ width: 12, height: 3, background: "#1976d2" }}
                         />
-                        <Text style={{ fontSize: 12 }}>Nivel Freático (m)</Text>
+                        <Text style={{ fontSize: 12 }}>Caudal (L/s)</Text>
                       </Flex>
+                    )}
+                    {configuredVars.hasTotalizado && (
+                      <Flex align="center" gap={6}>
+                        <div
+                          style={{ width: 12, height: 3, background: "#722ed1" }}
+                        />
+                        <Text style={{ fontSize: 12 }}>Consumo (m³)</Text>
+                      </Flex>
+                    )}
+                    {hasNivelFreatico && (
+                      <>
+                        <Flex align="center" gap={6}>
+                          <div
+                            style={{
+                              width: 12,
+                              height: 3,
+                              background: "#fa8c16",
+                            }}
+                          />
+                          <Text style={{ fontSize: 12 }}>Nivel Freático (m)</Text>
+                        </Flex>
+                        <Flex align="center" gap={6}>
+                          <div
+                            style={{
+                              width: 12,
+                              height: 3,
+                              background: "#13c2c2",
+                            }}
+                          />
+                          <Text style={{ fontSize: 12 }}>Nivel Sensor (m)</Text>
+                        </Flex>
+                      </>
                     )}
                   </Flex>
 
                   {/* Gráfico combinado con múltiples series */}
                   <Line
                     data={[
-                      ...tableData.map((d) => ({
+                      // Caudal - Solo si está configurado
+                      ...(configuredVars.hasCaudal ? tableData.map((d) => ({
                         time: d.time,
                         value: d.caudal,
                         type: "Caudal (L/s)",
-                      })),
-                      ...tableData.map((d) => ({
+                      })) : []),
+                      // Consumo - Solo si está configurado TOTALIZADO
+                      ...(configuredVars.hasTotalizado ? tableData.map((d) => ({
                         time: d.time,
                         value: d.consumo,
                         type: "Consumo (m³)",
-                      })),
+                      })) : []),
+                      // Nivel Freático y Nivel Sensor - Solo para pozos subterráneos
                       ...(hasNivelFreatico
-                        ? tableData
-                            .filter((d) => d.nivelFreatico !== null)
-                            .map((d) => ({
-                              time: d.time,
-                              value: d.nivelFreatico,
-                              type: "Nivel Freático (m)",
-                            }))
+                        ? [
+                            ...tableData
+                              .filter((d) => d.nivelFreatico !== null)
+                              .map((d) => ({
+                                time: d.time,
+                                value: d.nivelFreatico,
+                                type: "Nivel Freático (m)",
+                              })),
+                            ...tableData
+                              .filter((d) => d.nivelSensor !== null)
+                              .map((d) => ({
+                                time: d.time,
+                                value: d.nivelSensor,
+                                type: "Nivel Sensor (m)",
+                              })),
+                          ]
                         : []),
                     ]}
                     xField="time"
@@ -557,6 +611,7 @@ const CombinedVariablesChart = ({ profiles }) => {
                       if (type === "Caudal (L/s)") return "#1976d2";
                       if (type === "Consumo (m³)") return "#722ed1";
                       if (type === "Nivel Freático (m)") return "#fa8c16";
+                      if (type === "Nivel Sensor (m)") return "#13c2c2";
                       return "#666";
                     }}
                     point={{

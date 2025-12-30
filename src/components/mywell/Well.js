@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import "./Well.css";
 import { Typography } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
-import QueueAnim from "rc-queue-anim"; // Importación de QueueAnim
 
 const { Text } = Typography;
 
@@ -24,155 +23,460 @@ const generateRandomBubbles = () => {
   return bubbles;
 };
 
-const generateRandomBubblesForTube = () => {
+// Genera burbujas para el tubo del pozo con intensidad basada en caudal
+const generateRandomBubblesForTube = (caudal = 0) => {
   const bubbles = [];
-  for (let i = 0; i < 20; i++) {
+  // Ajusta la cantidad de burbujas según el caudal (más caudal = más burbujas)
+  const bubbleCount = Math.min(30, Math.max(10, Math.floor(caudal * 2) + 15));
+  // Ajusta la velocidad según el caudal (más caudal = más rápido)
+  const baseSpeed = Math.max(3, Math.min(8, 8 - caudal * 0.5));
+
+  for (let i = 0; i < bubbleCount; i++) {
     const size = Math.random() * 5 + 2 + "px"; // Tamaño entre 2px y 7px
     const left = Math.random() * 100 + "%";
-    const animationDuration = Math.random() * 5 + 5 + "s";
+    const animationDuration = Math.random() * 2 + baseSpeed + "s";
     const animationDelay = Math.random() * -10 + "s";
     bubbles.push({ size, left, animationDuration, animationDelay });
   }
   return bubbles;
 };
 
-const Well = ({ total, nivel, caudal, profW, loading = false }) => {
-  const [bubbles, setBubbles] = useState([]);
+const Well = (props) => {
+  const {
+    total,
+    nivel,
+    caudal,
+    profW,
+    waterTable = 0,
+    loading = false,
+    showCaudal = true,
+    showNivel = true,
+    showTotal = false,
+    children,
+  } = props;
   const [tubeBubbles, setTubeBubbles] = useState([]);
   const [niveLevel, setNivelLevel] = useState(nivel);
   const [prof, setProf] = useState(profW);
+  const [waterTableLevel, setWaterTableLevel] = useState(waterTable);
 
   useEffect(() => {
-    setBubbles(generateRandomBubbles());
-    setTubeBubbles(generateRandomBubblesForTube());
+    setTubeBubbles(generateRandomBubblesForTube(parseFloat(caudal) || 0));
     setNivelLevel(nivel);
+    setWaterTableLevel(waterTable);
     if (profW <= 0) {
-      setProf(50);
+      setProf(50); // Default placeholder depth
     } else {
       setProf(profW);
     }
-  }, [nivel, profW]);
+  }, [nivel, profW, waterTable, caudal]);
 
-  const currentProf = parseFloat(prof);
-  const currentNivel = parseFloat(niveLevel);
+  // Calcular profundidad: si no hay profundidad configurada, usar suma de nivel freático + columna de agua
+  const hasProfundidad = profW > 0;
+  const currentProf = hasProfundidad
+    ? parseFloat(prof) || 50
+    : parseFloat(waterTableLevel) + parseFloat(niveLevel) || 50;
 
-  const waterHeight = currentProf - currentNivel;
+  const currentNivel = parseFloat(niveLevel) || 0;
+  const currentWaterTable = parseFloat(waterTableLevel) || 0;
+  const currentCaudal = parseFloat(caudal) || 0;
 
-  // 4. Calcula el porcentaje
-  let percentage = (waterHeight / currentProf) * 100;
+  // Calcular nivel estático: diferencia entre profundidad y (nivel freático + columna de agua)
+  // Solo se calcula si hay profundidad configurada
+  const nivelEstatico = hasProfundidad
+    ? Math.max(0, currentProf - (currentWaterTable + currentNivel))
+    : 0;
 
-  // 5. Asegúrate de que el porcentaje esté entre 0 y 100
-  percentage = Math.max(0, Math.min(100, percentage));
+  // --- CÁLCULOS DE VISUALIZACIÓN ---
 
-  // 6. Formatea como string para CSS (puedes usar toFixed para decimales)
-  const percentageString = percentage.toFixed(2) + "%";
+  // 1. AGUA TOTAL (Columna de Agua + Nivel Estático como un solo cuerpo)
+  // Si hay profundidad, sumamos columna de agua + nivel estático
+  // Si no hay profundidad, solo usamos la columna de agua
+  const totalWaterHeightMeters =
+    hasProfundidad && nivelEstatico > 0
+      ? currentNivel + nivelEstatico
+      : currentNivel;
+  const totalWaterHeightPercent = Math.min(
+    100,
+    (totalWaterHeightMeters / currentProf) * 100
+  );
+
+  // Porcentaje de la columna de agua dentro del total de agua
+  const columnaPercentInTotal =
+    totalWaterHeightMeters > 0
+      ? (currentNivel / totalWaterHeightMeters) * 100
+      : 100;
+
+  // 2. NIVEL FREÁTICO (Background en la tierra)
+  // Al estar anidado en .tierra, el contenedor padre ES la tierra (100% height).
+  const effectiveEarthHeight = 100;
+  const effectiveSurfaceTop = 0;
+
+  // Profundidad relativa al total
+  const freaticoRelativePercent =
+    (currentWaterTable / currentProf) * effectiveEarthHeight;
+  const freaticoTop = effectiveSurfaceTop + freaticoRelativePercent;
+  const freaticoHeight = effectiveEarthHeight - freaticoRelativePercent;
 
   const styles = {
     nivel: {
-      position: "absolute",
-      bottom: "0",
-      width: "100%",
-      height: percentageString,
-      borderRadius: "0px 0px 10px 10px",
-      backgroundColor: "#8aafb1",
-      backgroundSize: "cover",
-      animation: "ondulacion-nivel 2s infinite",
+      height: `${totalWaterHeightPercent}%`,
+      bottom: 0,
+      // Gradiente que va de claro (columna de agua) a oscuro (nivel estático)
+      // El punto de transición está en el porcentaje donde termina la columna de agua
+      background:
+        hasProfundidad && nivelEstatico > 0
+          ? `linear-gradient(180deg,
+            rgba(0, 242, 255, 0.8) 0%,
+            rgba(0, 230, 245, 0.82) ${columnaPercentInTotal * 0.3}%,
+            rgba(0, 220, 240, 0.83) ${columnaPercentInTotal * 0.6}%,
+            rgba(0, 210, 235, 0.84) ${columnaPercentInTotal * 0.8}%,
+            rgba(0, 200, 230, 0.8) ${columnaPercentInTotal}%,
+            rgba(0, 190, 225, 0.82) ${columnaPercentInTotal + 5}%,
+            rgba(0, 170, 215, 0.85) ${columnaPercentInTotal + 20}%,
+            rgba(0, 150, 205, 0.88) ${columnaPercentInTotal + 40}%,
+            rgba(0, 140, 200, 0.9) 100%)`
+          : `linear-gradient(180deg,
+            rgba(0, 242, 255, 0.8) 0%,
+            rgba(0, 230, 245, 0.82) 30%,
+            rgba(0, 220, 240, 0.83) 60%,
+            rgba(0, 210, 235, 0.84) 80%,
+            rgba(0, 200, 230, 0.8) 100%)`,
+      zIndex: 2,
+    },
+    freatico: {
+      top: `${Math.min(98, Math.max(50, freaticoTop))}%`, // Clamp entre 50% (superficie) y casi fondo
+      height: `${Math.max(0, freaticoHeight)}%`,
+    },
+    sensorLine: {
+      height: `${100 - totalWaterHeightPercent}%`, // El cable baja hasta el nivel del agua
     },
   };
 
   return (
     <div className="pozo">
-      <div className="superficie"></div>
-      <div className="pavimento"></div>
-      <div className="nivel-agua">
-        <div className="tierra"></div>
-        <div className="agua-inferior">
-          {bubbles.map((bubble, index) => (
+      {/* 2. Suelo / Tierra (Fondo Minimalista) - Contenedor Principal */}
+      <div className="tierra">
+        {/* 3. Nivel Freático (Capa de Agua en la tierra) */}
+        <div className="nivel-freatico-container" style={styles.freatico}>
+          {/* Label removed per user request */}
+        </div>
+
+        {/* 5. Tubo del Pozo (Vidrio) */}
+        <div className="tubo-pozo">
+          {/* Profundidad Total - Lado Izquierdo */}
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              right: "100%",
+              marginRight: 20,
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              borderRight: "1px solid rgba(0, 0, 0, 0.15)",
+              whiteSpace: "nowrap",
+              zIndex: 20,
+              pointerEvents: "none",
+            }}
+          >
             <div
-              key={`bubble-${index}`}
-              className="burbuja"
               style={{
-                width: bubble.size,
-                height: bubble.size,
-                left: bubble.left,
-                bottom: '0',
-                animationDuration: bubble.animationDuration,
-                animationDelay: bubble.animationDelay,
+                position: "absolute",
+                top: 0,
+                right: 0,
+                width: 10,
+                height: 1,
+                background: "rgba(0, 0, 0, 0.15)",
               }}
             ></div>
-          ))}
-        </div>
-        <div className="tubo-pozo">
-          <div style={styles.nivel} className="nivel" key="nivel">
+
+            <div
+              style={{
+                paddingRight: 10,
+                textAlign: "right",
+                pointerEvents: "auto",
+              }}
+            >
+              <Text
+                style={{
+                  display: "block",
+                  fontSize: 9,
+                  color: "rgba(0, 0, 0, 0.6)",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                Profundidad
+              </Text>
+              <Text
+                style={{
+                  display: "block",
+                  fontSize: 14,
+                  color: "#1F3461",
+                  fontWeight: 900,
+                  lineHeight: 1,
+                }}
+              >
+                {currentProf.toFixed(2)} m
+              </Text>
+            </div>
+
+            <div
+              style={{
+                position: "absolute",
+                bottom: 0,
+                right: 0,
+                width: 10,
+                height: 1,
+                background: "rgba(0, 0, 0, 0.15)",
+              }}
+            ></div>
+          </div>
+
+          {/* ETIQUETAS DE NIVEL - Lado Derecho */}
+          {/* Bloque 1: Nivel Freático (parte superior) */}
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: "100%",
+              marginLeft: 20,
+              height: `${100 - totalWaterHeightPercent}%`,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              borderLeft: "1px solid rgba(0, 0, 0, 0.12)",
+              whiteSpace: "nowrap",
+              zIndex: 20,
+              pointerEvents: "none",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: 10,
+                height: 1,
+                background: "rgba(0, 0, 0, 0.12)",
+              }}
+            ></div>
+
+            <div style={{ paddingLeft: 10, pointerEvents: "auto" }}>
+              <Text
+                style={{
+                  display: "block",
+                  fontSize: 9,
+                  color: "rgba(0, 0, 0, 0.6)",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                Nivel freático
+              </Text>
+              <Text
+                style={{
+                  display: "block",
+                  fontSize: 14,
+                  color: "#1F3461",
+                  fontWeight: 900,
+                  lineHeight: 1,
+                }}
+              >
+                {currentWaterTable.toFixed(2)} m
+              </Text>
+            </div>
+
+            <div
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                width: 10,
+                height: 1,
+                background: "rgba(0, 0, 0, 0.12)",
+              }}
+            ></div>
+          </div>
+
+          {/* Bloque 2: Columna de Agua (parte media del agua total) */}
+          <div
+            style={{
+              position: "absolute",
+              bottom:
+                hasProfundidad && nivelEstatico > 0
+                  ? `${(nivelEstatico / currentProf) * 100}%`
+                  : "0",
+              left: "100%",
+              marginLeft: 20,
+              height: `${(currentNivel / currentProf) * 100}%`,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              borderLeft: "1px solid rgba(0, 0, 0, 0.18)",
+              whiteSpace: "nowrap",
+              zIndex: 20,
+              pointerEvents: "none",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: 10,
+                height: 1,
+                background: "rgba(0, 0, 0, 0.18)",
+              }}
+            ></div>
+
+            <div style={{ paddingLeft: 10, pointerEvents: "auto" }}>
+              <Text
+                style={{
+                  fontSize: 9,
+                  color: "rgba(0, 0, 0, 0.6)",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                Columna de Agua
+              </Text>
+              <Text
+                style={{
+                  display: "block",
+                  fontSize: 14,
+                  color: "#1F3461",
+                  fontWeight: 800,
+                  lineHeight: 1,
+                }}
+              >
+                {currentNivel.toFixed(2)} m
+              </Text>
+            </div>
+
+            <div
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                width: 10,
+                height: 1,
+                background: "rgba(0, 0, 0, 0.18)",
+              }}
+            ></div>
+          </div>
+
+          {/* Agua Interior - Un solo cuerpo de agua (Columna + Estático) */}
+          <div className="nivel" style={styles.nivel}>
+            {/* Ondas que interactúan con los bordes */}
+            <div className="water-wave wave-left"></div>
+            <div className="water-wave wave-right"></div>
+            <div className="water-wave wave-center"></div>
+
+            {/* Burbujas animadas - algunas pueden cruzar al nivel estático */}
             {tubeBubbles.map((bubble, index) => (
               <div
-                key={`tube-bubble-${index}`}
-                className="burbuja-tubo"
+                key={index}
+                className="burbuja-minimal"
                 style={{
+                  left: bubble.left,
                   width: bubble.size,
                   height: bubble.size,
-                  left: bubble.left,
-                  bottom: '0',
                   animationDuration: bubble.animationDuration,
                   animationDelay: bubble.animationDelay,
                 }}
-              ></div>
+              />
             ))}
           </div>
+
+          {/* Bloque 3: Nivel Estático (parte inferior del agua total) */}
+          {hasProfundidad && nivelEstatico > 0 && (
+            <div
+              style={{
+                position: "absolute",
+                bottom: "0",
+                left: "100%",
+                marginLeft: 20,
+                height: `${(nivelEstatico / currentProf) * 100}%`,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                borderLeft: "1px solid rgba(0, 0, 0, 0.15)",
+                whiteSpace: "nowrap",
+                zIndex: 20,
+                pointerEvents: "none",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: 10,
+                  height: 1,
+                  background: "rgba(0, 0, 0, 0.15)",
+                }}
+              ></div>
+
+              <div style={{ paddingLeft: 10, pointerEvents: "auto" }}>
+                <Text
+                  style={{
+                    fontSize: 9,
+                    color: "rgba(0, 0, 0, 0.6)",
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                  }}
+                >
+                  Nivel Estático
+                </Text>
+                <Text
+                  style={{
+                    display: "block",
+                    fontSize: 14,
+                    color: "#1F3461",
+                    fontWeight: 800,
+                    lineHeight: 1,
+                  }}
+                >
+                  {nivelEstatico.toFixed(2)} m
+                </Text>
+              </div>
+
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  width: 10,
+                  height: 1,
+                  background: "rgba(0, 0, 0, 0.15)",
+                }}
+              ></div>
+            </div>
+          )}
         </div>
-      </div>
-      <div className="sensor">
-        <div className="punta">
-          <Text style={{ color: "white", fontSize: 11, fontWeight: 700 }}>
-            {loading ? (
-              <LoadingOutlined
-                spin
-                style={{ fontSize: "12px", color: "white" }}
-              />
-            ) : (
-              `${nivel && parseFloat(nivel).toFixed(2)} m`
-            )}
-          </Text>
-        </div>
-      </div>
-      <div className="linea-logger"></div>
-      <div className="linea-caudalimetro"></div>
-      <div className="datalogger">
-        <div className="tablero">
-          <Text
-            style={{
-              color: "#1F3461",
-              fontWeight: 700,
-              fontSize: 11,
-              textAlign: "center",
-            }}
-          >
-            {loading ? (
-              <LoadingOutlined
-                spin
-                style={{ fontSize: "12px", color: "#1F3461" }}
-              />
-            ) : (
-              `${total && total.toLocaleString("es-CL")} m³`
-            )}
-          </Text>
-        </div>
-        <div className="pata-izquierda"></div>
-        <div className="pata-derecha"></div>
       </div>
 
-      <div className="caudalimetro">
-        <Text style={{ textAlign: "center", color: "white", fontSize: 11, fontWeight: 700 }}>
-          {loading ? (
-            <LoadingOutlined
-              spin
-              style={{ fontSize: "12px", color: "white" }}
-            />
-          ) : (
-            `${caudal && parseFloat(caudal).toFixed(2)} L/s`
-          )}
-        </Text>
-      </div>
+      {/* Stats / Children Integrados: Renderizar si hay children */}
+      {children && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: 10,
+            left: 0,
+            width: "100%",
+            zIndex: 30,
+            padding: "0 20px",
+          }}
+        >
+          {children}
+        </div>
+      )}
     </div>
   );
 };

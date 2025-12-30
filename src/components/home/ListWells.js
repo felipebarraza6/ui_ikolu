@@ -135,19 +135,21 @@ const ListWells = () => {
                   {e.title || `Perfil ${e.id}`}
                 </span>
               </Flex>
-              <Tag
-                color="green-inverse"
-                style={{
-                  margin: "6px 0 0 24px",
-                  fontSize: 10,
-                  padding: "0 6px",
-                  height: 18,
-                  lineHeight: "16px",
-                  display: "inline-block",
-                }}
-              >
-                {e.dga.code_dga || "N/A"}
-              </Tag>
+              {e.dga.code_dga && (
+                <Tag
+                  color="green-inverse"
+                  style={{
+                    margin: "6px 0 0 24px",
+                    fontSize: 10,
+                    padding: "0 6px",
+                    height: 18,
+                    lineHeight: "16px",
+                    display: "inline-block",
+                  }}
+                >
+                  {e.dga.code_dga}
+                </Tag>
+              )}
             </Flex>
           </Select.Option>
         );
