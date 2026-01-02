@@ -77,17 +77,7 @@ const CodeQR = ({ onDiagnoseClick, loading = false }) => {
   const d6_profile = state?.selected_profile?.config_data?.d6 || 0;
 
   // Calcular el consumo total desde los registros
-  const totalConsumption =
-    dataDga.length > 0
-      ? Math.abs(
-          Math.max(
-            ...dataDga.map(
-              (record) =>
-                first_actual_year - (parseFloat(record.total) + d6_profile) || 0
-            )
-          )
-        )
-      : 0;
+  const totalConsumption = state.selected_profile?.modules?.total_consumed_year;
 
   // Obtener la fecha del registro más reciente (última sincronización)
   const getLastSyncDate = () => {
@@ -95,7 +85,7 @@ const CodeQR = ({ onDiagnoseClick, loading = false }) => {
 
     // Ordenar por fecha de medición y tomar el más reciente
     const sortedData = [...dataDga].sort(
-      (a, b) => new Date(b.date_time_medition) - new Date(a.date_time_medition)
+      (a, b) => new Date(b.date_time_medition) - new Date(a.date_time_medition),
     );
 
     return sortedData[0].date_time_medition;
@@ -119,7 +109,7 @@ const CodeQR = ({ onDiagnoseClick, loading = false }) => {
     if (code_dga) {
       window.open(
         `https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${code_dga}`,
-        "_blank"
+        "_blank",
       );
     } else {
       notification.warning({
