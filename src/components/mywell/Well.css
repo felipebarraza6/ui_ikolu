@@ -43,7 +43,7 @@
   bottom: auto;
   padding-top: 20px;
   /* Fondo minimal moderno - gradiente suave blanco/gris claro */
-  background: linear-gradient(180deg, 
+  background: linear-gradient(180deg,
     rgba(255, 255, 255, 0.95) 0%, 
     rgba(250, 250, 252, 0.9) 50%,
     rgba(245, 247, 250, 0.85) 100%);
@@ -72,7 +72,7 @@
   background-size: 24px 24px;
   opacity: 0.6;
   pointer-events: none;
-}
+  }
 
 /* --- Superficie (Línea de Suelo) --- */
 .superficie {
@@ -231,9 +231,9 @@
   width: 100%;
   height: 15px;
   background: radial-gradient(ellipse at center,
-    rgba(255, 255, 255, 0.3) 0%,
+      rgba(255, 255, 255, 0.3) 0%,
     rgba(255, 255, 255, 0.15) 40%,
-    transparent 70%);
+      transparent 70%);
   border-radius: 50%;
   pointer-events: none;
   z-index: 3;
@@ -387,7 +387,7 @@
   80% {
     opacity: 0.4;
     transform: translateX(-2px);
-  }
+}
 
   100% {
     bottom: 110%;

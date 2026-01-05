@@ -19,7 +19,7 @@ const commonConfig = {
   },
   yAxis: {
     label: {
-      formatter: (text) => parseFloat(text).toLocaleString("es-CL"),
+      formatter: (text) => parseFloat(text).toFixed(2),
     },
     title: {
       style: {
@@ -182,36 +182,54 @@ export const TotalDay = ({ data }) => {
 };
 
 export const WaterTableBar = ({ data }) => {
+  // Preparar datos con ambos niveles
+  const chartData = [];
   data.forEach((item) => {
-    item.water_table = parseFloat(item.water_table);
+    // Agregar nivel freático
+    chartData.push({
+      date_time_medition: item.date_time_medition,
+      value: parseFloat(item.water_table).toFixed(2),
+      type: "Nivel Freático",
+    });
+    // Agregar nivel (si existe)
+    if (item.nivel !== undefined && item.nivel !== null) {
+      chartData.push({
+        date_time_medition: item.date_time_medition,
+        value: parseFloat(item.nivel).toFixed(2),
+        type: "Nivel",
+      });
+    }
   });
+
   const config = {
     ...commonConfig,
-    data: data,
+    data: chartData,
     xField: "date_time_medition",
-    yField: "water_table",
-    seriesField: "water_table",
+    yField: "value",
+    seriesField: "type",
+    smooth: true,
     meta: {
-      flow: { alias: "Nivel freático (m)" },
+      value: { alias: "Metros" },
       date_time_medition: { alias: "Fecha/hora medición" },
     },
     tooltip: {
       formatter: (datum) => ({
-        name: "Nivel freático",
-        value: `${datum.water_table.toFixed(2)} m`,
+        name: datum.type,
+        value: `${parseFloat(datum.value).toFixed(2)} m`,
         title: `${datum.date_time_medition.slice(11, 16)} hrs`,
       }),
     },
     yAxis: {
       ...commonConfig.yAxis,
-      min: Math.min(...data.map((d) => d.water_table)),
-      max: Math.max(...data.map((d) => d.water_table)),
+      label: {
+        formatter: (text) => parseFloat(text).toFixed(2),
+      },
       title: {
-        text: "Nivel freático (m)",
+        text: "Nivel (m)",
       },
       inverse: true, // Invertir el eje Y
     },
-    color: "rgb(31, 52, 97)",
+    color: ["rgb(31, 52, 97)", "rgb(52, 168, 83)"], // Azul para freático, verde para nivel
   };
-  return <Area {...config} />;
+  return <Line {...config} />;
 };

@@ -124,6 +124,8 @@ const Reports = () => {
         finishDate,
         page
       );
+      console.log("🔍 Datos del backend (primer registro):", rq.results[0]);
+      console.log("🔍 Claves disponibles:", rq.results[0] ? Object.keys(rq.results[0]) : []);
       setData(rq.results);
       setTotal(rq.count);
 
@@ -197,6 +199,85 @@ const Reports = () => {
     getData();
   }, [page, initialDate, finishDate, state.selected_profile.id]);
 
+  // Función para generar columnas dinámicamente basadas en las variables configuradas
+  const getTableColumns = () => {
+    const variables = state.selected_profile.config_data?.variables || [];
+
+    console.log("📊 Variables configuradas:", variables);
+
+    // Columna de fecha siempre presente
+    const columns = [
+      {
+        title: "Fecha",
+        dataIndex: "date_time_medition",
+        render: (date) => {
+          return dayjs(date).format("YYYY-MM-DD HH:mm");
+        },
+      },
+    ];
+
+    // Agregar columnas basadas en las variables configuradas
+    variables.forEach((variable) => {
+      console.log(`  📌 Procesando variable: ${variable.label} (${variable.type_variable})`);
+
+      switch (variable.type_variable) {
+        case "CAUDAL":
+          columns.push({
+            title: variable.label || "Caudal (L/s)",
+            dataIndex: "flow",
+          });
+          break;
+        case "CAUDAL_PROMEDIO":
+          columns.push({
+            title: variable.label || "Caudal Promedio (L/s)",
+            dataIndex: "flow",
+          });
+          break;
+        case "NIVEL":
+          // Si viene NIVEL, mostrar ambas columnas usando el mismo dato
+          columns.push({
+            title: variable.label || "Nivel (m)",
+            dataIndex: "nivel",
+          });
+          columns.push({
+            title: "Nivel Freático (m)",
+            dataIndex: "water_table",
+          });
+          break;
+        case "NIVEL_FREATICO":
+          columns.push({
+            title: variable.label || "Nivel Freático (m)",
+            dataIndex: "water_table",
+          });
+          break;
+        case "TOTALIZADO":
+          // Si existe TOTALIZADO, agregamos columnas de acumulado
+          columns.push({
+            title: variable.label || "Acumulado (m³)",
+            dataIndex: "total",
+            render: (a) => formatVolume(a),
+          });
+          columns.push({
+            title: "Acumulado/hora (m³)",
+            dataIndex: "total_diff",
+            render: (a) => formatVolume(a),
+          });
+          columns.push({
+            title: "Contador diario (m³)",
+            dataIndex: "total_today_diff",
+            render: (a) => formatVolume(a),
+          });
+          break;
+        default:
+          console.log(`  ⚠️ Tipo de variable no reconocido: ${variable.type_variable}`);
+          break;
+      }
+    });
+
+    console.log("📊 Columnas generadas:", columns.map(c => c.title));
+    return columns;
+  };
+
   const renderContent = () => {
     if (!status_module) {
       return (
@@ -228,35 +309,7 @@ const Reports = () => {
       <Table
         size="small"
         scroll={{ x: 1200, y: 500 }}
-        columns={[
-          {
-            title: "Fecha",
-            dataIndex: "date_time_medition",
-            render: (date) => {
-              return dayjs(date).format("YYYY-MM-DD HH:mm");
-            },
-          },
-          { title: "Caudal (L/s)", dataIndex: "flow" },
-          {
-            title: "Acumulado (m³)",
-            dataIndex: "total",
-            render: (a) => formatVolume(a),
-          },
-          {
-            title: "Acumulado/hora (m³)",
-            dataIndex: "total_diff",
-            render: (a) => formatVolume(a),
-          },
-          {
-            title: "Contador diario (m³)",
-            dataIndex: "total_today_diff",
-            render: (a) => formatVolume(a),
-          },
-          {
-            title: () => "Nivel Freático (m)",
-            dataIndex: "water_table",
-          },
-        ]}
+        columns={getTableColumns()}
         dataSource={data}
         loading={loadingTab1}
         pagination={{

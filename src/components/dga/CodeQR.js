@@ -76,32 +76,22 @@ const CodeQR = ({ onDiagnoseClick, loading = false }) => {
 
   const d6_profile = state?.selected_profile?.config_data?.d6 || 0;
 
-  // Calcular el consumo total desde los registros
-  const totalConsumption =
-    dataDga.length > 0
-      ? Math.abs(
-          Math.max(
-            ...dataDga.map(
-              (record) =>
-                first_actual_year - (parseFloat(record.total) + d6_profile) || 0
-            )
-          )
-        )
-      : 0;
+  // Ordenar datos para obtener el más reciente
+  const sortedData = [...dataDga].sort(
+    (a, b) => new Date(b.date_time_medition) - new Date(a.date_time_medition)
+  );
 
-  // Obtener la fecha del registro más reciente (última sincronización)
-  const getLastSyncDate = () => {
-    if (dataDga.length === 0) return null;
+  const latestRecord = sortedData.length > 0 ? sortedData[0] : null;
 
-    // Ordenar por fecha de medición y tomar el más reciente
-    const sortedData = [...dataDga].sort(
-      (a, b) => new Date(b.date_time_medition) - new Date(a.date_time_medition)
-    );
+  // Calcular el consumo total: (Último Total + d6) - First Actual Year
+  const totalConsumption = latestRecord
+    ? Math.max(
+        0,
+        parseFloat(latestRecord.total) + d6_profile - first_actual_year
+      )
+    : 0;
 
-    return sortedData[0].date_time_medition;
-  };
-
-  const lastSyncDate = getLastSyncDate();
+  const lastSyncDate = latestRecord ? latestRecord.date_time_medition : null;
 
   const showModal = () => setIsModalVisible(true);
   const handleCancel = () => setIsModalVisible(false);

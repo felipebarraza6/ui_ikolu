@@ -50,6 +50,16 @@ const Container = ({ data, isToday = false }) => {
   const activate = state.selected_profile.profile_ikolu.m4;
   console.log(activate);
 
+  // Obtener variables configuradas para mostrar/ocultar tabs y stats
+  const variables = state.selected_profile.config_data?.variables || [];
+
+  // Determinar qué variables existen
+  const hasCaudal = variables.some(v => v.type_variable === "CAUDAL" || v.type_variable === "CAUDAL_PROMEDIO");
+  const hasNivel = variables.some(v => v.type_variable === "NIVEL" || v.type_variable === "NIVEL_FREATICO");
+  const hasTotalizado = variables.some(v => v.type_variable === "TOTALIZADO");
+
+  console.log("📊 Variables disponibles:", { hasCaudal, hasNivel, hasTotalizado });
+
   const handleTabChange = (key) => {
     setActiveKey(key);
   };
@@ -159,7 +169,7 @@ const Container = ({ data, isToday = false }) => {
               }}
               tabBarGutter={isMobile ? 2 : 4}
             >
-              <TabPane
+              {hasTotalizado && <TabPane
                 key="1"
                 tab={
                   <Flex
@@ -198,8 +208,8 @@ const Container = ({ data, isToday = false }) => {
                 <Card hoverable style={styles.card}>
                   <TotalLine data={data} />
                 </Card>
-              </TabPane>
-              <TabPane
+              </TabPane>}
+              {hasTotalizado && <TabPane
                 tab={
                   <Flex
                     gap={isMobile ? "4px" : "small"}
@@ -238,8 +248,8 @@ const Container = ({ data, isToday = false }) => {
                 <Card hoverable style={styles.card}>
                   <TotalHour data={data} />
                 </Card>
-              </TabPane>
-              <TabPane
+              </TabPane>}
+              {hasTotalizado && <TabPane
                 tab={
                   <Flex
                     gap={isMobile ? "4px" : "small"}
@@ -278,8 +288,8 @@ const Container = ({ data, isToday = false }) => {
                 <Card hoverable style={styles.card}>
                   <TotalDay data={data} />
                 </Card>
-              </TabPane>
-              <TabPane
+              </TabPane>}
+              {hasCaudal && <TabPane
                 key="4"
                 tab={
                   <Flex
@@ -318,8 +328,8 @@ const Container = ({ data, isToday = false }) => {
                 <Card hoverable style={styles.card}>
                   <FlowArea data={data} />
                 </Card>
-              </TabPane>
-              <TabPane
+              </TabPane>}
+              {hasNivel && <TabPane
                 key="5"
                 tab={
                   <Flex
@@ -358,7 +368,7 @@ const Container = ({ data, isToday = false }) => {
                 <Card hoverable style={styles.card}>
                   <WaterTableBar data={data} />
                 </Card>
-              </TabPane>
+              </TabPane>}
               <TabPane
                 tab={
                   <Flex
@@ -396,7 +406,7 @@ const Container = ({ data, isToday = false }) => {
               </TabPane>
             </Tabs>
             <Flex justify="center" gap="small" vertical={isMobile}>
-              <Card
+              {hasTotalizado && <Card
                 size="small"
                 style={styles.cardStat}
                 title="Resumen Acumulado"
@@ -452,8 +462,8 @@ const Container = ({ data, isToday = false }) => {
                     valueStyle={{ fontSize: "14px" }}
                   />
                 </Flex>
-              </Card>
-              <Card
+              </Card>}
+              {hasTotalizado && <Card
                 size="small"
                 hoverable
                 style={styles.cardStat}
@@ -505,8 +515,8 @@ const Container = ({ data, isToday = false }) => {
                     valueStyle={{ fontSize: "14px" }}
                   />
                 </Flex>
-              </Card>
-              <Card
+              </Card>}
+              {hasTotalizado && <Card
                 size="small"
                 hoverable
                 style={styles.cardStat}
@@ -555,8 +565,8 @@ const Container = ({ data, isToday = false }) => {
                     }}
                   />
                 </Flex>
-              </Card>
-              <Card
+              </Card>}
+              {hasCaudal && <Card
                 size="small"
                 style={styles.cardStat}
                 hoverable
@@ -604,8 +614,8 @@ const Container = ({ data, isToday = false }) => {
                     valueStyle={{ fontSize: "14px" }}
                   />
                 </Flex>
-              </Card>
-              <Card
+              </Card>}
+              {hasNivel && <Card
                 size="small"
                 hoverable
                 style={styles.cardStat}
@@ -644,7 +654,7 @@ const Container = ({ data, isToday = false }) => {
                     suffix="m"
                   />
                 </Flex>
-              </Card>
+              </Card>}
             </Flex>
           </>
         </Flex>

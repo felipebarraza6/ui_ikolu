@@ -39,6 +39,8 @@ import {
   FallOutlined,
   DashboardOutlined,
   ColumnHeightOutlined,
+  PlusOutlined,
+  SwapOutlined,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
 import QueueAnim from "rc-queue-anim";
@@ -147,28 +149,28 @@ const ConsumptionStats = ({
   return (
     <div
       style={{
-        width: "100%",
-        padding: "12px 16px",
-        background: "rgba(255, 255, 255, 0.4)",
-        backdropFilter: "blur(5px)",
-        borderRadius: "12px",
-        border: "1px solid rgba(255, 255, 255, 0.5)",
-        marginTop: "16px",
+      width: "100%", 
+      padding: "12px 16px", 
+      background: "rgba(255, 255, 255, 0.4)", 
+      backdropFilter: "blur(5px)", 
+      borderRadius: "12px", 
+      border: "1px solid rgba(255, 255, 255, 0.5)",
+      marginTop: "16px",
         boxShadow: "0 2px 10px rgba(0,0,0,0.02)",
       }}
     >
       <Flex gap="middle" wrap="wrap" justify="space-between" align="center">
         {showVolume && (
           <>
-            {/* Consumo Hoy */}
-            <Tooltip title="Consumo acumulado del día de hoy">
-              <Flex
-                vertical
-                align="center"
-                gap={2}
-                style={{ flex: 1, minWidth: "70px" }}
-              >
-                <Flex align="center" gap={4}>
+        {/* Consumo Hoy */}
+        <Tooltip title="Consumo acumulado del día de hoy">
+          <Flex
+            vertical
+            align="center"
+            gap={2}
+            style={{ flex: 1, minWidth: "70px" }}
+          >
+            <Flex align="center" gap={4}>
                   <Text
                     style={{
                       fontSize: 10,
@@ -177,19 +179,19 @@ const ConsumptionStats = ({
                       textTransform: "uppercase",
                     }}
                   >
-                    Hoy
-                  </Text>
-                  {changePercent !== null && (
-                    <Flex align="center" gap={2}>
-                      {isIncrease ? (
+                Hoy
+              </Text>
+              {changePercent !== null && (
+                <Flex align="center" gap={2}>
+                  {isIncrease ? (
                         <ArrowUpOutlined
                           style={{ fontSize: 10, color: "#faad14" }}
                         />
-                      ) : (
+                  ) : (
                         <ArrowDownOutlined
                           style={{ fontSize: 10, color: "#52c41a" }}
                         />
-                      )}
+                  )}
                       <Text
                         style={{
                           fontSize: 10,
@@ -197,14 +199,14 @@ const ConsumptionStats = ({
                           fontWeight: 800,
                         }}
                       >
-                        {Math.abs(changePercent).toFixed(1)}%
-                      </Text>
-                    </Flex>
-                  )}
+                    {Math.abs(changePercent).toFixed(1)}%
+                  </Text>
                 </Flex>
-                {loading ? (
-                  <Spin size="small" />
-                ) : (
+              )}
+            </Flex>
+            {loading ? (
+              <Spin size="small" />
+            ) : (
                   <Text
                     style={{
                       fontSize: 18,
@@ -215,10 +217,10 @@ const ConsumptionStats = ({
                   >
                     {validHoy !== null ? `${validHoy}` : "0"}{" "}
                     <span style={{ fontSize: 10, fontWeight: 600 }}>m³</span>
-                  </Text>
-                )}
-              </Flex>
-            </Tooltip>
+              </Text>
+            )}
+          </Flex>
+        </Tooltip>
 
             <div
               style={{
@@ -228,14 +230,14 @@ const ConsumptionStats = ({
               }}
             ></div>
 
-            {/* Consumo Ayer */}
-            <Tooltip title="Consumo acumulado del día anterior">
-              <Flex
-                vertical
-                align="center"
-                gap={2}
-                style={{ flex: 1, minWidth: "70px" }}
-              >
+        {/* Consumo Ayer */}
+        <Tooltip title="Consumo acumulado del día anterior">
+          <Flex
+            vertical
+            align="center"
+            gap={2}
+            style={{ flex: 1, minWidth: "70px" }}
+          >
                 <Text
                   style={{
                     fontSize: 10,
@@ -244,11 +246,11 @@ const ConsumptionStats = ({
                     textTransform: "uppercase",
                   }}
                 >
-                  Ayer
-                </Text>
-                {loading ? (
-                  <Spin size="small" />
-                ) : (
+              Ayer
+            </Text>
+            {loading ? (
+              <Spin size="small" />
+            ) : (
                   <Text
                     style={{
                       fontSize: 18,
@@ -259,10 +261,10 @@ const ConsumptionStats = ({
                   >
                     {validAyer !== null ? `${validAyer}` : "0"}{" "}
                     <span style={{ fontSize: 10, fontWeight: 600 }}>m³</span>
-                  </Text>
-                )}
-              </Flex>
-            </Tooltip>
+              </Text>
+            )}
+          </Flex>
+        </Tooltip>
 
             <div
               style={{
@@ -347,17 +349,17 @@ const ConfiguredVariables = ({ variables, loading = false }) => {
           <Col key={variable.id || index} xs={12} sm={8} md={12} lg={12}>
             <div
               style={{
-                padding: "12px",
-                borderRadius: "16px",
-                background: "rgba(255, 255, 255, 0.5)",
-                backdropFilter: "blur(8px)",
-                border: "1px solid rgba(255, 255, 255, 0.4)",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                gap: "8px",
-                position: "relative",
+              padding: "12px",
+              borderRadius: "16px",
+              background: "rgba(255, 255, 255, 0.5)",
+              backdropFilter: "blur(8px)",
+              border: "1px solid rgba(255, 255, 255, 0.4)",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+              position: "relative",
                 overflow: "hidden",
               }}
             >
@@ -398,16 +400,61 @@ const ConfiguredVariables = ({ variables, loading = false }) => {
               <Text strong style={{ fontSize: 13, color: "#1F3461" }}>
                 {variable.label || "Sin Etiqueta"}
               </Text>
-
-              {variable.pulses_factor && (
-                <Flex align="center" gap={4}>
-                  <CalculatorOutlined
-                    style={{ fontSize: 10, color: "#1890ff" }}
-                  />
-                  <Text style={{ fontSize: 10, color: "#595959" }}>
-                    {numberForMiles.format(variable.pulses_factor)} Lt/p
-                  </Text>
-                </Flex>
+              
+              {/* Información específica según el tipo de variable */}
+              {variable.type_variable === "TOTALIZADO" && (
+                <>
+                  {/* Pulses Factor para TOTALIZADO */}
+                  {variable.pulses_factor && (
+                    <Flex align="center" gap={4}>
+                      <CalculatorOutlined
+                        style={{ fontSize: 10, color: "#1890ff" }}
+                      />
+                      <Text style={{ fontSize: 10, color: "#595959" }}>
+                        {numberForMiles.format(variable.pulses_factor)} Lt/p
+                      </Text>
+                    </Flex>
+                  )}
+                  {/* Addition para TOTALIZADO - siempre se muestra, incluso si es 0 */}
+                  <Flex align="center" gap={4}>
+                    <PlusOutlined
+                      style={{ fontSize: 10, color: "#52c41a" }}
+                    />
+                    <Text style={{ fontSize: 10, color: "#595959" }}>
+                      Adición: {numberForMiles.format(variable.addition || 0)}
+                    </Text>
+                  </Flex>
+                </>
+              )}
+              
+              {variable.type_variable === "NIVEL" && (
+                <>
+                  {/* Base de cálculo para NIVEL */}
+                  {variable.calculate_nivel !== null && variable.calculate_nivel !== undefined && (
+                    <Flex align="center" gap={4}>
+                      <CalculatorOutlined
+                        style={{ fontSize: 10, color: "#1890ff" }}
+                      />
+                      <Text style={{ fontSize: 10, color: "#595959" }}>
+                        Base de cálculo: {variable.calculate_nivel}
+                      </Text>
+                    </Flex>
+                  )}
+                </>
+              )}
+              
+              {variable.type_variable === "CAUDAL" && (
+                <>
+                  {/* Convertir a litros para CAUDAL */}
+                  <Flex align="center" gap={4}>
+                    <SwapOutlined
+                      style={{ fontSize: 10, color: "#fa8c16" }}
+                    />
+                    <Text style={{ fontSize: 10, color: "#595959" }}>
+                      Convertir a litros: {variable.convert_to_lt ? "Sí" : "No"}
+                    </Text>
+                  </Flex>
+                </>
               )}
             </div>
           </Col>
@@ -430,12 +477,12 @@ const TechnicalSheetContent = ({ profile, loading = false }) => {
   return (
     <div style={{ padding: "0 4px" }}>
       {dga.code_dga && (
-        <TechInfoRow
-          icon={<IdcardOutlined />}
-          label="DGA"
+      <TechInfoRow
+        icon={<IdcardOutlined />}
+        label="DGA"
           value={<Text copyable>{dga.code_dga}</Text>}
-          loading={loading}
-        />
+        loading={loading}
+      />
       )}
       <TechInfoRow
         icon={<IdcardOutlined />}
@@ -614,20 +661,20 @@ const MetricCard = ({
       aria-label={`Métrica ${title}: ${value} ${unit}`}
     >
       {!loading && renderAnimation()}
-
+      
       {/* Header with left-aligned icon */}
       <Flex align="center" gap="small" style={{ marginBottom: 8 }}>
         <div
           style={{
             position: "relative",
             zIndex: 2,
-            background: "linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)",
-            padding: 8,
-            borderRadius: 10,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 2px 6px rgba(24, 144, 255, 0.2)",
+          background: "linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)", 
+          padding: 8, 
+          borderRadius: 10, 
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: "center",
+          boxShadow: "0 2px 6px rgba(24, 144, 255, 0.2)",
             flexShrink: 0,
           }}
         >
@@ -663,27 +710,27 @@ const MetricCard = ({
           {variation !== undefined &&
             variation !== null &&
             Math.abs(variation) > 0.1 && (
-              <Flex align="center" gap={3}>
+            <Flex align="center" gap={3}>
                 {variation > 0 ? (
                   <RiseOutlined style={{ color: "#52c41a", fontSize: 10 }} />
                 ) : (
-                  <FallOutlined style={{ color: "#ff4d4f", fontSize: 10 }} />
+                <FallOutlined style={{ color: "#ff4d4f", fontSize: 10 }} />
                 )}
-                <Text
-                  style={{
-                    fontWeight: 700,
-                    fontSize: 9,
-                    color: variation > 0 ? "#52c41a" : "#ff4d4f",
-                  }}
-                >
+              <Text 
+                style={{ 
+                  fontWeight: 700, 
+                  fontSize: 9,
+                  color: variation > 0 ? "#52c41a" : "#ff4d4f",
+                }}
+              >
                   {variation > 0 ? "+" : ""}
                   {variation.toFixed(1)}%
-                </Text>
-              </Flex>
-            )}
+              </Text>
+            </Flex>
+          )}
         </Flex>
       </Flex>
-
+      
       {/* Value section */}
       {loading ? (
         <div style={{ padding: "8px 0", textAlign: "center" }}>
@@ -795,12 +842,12 @@ const MyWell = () => {
     const m1 = profile.modules?.m1;
     const today = profile.modules?.today || [];
     const yesterday = profile.modules?.yesterday || [];
-
+    
     const candidates = [];
     if (m1 && m1.date_time_medition) candidates.push(m1);
     if (today.length > 0) candidates.push(today[today.length - 1]);
     if (yesterday.length > 0) candidates.push(yesterday[yesterday.length - 1]);
-
+    
     if (candidates.length === 0) return m1 || null;
 
     return candidates.sort((a, b) => {
@@ -858,7 +905,7 @@ const MyWell = () => {
           if (today.length >= 2) {
             const current = today[today.length - 1];
             const previous = today[today.length - 2];
-
+            
             if (previous.flow > 0) {
               setVarCaudal(
                 ((current.flow - previous.flow) / previous.flow) * 100
@@ -977,13 +1024,13 @@ const MyWell = () => {
     const m = parseSafeDate(date);
     if (!m.isValid()) {
       // Fallback a new Date si parseSafeDate falla
-      const d = new Date(date);
+    const d = new Date(date);
       if (isNaN(d.getTime())) return { date: "N/A", time: "" };
-      const datePart = d.toLocaleDateString("es-CL", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
+    const datePart = d.toLocaleDateString("es-CL", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
       // Mostrar hora completa con minutos (HH:mm) en lugar de solo HH:00
       const hours = String(d.getHours()).padStart(2, "0");
       const minutes = String(d.getMinutes()).padStart(2, "0");
@@ -1192,18 +1239,18 @@ const MyWell = () => {
             </Col>
           )}
           {vars.some((v) => v.type_variable?.includes("NIVEL")) && (
-            <Col span={24}>
-              <MetricCard
-                title="Nivel de Agua"
-                value={(parseFloat(nivel) || 0).toFixed(2)}
-                unit="m"
-                icon={<ColumnHeightOutlined />}
-                loading={loading}
-                variation={varNivel}
-                helpText="Altura de la columna de agua dentro del pozo medida por el sensor"
-                animationType="level"
-              />
-            </Col>
+          <Col span={24}>
+            <MetricCard
+              title="Nivel de Agua"
+              value={(parseFloat(nivel) || 0).toFixed(2)}
+              unit="m"
+              icon={<ColumnHeightOutlined />}
+              loading={loading}
+              variation={varNivel}
+              helpText="Altura de la columna de agua dentro del pozo medida por el sensor"
+              animationType="level"
+            />
+          </Col>
           )}
           {(vars.some(
             (v) =>
@@ -1274,7 +1321,7 @@ const MyWell = () => {
               type="primary"
               icon={<DownloadOutlined />}
               size="small"
-              style={{
+            style={{
                 position: "absolute",
                 top: 10,
                 right: 10,
@@ -1306,8 +1353,8 @@ const MyWell = () => {
                   link.href = canvas.toDataURL("image/png");
                   link.click();
                 }
-              }}
-            >
+            }}
+          >
               Descargar
             </Button>
 
@@ -1331,7 +1378,7 @@ const MyWell = () => {
                 lastCaption={lastCaption}
                 compact={true}
                 vars={vars}
-              />
+            />
             </Well>
           </div>
         </Flex>
@@ -1436,11 +1483,11 @@ const MyWell = () => {
               <Flex align="center" gap="small">
                 <div
                   style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    backgroundColor: "#52c41a",
-                    boxShadow: "0 0 8px #52c41a",
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  backgroundColor: "#52c41a",
+                  boxShadow: "0 0 8px #52c41a",
                     animation: "pulse-green 2s infinite",
                   }}
                 />
@@ -1532,16 +1579,16 @@ const MyWell = () => {
                 )}
 
                 {vars.some((v) => v.type_variable?.includes("NIVEL")) && (
-                  <MetricCard
-                    title="Nivel de Agua"
-                    value={(parseFloat(nivel) || 0).toFixed(2)}
-                    unit="(m)"
-                    variation={varNivel}
-                    icon={<ColumnHeightOutlined />}
-                    loading={loading}
-                    helpText="Altura de la columna de agua dentro del pozo medida por el sensor"
-                    animationType="level"
-                  />
+                <MetricCard
+                  title="Nivel de Agua"
+                  value={(parseFloat(nivel) || 0).toFixed(2)}
+                  unit="(m)"
+                  variation={varNivel}
+                  icon={<ColumnHeightOutlined />}
+                  loading={loading}
+                  helpText="Altura de la columna de agua dentro del pozo medida por el sensor"
+                  animationType="level"
+                />
                 )}
                 {(vars.some(
                   (v) =>
@@ -1616,10 +1663,10 @@ const MyWell = () => {
                 flexDirection: "column",
                 overflow: "hidden",
               }}
-              bodyStyle={{
-                padding: "20px",
-                flex: 1,
-                display: "flex",
+              bodyStyle={{ 
+                padding: "20px", 
+                flex: 1, 
+                display: "flex", 
                 flexDirection: "column",
                 position: "relative",
               }}
@@ -1629,7 +1676,7 @@ const MyWell = () => {
               >
                 <MyLastRegisters />
               </div>
-
+              
               <Flex
                 vertical
                 align="center"

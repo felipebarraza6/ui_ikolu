@@ -129,17 +129,19 @@ const AppRoutes = React.memo(() => {
     }
 
     try {
-      if (state.selected_profile.dga.type_dga === "SUBTERRANEO") {
-        if (state.selected_profile.dga.standard === "CAUDALES_MUY_PEQUENOS") {
-          return (
-            <TableStandarVerySmallResponsive data={state.selected_profile} />
-          );
-        } else {
-          return <MyWell />;
-        }
-      } else if (hasValidUser && state.user.username === "arrocerospti") {
-        return <PrototypeUmi />;
+      console.log("🔍 DEBUG - profile_ikolu:", state.selected_profile.profile_ikolu);
+      console.log("🔍 DEBUG - entry_by_form:", state.selected_profile.profile_ikolu?.entry_by_form);
+
+      if (state.selected_profile.profile_ikolu?.entry_by_form) {
+        console.log("✅ Mostrando FORMULARIO MANUAL");
+        return (
+          <TableStandarVerySmallResponsive data={state.selected_profile} />
+        );
+      } else if (state.selected_profile.dga.type_dga === "SUBTERRANEO") {
+        console.log("✅ Mostrando TELEMETRÍA (MyWell)");
+        return <MyWell />;
       } else {
+        console.log("✅ Mostrando SMA");
         return <Sma />;
       }
     } catch (error) {
