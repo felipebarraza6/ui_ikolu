@@ -69,25 +69,12 @@ const CodeQR = ({ onDiagnoseClick, loading = false }) => {
 
   const hasDgaData = flow_granted_dga && total_granted_dga;
 
-  // Obtener datos de consumo desde el perfil (módulo m2) - estos vienen actualizados desde ResponsiveDga
+  // Obtener datos de consumo desde el perfil
   const dataDga = state.selected_profile?.modules?.m2 || [];
-  const first_actual_year =
-    state.selected_profile?.modules?.first_actual_year?.total || 0;
 
-  const d6_profile = state?.selected_profile?.config_data?.d6 || 0;
-
-  // Calcular el consumo total desde los registros
+  // Usar el consumo anual que viene calculado directamente desde la API
   const totalConsumption =
-    dataDga.length > 0
-      ? Math.abs(
-          Math.max(
-            ...dataDga.map(
-              (record) =>
-                first_actual_year - (parseFloat(record.total) + d6_profile) || 0
-            )
-          )
-        )
-      : 0;
+    state.selected_profile?.modules?.total_consumed_year || 0;
 
   // Obtener la fecha del registro más reciente (última sincronización)
   const getLastSyncDate = () => {
@@ -98,15 +85,18 @@ const CodeQR = ({ onDiagnoseClick, loading = false }) => {
       (a, b) => new Date(b.date_time_medition) - new Date(a.date_time_medition)
     );
 
-  const latestRecord = sortedData.length > 0 ? sortedData[0] : null;
+    const latestRecord = sortedData.length > 0 ? sortedData[0] : null;
+    return latestRecord ? latestRecord.date_time_medition : null;
+  };
 
-  // Calcular el consumo total: (Último Total + d6) - First Actual Year
-  const totalConsumption = latestRecord
-    ? Math.max(
-        0,
-        parseFloat(latestRecord.total) + d6_profile - first_actual_year
-      )
-    : 0;
+  // Obtener el último registro ordenado para la fecha de sincronización
+  const latestRecord =
+    dataDga.length > 0
+      ? [...dataDga].sort(
+          (a, b) =>
+            new Date(b.date_time_medition) - new Date(a.date_time_medition)
+        )[0]
+      : null;
 
   const lastSyncDate = latestRecord ? latestRecord.date_time_medition : null;
 
@@ -126,7 +116,7 @@ const CodeQR = ({ onDiagnoseClick, loading = false }) => {
     if (code_dga) {
       window.open(
         `https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${code_dga}`,
-        "_blank",
+        "_blank"
       );
     } else {
       notification.warning({
