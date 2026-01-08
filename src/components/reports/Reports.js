@@ -359,7 +359,7 @@ const Reports = () => {
                     disabledDate={(current) => {
                       return (
                         current &&
-                        (current < dayjs().startOf("year") ||
+                        (current < dayjs("2025-02-01") ||
                           current > dayjs().endOf("day"))
                       );
                     }}
