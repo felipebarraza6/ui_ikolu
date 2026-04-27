@@ -355,7 +355,7 @@ const ResponsiveAlerts = () => {
                 </Tag>
               </div>
 
-              <TableAlerts data={tickets} />
+              <TableAlerts data={tickets} update={update} setUpdate={setUpdate} />
             </Card>
           </Col>
         </Row>
@@ -436,7 +436,7 @@ const ResponsiveAlerts = () => {
                 </Tag>
               </div>
 
-              <TableAlerts data={tickets} />
+              <TableAlerts data={tickets} update={update} setUpdate={setUpdate} />
             </Card>
           </Col>
         </Row>

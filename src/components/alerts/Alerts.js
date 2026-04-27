@@ -89,7 +89,7 @@ const Alerts = () => {
               extra={<Tag color="#1f3461">tus alertas</Tag>}
             >
               {" "}
-              <TableAlerts data={tickets} />
+              <TableAlerts data={tickets} update={update} setUpdate={setUpdate} />
             </Card>
           </Flex>
         ) : (

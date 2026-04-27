@@ -1,5 +1,5 @@
 import { upload } from "@testing-library/user-event/dist/upload";
-import { POST_LOGIN, GET, DOWNLOAD, DELETE, POST } from "./config";
+import { POST_LOGIN, GET, DOWNLOAD, DELETE, POST, PATCH } from "./config";
 
 const login = async (data) => {
   const request = await POST_LOGIN("users/login/", {
@@ -341,7 +341,7 @@ const deleteNotification = async (id) => {
 };
 
 const updateNotification = async (id, data) => {
-  const rq = await POST(`notifications_catchment/${id}/`, data);
+  const rq = await PATCH(`notifications_catchment/${id}/`, data);
   return rq.data;
 };
 //response_notifications_catchment

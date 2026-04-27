@@ -81,6 +81,17 @@ export const DELETE = async (endpoint) => {
   return request;
 };
 
+export const PATCH = async (endpoint, data) => {
+  const token = JSON.parse(localStorage.getItem("token"));
+  const options = {
+    headers: {
+      Authorization: `Token ${token}`,
+    },
+  };
+  const request = await Axios.patch(endpoint, data, options);
+  return request;
+};
+
 export const DOWNLOAD = async (endpoint, name_file) => {
   const token = JSON.parse(localStorage.getItem("token"));
 

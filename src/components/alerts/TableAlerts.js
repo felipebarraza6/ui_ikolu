@@ -9,6 +9,8 @@ import {
   Button,
   Drawer,
   Switch,
+  Popconfirm,
+  Tooltip,
 } from "antd";
 import {
   CheckCircleFilled,
@@ -16,12 +18,14 @@ import {
   ClearOutlined,
   CheckCircleOutlined,
   AlertOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
 import sh from "../../api/sh/endpoints";
-const TableAlerts = ({ data }) => {
+const TableAlerts = ({ data, update, setUpdate }) => {
   const { state } = useContext(AppContext);
   const selected = state.selected_profile;
+  const canManageAlerts = state.selected_profile?.profile_ikolu?.m6 || false;
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   // Detectar si es móvil
@@ -112,7 +116,7 @@ const TableAlerts = ({ data }) => {
               borderRadius: "20px",
             }}
           >
-            historial de incidencias ({countComments})
+            Historial ({countComments})
           </Button>
         </>
       );
@@ -125,39 +129,108 @@ const TableAlerts = ({ data }) => {
     );
   };
 
+  const handleDelete = async (id) => {
+    try {
+      await sh.notifications.delete(id);
+      message.success("Alerta eliminada correctamente");
+      if (setUpdate) setUpdate(!update);
+    } catch (error) {
+      message.error("Error al eliminar la alerta");
+    }
+  };
+
+  const handleToggleActive = async (record, isActive) => {
+    try {
+      await sh.notifications.update(record.id, {
+        title: record.title,
+        type_variable: record.type_variable,
+        type_alert: record.type_alert,
+        value: record.value,
+        message: record.message,
+        point_catchment: record.point_catchment,
+        type_notification: record.type_notification,
+        is_active: isActive,
+      });
+      message.success(isActive ? "Alerta activada" : "Alerta desactivada");
+      if (setUpdate) setUpdate(!update);
+    } catch (error) {
+      message.error("Error al cambiar el estado de la alerta");
+    }
+  };
+
+  const typeAlertLabel = {
+    MAX: "Mayor que",
+    MIN: "Menor que",
+    EQUALS: "Igual que",
+  };
+
+  const typeVariableLabel = {
+    NIVEL: "Nivel (m)",
+    CAUDAL: "Caudal (lt/s)",
+    "CAUDAL PROMEDIO": "Caudal Medio",
+    TOTALIZADO: "Totalizado",
+  };
+
   return (
     <Table
-      size="small"
-      bordered
-      scroll={isMobile ? { x: 700 } : undefined}
+      size="middle"
+      bordered={false}
+      scroll={isMobile ? { x: 950 } : { x: "max-content" }}
+      pagination={false}
+      style={{ whiteSpace: "nowrap" }}
       columns={[
         {
           title: "Nombre",
-          dataIndex: "id",
-          key: "id",
-          width: isMobile ? 150 : undefined,
-          render: (text, record) => (
-            <Flex gap="small" align="center">
-              <p
-                style={{
-                  marginLeft: "10px",
-                  fontSize: isMobile ? "12px" : "14px",
-                }}
-              >
-                {record.title.toUpperCase()}
-              </p>
-            </Flex>
-          ),
+          key: "name",
+          width: isMobile ? 160 : 200,
+          render: (text, record) => {
+            const date = new Date(record.created);
+            return (
+              <Flex vertical gap="6px" style={{ minWidth: 140 }}>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: isMobile ? "12px" : "14px",
+                    fontWeight: 600,
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {record.title.toUpperCase()}
+                </p>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    color: "#888",
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {date.toLocaleDateString()} · {date.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </Flex>
+            );
+          },
         },
         {
           title: "Notificar",
           align: "center",
-          dataIndex: "message",
-          key: "Mensaje",
-          width: isMobile ? 250 : undefined,
+          key: "notify",
+          width: isMobile ? 200 : 240,
           render: (text, record) => (
-            <Flex gap="small" vertical>
-              <p style={{ fontSize: isMobile ? "12px" : "14px" }}>
+            <Flex gap="8px" vertical align="center" style={{ minWidth: 160 }}>
+              <p
+                style={{
+                  fontSize: isMobile ? "12px" : "14px",
+                  margin: 0,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  maxWidth: "100%",
+                }}
+                title={record.message}
+              >
                 {record.message}
               </p>
               <GetComments id={record.id} />
@@ -165,31 +238,103 @@ const TableAlerts = ({ data }) => {
           ),
         },
         {
-          title: "Fecha",
-          dataIndex: "created",
-          key: "created",
-          width: isMobile ? 120 : undefined,
-          render: (text, record) => {
-            const date = new Date(record.created);
-            return (
-              <div style={{ fontSize: "12px", color: "#666" }}>
-                {date.toLocaleDateString()}
-                <br />
-                {date.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </div>
-            );
-          },
+          title: "Variable",
+          key: "variable",
+          width: isMobile ? 130 : 150,
+          render: (text, record) => (
+            <span style={{ fontSize: isMobile ? "12px" : "13px", whiteSpace: "nowrap" }}>
+              {typeVariableLabel[record.type_variable] || record.type_variable}
+            </span>
+          ),
         },
         {
-          title: "Activar/Desactivar",
-          dataIndex: "status",
+          title: "Condición",
+          key: "condition",
+          width: isMobile ? 110 : 120,
           align: "center",
+          render: (text, record) => (
+            <Tag
+              color={
+                record.type_alert === "MAX"
+                  ? "red"
+                  : record.type_alert === "MIN"
+                  ? "blue"
+                  : "green"
+              }
+              style={{ fontSize: isMobile ? "11px" : "12px", margin: 0 }}
+            >
+              {typeAlertLabel[record.type_alert] || record.type_alert}
+            </Tag>
+          ),
+        },
+        {
+          title: "Valor",
+          key: "value",
+          width: isMobile ? 90 : 100,
+          align: "center",
+          render: (text, record) => (
+            <span
+              style={{
+                fontSize: isMobile ? "12px" : "14px",
+                fontWeight: 600,
+                color: "#1F3461",
+              }}
+            >
+              {record.value}
+            </span>
+          ),
+        },
+        {
+          title: "Estado",
           key: "status",
-          width: isMobile ? 150 : undefined,
-          render: (text, record) => <Switch disabled />,
+          width: isMobile ? 100 : 110,
+          align: "center",
+          render: (text, record) => (
+            <Tooltip
+              title={!canManageAlerts ? "Módulo de alertas no activado" : ""}
+            >
+              <Switch
+                size="small"
+                checked={record.is_active}
+                checkedChildren="ON"
+                unCheckedChildren="OFF"
+                disabled={!canManageAlerts}
+                onChange={(checked) => handleToggleActive(record, checked)}
+              />
+            </Tooltip>
+          ),
+        },
+        {
+          title: "Acciones",
+          key: "actions",
+          width: isMobile ? 100 : 110,
+          align: "center",
+          render: (text, record) => (
+            <Tooltip
+              title={!canManageAlerts ? "Módulo de alertas no activado" : ""}
+            >
+              <Popconfirm
+                title="¿Eliminar alerta?"
+                description="Esta acción no se puede deshacer."
+                onConfirm={() => handleDelete(record.id)}
+                okText="Eliminar"
+                cancelText="Cancelar"
+                okButtonProps={{ danger: true }}
+                disabled={!canManageAlerts}
+              >
+                <Button
+                  danger
+                  type="primary"
+                  size="small"
+                  icon={<DeleteOutlined />}
+                  style={{ borderRadius: "6px" }}
+                  disabled={!canManageAlerts}
+                >
+                  Eliminar
+                </Button>
+              </Popconfirm>
+            </Tooltip>
+          ),
         },
       ]}
       dataSource={data}

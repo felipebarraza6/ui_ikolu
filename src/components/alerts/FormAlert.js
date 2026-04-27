@@ -1,5 +1,5 @@
 import React, { useState, useContext } from "react";
-import { Form, Input, Button, Flex, Select, DatePicker } from "antd";
+import { Form, Input, Button, Flex, Select, Alert } from "antd";
 import { RocketFilled, ClearOutlined, PlusOutlined } from "@ant-design/icons";
 import sh from "../../api/sh/endpoints";
 import { AppContext } from "../../App";
@@ -8,6 +8,8 @@ const FormAlert = ({ update, setUpdate }) => {
   const [form] = Form.useForm();
   const { state } = useContext(AppContext);
   const selected_id = state.selected_profile.id;
+  const canManageAlerts = state.selected_profile?.profile_ikolu?.m6 || false;
+
   const handleSubmit = async (values) => {
     console.log("Form values: ", values);
     values = {
@@ -23,6 +25,17 @@ const FormAlert = ({ update, setUpdate }) => {
 
     // Handle form submission logic here
   };
+
+  if (!canManageAlerts) {
+    return (
+      <Alert
+        message="Módulo de alertas no activado"
+        description="Este punto de captación no tiene habilitado el módulo de alertas. Contacte al administrador para activarlo."
+        type="warning"
+        showIcon
+      />
+    );
+  }
 
   return (
     <Form form={form} layout="vertical" onFinish={handleSubmit}>
