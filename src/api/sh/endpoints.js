@@ -340,6 +340,11 @@ const deleteNotification = async (id) => {
   return rq.data;
 };
 
+const getNotificationById = async (id) => {
+  const rq = await GET(`notifications_catchment/${id}/`);
+  return rq.data;
+};
+
 const updateNotification = async (id, data) => {
   const rq = await PATCH(`notifications_catchment/${id}/`, data);
   return rq.data;
@@ -385,6 +390,7 @@ const sh = {
     create: createNotification,
     get: getNotifications,
     actives: getNotificationsActives,
+    getById: getNotificationById,
     delete: deleteNotification,
     update: updateNotification,
     responses: {

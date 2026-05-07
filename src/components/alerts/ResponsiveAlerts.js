@@ -1,10 +1,21 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Card, Typography, Row, Col, Statistic, Alert, Tag, Flex } from "antd";
+import {
+  Card,
+  Row,
+  Col,
+  Statistic,
+  Alert,
+  Tag,
+  Flex,
+  Button,
+  Drawer,
+} from "antd";
 import {
   AlertOutlined,
-  PlusCircleOutlined,
+  PlusOutlined,
   BellOutlined,
   CheckCircleOutlined,
+  ClockCircleOutlined,
 } from "@ant-design/icons";
 import FormAlert from "./FormAlert";
 import TableAlerts from "./TableAlerts";
@@ -12,18 +23,41 @@ import sh from "../../api/sh/endpoints";
 import { AppContext } from "../../App";
 import { formatInteger } from "../../utils/numberFormatter";
 
-const { Title } = Typography;
+
+const KPI_CARD_STYLES = {
+  activas: {
+    borderColor: "#FF6B35",
+    iconColor: "#FF6B35",
+    bg: "#FFF7F2",
+  },
+  total: {
+    borderColor: "#1F3461",
+    iconColor: "#1F3461",
+    bg: "#F2F5FA",
+  },
+  resueltas: {
+    borderColor: "#52C41A",
+    iconColor: "#52C41A",
+    bg: "#F6FFF0",
+  },
+  ultima: {
+    borderColor: "#BDC00C",
+    iconColor: "#BDC00C",
+    bg: "#FAFBF0",
+  },
+};
 
 const ResponsiveAlerts = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-
   const { state } = useContext(AppContext);
   const [update, setUpdate] = useState(false);
   const selected_id = state.selected_profile.id;
-  const [pageActive, setPageActve] = useState(1);
-  const [pageOld, setPageOld] = useState(1);
   const [tickets, setTickets] = useState([]);
   const [ticketsActives, setTicketsActives] = useState([]);
+
+  // Drawers
+  const [formVisible, setFormVisible] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -32,22 +66,15 @@ const ResponsiveAlerts = () => {
   }, []);
 
   const getTickets = async () => {
-    const rq = await sh.notifications
-      .get(selected_id, pageOld, "ALERT")
-      .then((res) => {
-        setTickets(res.results || []);
-      });
+    const res = await sh.notifications.get(selected_id, 1, "ALERT");
+    setTickets(res.results || []);
   };
 
   const getActiveTickets = async () => {
-    const rq = await sh.notifications
-      .actives(selected_id, pageActive, "ALERT")
-      .then((res) => {
-        setTicketsActives(res.results || []);
-      });
+    const res = await sh.notifications.actives(selected_id, 1, "ALERT");
+    setTicketsActives(res.results || []);
   };
 
-  // Recargar alertas cuando cambia el perfil seleccionado o se actualiza
   useEffect(() => {
     if (selected_id) {
       getActiveTickets();
@@ -57,10 +84,9 @@ const ResponsiveAlerts = () => {
 
   const totalAlertas = tickets ? tickets.length : 0;
   const alertasActivas = ticketsActives ? ticketsActives.length : 0;
-  const alertasResueltas = totalAlertas - alertasActivas;
+  const alertasResueltas = Math.max(0, totalAlertas - alertasActivas);
   const ultimaAlerta = tickets && tickets.length > 0 ? tickets[0] : null;
 
-  // Función segura para formatear fecha
   const formatFecha = (fecha) => {
     if (!fecha) return "";
     try {
@@ -70,6 +96,29 @@ const ResponsiveAlerts = () => {
     }
   };
 
+  const handleEdit = (record) => {
+    setEditingRecord(record);
+    setFormVisible(true);
+  };
+
+  const handleCreate = () => {
+    setEditingRecord(null);
+    setFormVisible(true);
+  };
+
+  const handleFormSuccess = () => {
+    setFormVisible(false);
+    setEditingRecord(null);
+    setUpdate((u) => !u);
+  };
+
+  const handleFormCancel = () => {
+    setFormVisible(false);
+    setEditingRecord(null);
+  };
+
+  const canManageAlerts = state.selected_profile?.profile_ikolu?.m6 || false;
+
   return (
     <div
       style={{
@@ -78,154 +127,61 @@ const ResponsiveAlerts = () => {
         minHeight: "90vh",
       }}
     >
-      {/* Header del módulo */}
-      <div
-        style={{
-          marginBottom: "24px",
-          borderRadius: "12px",
-          background: "#1F3461", // Color sólido, sin gradiente
-          border: "none",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-          padding: "24px",
-        }}
-      >
-        <Flex align="center" gap="middle">
-          <AlertOutlined style={{ fontSize: 32, color: "white" }} />
-          <Title level={3} style={{ margin: 0, color: "white" }}>
-            Sistema de Alertas
-          </Title>
+      {/* Header minimalista */}
+      {canManageAlerts && (
+        <Flex justify="flex-end" style={{ marginBottom: "16px" }}>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleCreate}
+            style={{
+              background: "#1F3461",
+              borderColor: "#1F3461",
+              borderRadius: 8,
+              fontWeight: 600,
+            }}
+          >
+            Nueva Alerta
+          </Button>
         </Flex>
-      </div>
+      )}
 
-      {/* Indicadores */}
+      {/* KPIs minimalistas */}
       <Row gutter={[16, 16]} style={{ marginBottom: "24px" }}>
         <Col xs={12} sm={12} md={6} lg={6}>
           <Card
             size="small"
             bordered
             style={{
-              background: "linear-gradient(135deg, #FF6B35 0%, #FF8A65 100%)",
-              border: "none",
-              borderRadius: "12px",
-              boxShadow: "0 4px 12px rgba(255,107,53,0.3)",
-              transition: "transform 0.2s ease",
+              borderRadius: 12,
+              borderLeft: `4px solid ${KPI_CARD_STYLES.activas.borderColor}`,
+              background: KPI_CARD_STYLES.activas.bg,
+              borderColor: "transparent",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
             }}
-            bodyStyle={{ padding: "20px", textAlign: "center" }}
-            hoverable
+            bodyStyle={{ padding: "16px" }}
           >
-            <BellOutlined
-              style={{ fontSize: 28, color: "white", marginBottom: 12 }}
-            />
-            <Statistic
-              title={
-                <span
-                  style={{
-                    color: "rgba(255,255,255,0.95)",
-                    fontSize: 14,
-                    fontWeight: 500,
-                  }}
-                >
-                  Alertas Activas
-                </span>
-              }
-              value={formatInteger(alertasActivas)}
-              valueStyle={{
-                color: "white",
-                fontSize: isMobile ? 20 : 24,
-                fontWeight: "bold",
-              }}
-              suffix={
-                <span style={{ color: "rgba(255,255,255,0.9)", fontSize: 12 }}>
-                  pendientes
-                </span>
-              }
-            />
-          </Card>
-        </Col>
-
-        <Col xs={12} sm={12} md={6} lg={6}>
-          <Card
-            size="small"
-            style={{
-              background: "linear-gradient(135deg, #1F3461 0%, #2E5A8A 100%)",
-              border: "none",
-              borderRadius: "12px",
-              boxShadow: "0 4px 12px rgba(31,52,97,0.3)",
-              transition: "transform 0.2s ease",
-            }}
-            bodyStyle={{ padding: "20px", textAlign: "center" }}
-            hoverable
-          >
-            <AlertOutlined
-              style={{ fontSize: 28, color: "white", marginBottom: 12 }}
-            />
-            <Statistic
-              title={
-                <span
-                  style={{
-                    color: "rgba(255,255,255,0.95)",
-                    fontSize: 14,
-                    fontWeight: 500,
-                  }}
-                >
-                  Total Alertas
-                </span>
-              }
-              value={formatInteger(totalAlertas)}
-              valueStyle={{
-                color: "white",
-                fontSize: isMobile ? 20 : 24,
-                fontWeight: "bold",
-              }}
-              suffix={
-                <span style={{ color: "rgba(255,255,255,0.9)", fontSize: 12 }}>
-                  historial
-                </span>
-              }
-            />
-          </Card>
-        </Col>
-
-        <Col xs={12} sm={12} md={6} lg={6}>
-          <Card
-            size="small"
-            style={{
-              background: "linear-gradient(135deg, #52C41A 0%, #73D13D 100%)",
-              border: "none",
-              borderRadius: "12px",
-              boxShadow: "0 4px 12px rgba(82,196,26,0.3)",
-              transition: "transform 0.2s ease",
-            }}
-            bodyStyle={{ padding: "20px", textAlign: "center" }}
-            hoverable
-          >
-            <CheckCircleOutlined
-              style={{ fontSize: 28, color: "white", marginBottom: 12 }}
-            />
-            <Statistic
-              title={
-                <span
-                  style={{
-                    color: "rgba(255,255,255,0.95)",
-                    fontSize: 14,
-                    fontWeight: 500,
-                  }}
-                >
-                  Alertas Resueltas
-                </span>
-              }
-              value={formatInteger(alertasResueltas)}
-              valueStyle={{
-                color: "white",
-                fontSize: isMobile ? 20 : 24,
-                fontWeight: "bold",
-              }}
-              suffix={
-                <span style={{ color: "rgba(255,255,255,0.9)", fontSize: 12 }}>
-                  completadas
-                </span>
-              }
-            />
+            <Flex align="center" gap="middle">
+              <BellOutlined
+                style={{
+                  fontSize: 24,
+                  color: KPI_CARD_STYLES.activas.iconColor,
+                }}
+              />
+              <Statistic
+                title={
+                  <span style={{ fontSize: 12, color: "#888" }}>
+                    Alertas Activas
+                  </span>
+                }
+                value={formatInteger(alertasActivas)}
+                valueStyle={{
+                  color: "#1F3461",
+                  fontSize: 22,
+                  fontWeight: 700,
+                }}
+              />
+            </Flex>
           </Card>
         </Col>
 
@@ -234,213 +190,198 @@ const ResponsiveAlerts = () => {
             size="small"
             bordered
             style={{
-              background: "linear-gradient(135deg, #722ED1 0%, #9254DE 100%)",
-              border: "none",
-              borderRadius: "12px",
-              boxShadow: "0 4px 12px rgba(114,46,209,0.3)",
-              transition: "transform 0.2s ease",
+              borderRadius: 12,
+              borderLeft: `4px solid ${KPI_CARD_STYLES.total.borderColor}`,
+              background: KPI_CARD_STYLES.total.bg,
+              borderColor: "transparent",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
             }}
-            bodyStyle={{ padding: "20px", textAlign: "center" }}
-            hoverable
+            bodyStyle={{ padding: "16px" }}
           >
-            <AlertOutlined
-              style={{ fontSize: 28, color: "white", marginBottom: 12 }}
-            />
-            <Statistic
-              title={
-                <span
+            <Flex align="center" gap="middle">
+              <AlertOutlined
+                style={{
+                  fontSize: 24,
+                  color: KPI_CARD_STYLES.total.iconColor,
+                }}
+              />
+              <Statistic
+                title={
+                  <span style={{ fontSize: 12, color: "#888" }}>
+                    Total Alertas
+                  </span>
+                }
+                value={formatInteger(totalAlertas)}
+                valueStyle={{
+                  color: "#1F3461",
+                  fontSize: 22,
+                  fontWeight: 700,
+                }}
+              />
+            </Flex>
+          </Card>
+        </Col>
+
+        <Col xs={12} sm={12} md={6} lg={6}>
+          <Card
+            size="small"
+            bordered
+            style={{
+              borderRadius: 12,
+              borderLeft: `4px solid ${KPI_CARD_STYLES.resueltas.borderColor}`,
+              background: KPI_CARD_STYLES.resueltas.bg,
+              borderColor: "transparent",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+            }}
+            bodyStyle={{ padding: "16px" }}
+          >
+            <Flex align="center" gap="middle">
+              <CheckCircleOutlined
+                style={{
+                  fontSize: 24,
+                  color: KPI_CARD_STYLES.resueltas.iconColor,
+                }}
+              />
+              <Statistic
+                title={
+                  <span style={{ fontSize: 12, color: "#888" }}>
+                    Alertas Resueltas
+                  </span>
+                }
+                value={formatInteger(alertasResueltas)}
+                valueStyle={{
+                  color: "#1F3461",
+                  fontSize: 22,
+                  fontWeight: 700,
+                }}
+              />
+            </Flex>
+          </Card>
+        </Col>
+
+        <Col xs={12} sm={12} md={6} lg={6}>
+          <Card
+            size="small"
+            bordered
+            style={{
+              borderRadius: 12,
+              borderLeft: `4px solid ${KPI_CARD_STYLES.ultima.borderColor}`,
+              background: KPI_CARD_STYLES.ultima.bg,
+              borderColor: "transparent",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+            }}
+            bodyStyle={{ padding: "16px" }}
+          >
+            <Flex align="center" gap="middle">
+              <ClockCircleOutlined
+                style={{
+                  fontSize: 24,
+                  color: KPI_CARD_STYLES.ultima.iconColor,
+                }}
+              />
+              <div>
+                <div style={{ fontSize: 12, color: "#888" }}>Última Alerta</div>
+                <div
                   style={{
-                    color: "rgba(255,255,255,0.95)",
+                    color: "#1F3461",
                     fontSize: 14,
-                    fontWeight: 500,
+                    fontWeight: 700,
                   }}
                 >
-                  Última Alerta
-                </span>
-              }
-              value={
-                ultimaAlerta ? ultimaAlerta.type_notification : "Sin alertas"
-              }
-              valueStyle={{
-                color: "white",
-                fontSize: isMobile ? 14 : 16,
-                fontWeight: "bold",
-              }}
-              suffix={
-                <span style={{ color: "rgba(255,255,255,0.9)", fontSize: 12 }}>
-                  {ultimaAlerta && ultimaAlerta.created_at
-                    ? formatFecha(ultimaAlerta.created_at)
-                    : ""}
-                </span>
-              }
-            />
+                  {ultimaAlerta
+                    ? ultimaAlerta.title || ultimaAlerta.type_notification
+                    : "Sin alertas"}
+                </div>
+                {ultimaAlerta && ultimaAlerta.created_at && (
+                  <div style={{ fontSize: 11, color: "#aaa" }}>
+                    {formatFecha(ultimaAlerta.created_at)}
+                  </div>
+                )}
+              </div>
+            </Flex>
           </Card>
         </Col>
       </Row>
 
-      {/* Contenido principal */}
-      {isMobile ? (
-        <Row gutter={[16, 16]}>
-          <Col span={24}>
-            <Card
-              style={{
-                borderRadius: "12px",
-                background: "white",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                border: "none",
-              }}
-              bodyStyle={{ padding: "20px" }}
-            >
-              <div
-                style={{
-                  marginBottom: "20px",
-                  borderBottom: "3px solid #FF6B35",
-                  paddingBottom: "16px",
-                }}
-              >
-                <Title level={4} style={{ margin: 0, color: "#1F3461" }}>
-                  Crear Alerta
-                </Title>
-              </div>
+      {/* Info banner */}
+      <Alert
+        description="Las alertas operan bajo el último dato almacenado. Recuerda que los emails deben ingresarse como lista y la descripción es libre."
+        type="info"
+        showIcon
+        style={{
+          marginBottom: "20px",
+          borderRadius: "10px",
+          border: "1px solid #d9d9d9",
+          background: "#fafafa",
+        }}
+      />
 
-              <Alert
-                description="Las alertas operan bajo el último dato almacenado."
-                type="info"
-                showIcon
-                style={{
-                  marginBottom: "20px",
-                  borderColor: "#FF6B35",
-                  backgroundColor: "#FFF8F0",
-                  borderRadius: "8px",
-                }}
-              />
+      {/* Tabla */}
+      <Card
+        style={{
+          borderRadius: "12px",
+          background: "white",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+          border: "none",
+        }}
+        bodyStyle={{ padding: isMobile ? "16px" : "24px" }}
+      >
+        <Flex
+          justify="space-between"
+          align="center"
+          style={{ marginBottom: "20px" }}
+        >
+          <span style={{ margin: 0, color: "#1F3461", fontSize: 16, fontWeight: 700 }}>
+            Mis Alertas
+          </span>
+          <Tag
+            style={{
+              fontWeight: 600,
+              fontSize: "12px",
+              padding: "4px 12px",
+              borderRadius: "6px",
+              borderColor: "#1F3461",
+              color: "#1F3461",
+              background: "#f2f5fa",
+            }}
+          >
+            {tickets.length} alertas
+          </Tag>
+        </Flex>
 
-              <FormAlert update={update} setUpdate={setUpdate} />
-            </Card>
-          </Col>
+        <TableAlerts
+          data={tickets}
+          update={update}
+          setUpdate={setUpdate}
+          onEdit={handleEdit}
+        />
+      </Card>
 
-          <Col span={24}>
-            <Card
-              style={{
-                borderRadius: "12px",
-                background: "white",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                border: "none",
-              }}
-              bodyStyle={{ padding: "20px" }}
-            >
-              <div
-                style={{
-                  marginBottom: "20px",
-                  borderBottom: "3px solid #1F3461",
-                  paddingBottom: "16px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Title level={4} style={{ margin: 0, color: "#1F3461" }}>
-                  Mis Alertas
-                </Title>
-                <Tag
-                  color="#FF6B35"
-                  style={{
-                    fontWeight: "600",
-                    fontSize: "12px",
-                    padding: "4px 12px",
-                    borderRadius: "6px",
-                  }}
-                >
-                  {tickets.length} alertas
-                </Tag>
-              </div>
-
-              <TableAlerts data={tickets} update={update} setUpdate={setUpdate} />
-            </Card>
-          </Col>
-        </Row>
-      ) : (
-        <Row gutter={[24, 24]}>
-          <Col xs={24} sm={24} md={10} lg={8} xl={8}>
-            <Card
-              style={{
-                borderRadius: "12px",
-                background: "white",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                border: "none",
-                height: "fit-content",
-              }}
-              bodyStyle={{ padding: "24px" }}
-            >
-              <div
-                style={{
-                  marginBottom: "20px",
-                  borderBottom: "3px solid #FF6B35",
-                  paddingBottom: "16px",
-                }}
-              >
-                <Title level={4} style={{ margin: 0, color: "#1F3461" }}>
-                  Crear Alerta
-                </Title>
-              </div>
-
-              <Alert
-                description="Las alertas operan bajo el último dato almacenado."
-                type="info"
-                showIcon
-                style={{
-                  marginBottom: "20px",
-                  borderColor: "#FF6B35",
-                  backgroundColor: "#FFF8F0",
-                  borderRadius: "8px",
-                }}
-              />
-
-              <FormAlert update={update} setUpdate={setUpdate} />
-            </Card>
-          </Col>
-
-          <Col xs={24} sm={24} md={14} lg={16} xl={16}>
-            <Card
-              style={{
-                borderRadius: "12px",
-                background: "white",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                border: "none",
-              }}
-              bodyStyle={{ padding: "24px" }}
-            >
-              <div
-                style={{
-                  marginBottom: "20px",
-                  borderBottom: "3px solid #1F3461",
-                  paddingBottom: "16px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Title level={4} style={{ margin: 0, color: "#1F3461" }}>
-                  Mis Alertas
-                </Title>
-                <Tag
-                  color="#FF6B35"
-                  style={{
-                    fontWeight: "600",
-                    fontSize: "14px",
-                    padding: "6px 16px",
-                    borderRadius: "8px",
-                  }}
-                >
-                  {tickets.length} alertas
-                </Tag>
-              </div>
-
-              <TableAlerts data={tickets} update={update} setUpdate={setUpdate} />
-            </Card>
-          </Col>
-        </Row>
-      )}
+      {/* Drawer Crear/Editar */}
+      <Drawer
+        title={
+          <span style={{ color: "#BDC00C", fontWeight: 700, fontSize: 17, letterSpacing: 0.5 }}>
+            {editingRecord ? "EDITAR ALERTA" : "NUEVA ALERTA"}
+          </span>
+        }
+        placement="right"
+        onClose={handleFormCancel}
+        open={formVisible}
+        width={isMobile ? "100%" : 520}
+        styles={{
+          body: { background: "#0a0e27", padding: "24px" },
+          header: { background: "#0f152e", borderBottom: "1px solid rgba(255,107,53,0.25)" },
+          mask: { background: "rgba(0,0,0,0.75)" },
+        }}
+        closeIcon={<span style={{ color: "#BDC00C", fontSize: 18 }}>✕</span>}
+        destroyOnClose
+      >
+        <FormAlert
+          record={editingRecord}
+          onSuccess={handleFormSuccess}
+          onCancel={handleFormCancel}
+        />
+      </Drawer>
     </div>
   );
 };

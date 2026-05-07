@@ -39,7 +39,7 @@ const MENU_ITEMS = [
     label: "Documentos",
     to: "/documentos",
   },
-  { key: "7", icon: <AlertOutlined />, label: "Alertas", to: "/alertas" },
+  { key: "7", icon: <AlertOutlined />, label: "Centro de Alertas", to: "/alertas" },
   {
     key: "8",
     icon: <CustomerServiceOutlined />,
