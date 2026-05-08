@@ -53,6 +53,8 @@ const AdminDashboard = () => {
   const [dgaQueue, setDgaQueue] = useState(null);
   const [notificationsSummary, setNotificationsSummary] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [projects, setProjects] = useState([]);
+  const [selectedProject, setSelectedProject] = useState(null);
 
   const isStaff = state.user?.is_staff;
 
@@ -65,12 +67,22 @@ const AdminDashboard = () => {
     }
   };
 
-  const loadPointsStatus = async () => {
+  const loadPointsStatus = async (projectId = null) => {
     try {
-      const res = await sh.management.pointsStatus();
+      const params = projectId ? { project: projectId } : {};
+      const res = await sh.management.pointsStatus(params);
       setPointsStatus(res.points || []);
     } catch (err) {
       console.error("Error cargando points status:", err);
+    }
+  };
+
+  const loadProjects = async () => {
+    try {
+      const res = await sh.admin.projects();
+      setProjects(res.results || res || []);
+    } catch (err) {
+      console.error("Error cargando proyectos:", err);
     }
   };
 
@@ -99,6 +111,7 @@ const AdminDashboard = () => {
       loadPointsStatus(),
       loadDgaQueue(),
       loadNotificationsSummary(),
+      loadProjects(),
     ]);
     setLoading(false);
   };
@@ -385,20 +398,38 @@ const AdminDashboard = () => {
               </Text>
             </div>
           </Flex>
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={loadAll}
-            loading={loading}
-            style={{
-              background: "white",
-              color: "#1F3461",
-              borderColor: "white",
-              borderRadius: 8,
-              fontWeight: 600,
-            }}
-          >
-            Actualizar
-          </Button>
+          <Flex gap="small" align="center">
+            <Select
+              placeholder="Todos los proyectos"
+              allowClear
+              style={{ minWidth: 200 }}
+              value={selectedProject}
+              onChange={(value) => {
+                setSelectedProject(value);
+                loadPointsStatus(value);
+              }}
+            >
+              {projects.map((p) => (
+                <Select.Option key={p.id} value={p.id}>
+                  {p.name || p.title || `Proyecto ${p.id}`}
+                </Select.Option>
+              ))}
+            </Select>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={loadAll}
+              loading={loading}
+              style={{
+                background: "white",
+                color: "#1F3461",
+                borderColor: "white",
+                borderRadius: 8,
+                fontWeight: 600,
+              }}
+            >
+              Actualizar
+            </Button>
+          </Flex>
         </Flex>
       </div>
 
