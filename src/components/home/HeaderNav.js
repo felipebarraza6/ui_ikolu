@@ -1,9 +1,8 @@
-import React, { useContext, useMemo } from "react";
+import React, { useContext, useMemo, useState, useEffect } from "react";
 import { AppContext } from "../../App";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   LogoutOutlined,
-  WifiOutlined,
   UserOutlined,
   BarChartOutlined,
   FileTextOutlined,
@@ -13,43 +12,69 @@ import {
   EnvironmentOutlined,
   GlobalOutlined,
   MenuOutlined,
+  BellOutlined,
+  WifiOutlined,
+  RightOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
-import { Typography, Button, Popconfirm, Flex, Breadcrumb } from "antd";
-import ListWells from "./ListWells";
+import { Typography, Button, Popconfirm, Flex, Breadcrumb, Dropdown, Badge } from "antd";
+import AlertPreview from "./AlertPreview";
+import WellConfigDrawer from "../well/WellConfigDrawer";
+import DgaConfigDrawer from "../well/DgaConfigDrawer";
 import { useResponsive } from "../../hooks/useResponsive";
+import sh from "../../api/sh/endpoints";
 import logo from "../../assets/images/logozivo.png";
 
-const { Title } = Typography;
+const { Text } = Typography;
 
+// Estructura de menú con submenús
 const MENU_ITEMS = [
-  { key: "0", icon: <GlobalOutlined />, label: "Centro de Control", to: "/" },
-  { key: "1", icon: <EnvironmentOutlined />, label: "GEO Smart", to: "/geo" },
-  { key: "2", icon: <WifiOutlined />, label: "Telemetría", to: "/telemetria" },
   {
-    key: "3",
-    icon: <BarChartOutlined />,
-    label: "Smart Análisis",
-    to: "/analisis",
+    key: "monitoreo",
+    label: "Monitoreo",
+    global: true,
+    children: [
+      { key: "0", label: "Centro de Control", to: "/" },
+      { key: "1", label: "GEO Smart", to: "/geo" },
+      { key: "2", label: "Telemetría", to: "/telemetry" },
+    ],
   },
-  { key: "4", icon: <FileTextOutlined />, label: "DGA - MEE", to: "/dga" },
-  { key: "5", icon: <DownloadOutlined />, label: "Descarga", to: "/descarga" },
   {
-    key: "6",
-    icon: <FileTextOutlined />,
-    label: "Documentos",
-    to: "/documentos",
+    key: "analisis",
+    label: "Análisis",
+    children: [
+      { key: "3", label: "Smart Análisis", to: "/analysis" },
+      { key: "4", label: "DGA - MEE", to: "/dga" },
+    ],
   },
-  { key: "7", icon: <AlertOutlined />, label: "Centro de Alertas", to: "/alertas" },
   {
-    key: "8",
-    icon: <CustomerServiceOutlined />,
-    label: "Soporte",
-    to: "/soporte",
+    key: "gestion",
+    label: "Gestión",
+    children: [
+      { key: "5", label: "Descarga", to: "/download" },
+      { key: "6", label: "Documentos", to: "/documents" },
+      { key: "7", label: "Alertas", to: "/alerts" },
+    ],
   },
+  { key: "8", label: "Soporte", to: "/support" },
 ];
 
-const UserInfo = React.memo(({ state, onlyIcons }) => (
-  <Flex align="center" gap="small">
+const flattenMenu = (items) => {
+  const result = [];
+  items.forEach((item) => {
+    if (item.children) result.push(...item.children);
+    else result.push(item);
+  });
+  return result;
+};
+
+const UserInfo = React.memo(({ state, onlyIcons, onClick }) => (
+  <Flex
+    align="center"
+    gap="small"
+    style={{ cursor: onClick ? "pointer" : "default" }}
+    onClick={onClick}
+  >
     <UserOutlined
       style={{
         color: "#1F3461",
@@ -70,41 +95,88 @@ const UserInfo = React.memo(({ state, onlyIcons }) => (
 const HeaderNav = ({ onMenuClick }) => {
   const { state, dispatch } = useContext(AppContext);
   const location = useLocation();
+  const navigate = useNavigate();
   const { isMobile } = useResponsive();
+  const [alertCount, setAlertCount] = useState(0);
+  const [wellDrawerOpen, setWellDrawerOpen] = useState(false);
+  const [dgaDrawerOpen, setDgaDrawerOpen] = useState(false);
 
-  const isDocOrEmpresas =
-    location.pathname.startsWith("/documentation") ||
-    location.pathname.startsWith("/user-documentation") ||
-    location.pathname.startsWith("/empresas-b");
 
-  const handleLogout = () => {
-    dispatch({ type: "LOGOUT" });
-    // No es necesario navegar aquí, el AppRouter se encargará
-  };
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      if (!state.selected_profile?.id) return;
+      try {
+        const res = await sh.notifications.actives(state.selected_profile.id, 1, "ALERT");
+        setAlertCount(res.count || res.results?.length || 0);
+      } catch (e) {
+        // silent
+      }
+    };
+    fetchAlerts();
+    const interval = setInterval(fetchAlerts, 60000);
+    return () => clearInterval(interval);
+  }, [state.selected_profile?.id]);
 
   const moduleName = useMemo(() => {
     const currentPath = location.pathname;
-    // Buscar el item de menú más largo que haga match con la ruta
-    const sortedItems = [...MENU_ITEMS].sort(
-      (a, b) => b.to.length - a.to.length
-    );
-    const menuItem = sortedItems.find(
+    const flat = flattenMenu(MENU_ITEMS).sort((a, b) => b.to.length - a.to.length);
+    const menuItem = flat.find(
       (item) => currentPath === item.to || currentPath.startsWith(item.to + "/")
     );
     return menuItem ? menuItem.label : "Módulo";
   }, [location.pathname]);
 
-  // Breadcrumb dinámico: nombre del pozo/sector y módulo
-  const breadcrumbItems = [
-    {
-      title: state.selected_profile?.title || "Punto de Captación",
-    },
-    {
-      title: moduleName,
-    },
-  ];
+  // Detectar si es módulo global (no depende del punto seleccionado)
+  const isGlobalModule = useMemo(() => {
+    const globalPaths = ["/", "/geo"];
+    return globalPaths.includes(location.pathname);
+  }, [location.pathname]);
 
-  // Estilos para el header y breadcrumb en mobile
+  // Determinar si mostrar tuerca de configuración según la ruta
+  const configFor = useMemo(() => {
+    if (location.pathname === "/telemetry") return "well";
+    if (location.pathname === "/dga") return "dga";
+    return null;
+  }, [location.pathname]);
+
+  const handleLogout = () => {
+    dispatch({ type: "LOGOUT" });
+  };
+
+  // Breadcrumb coherente con el estilo de la app
+  const breadcrumbContent = isGlobalModule ? (
+    <span style={{ fontWeight: 700, color: "#1F3461", fontSize: 15, letterSpacing: 0.3 }}>
+      {moduleName}
+    </span>
+  ) : (
+    <Flex align="center" gap={10}>
+      <span
+        style={{
+          background: "#f0f2f5",
+          color: "#595959",
+          fontSize: 12,
+          fontWeight: 600,
+          padding: "4px 12px",
+          borderRadius: 12,
+          textTransform: "uppercase",
+          letterSpacing: 0.5,
+          maxWidth: 200,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          display: "inline-block",
+        }}
+      >
+        {state.selected_profile?.title || "Punto"}
+      </span>
+      <RightOutlined style={{ color: "#bfbfbf", fontSize: 10 }} />
+      <span style={{ fontWeight: 700, color: "#1F3461", fontSize: 15, letterSpacing: 0.3 }}>
+        {moduleName}
+      </span>
+    </Flex>
+  );
+
+  // Estilos para mobile
   const headerMobileStyle = isMobile
     ? {
         position: "fixed",
@@ -128,17 +200,17 @@ const HeaderNav = ({ onMenuClick }) => {
         flex: 1,
         textAlign: "center",
         color: "white",
-        fontSize: 18,
-        fontWeight: 600,
+        fontSize: 14,
+        fontWeight: 500,
         background: "transparent",
         padding: "0 8px",
         overflow: "hidden",
         whiteSpace: "nowrap",
         textOverflow: "ellipsis",
       }
-    : { fontSize: "16px", fontWeight: 500 };
+    : {};
 
-  return isMobile ? (
+  const content = isMobile ? (
     <div style={headerMobileStyle}>
       <Button
         type="text"
@@ -147,14 +219,15 @@ const HeaderNav = ({ onMenuClick }) => {
         style={{ marginLeft: 4, marginRight: 8 }}
       />
       <img src={logo} alt="Logo" style={{ height: 32, marginRight: 8 }} />
+      {alertCount > 0 && (
+        <Badge
+          count={alertCount}
+          size="small"
+          style={{ background: "#FF6B35", marginRight: 8 }}
+        />
+      )}
       <div style={breadcrumbMobileStyle}>
-        <span style={{ color: "white", opacity: 0.85 }}>
-          {state.selected_profile?.title || "Punto de Captación"}
-        </span>
-        <span style={{ color: "white", opacity: 0.5, margin: "0 8px" }}>
-          {">"}
-        </span>
-        <span style={{ color: "white" }}>{moduleName}</span>
+        <span style={{ color: "white", opacity: 0.85 }}>{moduleName}</span>
       </div>
       <Popconfirm
         cancelText="Volver"
@@ -171,33 +244,122 @@ const HeaderNav = ({ onMenuClick }) => {
     </div>
   ) : (
     <Flex align="center" justify="space-between" style={{ height: "100%" }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          flex: 1,
-          minWidth: 0,
-          gap: 16,
-        }}
-      >
-        <Breadcrumb
-          separator=">"
-          style={{ fontSize: "16px", fontWeight: 500 }}
-          items={breadcrumbItems}
-        />
-      </div>
-      <Flex align="center" gap={8}>
-        <UserInfo state={state} onlyIcons={false} />
-        <Popconfirm
-          cancelText="Volver"
-          okText="SALIR"
-          title="¿Estás seguro de querer cerrar la sesión?"
-          onConfirm={handleLogout}
+      <Flex align="center" gap={10}>
+        {breadcrumbContent}
+        {configFor && (
+          <Button
+            type="text"
+            icon={<SettingOutlined style={{ fontSize: 18, color: "#1F3461" }} />}
+            onClick={() => {
+              if (configFor === "well") setWellDrawerOpen(true);
+              if (configFor === "dga") setDgaDrawerOpen(true);
+            }}
+            title={configFor === "well" ? "Configuración del punto" : "Configuración DGA"}
+            style={{
+              width: 32,
+              height: 32,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "50%",
+              background: "#f0f2f5",
+            }}
+          />
+        )}
+      </Flex>
+
+      {/* ── Barra de acciones con más presencia ── */}
+      <Flex align="center" gap={12}>
+        {/* Pill de acciones principales */}
+        <Flex
+          align="center"
+          gap={2}
+          style={{
+            background: "#f5f7fa",
+            borderRadius: 28,
+            padding: "3px 6px",
+            border: "1px solid #e8e8e8",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+          }}
         >
-          <Button type="text" icon={<LogoutOutlined />} />
-        </Popconfirm>
+          <AlertPreview />
+
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: "profile",
+                  icon: <UserOutlined />,
+                  label: "Mi Perfil",
+                  onClick: () => navigate("/profile"),
+                },
+                ...(state.user?.is_staff
+                  ? [
+                      {
+                        key: "admin",
+                        icon: <BarChartOutlined />,
+                        label: "Administrador",
+                        onClick: () => navigate("/admin"),
+                      },
+                    ]
+                  : []),
+                {
+                  type: "divider",
+                },
+                {
+                  key: "logout",
+                  icon: <LogoutOutlined />,
+                  label: "Cerrar Sesión",
+                  onClick: handleLogout,
+                  danger: true,
+                },
+              ],
+            }}
+            placement="bottomRight"
+            trigger={["click"]}
+          >
+            <div
+              style={{
+                cursor: "pointer",
+                padding: "4px 10px 4px 6px",
+                borderRadius: 20,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                transition: "background 0.2s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(31,52,97,0.06)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+            >
+              <div
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: "50%",
+                  background: "#1F3461",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <UserOutlined style={{ color: "#fff", fontSize: 14 }} />
+              </div>
+              <span style={{ color: "#1F3461", fontSize: 13, fontWeight: 600 }}>
+                {state.user?.username || "Usuario"}
+              </span>
+            </div>
+          </Dropdown>
+        </Flex>
       </Flex>
     </Flex>
+  );
+
+  return (
+    <>
+      {content}
+      <WellConfigDrawer visible={wellDrawerOpen} onClose={() => setWellDrawerOpen(false)} />
+      <DgaConfigDrawer visible={dgaDrawerOpen} onClose={() => setDgaDrawerOpen(false)} />
+    </>
   );
 };
 

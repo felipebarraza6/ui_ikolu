@@ -532,34 +532,6 @@ const GeoSmart = () => {
 
   const hasGeoPoints = geoData.some((p) => p.hasGPS === true);
 
-  if (!hasGeoPoints) {
-    return (
-      <div
-        style={{
-          width: "100%",
-          height: 400,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "column",
-          background: "#f8fafc",
-          border: "1.5px solid #e3f2fd",
-          borderRadius: 12,
-        }}
-      >
-        <Typography.Title
-          level={4}
-          style={{ color: "#1f3461", marginBottom: 8 }}
-        >
-          Este módulo no está activo para tu sesión
-        </Typography.Title>
-        <Typography.Text type="secondary">
-          Contacta a soporte para activar la funcionalidad GEO Smart.
-        </Typography.Text>
-      </div>
-    );
-  }
-
   return (
     <>
       <Row gutter={[16, 16]}>
@@ -575,7 +547,18 @@ const GeoSmart = () => {
             }}
             bodyStyle={{ padding: 0, flex: 1, position: "relative" }}
           >
-            <GeoMap geoData={geoData} onPointClick={handlePointClick} />
+            {hasGeoPoints ? (
+              <GeoMap geoData={geoData} onPointClick={handlePointClick} />
+            ) : (
+              <Flex align="center" justify="center" style={{ height: "100%" }} vertical gap="small">
+                <Typography.Title level={4} style={{ color: "#1f3461", margin: 0 }}>
+                  GEO Smart
+                </Typography.Title>
+                <Typography.Text type="secondary">
+                  No hay puntos con GPS configurados
+                </Typography.Text>
+              </Flex>
+            )}
           </Card>
         </Col>
         <Col xs={24} md={8}>

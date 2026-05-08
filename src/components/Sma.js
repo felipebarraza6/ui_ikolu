@@ -20,8 +20,13 @@ import {
   Col,
   ConfigProvider,
   Spin,
+  Skeleton,
   Tag,
   Space,
+  Drawer,
+  Form,
+  Input,
+  notification,
 } from "antd";
 import dayjs from "dayjs";
 import "dayjs/locale/es";
@@ -40,6 +45,9 @@ import {
   CalendarOutlined,
   WifiOutlined,
   CheckCircleFilled,
+  EditOutlined,
+  SaveOutlined,
+  CloseOutlined,
 } from "@ant-design/icons";
 import sh from "../api/sh/endpoints";
 import { useResponsive } from "../hooks/useResponsive";
@@ -67,6 +75,11 @@ const Sma = () => {
   const [finishDate, setFinishDate] = useState(dayjs().endOf('day'));
   const [data, setData] = useState([]);
   const [countApi, setCountApi] = useState(0);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [drawerVisible, setDrawerVisible] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [dataReady, setDataReady] = useState(false);
+  const [editForm] = Form.useForm();
 
   const activate = state.selected_profile?.profile_ikolu?.m3;
   
@@ -124,6 +137,16 @@ const Sma = () => {
   useEffect(() => {
     fetchData(1);
   }, [fetchData]);
+
+  // Animación de entrada cuando los datos terminan de cargar
+  useEffect(() => {
+    if (!loading && data.length >= 0) {
+      const timer = setTimeout(() => setDataReady(true), 100);
+      return () => clearTimeout(timer);
+    } else {
+      setDataReady(false);
+    }
+  }, [loading, data.length]);
 
   const downloadDataToExcel = useCallback(async () => {
     if (!initialDate || !finishDate) return;
@@ -383,13 +406,70 @@ const Sma = () => {
       };
     }
 
+    // Columna de acciones (editar)
+    slots.actions = {
+      title: "",
+      key: "actions",
+      align: "center",
+      width: 60,
+      fixed: "right",
+      render: (_, record) => (
+        <Button
+          type="text"
+          size="small"
+          icon={<EditOutlined style={{ color: "#1F3461" }} />}
+          onClick={() => {
+            setEditingRecord(record);
+            editForm.setFieldsValue({
+              flow: record.flow,
+              nivel: record.nivel,
+              water_table: record.water_table,
+              total: record.total,
+              total_diff: record.total_diff,
+            });
+            setDrawerVisible(true);
+          }}
+        />
+      ),
+    };
+
     // Orden específico de columnas
-    const orderedKeys = ["date", "flow", "nivel", "water_table", "total", "total_diff", "voucher"];
+    const orderedKeys = ["date", "flow", "nivel", "water_table", "total", "total_diff", "voucher", "actions"];
     return orderedKeys.map(key => slots[key]).filter(col => col !== null);
   }, [isMobile, primaryColor, accentColor, successColor, waterColor, showSmaFeatures, state.selected_profile, data]);
 
   const handlePageChange = (newPage) => {
     fetchData(newPage);
+  };
+
+  const handleSaveEdit = async (values) => {
+    if (!editingRecord) return;
+    setSaving(true);
+    try {
+      await sh.update_data_sh(editingRecord.id, {
+        ...editingRecord,
+        flow: parseFloat(values.flow),
+        nivel: parseFloat(values.nivel),
+        water_table: parseFloat(values.water_table),
+        total: parseFloat(values.total),
+        total_diff: parseFloat(values.total_diff),
+      });
+      notification.success({
+        message: "Registro actualizado",
+        description: "Los datos han sido actualizados correctamente.",
+      });
+      setDrawerVisible(false);
+      setEditingRecord(null);
+      fetchData(page);
+    } catch (error) {
+      notification.error({
+        message: "Error al guardar",
+        description: "No se pudo actualizar el registro.",
+      });
+      console.error(error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const dateRangeIsSelected = initialDate && finishDate;
@@ -411,7 +491,7 @@ const Sma = () => {
           <div className="water-wave wave-reverse" style={{ opacity: 0.1, top: -100, animationDuration: '25s' }}></div>
           
           <Flex justify="space-between" align="center" wrap="wrap" gap={24} style={{ position: "relative", zIndex: 1 }}>
-            <Flex align="center" gap={16}>
+            <Flex align="center" gap={16} style={{ flex: 1, minWidth: 0 }}>
               <div style={{ 
                 background: "rgba(255, 255, 255, 0.1)", 
                 backdropFilter: "blur(10px)",
@@ -422,7 +502,7 @@ const Sma = () => {
               }}>
                 <DatabaseFilled style={{ fontSize: 24, color: "#10ebff" }} />
               </div>
-              <div>
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <Title level={isMobile ? 4 : 2} style={{ margin: 0, color: "#fff", fontWeight: 800 }}>
                   Captación Superficial
                 </Title>
@@ -556,35 +636,42 @@ const Sma = () => {
           </Flex>
         </div>
 
-        <Table
-          size={isMobile ? "small" : "middle"}
-          bordered={false}
-          scroll={getTableScroll()}
-          loading={loading}
-          dataSource={data}
-          columns={columns}
-          rowKey="date_time_medition"
-          className="water-table"
-          pagination={{
-            onChange: handlePageChange,
-            total: countApi,
-            current: page,
-            pageSize: isMobile ? 8 : 10,
-            showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} registros`,
-            position: ["bottomCenter"],
-            style: { padding: "20px 0" }
-          }}
-          locale={{
-            emptyText: (
-              <Flex vertical align="center" style={{ padding: "80px 0" }}>
-                <SearchOutlined style={{ fontSize: 64, color: "#e6f7ff", marginBottom: 20 }} />
-                <Title level={4} style={{ color: "#bfbfbf", margin: 0, fontWeight: 600 }}>
-                  {dateRangeIsSelected ? "No hay datos para este período" : "Selecciona un rango de fechas"}
-                </Title>
-              </Flex>
-            ),
-          }}
-        />
+        {loading ? (
+          <div style={{ padding: "40px 32px" }}>
+            <Skeleton active paragraph={{ rows: 8 }} className="skeleton-pulse" />
+          </div>
+        ) : (
+          <div className={dataReady ? "fade-in" : ""}>
+            <Table
+              size={isMobile ? "small" : "middle"}
+              bordered={false}
+              scroll={getTableScroll()}
+              dataSource={data}
+              columns={columns}
+              rowKey="date_time_medition"
+              className="water-table"
+              pagination={{
+                onChange: handlePageChange,
+                total: countApi,
+                current: page,
+                pageSize: isMobile ? 8 : 10,
+                showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} registros`,
+                position: ["bottomCenter"],
+                style: { padding: "20px 0" }
+              }}
+              locale={{
+                emptyText: (
+                  <Flex vertical align="center" style={{ padding: "80px 0" }}>
+                    <SearchOutlined style={{ fontSize: 64, color: "#e6f7ff", marginBottom: 20 }} />
+                    <Title level={4} style={{ color: "#bfbfbf", margin: 0, fontWeight: 600 }}>
+                      {dateRangeIsSelected ? "No hay datos para este período" : "Selecciona un rango de fechas"}
+                    </Title>
+                  </Flex>
+                ),
+              }}
+            />
+          </div>
+        )}
       </Card>
 
       <style>{`
@@ -639,7 +726,128 @@ const Sma = () => {
         .water-table .ant-table-cell {
           border-bottom: 1px solid #f0f7ff;
         }
+        .fade-in {
+          animation: fadeIn 0.5s ease-out forwards;
+          opacity: 0;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .skeleton-pulse .ant-skeleton-title,
+        .skeleton-pulse .ant-skeleton-paragraph > li {
+          background: linear-gradient(90deg, #f0f7ff 25%, #e6f7ff 50%, #f0f7ff 75%);
+          background-size: 200% 100%;
+          animation: skeletonPulse 1.5s infinite;
+        }
+        @keyframes skeletonPulse {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
       `}</style>
+
+      {/* Drawer de edición */}
+      <Drawer
+        title={
+          <span style={{ color: "#BDC00C", fontWeight: 700, fontSize: 17, letterSpacing: 0.5 }}>
+            EDITAR REGISTRO
+          </span>
+        }
+        placement="right"
+        onClose={() => {
+          setDrawerVisible(false);
+          setEditingRecord(null);
+        }}
+        open={drawerVisible}
+        width={isMobile ? "100%" : 480}
+        styles={{
+          body: { background: "#0a0e27", padding: "24px" },
+          header: { background: "#0f152e", borderBottom: "1px solid rgba(255,107,53,0.25)" },
+          mask: { background: "rgba(0,0,0,0.75)" },
+        }}
+        closeIcon={<span style={{ color: "#BDC00C", fontSize: 18 }}>✕</span>}
+        extra={
+          <Button
+            icon={<CloseOutlined />}
+            onClick={() => {
+              setDrawerVisible(false);
+              setEditingRecord(null);
+            }}
+            style={{
+              background: "transparent",
+              borderColor: "rgba(255,255,255,0.3)",
+              color: "rgba(255,255,255,0.85)",
+            }}
+          >
+            Cerrar
+          </Button>
+        }
+      >
+        {editingRecord && (
+          <Form
+            form={editForm}
+            layout="vertical"
+            onFinish={handleSaveEdit}
+            initialValues={{
+              flow: editingRecord.flow,
+              nivel: editingRecord.nivel,
+              water_table: editingRecord.water_table,
+              total: editingRecord.total,
+              total_diff: editingRecord.total_diff,
+            }}
+          >
+            <Form.Item
+              name="flow"
+              label={<span style={{ color: "rgba(255,255,255,0.7)" }}>Caudal (lt/s)</span>}
+              rules={[{ required: true, message: "Ingresa el caudal" }]}
+            >
+              <Input type="number" step="0.01" style={{ background: "rgba(255,255,255,0.05)", color: "white", borderColor: "rgba(255,255,255,0.2)" }} />
+            </Form.Item>
+            <Form.Item
+              name="nivel"
+              label={<span style={{ color: "rgba(255,255,255,0.7)" }}>Nivel (m)</span>}
+            >
+              <Input type="number" step="0.01" style={{ background: "rgba(255,255,255,0.05)", color: "white", borderColor: "rgba(255,255,255,0.2)" }} />
+            </Form.Item>
+            <Form.Item
+              name="water_table"
+              label={<span style={{ color: "rgba(255,255,255,0.7)" }}>Nivel Freático (m)</span>}
+            >
+              <Input type="number" step="0.01" style={{ background: "rgba(255,255,255,0.05)", color: "white", borderColor: "rgba(255,255,255,0.2)" }} />
+            </Form.Item>
+            <Form.Item
+              name="total"
+              label={<span style={{ color: "rgba(255,255,255,0.7)" }}>Acumulado (m³)</span>}
+              rules={[{ required: true, message: "Ingresa el acumulado" }]}
+            >
+              <Input type="number" step="1" style={{ background: "rgba(255,255,255,0.05)", color: "white", borderColor: "rgba(255,255,255,0.2)" }} />
+            </Form.Item>
+            <Form.Item
+              name="total_diff"
+              label={<span style={{ color: "rgba(255,255,255,0.7)" }}>Consumo (m³)</span>}
+            >
+              <Input type="number" step="0.01" style={{ background: "rgba(255,255,255,0.05)", color: "white", borderColor: "rgba(255,255,255,0.2)" }} />
+            </Form.Item>
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                icon={<SaveOutlined />}
+                loading={saving}
+                style={{
+                  width: "100%",
+                  background: "#1F3461",
+                  borderColor: "#1F3461",
+                  height: 44,
+                  fontWeight: 600,
+                }}
+              >
+                Guardar cambios
+              </Button>
+            </Form.Item>
+          </Form>
+        )}
+      </Drawer>
     </div>
   );
 };

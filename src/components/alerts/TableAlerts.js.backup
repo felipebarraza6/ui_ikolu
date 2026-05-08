@@ -1,0 +1,860 @@
+import React, { useContext, useState, useEffect } from "react";
+import {
+  Table,
+  Flex,
+  Tag,
+  message,
+  Button,
+  Drawer,
+  Switch,
+  Popconfirm,
+  Tooltip,
+  Statistic,
+  Spin,
+  Empty,
+} from "antd";
+import {
+  EyeOutlined,
+  DeleteOutlined,
+  EditOutlined,
+} from "@ant-design/icons";
+import { Line } from "@ant-design/plots";
+import dayjs from "dayjs";
+import { AppContext } from "../../App";
+import sh from "../../api/sh/endpoints";
+import FormAlert from "./FormAlert";
+
+const TableAlerts = ({ data, update, setUpdate }) => {
+  const { state } = useContext(AppContext);
+  const canManageAlerts = state.selected_profile?.profile_ikolu?.m6 || false;
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [drawerVisible, setDrawerVisible] = useState(false);
+
+  // Detail drawer states
+  const [detailRecord, setDetailRecord] = useState(null);
+  const [detailVisible, setDetailVisible] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailData, setDetailData] = useState(null);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const loadDetail = async (id) => {
+    setDetailLoading(true);
+    try {
+      const res = await sh.notifications.getById(id);
+      setDetailData(res);
+    } catch (err) {
+      message.error("Error al cargar detalle de la alerta");
+      console.error(err);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const openDetail = (record) => {
+    setDetailRecord(record);
+    setDetailVisible(true);
+    loadDetail(record.id);
+  };
+
+  const closeDetail = () => {
+    setDetailVisible(false);
+    setDetailRecord(null);
+    setDetailData(null);
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await sh.notifications.delete(id);
+      message.success("Alerta eliminada correctamente");
+      if (setUpdate) setUpdate(!update);
+    } catch (error) {
+      message.error("Error al eliminar la alerta");
+    }
+  };
+
+  const handleEdit = (record) => {
+    setEditingRecord(record);
+    setDrawerVisible(true);
+  };
+
+  const handleCloseDrawer = () => {
+    setDrawerVisible(false);
+    setEditingRecord(null);
+  };
+
+  const handleToggleActive = async (record, isActive) => {
+    const prevState = !!record.is_active;
+    record.is_active = isActive;
+    if (setUpdate) setUpdate((u) => !u);
+    try {
+      await sh.notifications.update(record.id, { is_active: isActive });
+      message.success(isActive ? "Alerta activada" : "Alerta desactivada");
+      if (setUpdate) setUpdate((u) => !u);
+    } catch (error) {
+      record.is_active = prevState;
+      if (setUpdate) setUpdate((u) => !u);
+      message.error("Error al cambiar el estado de la alerta");
+    }
+  };
+
+  const typeAlertLabel = { MAX: ">", MIN: "<", EQUALS: "=" };
+
+  const typeVariableLabel = {
+    NIVEL: "Nivel",
+    CAUDAL: "Caudal",
+    "CAUDAL PROMEDIO": "Caudal Med.",
+    TOTALIZADO: "Totalizado",
+  };
+
+  const calcDuration = (start, end) => {
+    if (!start && !end)
+      return { text: "∞", color: "default", tooltip: "Sin límite de tiempo" };
+    const s = start ? dayjs(start) : null;
+    const e = end ? dayjs(end) : null;
+    const today = dayjs();
+
+    if (e && e.isBefore(today, "day")) {
+      return {
+        text: "Expirada",
+        color: "red",
+        tooltip: "La vigencia ya terminó",
+      };
+    }
+    if (s && e) {
+      const total = e.diff(s, "day") + 1;
+      const remaining = e.diff(today, "day") + 1;
+      return {
+        text: `${total} días`,
+        color: "blue",
+        tooltip: remaining > 0 ? `${remaining} días restantes` : "Último día",
+      };
+    }
+    if (e) {
+      const remaining = e.diff(today, "day") + 1;
+      return {
+        text: `Hasta ${e.format("DD/MM")}`,
+        color: "blue",
+        tooltip: `${remaining} días restantes`,
+      };
+    }
+    if (s) {
+      return {
+        text: `Desde ${s.format("DD/MM")}`,
+        color: "default",
+        tooltip: "Sin fecha de término",
+      };
+    }
+    return { text: "∞", color: "default", tooltip: "Sin límite" };
+  };
+
+  const calcVigencia = (start, end) => {
+    if (!start && !end) return null;
+    const s = start ? dayjs(start).format("DD/MM") : null;
+    const e = end ? dayjs(end).format("DD/MM") : null;
+    if (s && e) return `${s} → ${e}`;
+    if (s) return `Desde ${s}`;
+    if (e) return `Hasta ${e}`;
+    return null;
+  };
+
+  // Validate peak hour from trigger_history (fallback if backend is wrong)
+  const validatedPeakHour = React.useMemo(() => {
+    if (!detailData?.stats?.trigger_history?.length) return null;
+    const hours = {};
+    detailData.stats.trigger_history.forEach((t) => {
+      const h = dayjs(t.triggered_at).hour();
+      hours[h] = (hours[h] || 0) + 1;
+    });
+    const maxCount = Math.max(...Object.values(hours));
+    const peakHours = Object.entries(hours)
+      .filter(([, c]) => c === maxCount)
+      .map(([h]) => parseInt(h, 10))
+      .sort((a, b) => a - b);
+    return {
+      hour: peakHours[0],
+      count: maxCount,
+      backendHour: detailData.stats.peak_hour?.hour ?? null,
+      isConsistent:
+        detailData.stats.peak_hour?.hour === peakHours[0] &&
+        detailData.stats.peak_hour?.count === maxCount,
+    };
+  }, [detailData]);
+
+  // Chart config for trigger history
+  const chartConfig = React.useMemo(() => {
+    if (!detailData?.stats?.trigger_history?.length) return null;
+    const chartData = detailData.stats.trigger_history
+      .filter((t) => t.measured_value != null && !isNaN(parseFloat(t.measured_value)))
+      .map((t) => ({
+        triggered_at: dayjs(t.triggered_at).format("DD/MM HH:mm"),
+        measured_value: parseFloat(t.measured_value),
+      }));
+    return {
+      data: chartData,
+      xField: "triggered_at",
+      yField: "measured_value",
+      smooth: true,
+      point: { size: 4, shape: "circle", style: { fillOpacity: 1 } },
+      color: "#ff6b35",
+      xAxis: {
+        title: { text: "Fecha / Hora", style: { fontSize: 12, fontWeight: "bold" } },
+        label: { style: { fill: "rgba(255,255,255,0.6)" } },
+        line: { style: { stroke: "rgba(255,255,255,0.2)" } },
+      },
+      yAxis: {
+        title: { text: "Valor medido", style: { fontSize: 12, fontWeight: "bold" } },
+        label: { style: { fill: "rgba(255,255,255,0.6)" } },
+        grid: { line: { style: { stroke: "rgba(255,255,255,0.1)" } } },
+        line: { style: { stroke: "rgba(255,255,255,0.2)" } },
+      },
+      tooltip: {
+        title: (d) => d.triggered_at,
+        formatter: (d) => ({
+          name: "Valor medido",
+          value: d.measured_value,
+        }),
+      },
+    };
+  }, [detailData]);
+
+  // Highlight column based on alert type_variable
+  const highlightCell = (columnType) => {
+    if (!detailData) return {};
+    const tv = detailData.type_variable;
+    const isMatch =
+      (columnType === "nivel" && tv === "NIVEL") ||
+      (columnType === "caudal" &&
+        (tv === "CAUDAL" || tv === "CAUDAL PROMEDIO")) ||
+      (columnType === "total" && tv === "TOTALIZADO");
+    return isMatch
+      ? {
+          style: {
+            background: "rgba(255,107,53,0.15)",
+            color: "#ff8c69",
+            fontWeight: 700,
+          },
+        }
+      : {};
+  };
+
+  // History table columns
+  const historyColumns = [
+    {
+      title: "Fecha / Hora",
+      dataIndex: "triggered_at",
+      key: "triggered_at",
+      render: (v) => dayjs(v).format("DD/MM/YYYY HH:mm"),
+      width: 145,
+    },
+    {
+      title: "Nivel",
+      dataIndex: ["matched_interaction", "nivel"],
+      key: "nivel",
+      render: (v) => (v !== undefined ? parseFloat(v).toFixed(2) : "—"),
+      width: 85,
+      onCell: () => highlightCell("nivel"),
+    },
+    {
+      title: "Caudal",
+      dataIndex: ["matched_interaction", "flow"],
+      key: "flow",
+      render: (v) => (v !== undefined ? parseFloat(v).toFixed(2) : "—"),
+      width: 85,
+      onCell: () => highlightCell("caudal"),
+    },
+    {
+      title: "Total",
+      dataIndex: ["matched_interaction", "total"],
+      key: "total",
+      render: (v) => (v !== undefined ? v.toLocaleString("es-CL") : "—"),
+      width: 100,
+      onCell: () => highlightCell("total"),
+    },
+    {
+      title: "Diff",
+      dataIndex: ["matched_interaction", "total_diff"],
+      key: "total_diff",
+      render: (v) => (v !== undefined ? v.toLocaleString("es-CL") : "—"),
+      width: 80,
+    },
+  ];
+
+  return (
+    <>
+      <Table
+        size="small"
+        bordered={false}
+        scroll={{ x: "max-content" }}
+        pagination={false}
+        style={{ whiteSpace: "normal" }}
+        columns={[
+          {
+            title: "Alerta",
+            key: "alerta",
+            width: isMobile ? 160 : 240,
+            render: (text, record) => {
+              const date = new Date(record.created);
+              const condColor =
+                record.type_alert === "MAX"
+                  ? "#ff4d4f"
+                  : record.type_alert === "MIN"
+                    ? "#1890ff"
+                    : "#52c41a";
+              return (
+                <Flex vertical gap="4px">
+                  <span
+                    style={{
+                      fontWeight: 700,
+                      fontSize: isMobile ? "12px" : "13px",
+                      lineHeight: 1.3,
+                      color: "#1F3461",
+                    }}
+                  >
+                    {record.title.toUpperCase()}
+                  </span>
+                  <Flex gap="4px" align="center" wrap="wrap">
+                    <Tag
+                      style={{
+                        margin: 0,
+                        fontSize: 10,
+                        padding: "0 6px",
+                        fontWeight: 600,
+                        background: "#f0f0f0",
+                        borderColor: "#d9d9d9",
+                        color: "#555",
+                      }}
+                    >
+                      {typeVariableLabel[record.type_variable] ||
+                        record.type_variable}
+                    </Tag>
+                    <Tag
+                      style={{
+                        margin: 0,
+                        fontSize: 10,
+                        padding: "0 6px",
+                        fontWeight: 700,
+                        background: `${condColor}15`,
+                        borderColor: `${condColor}40`,
+                        color: condColor,
+                      }}
+                    >
+                      {typeAlertLabel[record.type_alert] || record.type_alert}
+                    </Tag>
+                    <Tag
+                      style={{
+                        margin: 0,
+                        fontSize: 10,
+                        padding: "0 6px",
+                        fontWeight: 700,
+                        background: "#1F346115",
+                        borderColor: "#1F346140",
+                        color: "#1F3461",
+                      }}
+                    >
+                      {record.value}
+                    </Tag>
+                  </Flex>
+                  <span style={{ fontSize: "10px", color: "#bbb" }}>
+                    Creada {date.toLocaleDateString()}
+                  </span>
+                </Flex>
+              );
+            },
+          },
+          {
+            title: "Emails",
+            key: "emails",
+            width: isMobile ? 140 : 180,
+            ellipsis: true,
+            render: (text, record) => {
+              const emails = record.emails || [];
+              const first = emails[0] || "—";
+              const restCount = emails.length - 1;
+              return (
+                <Tooltip title={emails.join(", ")}>
+                  <span
+                    style={{
+                      fontSize: isMobile ? "11px" : "12px",
+                      color: "#555",
+                    }}
+                  >
+                    {first}
+                    {restCount > 0 && (
+                      <span style={{ color: "#999", fontSize: 11 }}>
+                        {" "}
+                        +{restCount}
+                      </span>
+                    )}
+                  </span>
+                </Tooltip>
+              );
+            },
+          },
+          {
+            title: "Estado",
+            key: "status",
+            width: isMobile ? 90 : 100,
+            align: "center",
+            render: (text, record) => (
+              <Tooltip
+                title={!canManageAlerts ? "Módulo de alertas no activado" : ""}
+              >
+                <Switch
+                  size="small"
+                  checked={!!record.is_active}
+                  checkedChildren="ON"
+                  unCheckedChildren="OFF"
+                  disabled={!canManageAlerts}
+                  onChange={(checked) => handleToggleActive(record, checked)}
+                />
+              </Tooltip>
+            ),
+          },
+          {
+            title: "Duración",
+            key: "duracion",
+            width: isMobile ? 90 : 110,
+            align: "center",
+            render: (text, record) => {
+              const dur = calcDuration(record.start_date, record.end_date);
+              return (
+                <Tooltip title={dur.tooltip}>
+                  <Tag
+                    color={dur.color}
+                    style={{ fontSize: "11px", fontWeight: 600, margin: 0 }}
+                  >
+                    {dur.text}
+                  </Tag>
+                </Tooltip>
+              );
+            },
+          },
+          {
+            title: "Vigencia",
+            key: "vigencia",
+            width: isMobile ? 100 : 110,
+            align: "center",
+            render: (text, record) => {
+              const v = calcVigencia(record.start_date, record.end_date);
+              if (!v)
+                return (
+                  <span style={{ fontSize: "11px", color: "#aaa" }}>—</span>
+                );
+              return (
+                <span
+                  style={{
+                    fontSize: isMobile ? "10px" : "11px",
+                    color: "#666",
+                  }}
+                >
+                  {v}
+                </span>
+              );
+            },
+          },
+          {
+            title: "",
+            key: "actions",
+            width: isMobile ? 90 : 110,
+            align: "center",
+            render: (text, record) => (
+              <Flex gap="4px" justify="center">
+                <Button
+                  type="primary"
+                  size="small"
+                  icon={<EyeOutlined />}
+                  style={{
+                    borderRadius: "6px",
+                    backgroundColor: "#BDC00C",
+                    borderColor: "#BDC00C",
+                    color: "#1F3461",
+                  }}
+                  onClick={() => openDetail(record)}
+                />
+                <Button
+                  type="primary"
+                  size="small"
+                  icon={<EditOutlined />}
+                  style={{
+                    borderRadius: "6px",
+                    backgroundColor: "#1F3461",
+                    borderColor: "#1F3461",
+                  }}
+                  disabled={!canManageAlerts}
+                  onClick={() => handleEdit(record)}
+                />
+                <Popconfirm
+                  title="¿Eliminar?"
+                  onConfirm={() => handleDelete(record.id)}
+                  okText="Sí"
+                  cancelText="No"
+                  okButtonProps={{ danger: true }}
+                  disabled={!canManageAlerts}
+                >
+                  <Button
+                    danger
+                    type="primary"
+                    size="small"
+                    icon={<DeleteOutlined />}
+                    style={{ borderRadius: "6px" }}
+                    disabled={!canManageAlerts}
+                  />
+                </Popconfirm>
+              </Flex>
+            ),
+          },
+        ]}
+        dataSource={data}
+      />
+
+      {/* Edit Drawer */}
+      <Drawer
+        title={
+          <span
+            style={{
+              color: "white",
+              fontWeight: 600,
+              fontSize: 18,
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+            }}
+          >
+            <EditOutlined />
+            Editar
+          </span>
+        }
+        width={isMobile ? "95%" : 550}
+        onClose={handleCloseDrawer}
+        open={drawerVisible}
+        styles={{
+          body: { background: "#1F3461", padding: "32px 28px" },
+          header: {
+            background: "#1F3461",
+            borderBottom: "1px solid rgba(255,255,255,0.2)",
+          },
+          mask: { background: "rgba(0,0,0,0.65)" },
+        }}
+        closeIcon={<span style={{ color: "white", fontSize: 18 }}>✕</span>}
+      >
+        <FormAlert
+          record={editingRecord}
+          update={update}
+          setUpdate={setUpdate}
+          onSuccess={handleCloseDrawer}
+        />
+      </Drawer>
+
+      {/* Detail Drawer with Stats + History */}
+      <Drawer
+        title={
+          <span
+            style={{
+              color: "#BDC00C",
+              fontWeight: 700,
+              fontSize: 18,
+              letterSpacing: 1,
+            }}
+          >
+            DETALLE DE ALERTA
+          </span>
+        }
+        placement="right"
+        onClose={closeDetail}
+        open={detailVisible}
+        width={isMobile ? "100%" : 700}
+        styles={{
+          body: { background: "#0a0e27", padding: "24px" },
+          header: {
+            background: "#0f152e",
+            borderBottom: "1px solid rgba(255,107,53,0.3)",
+          },
+          mask: { background: "rgba(0,0,0,0.8)" },
+        }}
+        closeIcon={
+          <span style={{ color: "#BDC00C", fontSize: 18 }}>✕</span>
+        }
+      >
+        {detailLoading && (
+          <Flex justify="center" align="center" style={{ minHeight: 300 }}>
+            <Spin size="large" />
+          </Flex>
+        )}
+
+        {!detailLoading && detailData && (
+          <Flex vertical gap="24px">
+            {/* Alert title & condition */}
+            <div>
+              <span
+                style={{
+                  color: "white",
+                  fontWeight: 700,
+                  fontSize: 16,
+                  display: "block",
+                  marginBottom: 4,
+                }}
+              >
+                {detailData.title}
+              </span>
+              <Flex gap="8px" wrap="wrap">
+                <Tag
+                  style={{
+                    margin: 0,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    background: "rgba(255,255,255,0.1)",
+                    borderColor: "rgba(255,255,255,0.2)",
+                    color: "white",
+                  }}
+                >
+                  {typeVariableLabel[detailData.type_variable] ||
+                    detailData.type_variable}
+                </Tag>
+                <Tag
+                  style={{
+                    margin: 0,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    background: "rgba(255,107,53,0.2)",
+                    borderColor: "rgba(255,107,53,0.4)",
+                    color: "#ff6b35",
+                  }}
+                >
+                  {typeAlertLabel[detailData.type_alert] ||
+                    detailData.type_alert}{" "}
+                  {detailData.value}
+                </Tag>
+              </Flex>
+            </div>
+
+            {/* KPI Cards */}
+            {detailData.stats && (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: isMobile
+                    ? "1fr 1fr"
+                    : "1fr 1fr 1fr",
+                  gap: 14,
+                }}
+              >
+                {[
+                  {
+                    label: "Total disparos",
+                    value: detailData.stats.total_triggers || 0,
+                    color: "#ffffff",
+                    gradient: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)",
+                    border: "rgba(255,255,255,0.15)",
+                  },
+                  {
+                    label: "Hoy",
+                    value: detailData.stats.triggers_last_24h || 0,
+                    color: "#ff6b35",
+                    gradient: "linear-gradient(135deg, rgba(255,107,53,0.15) 0%, rgba(255,107,53,0.04) 100%)",
+                    border: "rgba(255,107,53,0.3)",
+                  },
+                  {
+                    label: "Esta semana",
+                    value: detailData.stats.triggers_last_7d || 0,
+                    color: "#52c41a",
+                    gradient: "linear-gradient(135deg, rgba(82,196,26,0.15) 0%, rgba(82,196,26,0.04) 100%)",
+                    border: "rgba(82,196,26,0.3)",
+                  },
+                  {
+                    label: "Este mes",
+                    value: detailData.stats.triggers_last_30d || 0,
+                    color: "#1890ff",
+                    gradient: "linear-gradient(135deg, rgba(24,144,255,0.15) 0%, rgba(24,144,255,0.04) 100%)",
+                    border: "rgba(24,144,255,0.3)",
+                  },
+                  {
+                    label: "Promedio entre disparos",
+                    value: detailData.stats.avg_hours_between_triggers
+                      ? parseFloat(
+                          detailData.stats.avg_hours_between_triggers
+                        ).toFixed(1) + " h"
+                      : "—",
+                    color: "#BDC00C",
+                    gradient: "linear-gradient(135deg, rgba(189,192,12,0.15) 0%, rgba(189,192,12,0.04) 100%)",
+                    border: "rgba(189,192,12,0.3)",
+                  },
+                  {
+                    label: "Hora pico",
+                    value: validatedPeakHour
+                      ? validatedPeakHour.hour + ":00"
+                      : "—",
+                    color: "#faad14",
+                    gradient: "linear-gradient(135deg, rgba(250,173,20,0.15) 0%, rgba(250,173,20,0.04) 100%)",
+                    border: "rgba(250,173,20,0.3)",
+                  },
+                ].map((kpi, i) => {
+                  const isPeakCard = kpi.label === "Hora pico";
+                  const peakWarning =
+                    isPeakCard &&
+                    validatedPeakHour &&
+                    !validatedPeakHour.isConsistent;
+                  const cardStyle = {
+                    background: kpi.gradient,
+                    border: `1px solid ${kpi.border}`,
+                    borderRadius: 14,
+                    padding: "18px 16px",
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
+                    backdropFilter: "blur(6px)",
+                    position: "relative",
+                  };
+                  const inner = (
+                    <React.Fragment>
+                      {peakWarning && (
+                        <span
+                          style={{
+                            position: "absolute",
+                            top: 8,
+                            right: 10,
+                            color: "#faad14",
+                            fontSize: 16,
+                            fontWeight: 800,
+                            lineHeight: 1,
+                          }}
+                        >
+                          !
+                        </span>
+                      )}
+                      <Statistic
+                        title={
+                          <span
+                            style={{
+                              color: "rgba(255,255,255,0.55)",
+                              fontSize: 11,
+                              textTransform: "uppercase",
+                              letterSpacing: 0.5,
+                            }}
+                          >
+                            {kpi.label}
+                          </span>
+                        }
+                        value={kpi.value}
+                        valueStyle={{
+                          color: kpi.color,
+                          fontSize: 26,
+                          fontWeight: 800,
+                          textShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                        }}
+                      />
+                    </React.Fragment>
+                  );
+                  if (peakWarning) {
+                    return (
+                      <Tooltip
+                        key={i}
+                        title={
+                          "Backend reportó " +
+                          validatedPeakHour.backendHour +
+                          ":00, pero el historial indica " +
+                          validatedPeakHour.hour +
+                          ":00"
+                        }
+                      >
+                        <div style={cardStyle}>{inner}</div>
+                      </Tooltip>
+                    );
+                  }
+                  return (
+                    <div key={i} style={cardStyle}>
+                      {inner}
+                    </div>
+                  );
+                })
+              </div>
+            )}
+
+            {/* Chart */}
+            {chartConfig && (
+              <div
+                style={{
+                  background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: 16,
+                  padding: 20,
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+                }}
+              >
+                <span
+                  style={{
+                    color: "rgba(255,255,255,0.7)",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    display: "block",
+                    marginBottom: 14,
+                    textTransform: "uppercase",
+                    letterSpacing: 1.5,
+                  }}
+                >
+                  Historial de valores medidos
+                </span>
+                <Line {...chartConfig} />
+              </div>
+            )}
+
+            {/* History Table */}
+            {detailData.stats?.trigger_history?.length > 0 && (
+              <div
+                style={{
+                  background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: 16,
+                  padding: 20,
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+                }}
+              >
+                <span
+                  style={{
+                    color: "rgba(255,255,255,0.7)",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    display: "block",
+                    marginBottom: 14,
+                    textTransform: "uppercase",
+                    letterSpacing: 1.5,
+                  }}
+                >
+                  Historial de disparos
+                </span>
+                <Table
+                  size="small"
+                  columns={historyColumns}
+                  dataSource={[...detailData.stats.trigger_history].reverse()}
+                  rowKey={(r, idx) => idx}
+                  pagination={false}
+                  scroll={{ x: "max-content" }}
+                  style={{ background: "transparent" }}
+                />
+              </div>
+            )}
+
+            {!detailLoading &&
+              detailData &&
+              (!detailData.stats?.trigger_history ||
+                detailData.stats.trigger_history.length === 0) && (
+                <Empty
+                  description={
+                    <span style={{ color: "rgba(255,255,255,0.4)" }}>
+                      Sin disparos registrados
+                    </span>
+                  }
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                />
+              )}
+          </Flex>
+        )}
+      </Drawer>
+    </>
+  );
+};
+
+export default TableAlerts;

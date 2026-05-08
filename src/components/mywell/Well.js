@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./Well.css";
-import { Typography } from "antd";
+import { Typography, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 
 const { Text } = Typography;
@@ -152,6 +152,14 @@ const Well = (props) => {
     },
   };
 
+  if (loading) {
+    return (
+      <div className="pozo" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <Spin indicator={<LoadingOutlined style={{ fontSize: 32, color: "#1F3461" }} spin />} />
+      </div>
+    );
+  }
+
   return (
     <div className="pozo">
       {/* 2. Suelo / Tierra (Fondo Minimalista) - Contenedor Principal */}
@@ -169,7 +177,7 @@ const Well = (props) => {
               position: "absolute",
               top: 0,
               right: "100%",
-              marginRight: 20,
+              marginRight: 8,
               height: "100%",
               display: "flex",
               flexDirection: "column",
@@ -193,7 +201,7 @@ const Well = (props) => {
 
             <div
               style={{
-                paddingRight: 10,
+                paddingRight: 4,
                 textAlign: "right",
                 pointerEvents: "auto",
               }}
@@ -213,7 +221,7 @@ const Well = (props) => {
               <Text
                 style={{
                   display: "block",
-                  fontSize: 14,
+                  fontSize: 13,
                   color: "#1F3461",
                   fontWeight: 900,
                   lineHeight: 1,
@@ -242,7 +250,7 @@ const Well = (props) => {
               position: "absolute",
               top: 0,
               left: "100%",
-              marginLeft: 20,
+              marginLeft: 8,
               height: `${100 - totalWaterHeightPercent}%`,
               display: "flex",
               flexDirection: "column",
@@ -264,7 +272,7 @@ const Well = (props) => {
               }}
             ></div>
 
-            <div style={{ paddingLeft: 10, pointerEvents: "auto" }}>
+            <div style={{ paddingLeft: 4, pointerEvents: "auto" }}>
               <Text
                 style={{
                   display: "block",
@@ -280,7 +288,7 @@ const Well = (props) => {
               <Text
                 style={{
                   display: "block",
-                  fontSize: 14,
+                  fontSize: 13,
                   color: "#1F3461",
                   fontWeight: 900,
                   lineHeight: 1,
@@ -311,7 +319,7 @@ const Well = (props) => {
                   ? `${(nivelEstatico / currentProf) * 100}%`
                   : "0",
               left: "100%",
-              marginLeft: 20,
+              marginLeft: 8,
               height: `${(currentNivel / currentProf) * 100}%`,
               display: "flex",
               flexDirection: "column",
@@ -333,7 +341,7 @@ const Well = (props) => {
               }}
             ></div>
 
-            <div style={{ paddingLeft: 10, pointerEvents: "auto" }}>
+            <div style={{ paddingLeft: 4, pointerEvents: "auto" }}>
               <Text
                 style={{
                   fontSize: 9,
@@ -348,7 +356,7 @@ const Well = (props) => {
               <Text
                 style={{
                   display: "block",
-                  fontSize: 14,
+                  fontSize: 13,
                   color: "#1F3461",
                   fontWeight: 800,
                   lineHeight: 1,
@@ -400,7 +408,7 @@ const Well = (props) => {
                 position: "absolute",
                 bottom: "0",
                 left: "100%",
-                marginLeft: 20,
+                marginLeft: 8,
                 height: `${(nivelEstatico / currentProf) * 100}%`,
                 display: "flex",
                 flexDirection: "column",
@@ -422,7 +430,7 @@ const Well = (props) => {
                 }}
               ></div>
 
-              <div style={{ paddingLeft: 10, pointerEvents: "auto" }}>
+              <div style={{ paddingLeft: 4, pointerEvents: "auto" }}>
                 <Text
                   style={{
                     fontSize: 9,
@@ -437,7 +445,7 @@ const Well = (props) => {
                 <Text
                   style={{
                     display: "block",
-                    fontSize: 14,
+                    fontSize: 13,
                     color: "#1F3461",
                     fontWeight: 800,
                     lineHeight: 1,

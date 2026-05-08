@@ -70,7 +70,7 @@ const ListWells = () => {
             selected_profile: { ...selectedProfile, key },
           },
         });
-        navigate("/telemetria");
+        navigate("/telemetry");
       }
     },
     [navigate, state.profile_client, dispatch, hasValidData, state.isLoading]

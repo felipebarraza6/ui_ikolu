@@ -1,16 +1,16 @@
-import React from "react";
-import { Flex, QRCode, Button, Modal, Typography, Card, Row, Col } from "antd";
+import React, { useRef } from "react";
+import { Flex, QRCode, Button, Drawer, Typography, Card, Row, Col } from "antd";
 import logo from "../../assets/images/channels4_profile.jpg";
 import logoSh from "../../assets/images/logo-blanco.png";
-import { ArrowRightOutlined, DownloadOutlined } from "@ant-design/icons";
+import { DownloadOutlined } from "@ant-design/icons";
 import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
 import dayjs from "dayjs";
 
 const { Text } = Typography;
 
 const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
-  // Extraer datos del perfil de forma segura
+  const captureRef = useRef(null);
+
   const {
     type_dga,
     flow_granted_dga,
@@ -24,10 +24,8 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
 
   const profileTitle = profile?.title || "Sin nombre";
 
-  // Determinar el sistema de medición según el estándar
   const getMeasurementSystem = () => {
     if (!standard) return "No especificado";
-
     if (standard === "CAUDALES_MUY_PEQUENOS" || standard === "CMP") {
       return "Caudales Muy Pequeños";
     } else if (standard === "MAYOR" || standard === "MEDIO") {
@@ -38,22 +36,13 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
     return standard;
   };
 
-  // Validar la frecuencia según el estándar según el estándar DGA
-  // MAYOR: 1 registro cada hora, MEDIO: 1 registro cada día, MENOR: 1 registro cada mes, CMP: 1 registro cada año
   const getFrequencyByStandard = () => {
     if (!standard) return "N/A";
-
-    if (standard === "MAYOR") {
-      return "1 registro cada hora";
-    } else if (standard === "MEDIO") {
-      return "1 registro cada día";
-    } else if (standard === "MENOR") {
-      return "1 registro cada mes";
-    } else if (standard === "CAUDALES_MUY_PEQUENOS" || standard === "CMP") {
+    if (standard === "MAYOR") return "1 registro cada hora";
+    if (standard === "MEDIO") return "1 registro cada día";
+    if (standard === "MENOR") return "1 registro cada mes";
+    if (standard === "CAUDALES_MUY_PEQUENOS" || standard === "CMP")
       return "1 registro cada año";
-    }
-
-    // Si no coincide con ningún estándar conocido, usar el valor original
     const originalFrequency = profile?.dga?.compliance_days;
     return originalFrequency
       ? `1 registro cada ${originalFrequency} días`
@@ -61,103 +50,106 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
   };
 
   const frequency = getFrequencyByStandard();
-
   const measurementSystem = getMeasurementSystem();
 
-  // Función para descargar la ficha como PDF
-  const handleDownload = () => {
-    const input = document.getElementById("qr-and-table");
-    html2canvas(input, { padding: 10, scale: 2 }).then((canvas) => {
-      const imgData = canvas.toDataURL("image/png");
-      // Crear un nuevo documento PDF con dimensiones A4 (595x842 puntos)
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "pt",
-        format: [595, 842],
+  const handleDownloadImage = async () => {
+    if (!captureRef.current) return;
+    try {
+      const canvas = await html2canvas(captureRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: null,
       });
-      // Agregar la imagen al PDF ajustando al tamaño completo
-      pdf.addImage(imgData, "PNG", 0, 0, 595, 842);
-      // Descargar el PDF
-      pdf.save(`Ficha_DGA_${codeDga || "SinCodigo"}.pdf`);
-    });
+      const link = document.createElement("a");
+      link.download = `Ficha_DGA_${codeDga || "SinCodigo"}_${dayjs().format(
+        "YYYYMMDD"
+      )}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch (err) {
+      console.error("Error generando imagen:", err);
+    }
   };
 
   return (
-    <Modal
-      title={null}
+    <Drawer
+      title={
+        <span style={{ color: "#BDC00C", fontWeight: 700, fontSize: 17 }}>
+          FICHA DGA - QR
+        </span>
+      }
+      placement="right"
+      onClose={handleCancel}
       open={isModalVisible}
-      width="660px"
-      centered
-      footer={[
-        <Button key="back" onClick={handleCancel} icon={<ArrowRightOutlined />}>
-          Cerrar
-        </Button>,
+      width={640}
+      styles={{
+        body: { background: "#0a0e27", padding: "24px" },
+        header: {
+          background: "#0f152e",
+          borderBottom: "1px solid rgba(255,107,53,0.25)",
+        },
+        mask: { background: "rgba(0,0,0,0.75)" },
+      }}
+      closeIcon={<span style={{ color: "#BDC00C", fontSize: 18 }}>✕</span>}
+      extra={
         <Button
-          key="download"
           type="primary"
-          onClick={handleDownload}
+          onClick={handleDownloadImage}
           icon={<DownloadOutlined />}
+          style={{
+            background: "#FF6B35",
+            borderColor: "#FF6B35",
+            fontWeight: 600,
+          }}
         >
           Descargar Ficha
-        </Button>,
-      ]}
-      onCancel={handleCancel}
-      bodyStyle={{ padding: 0, maxHeight: "90vh", overflowY: "auto" }}
+        </Button>
+      }
     >
       <div
-        id="qr-and-table"
+        ref={captureRef}
         style={{
           background: "linear-gradient(135deg, #1F3461 0%, #2a4a7f 100%)",
-          padding: "40px ",
-          width: "595px",
-          minHeight: "842px",
-          position: "relative",
-          boxSizing: "border-box",
-          display: "flex",
-          flexDirection: "column",
+          padding: "32px",
+          borderRadius: 14,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
         }}
       >
-        {/* Header de la ficha */}
-        <Flex align="center" style={{ marginBottom: 24 }}>
-          <Flex justify="space-around" align="center" gap="middle" vertical>
-            <img
-              src={logoSh}
-              alt="Logo DGA"
-              style={{
-                width: "42%",
-              }}
-            />
-            <div>
-              <Text
-                style={{
-                  color: "rgba(255,255,255,0.9)",
-                  fontSize: 20,
-                  fontWeight: 600,
-                }}
-              >
-                Servicio de Monitoreo de agua subterránea
-                <br /> para cumplimiento RES_DGA_1.238_MEE
-              </Text>
-            </div>
-          </Flex>
+        {/* Header */}
+        <Flex align="center" justify="center" vertical gap="small" style={{ marginBottom: 20 }}>
+          <img
+            src={logoSh}
+            alt="Smart Hydro"
+            style={{ width: 120, marginBottom: 8 }}
+          />
+          <Text
+            style={{
+              color: "rgba(255,255,255,0.9)",
+              fontSize: 14,
+              fontWeight: 600,
+              textAlign: "center",
+            }}
+          >
+            Servicio de Monitoreo de agua subterránea
+            <br />
+            para cumplimiento RES_DGA_1.238_MEE
+          </Text>
         </Flex>
 
         <Card
           style={{
             background: "white",
-            borderRadius: "12px",
+            borderRadius: 12,
             boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-            flex: 1,
           }}
-          bodyStyle={{ padding: "32px" }}
+          bodyStyle={{ padding: "24px" }}
         >
-          {/* QR Code centrado arriba */}
-          <Flex vertical align="center" gap="large">
+          <Flex vertical align="center" gap="middle">
             <div
               style={{
                 background: "linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%)",
-                padding: "24px",
-                borderRadius: "12px",
+                padding: "20px",
+                borderRadius: 12,
                 boxShadow: "inset 0 2px 8px rgba(0,0,0,0.06)",
               }}
             >
@@ -168,7 +160,7 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
                 color="#1F3461"
                 size={150}
                 icon={logo}
-                iconSize={55}
+                iconSize={50}
                 bordered={false}
               />
             </div>
@@ -179,14 +171,14 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
               </Text>
               <div
                 style={{
-                  marginTop: 10,
-                  padding: "12px 24px",
+                  marginTop: 8,
+                  padding: "10px 20px",
                   background: "#f5f7fa",
-                  borderRadius: "8px",
-                  fontSize: 18,
-                  fontWeight: 600,
+                  borderRadius: 8,
+                  fontSize: 16,
+                  fontWeight: 700,
                   color: "#1F3461",
-                  letterSpacing: "1.5px",
+                  letterSpacing: 1.5,
                 }}
               >
                 {codeDga || "N/A"}
@@ -194,295 +186,89 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
             </div>
 
             <div style={{ width: "100%" }}>
-              <Row gutter={[14, 14]}>
+              <Row gutter={[12, 12]}>
                 <Col span={12}>
-                  <div
-                    style={{
-                      background: "#f5f7fa",
-                      padding: "10px 15px",
-                      borderRadius: "8px",
-                      borderLeft: "3px solid #1F3461",
-                      minHeight: "60px",
-                    }}
-                  >
-                    <Text
-                      type="secondary"
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: "#1F3461",
-                      }}
-                    >
-                      Fecha Creación
-                    </Text>
-                    <div style={{ marginTop: 6 }}>
-                      <Text strong style={{ fontSize: 14, lineHeight: "1.5" }}>
-                        {date_created_code
-                          ? dayjs(date_created_code).format("DD/MM/YYYY")
-                          : "N/A"}
-                      </Text>
-                    </div>
-                  </div>
+                  <InfoBox
+                    label="Fecha Creación"
+                    value={
+                      date_created_code
+                        ? dayjs(date_created_code).format("DD/MM/YYYY")
+                        : "N/A"
+                    }
+                  />
                 </Col>
                 <Col span={12}>
-                  <div
-                    style={{
-                      background: "#f5f7fa",
-                      padding: "10px 15px",
-                      minHeight: "60px",
-                      borderRadius: "8px",
-                      borderLeft: "3px solid #1F3461",
-                    }}
-                  >
-                    <Text
-                      type="secondary"
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: "#1F3461",
-                      }}
-                    >
-                      Inicio Cumplimiento
-                    </Text>
-                    <div style={{ marginTop: 6 }}>
-                      <Text strong style={{ fontSize: 14, lineHeight: "1.5" }}>
-                        {date_start_compliance
-                          ? dayjs(date_start_compliance).format("DD/MM/YYYY")
-                          : "N/A"}
-                      </Text>
-                    </div>
-                  </div>
+                  <InfoBox
+                    label="Inicio Cumplimiento"
+                    value={
+                      date_start_compliance
+                        ? dayjs(date_start_compliance).format("DD/MM/YYYY")
+                        : "N/A"
+                    }
+                  />
                 </Col>
                 <Col span={12}>
-                  <div
-                    style={{
-                      background: "#f5f7fa",
-                      padding: "10px 15px",
-                      minHeight: "60px",
-                      borderRadius: "8px",
-                      borderLeft: "3px solid #1F3461",
-                    }}
-                  >
-                    <Text
-                      type="secondary"
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: "#1F3461",
-                      }}
-                    >
-                      Tipo de Captación
-                    </Text>
-                    <div style={{ marginTop: 6 }}>
-                      <Text strong style={{ fontSize: 14, lineHeight: "1.5" }}>
-                        {type_dga || "N/A"}
-                      </Text>
-                    </div>
-                  </div>
+                  <InfoBox
+                    label="Tipo de Captación"
+                    value={type_dga || "N/A"}
+                  />
                 </Col>
                 <Col span={12}>
-                  <div
-                    style={{
-                      background: "#f5f7fa",
-                      padding: "10px 15px",
-                      minHeight: "60px",
-                      borderRadius: "8px",
-                      borderLeft: "3px solid #1F3461",
-                    }}
-                  >
-                    <Text
-                      type="secondary"
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: "#1F3461",
-                      }}
-                    >
-                      Sistema de Medición
-                    </Text>
-                    <div style={{ marginTop: 6 }}>
-                      <Text strong style={{ fontSize: 14, lineHeight: "1.5" }}>
-                        {measurementSystem}
-                      </Text>
-                    </div>
-                  </div>
+                  <InfoBox
+                    label="Sistema de Medición"
+                    value={measurementSystem}
+                  />
                 </Col>
                 <Col span={12}>
-                  <div
-                    style={{
-                      background: "#f5f7fa",
-                      padding: "10px 15px",
-                      minHeight: "60px",
-                      borderRadius: "8px",
-                      borderLeft: "3px solid #1F3461",
-                    }}
-                  >
-                    <Text
-                      type="secondary"
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: "#1F3461",
-                      }}
-                    >
-                      Caudal Autorizado
-                    </Text>
-                    <div style={{ marginTop: 6 }}>
-                      <Text strong style={{ fontSize: 14, lineHeight: "1.5" }}>
-                        {flow_granted_dga || "N/A"}{" "}
-                        <span style={{ fontSize: 12 }}>lt/s</span>
-                      </Text>
-                    </div>
-                  </div>
+                  <InfoBox
+                    label="Caudal Autorizado"
+                    value={
+                      flow_granted_dga
+                        ? `${flow_granted_dga} lt/s`
+                        : "N/A"
+                    }
+                  />
                 </Col>
                 <Col span={12}>
-                  <div
-                    style={{
-                      background: "#f5f7fa",
-                      padding: "10px 15px",
-                      minHeight: "60px",
-                      borderRadius: "8px",
-                      borderLeft: "3px solid #1F3461",
-                    }}
-                  >
-                    <Text
-                      type="secondary"
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: "#1F3461",
-                      }}
-                    >
-                      Volumen Autorizado
-                    </Text>
-                    <div style={{ marginTop: 6 }}>
-                      <Text strong style={{ fontSize: 14, lineHeight: "1.5" }}>
-                        {total_granted_dga
-                          ? total_granted_dga.toLocaleString("es-CL")
-                          : "N/A"}{" "}
-                        <span style={{ fontSize: 12 }}>m³</span>
-                      </Text>
-                    </div>
-                  </div>
+                  <InfoBox
+                    label="Volumen Autorizado"
+                    value={
+                      total_granted_dga
+                        ? `${total_granted_dga.toLocaleString("es-CL")} m³`
+                        : "N/A"
+                    }
+                  />
                 </Col>
                 <Col span={12}>
-                  <div
-                    style={{
-                      background: "#f5f7fa",
-                      padding: "10px 15px",
-                      minHeight: "60px",
-                      borderRadius: "8px",
-                      borderLeft: "3px solid #1F3461",
-                    }}
-                  >
-                    <Text
-                      type="secondary"
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: "#1F3461",
-                      }}
-                    >
-                      SHAC
-                    </Text>
-                    <div style={{ marginTop: 6 }}>
-                      <Text strong style={{ fontSize: 14, lineHeight: "1.5" }}>
-                        {shac || "N/A"}
-                      </Text>
-                    </div>
-                  </div>
+                  <InfoBox label="SHAC" value={shac || "N/A"} />
                 </Col>
                 <Col span={12}>
-                  <div
-                    style={{
-                      background: "#f5f7fa",
-                      padding: "10px 15px",
-                      minHeight: "60px",
-                      borderRadius: "8px",
-                      borderLeft: "3px solid #1F3461",
-                    }}
-                  >
-                    <Text
-                      type="secondary"
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: "#1F3461",
-                      }}
-                    >
-                      Estándar
-                    </Text>
-                    <div style={{ marginTop: 6 }}>
-                      <Text strong style={{ fontSize: 14, lineHeight: "1.5" }}>
-                        {standard === "CAUDALES_MUY_PEQUENOS"
-                          ? "Muy Pequeños"
-                          : standard || "N/A"}
-                      </Text>
-                    </div>
-                  </div>
+                  <InfoBox
+                    label="Estándar"
+                    value={
+                      standard === "CAUDALES_MUY_PEQUENOS"
+                        ? "Muy Pequeños"
+                        : standard || "N/A"
+                    }
+                  />
                 </Col>
                 <Col span={12}>
-                  <div
-                    style={{
-                      background: "#f5f7fa",
-                      padding: "10px 15px",
-                      minHeight: "60px",
-                      borderRadius: "8px",
-                      borderLeft: "3px solid #1F3461",
-                    }}
-                  >
-                    <Text
-                      type="secondary"
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: "#1F3461",
-                      }}
-                    >
-                      Frecuencia de Envío
-                    </Text>
-                    <div style={{ marginTop: 6 }}>
-                      <Text strong style={{ fontSize: 14, lineHeight: "1.5" }}>
-                        {frequency}
-                      </Text>
-                    </div>
-                  </div>
+                  <InfoBox label="Frecuencia de Envío" value={frequency} />
                 </Col>
                 <Col span={12}>
-                  <div
-                    style={{
-                      background: "#f5f7fa",
-                      padding: "10px 15px",
-                      minHeight: "60px",
-                      borderRadius: "8px",
-                      borderLeft: "3px solid #1F3461",
-                    }}
-                  >
-                    <Text
-                      type="secondary"
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: "#1F3461",
-                      }}
-                    >
-                      Región
-                    </Text>
-                    <div style={{ marginTop: 6 }}>
-                      <Text strong style={{ fontSize: 14, lineHeight: "1.5" }}>
-                        {region ? region.toUpperCase() : "N/A"}
-                      </Text>
-                    </div>
-                  </div>
+                  <InfoBox
+                    label="Región"
+                    value={region ? region.toUpperCase() : "N/A"}
+                  />
                 </Col>
               </Row>
 
               <div
                 style={{
-                  marginTop: 20,
-                  padding: "12px 14px",
+                  marginTop: 14,
+                  padding: "10px 12px",
                   background: "#f0f5ff",
-                  borderRadius: "8px",
+                  borderRadius: 8,
                   border: "1px solid #d6e4ff",
                   textAlign: "center",
                 }}
@@ -496,23 +282,46 @@ const ModalQR = ({ isModalVisible, handleCancel, codeDga, profile }) => {
           </Flex>
         </Card>
 
-        {/* Footer */}
-        <Flex align="center" style={{ marginTop: 16 }} vertical gap="small">
-          <Text style={{ color: "white", textAlign: "center" }}>
-            Si requiere intervenir el pozo, o tiene problemas de Harware o
+        <Flex align="center" vertical gap="small" style={{ marginTop: 16 }}>
+          <Text style={{ color: "white", textAlign: "center", fontSize: 12 }}>
+            Si requiere intervenir el pozo, o tiene problemas de Hardware o
             Software, contáctese con soporte@smarthydro.cl
           </Text>
           <Text style={{ color: "white", fontSize: 12 }}>
             https://smarthydro.cl
           </Text>
-          <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>
+          <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 11 }}>
             Documento generado por Ikolu App •{" "}
             {dayjs().format("DD/MM/YYYY HH:mm")}
           </Text>
         </Flex>
       </div>
-    </Modal>
+    </Drawer>
   );
 };
+
+const InfoBox = ({ label, value }) => (
+  <div
+    style={{
+      background: "#f5f7fa",
+      padding: "10px 12px",
+      borderRadius: 8,
+      borderLeft: "3px solid #1F3461",
+      minHeight: 56,
+    }}
+  >
+    <Text
+      type="secondary"
+      style={{ fontSize: 11, fontWeight: 600, color: "#1F3461" }}
+    >
+      {label}
+    </Text>
+    <div style={{ marginTop: 4 }}>
+      <Text strong style={{ fontSize: 13, lineHeight: 1.4 }}>
+        {value}
+      </Text>
+    </div>
+  </div>
+);
 
 export default ModalQR;

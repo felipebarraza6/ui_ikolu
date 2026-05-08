@@ -363,11 +363,107 @@ const createNotificationResponse = async (data) => {
   return rq.data;
 };
 
+// ==========================================
+// USUARIOS
+// ==========================================
+
+const updateUser = async (username, data) => {
+  const rq = await PATCH(`users/${username}/`, data);
+  return rq.data;
+};
+
+// ==========================================
+// TELEMETRÍA — Edición
+// ==========================================
+
+const updateDataApiSh = async (id, data) => {
+  const rq = await PATCH(`interaction_detail_json/${id}/`, data);
+  return rq.data;
+};
+
+// ==========================================
+// MANAGEMENT / ADMIN
+// ==========================================
+
+const getSystemStatus = async () => {
+  const rq = await GET(`management/system_status/`);
+  return rq.data;
+};
+
+const getPointsStatus = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const rq = await GET(`management/points_status/${query ? "?" + query : ""}`);
+  return rq.data;
+};
+
+const getTelemetryMetrics = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const rq = await GET(`management/telemetry_metrics/${query ? "?" + query : ""}`);
+  return rq.data;
+};
+
+const toggleTelemetry = async (pointId, enabled) => {
+  const rq = await POST(`management/toggle_telemetry/`, {
+    point_id: pointId,
+    enabled,
+  });
+  return rq.data;
+};
+
+const getDgaQueueStatus = async () => {
+  const rq = await GET(`management/dga_queue_status/`);
+  return rq.data;
+};
+
+const clearDgaQueue = async (payload = {}) => {
+  const rq = await POST(`management/clear_dga_queue/`, payload);
+  return rq.data;
+};
+
+const requeueDga = async (payload = {}) => {
+  const rq = await POST(`management/requeue_dga/`, payload);
+  return rq.data;
+};
+
+const updatePointFrequency = async (pointId, frequency) => {
+  const rq = await POST(`management/update_point_frequency/`, {
+    point_id: pointId,
+    frequency,
+  });
+  return rq.data;
+};
+
+const getNotificationsSummary = async (days = 7) => {
+  const rq = await GET(`management/notifications_summary/?days=${days}`);
+  return rq.data;
+};
+
+// ==========================================
+// ADMIN: CLIENTES, PROYECTOS, PUNTOS
+// ==========================================
+
+const getClients = async () => {
+  const rq = await GET(`client/`);
+  return rq.data;
+};
+
+const getProjects = async () => {
+  const rq = await GET(`project_catchments/`);
+  return rq.data;
+};
+
+const getCatchmentPoints = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const rq = await GET(`catchment_point/${query ? "?" + query : ""}`);
+  return rq.data;
+};
+
 const sh = {
   authenticated: login,
   billing_data: get_history_data,
   billing_data_admin: get_history_data_admin,
   get_profile: get_profile,
+  updateUser,
   downloadFile: downloadFile,
   get_data_sh: getDataApiSh,
   get_data_sh_range: getDataApiShRangeDate,
@@ -380,6 +476,7 @@ const sh = {
   get_data_structural_month: getDataApiShStructuralMonth,
   delete_data_sh: deleteDataApiSh,
   create_data_sh: createDataApiSh,
+  update_data_sh: updateDataApiSh,
   get_data_day: getDataDay,
   get_data_month: getDataMonth,
   downloadMonth: downloadDataMonthToExcel,
@@ -397,6 +494,22 @@ const sh = {
       get: getNotificationsResponse,
       create: createNotificationResponse,
     },
+  },
+  management: {
+    systemStatus: getSystemStatus,
+    pointsStatus: getPointsStatus,
+    telemetryMetrics: getTelemetryMetrics,
+    toggleTelemetry,
+    dgaQueueStatus: getDgaQueueStatus,
+    clearDgaQueue,
+    requeueDga,
+    updatePointFrequency,
+    notificationsSummary: getNotificationsSummary,
+  },
+  admin: {
+    clients: getClients,
+    projects: getProjects,
+    catchmentPoints: getCatchmentPoints,
   },
 };
 

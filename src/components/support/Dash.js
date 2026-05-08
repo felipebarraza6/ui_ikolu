@@ -1,335 +1,294 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Menu, Flex, Card, Tag, Alert, Row, Col, Button } from "antd";
+import {
+  Flex,
+  Card,
+  Tag,
+  Row,
+  Col,
+  Button,
+  Tabs,
+  Statistic,
+  Alert,
+} from "antd";
+import {
+  PlusCircleFilled,
+  OrderedListOutlined,
+  CustomerServiceOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  InboxOutlined,
+} from "@ant-design/icons";
 import FormSupport from "./FormSupport";
 import TableSupport from "./TableSupport";
-import { PlusCircleFilled, OrderedListOutlined } from "@ant-design/icons";
 import ActiveTickets from "./ActiveTickets";
 import sh from "../../api/sh/endpoints";
 import { AppContext } from "../../App";
+import { useResponsive } from "../../hooks/useResponsive";
+
+const KPI_CARD_STYLES = {
+  activos: {
+    borderColor: "#FF6B35",
+    iconColor: "#FF6B35",
+    bg: "#FFF7F2",
+  },
+  total: {
+    borderColor: "#1F3461",
+    iconColor: "#1F3461",
+    bg: "#F2F5FA",
+  },
+  completados: {
+    borderColor: "#52C41A",
+    iconColor: "#52C41A",
+    bg: "#F6FFF0",
+  },
+  espera: {
+    borderColor: "#BDC00C",
+    iconColor: "#BDC00C",
+    bg: "#FAFBF0",
+  },
+};
 
 const Dash = () => {
   const { state } = useContext(AppContext);
+  const { isMobile } = useResponsive();
   const [update, setUpdate] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const selected_id = state.selected_profile.id;
-  const [selectedMenu, setSelectedMenu] = useState("1");
+  const [activeTab, setActiveTab] = useState("nuevo");
   const [pageActive, setPageActve] = useState(1);
   const [pageOld, setPageOld] = useState(1);
   const [tickets, setTickets] = useState([]);
   const [ticketsActives, setTicketsActives] = useState([]);
 
-  // Detectar si es móvil
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
   const getTickets = async () => {
-    const rq = await sh.notifications
-      .get(selected_id, pageOld, "SUPPORT")
-      .then((res) => {
-        setTickets(res.results);
-      });
+    const res = await sh.notifications.get(selected_id, pageOld, "SUPPORT");
+    setTickets(res.results || []);
   };
 
   const getActiveTickets = async () => {
-    const rq = await sh.notifications
-      .actives(selected_id, pageActive, "SUPPORT")
-      .then((res) => {
-        setTicketsActives(res.results);
-      });
-  };
-
-  const handleMenuClick = (e) => {
-    setSelectedMenu(e.key);
+    const res = await sh.notifications.actives(selected_id, pageActive, "SUPPORT");
+    setTicketsActives(res.results || []);
   };
 
   useEffect(() => {
     getActiveTickets();
     getTickets();
-  }, [update]);
+  }, [update, selected_id]);
+
+  const totalTickets = tickets.length + ticketsActives.length;
+  const completados = tickets.length;
+  const activos = ticketsActives.length;
+
+  const tabItems = [
+    {
+      key: "nuevo",
+      label: (
+        <Flex align="center" gap="small">
+          <PlusCircleFilled /> Nuevo Ticket
+        </Flex>
+      ),
+      children: (
+        <Row gutter={[24, 24]}>
+          <Col xs={24} md={10} lg={8}>
+            <Card
+              style={{
+                borderRadius: 12,
+                boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+                border: "none",
+              }}
+              bodyStyle={{ padding: isMobile ? "16px" : "24px" }}
+            >
+              <Alert
+                message="soporte@smarthydro.cl"
+                description="Nuestro equipo evaluará tu caso en menos de 24 horas."
+                type="info"
+                showIcon
+                style={{
+                  marginBottom: 20,
+                  borderRadius: 8,
+                }}
+              />
+              <FormSupport update={update} setUpdate={setUpdate} />
+            </Card>
+          </Col>
+          <Col xs={24} md={14} lg={16}>
+            <Card
+              style={{
+                borderRadius: 12,
+                boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+                border: "none",
+              }}
+              bodyStyle={{ padding: isMobile ? "16px" : "24px" }}
+              title={
+                <Flex justify="space-between" align="center">
+                  <span style={{ color: "#1F3461", fontWeight: 700 }}>
+                    <InboxOutlined style={{ marginRight: 8 }} />
+                    Tickets Activos
+                  </span>
+                  <Tag
+                    color="#FF6B35"
+                    style={{ fontWeight: 600, borderRadius: 6 }}
+                  >
+                    {activos} activos
+                  </Tag>
+                </Flex>
+              }
+            >
+              <ActiveTickets data={ticketsActives} />
+            </Card>
+          </Col>
+        </Row>
+      ),
+    },
+    {
+      key: "historial",
+      label: (
+        <Flex align="center" gap="small">
+          <OrderedListOutlined /> Historial
+        </Flex>
+      ),
+      children: (
+        <Card
+          style={{
+            borderRadius: 12,
+            boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+            border: "none",
+          }}
+          bodyStyle={{ padding: isMobile ? "16px" : "24px" }}
+          title={
+            <span style={{ color: "#1F3461", fontWeight: 700 }}>
+              <OrderedListOutlined style={{ marginRight: 8 }} />
+              Historial de Tickets
+            </span>
+          }
+        >
+          <TableSupport data={tickets} />
+        </Card>
+      ),
+    },
+  ];
 
   return (
     <div
       style={{
         maxWidth: "1600px",
-        margin: "24px auto",
-        padding: isMobile ? "10px" : "24px",
-        backgroundColor: "#f5f5f5",
+        margin: isMobile ? "12px auto" : "0 auto",
+        padding: isMobile ? "0 8px" : "0",
         minHeight: "90vh",
       }}
     >
-      {/* Header del módulo */}
-      <div
-        style={{
-          marginBottom: "24px",
-          borderRadius: "12px",
-          background: "#1F3461",
-          border: "none",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-          padding: isMobile ? "16px" : "24px",
-        }}
-      >
-        <Flex align="center" gap="middle" style={{ marginBottom: "16px" }}>
-          <PlusCircleFilled style={{ fontSize: 32, color: "white" }} />
-          <h2
+      {/* KPIs */}
+      <Row gutter={[16, 16]} style={{ marginBottom: "24px" }}>
+        <Col xs={12} sm={6} md={6} lg={6}>
+          <Card
+            size="small"
+            bordered
             style={{
-              margin: 0,
-              color: "white",
-              fontSize: "24px",
-              fontWeight: "600",
+              borderRadius: 12,
+              borderLeft: `4px solid ${KPI_CARD_STYLES.activos.borderColor}`,
+              background: KPI_CARD_STYLES.activos.bg,
+              borderColor: "transparent",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
             }}
+            bodyStyle={{ padding: "16px" }}
           >
-            Centro de Soporte
-          </h2>
-        </Flex>
-
-        {/* Navegación */}
-        {isMobile ? (
-          <Row gutter={8}>
-            <Col span={12}>
-              <Button
-                type={selectedMenu === "1" ? "primary" : "default"}
-                icon={<PlusCircleFilled />}
-                onClick={() => setSelectedMenu("1")}
-                style={{
-                  width: "100%",
-                  backgroundColor:
-                    selectedMenu === "1" ? "#40a9ff" : "rgba(255,255,255,0.1)",
-                  borderColor:
-                    selectedMenu === "1" ? "#40a9ff" : "rgba(255,255,255,0.3)",
-                  color: "white",
-                  borderRadius: "8px",
-                  fontWeight: "500",
-                }}
-                size="small"
-              >
-                Nuevo
-              </Button>
-            </Col>
-            <Col span={12}>
-              <Button
-                type={selectedMenu === "2" ? "primary" : "default"}
-                icon={<OrderedListOutlined />}
-                onClick={() => setSelectedMenu("2")}
-                style={{
-                  width: "100%",
-                  backgroundColor:
-                    selectedMenu === "2" ? "#40a9ff" : "rgba(255,255,255,0.1)",
-                  borderColor:
-                    selectedMenu === "2" ? "#40a9ff" : "rgba(255,255,255,0.3)",
-                  color: "white",
-                  borderRadius: "8px",
-                  fontWeight: "500",
-                }}
-                size="small"
-              >
-                Historial
-              </Button>
-            </Col>
-          </Row>
-        ) : (
-          <Menu
-            theme="dark"
-            mode="horizontal"
-            selectedKeys={[selectedMenu]}
-            style={{
-              backgroundColor: "transparent",
-              borderBottom: "none",
-            }}
-            onClick={handleMenuClick}
-          >
-            <Menu.Item
-              icon={<PlusCircleFilled />}
-              key="1"
-              style={{
-                backgroundColor:
-                  selectedMenu === "1" ? "#40a9ff" : "rgba(255,255,255,0.1)",
-                borderRadius: "8px",
-                margin: "0 8px",
-                color: "white",
-                fontWeight: "500",
-              }}
-            >
-              Nuevo Ticket
-            </Menu.Item>
-            <Menu.Item
-              key="2"
-              icon={<OrderedListOutlined />}
-              style={{
-                backgroundColor:
-                  selectedMenu === "2" ? "#40a9ff" : "rgba(255,255,255,0.1)",
-                borderRadius: "8px",
-                margin: "0 8px",
-                color: "white",
-                fontWeight: "500",
-              }}
-            >
-              Tickets Completados
-            </Menu.Item>
-          </Menu>
-        )}
-      </div>
-
-      {/* Contenido principal */}
-      {selectedMenu === "1" ? (
-        <Row gutter={[24, 24]}>
-          {/* Formulario de crear ticket */}
-          <Col xs={24} sm={24} md={10} lg={8} xl={8}>
-            <Card
-              style={{
-                borderRadius: "12px",
-                background: "white",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                border: "none",
-                height: "fit-content",
-              }}
-              bodyStyle={{ padding: isMobile ? "20px" : "24px" }}
-            >
-              <div
-                style={{
-                  marginBottom: "20px",
-                  borderBottom: "3px solid #FF6B35",
-                  paddingBottom: "16px",
-                }}
-              >
-                <h3
-                  style={{
-                    margin: 0,
-                    color: "#1F3461",
-                    fontSize: isMobile ? "18px" : "20px",
-                    fontWeight: "600",
-                  }}
-                >
-                  Crear Ticket
-                </h3>
-                <p
-                  style={{
-                    margin: "8px 0 0 0",
-                    color: "#666",
-                    fontSize: "14px",
-                  }}
-                >
-                  soporte@smarthydro.cl
-                </p>
-              </div>
-
-              <Alert
-                description="Nuestro equipo evaluará su caso en menos de 24 horas para planificar una solución."
-                type="info"
-                showIcon
-                style={{
-                  marginBottom: "20px",
-                  borderColor: "#FF6B35",
-                  backgroundColor: "#FFF8F0",
-                  borderRadius: "8px",
-                }}
+            <Flex align="center" gap="middle">
+              <CustomerServiceOutlined
+                style={{ fontSize: 24, color: KPI_CARD_STYLES.activos.iconColor }}
               />
-
-              <FormSupport update={update} setUpdate={setUpdate} />
-            </Card>
-          </Col>
-
-          {/* Tickets activos */}
-          <Col xs={24} sm={24} md={14} lg={16} xl={16}>
-            <Card
-              style={{
-                borderRadius: "12px",
-                background: "white",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                border: "none",
-              }}
-              bodyStyle={{ padding: isMobile ? "20px" : "24px" }}
-            >
-              <div
-                style={{
-                  marginBottom: "20px",
-                  borderBottom: "3px solid #1F3461",
-                  paddingBottom: "16px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <h3
-                  style={{
-                    margin: 0,
-                    color: "#1F3461",
-                    fontSize: isMobile ? "18px" : "20px",
-                    fontWeight: "600",
-                  }}
-                >
-                  Tickets Activos
-                </h3>
-                <Tag
-                  color="#FF6B35"
-                  style={{
-                    fontWeight: "600",
-                    fontSize: "14px",
-                    padding: "6px 16px",
-                    borderRadius: "8px",
-                  }}
-                >
-                  {ticketsActives.length} activos
-                </Tag>
+              <Statistic
+                title={<span style={{ fontSize: 12, color: "#888" }}>Activos</span>}
+                value={activos}
+                valueStyle={{ color: "#1F3461", fontSize: 22, fontWeight: 700 }}
+              />
+            </Flex>
+          </Card>
+        </Col>
+        <Col xs={12} sm={6} md={6} lg={6}>
+          <Card
+            size="small"
+            bordered
+            style={{
+              borderRadius: 12,
+              borderLeft: `4px solid ${KPI_CARD_STYLES.total.borderColor}`,
+              background: KPI_CARD_STYLES.total.bg,
+              borderColor: "transparent",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+            }}
+            bodyStyle={{ padding: "16px" }}
+          >
+            <Flex align="center" gap="middle">
+              <InboxOutlined
+                style={{ fontSize: 24, color: KPI_CARD_STYLES.total.iconColor }}
+              />
+              <Statistic
+                title={<span style={{ fontSize: 12, color: "#888" }}>Total</span>}
+                value={totalTickets}
+                valueStyle={{ color: "#1F3461", fontSize: 22, fontWeight: 700 }}
+              />
+            </Flex>
+          </Card>
+        </Col>
+        <Col xs={12} sm={6} md={6} lg={6}>
+          <Card
+            size="small"
+            bordered
+            style={{
+              borderRadius: 12,
+              borderLeft: `4px solid ${KPI_CARD_STYLES.completados.borderColor}`,
+              background: KPI_CARD_STYLES.completados.bg,
+              borderColor: "transparent",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+            }}
+            bodyStyle={{ padding: "16px" }}
+          >
+            <Flex align="center" gap="middle">
+              <CheckCircleOutlined
+                style={{ fontSize: 24, color: KPI_CARD_STYLES.completados.iconColor }}
+              />
+              <Statistic
+                title={<span style={{ fontSize: 12, color: "#888" }}>Completados</span>}
+                value={completados}
+                valueStyle={{ color: "#1F3461", fontSize: 22, fontWeight: 700 }}
+              />
+            </Flex>
+          </Card>
+        </Col>
+        <Col xs={12} sm={6} md={6} lg={6}>
+          <Card
+            size="small"
+            bordered
+            style={{
+              borderRadius: 12,
+              borderLeft: `4px solid ${KPI_CARD_STYLES.espera.borderColor}`,
+              background: KPI_CARD_STYLES.espera.bg,
+              borderColor: "transparent",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+            }}
+            bodyStyle={{ padding: "16px" }}
+          >
+            <Flex align="center" gap="middle">
+              <ClockCircleOutlined
+                style={{ fontSize: 24, color: KPI_CARD_STYLES.espera.iconColor }}
+              />
+              <div>
+                <div style={{ fontSize: 12, color: "#888" }}>Tiempo respuesta</div>
+                <div style={{ color: "#1F3461", fontSize: 16, fontWeight: 700 }}>
+                  &lt; 24h
+                </div>
               </div>
+            </Flex>
+          </Card>
+        </Col>
+      </Row>
 
-              <ActiveTickets data={ticketsActives} />
-            </Card>
-          </Col>
-        </Row>
-      ) : (
-        <Row>
-          <Col span={24}>
-            <Card
-              style={{
-                borderRadius: "12px",
-                background: "white",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                border: "none",
-              }}
-              bodyStyle={{ padding: isMobile ? "20px" : "24px" }}
-            >
-              <div
-                style={{
-                  marginBottom: "20px",
-                  borderBottom: "3px solid #1F3461",
-                  paddingBottom: "16px",
-                }}
-              >
-                <h3
-                  style={{
-                    margin: 0,
-                    color: "#1F3461",
-                    fontSize: isMobile ? "18px" : "20px",
-                    fontWeight: "600",
-                  }}
-                >
-                  Historial de Tickets
-                </h3>
-                <p
-                  style={{
-                    margin: "8px 0 0 0",
-                    color: "#666",
-                    fontSize: "14px",
-                  }}
-                >
-                  En esta sección visualizará los tickets completados y su
-                  historial
-                </p>
-              </div>
-
-              <TableSupport data={tickets} />
-            </Card>
-          </Col>
-        </Row>
-      )}
+      {/* Tabs */}
+      <Tabs
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        type="card"
+        style={{ background: "white", borderRadius: 12 }}
+        items={tabItems}
+      />
     </div>
   );
 };

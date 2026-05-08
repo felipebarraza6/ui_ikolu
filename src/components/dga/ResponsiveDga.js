@@ -1,88 +1,36 @@
 import React, { useState, useContext, useEffect } from "react";
-import { Space, Modal } from "antd";
+import { Space, Drawer, Spin, Flex, Button } from "antd";
 import Registers from "./Registers";
 import CodeQR from "./CodeQR";
 import DgaCompliance from "./DgaCompliance";
 import { useResponsive } from "../../hooks/useResponsive";
 import { AppContext } from "../../App";
-import { BarChartOutlined } from "@ant-design/icons";
-import optimizedSh from "../../api/sh/optimizedEndpoints";
+import { BarChartOutlined, CloseOutlined } from "@ant-design/icons";
 
 /**
- * 📊 DGA RESPONSIVO
- *
- * Estructura:
- * - Indicadores arriba (registros totales, caudal autorizado, último registro, estado QR)
- * - Información del punto de captación DGA abajo
- * - Optimizado para móvil y desktop
- * - OPTIMIZADO: Usa endpoints con deduplicación y caché
+ * 📊 DGA RESPONSIVO — Rediseñado
  */
 const ResponsiveDga = () => {
   const { isMobile } = useResponsive();
-  const { state, dispatch } = useContext(AppContext);
-  const [isDiagnosticModalVisible, setIsDiagnosticModalVisible] =
-    useState(false);
-
+  const { state } = useContext(AppContext);
+  const [isDiagnosticVisible, setIsDiagnosticVisible] = useState(false);
   const [dataDga, setDataDga] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ OPTIMIZADO: Usa endpoint con deduplicación y caché
   useEffect(() => {
-    const fetchDgaData = async () => {
-      const profileId = state.selected_profile?.id;
-      if (!profileId) {
-        setDataDga([]);
-        setLoading(false);
-        return;
-      }
+    const profileId = state.selected_profile?.id;
+    if (!profileId) {
+      setDataDga([]);
+      setLoading(false);
+      return;
+    }
 
-      setLoading(true);
-      try {
-        // Usa versión optimizada que incluye deduplicación y caché
-        const userProfileResponse = await optimizedSh.get_profile();
-        const allProfiles = userProfileResponse?.user?.catchment_points ?? [];
-        const selected_profile_data =
-          allProfiles.find((p) => p.id === profileId) || allProfiles[0] || {};
-
-        // Actualizar el estado con datos frescos
-        if (selected_profile_data) {
-          dispatch({
-            type: "UPDATE",
-            payload: {
-              user: userProfileResponse.user,
-              selected_profile: selected_profile_data,
-            },
-          });
-
-          // Obtener datos del módulo m2 directamente del perfil actualizado
-          const freshM2Data = selected_profile_data?.modules?.m2 || [];
-          setDataDga(freshM2Data);
-        }
-      } catch (error) {
-        console.error("Error al cargar datos DGA desde la API:", error);
-        setDataDga([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDgaData();
-
-    // Configurar actualización periódica cada 5 minutos
-    const intervalId = setInterval(() => {
-      fetchDgaData();
-    }, 5 * 60 * 1000);
-
-    return () => clearInterval(intervalId);
-  }, [state.selected_profile?.id, dispatch]);
-
-  const showDiagnosticModal = () => {
-    setIsDiagnosticModalVisible(true);
-  };
-
-  const handleCancelDiagnosticModal = () => {
-    setIsDiagnosticModalVisible(false);
-  };
+    setLoading(true);
+    // Usar datos del perfil ya cargados en contexto (más rápido)
+    const m2Data = state.selected_profile?.modules?.m2 || [];
+    setDataDga(m2Data);
+    setLoading(false);
+  }, [state.selected_profile]);
 
   return (
     <div
@@ -90,6 +38,7 @@ const ResponsiveDga = () => {
         maxWidth: "1600px",
         margin: isMobile ? "12px auto" : "0 auto",
         padding: isMobile ? "0 8px" : "0",
+        minHeight: "90vh",
       }}
     >
       <Space
@@ -97,29 +46,53 @@ const ResponsiveDga = () => {
         size={isMobile ? "middle" : "large"}
         style={{ width: "100%" }}
       >
-        <CodeQR onDiagnoseClick={showDiagnosticModal} />
-        <Registers dataDga={dataDga} loading={loading} />
+        {loading ? (
+          <Flex justify="center" align="center" style={{ minHeight: 300 }}>
+            <Spin size="large" />
+          </Flex>
+        ) : (
+          <>
+            <CodeQR onDiagnoseClick={() => setIsDiagnosticVisible(true)} />
+            <Registers dataDga={dataDga} loading={loading} />
+          </>
+        )}
       </Space>
-      <Modal
+
+      <Drawer
         title={
-          <Space>
-            <BarChartOutlined />
-            <span>Diagnóstico Inteligente DGA - MEE</span>
-          </Space>
+          <span style={{ color: "#BDC00C", fontWeight: 700, fontSize: 17 }}>
+            DIAGNÓSTICO INTELIGENTE DGA - MEE
+          </span>
         }
-        visible={isDiagnosticModalVisible}
-        onCancel={() => setIsDiagnosticModalVisible(false)}
-        footer={null}
-        width="95%"
-        centered
-        bodyStyle={{
-          maxHeight: "80vh",
-          overflowY: "auto",
-          background: "#f5f5f5",
+        placement="right"
+        onClose={() => setIsDiagnosticVisible(false)}
+        open={isDiagnosticVisible}
+        width={isMobile ? "100%" : 900}
+        styles={{
+          body: { background: "#f5f5f5", padding: 0 },
+          header: {
+            background: "#0f152e",
+            borderBottom: "1px solid rgba(255,107,53,0.25)",
+          },
+          mask: { background: "rgba(0,0,0,0.75)" },
         }}
+        closeIcon={<span style={{ color: "#BDC00C", fontSize: 18 }}>✕</span>}
+        extra={
+          <Button
+            icon={<CloseOutlined />}
+            onClick={() => setIsDiagnosticVisible(false)}
+            style={{
+              background: "transparent",
+              borderColor: "rgba(255,255,255,0.3)",
+              color: "rgba(255,255,255,0.85)",
+            }}
+          >
+            Cerrar
+          </Button>
+        }
       >
         <DgaCompliance dataDga={dataDga || []} />
-      </Modal>
+      </Drawer>
     </div>
   );
 };

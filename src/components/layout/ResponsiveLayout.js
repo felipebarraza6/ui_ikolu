@@ -63,10 +63,10 @@ const ResponsiveLayout = ({ children }) => {
       path: "/",
     },
     {
-      key: "/sys_data",
+      key: "/sys-data",
       icon: <BarChartOutlined />,
       label: "Smart Análisis",
-      path: "/sys_data",
+      path: "/sys-data",
     },
     {
       key: "/dga",
@@ -74,30 +74,29 @@ const ResponsiveLayout = ({ children }) => {
       label: "DGA - MEE",
       path: "/dga",
     },
-
     {
-      key: "/extraction_data",
+      key: "/extraction-data",
       icon: <DownloadOutlined />,
       label: "Descarga",
-      path: "/extraction_data",
+      path: "/extraction-data",
     },
     {
-      key: "/sys_docs",
+      key: "/sys-docs",
       icon: <FileTextOutlined />,
       label: "Documentos",
-      path: "/sys_docs",
+      path: "/sys-docs",
     },
     {
-      key: "/sys_alerts",
+      key: "/sys-alerts",
       icon: <AlertOutlined />,
       label: "Alertas",
-      path: "/sys_alerts",
+      path: "/sys-alerts",
     },
     {
-      key: "/sys_support",
+      key: "/sys-support",
       icon: <CustomerServiceOutlined />,
       label: "Soporte",
-      path: "/sys_support",
+      path: "/sys-support",
     },
   ];
 

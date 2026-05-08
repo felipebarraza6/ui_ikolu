@@ -9,7 +9,10 @@ import {
   ConfigProvider,
   Tag,
 } from "antd";
-import { CalendarOutlined } from "@ant-design/icons";
+import {
+  CalendarOutlined,
+  BarChartOutlined,
+} from "@ant-design/icons";
 import { AppContext } from "../../App";
 import sh from "../../api/sh/endpoints";
 import ContainerDays from "./days/Container";
@@ -29,15 +32,14 @@ dayjs.extend(timezone);
 dayjs.locale("es");
 dayjs.tz.setDefault("America/Santiago");
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 /**
- * 📊 SMART ANÁLISIS RESPONSIVO
+ * 📊 SMART ANÁLISIS RESPONSIVO — Rediseñado
  *
- * Estructura:
- * - Indicadores arriba (caudal máx/mín, nivel máx/mín, consumo, acumulado)
- * - Gráficos y análisis del punto de captación abajo
- * - Optimizado para móvil y desktop
+ * Estructura coherente con DGA y Centro de Alertas:
+ * - Selector de fecha en Card estilizada
+ * - Gráficos y análisis abajo (stats incluidas en ContainerDays/Month)
  */
 const ResponsiveSmartAnalysis = () => {
   const { isMobile } = useResponsive();
@@ -67,13 +69,10 @@ const ResponsiveSmartAnalysis = () => {
     const fetchData = async () => {
       const dateToUse = monthMode ? monthDate : dayDate;
 
-      // Si no hay fecha seleccionada, mantener datos por defecto
       if (!dateToUse) {
         if (monthMode) {
-          // Para modo mensual, limpiar datos si no hay fecha
           setDataMonth([]);
         } else {
-          // Para modo diario, mantener datos de hoy por defecto
           setData(state.selected_profile.modules.today || []);
         }
         return;
@@ -107,7 +106,6 @@ const ResponsiveSmartAnalysis = () => {
     fetchData();
   }, [dayDate, monthDate, monthMode, state.selected_profile.id]);
 
-  // Resetear datos cuando cambia el perfil seleccionado
   useEffect(() => {
     if (state.selected_profile?.id) {
       setDateType("1");
@@ -117,7 +115,7 @@ const ResponsiveSmartAnalysis = () => {
       setData(state.selected_profile.modules?.today || []);
       setDataMonth([]);
     }
-  }, [state.selected_profile?.id]); // Solo depende del ID, no del objeto completo
+  }, [state.selected_profile?.id]);
 
   const hasData = monthMode ? dataMonth.length > 0 : data.length > 0;
   const dateIsSelected = monthMode ? !!monthDate : !!dayDate;
@@ -125,39 +123,47 @@ const ResponsiveSmartAnalysis = () => {
   return (
     <div
       style={{
-        padding: isMobile ? "4px" : "20px",
-        paddingTop: isMobile ? "0px" : "20px",
-        background: "white",
-        minHeight: "100vh",
+        maxWidth: "1600px",
+        margin: isMobile ? "12px auto" : "0 auto",
+        padding: isMobile ? "0 8px" : "0",
+        minHeight: "90vh",
       }}
     >
+      {/* Selector de análisis */}
       <Card
         style={{
+          borderRadius: "12px",
           background: "white",
-          border: "1px solid #f0f0f0",
-          marginTop: isMobile ? "5px" : "0px",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+          border: "none",
+          marginBottom: "24px",
         }}
-        size="small"
-        hoverable
+        bodyStyle={{ padding: isMobile ? "16px" : "24px" }}
       >
         <Flex
           gap={isMobile ? "small" : "middle"}
           vertical={isMobile}
           align="center"
-          style={{
-            width: "100%",
-            flexWrap: isMobile ? "nowrap" : "wrap",
-          }}
+          style={{ width: "100%", flexWrap: isMobile ? "nowrap" : "wrap" }}
         >
+          <BarChartOutlined style={{ fontSize: 20, color: "#1F3461" }} />
           <Select
             placeholder="Tipo de análisis"
-            style={{ width: isMobile ? "100%" : "200px" }}
+            style={{ width: isMobile ? "100%" : "220px" }}
             value={dateType}
             onChange={handleDateTypeChange}
             disabled={!activate}
           >
-            <Select.Option value="1">📅 Análisis Diario</Select.Option>
-            <Select.Option value="2">📊 Análisis Mensual</Select.Option>
+            <Select.Option value="1">
+              <Flex align="center" gap="small">
+                <CalendarOutlined /> Análisis Diario
+              </Flex>
+            </Select.Option>
+            <Select.Option value="2">
+              <Flex align="center" gap="small">
+                <BarChartOutlined /> Análisis Mensual
+              </Flex>
+            </Select.Option>
           </Select>
           <ConfigProvider locale={locale}>
             <DatePicker
@@ -170,19 +176,15 @@ const ResponsiveSmartAnalysis = () => {
                 } else {
                   setDayDate(date);
                 }
-
-                // Si se limpia la fecha, resetear a datos de hoy
                 if (!date) {
                   if (monthMode) {
-                    // Para modo mensual, resetear a mes actual
                     setDataMonth([]);
                   } else {
-                    // Para modo diario, resetear a datos de hoy
                     setData(state.selected_profile.modules.today || []);
                   }
                 }
               }}
-              style={{ width: isMobile ? "100%" : "200px" }}
+              style={{ width: isMobile ? "100%" : "220px" }}
               picker={dateType === "1" ? "date" : "month"}
               disabled={!activate}
               disabledDate={(current) =>
@@ -192,9 +194,16 @@ const ResponsiveSmartAnalysis = () => {
             />
 
             {!monthMode && !dayDate && (
-              <Text icon={<CalendarOutlined />} code>
-                Estás viendo los datos de hoy {dayjs().format("DD/MM/YYYY")}
-              </Text>
+              <Tag
+                icon={<CalendarOutlined />}
+                style={{
+                  fontSize: 12,
+                  padding: "4px 12px",
+                  borderRadius: 6,
+                }}
+              >
+                Hoy {dayjs().format("DD/MM/YYYY")}
+              </Tag>
             )}
           </ConfigProvider>
         </Flex>
@@ -220,19 +229,35 @@ const ResponsiveSmartAnalysis = () => {
             <ContainerDays data={data} isToday={!dateIsSelected} />
           )
         ) : (
-          <Card style={{ textAlign: "center", padding: "40px" }}>
+          <Card
+            style={{
+              textAlign: "center",
+              padding: "40px",
+              borderRadius: 12,
+              boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+              border: "none",
+            }}
+          >
             <CalendarOutlined
               style={{ fontSize: 48, color: "#d9d9d9", marginBottom: 16 }}
             />
             <Title level={4} style={{ color: "#bfbfbf" }}>
               {dateIsSelected
                 ? "No se encontraron datos para la fecha seleccionada."
-                : "Por favor, selecciona una una fecha/mes"}
+                : "Por favor, selecciona una fecha/mes"}
             </Title>
           </Card>
         )
       ) : (
-        <Card style={{ textAlign: "center", padding: "40px" }}>
+        <Card
+          style={{
+            textAlign: "center",
+            padding: "40px",
+            borderRadius: 12,
+            boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+            border: "none",
+          }}
+        >
           <CalendarOutlined
             style={{ fontSize: 48, color: "#d9d9d9", marginBottom: 16 }}
           />

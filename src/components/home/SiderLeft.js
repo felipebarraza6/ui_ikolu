@@ -92,16 +92,16 @@ const SiderLeft = () => {
                 <Button
                   style={{
                     backgroundColor:
-                      location.pathname === "/registers_pti"
+                      location.pathname === "/registers-pti"
                         ? "white"
                         : "transparent",
                     color:
-                      location.pathname === "/registers_pti"
+                      location.pathname === "/registers-pti"
                         ? "#1f3461"
                         : "white",
                     border: "none",
                   }}
-                  onClick={() => navigate("/registers_pti")}
+                  onClick={() => navigate("/registers-pti")}
                   icon={<DatabaseOutlined />}
                 >
                   Registros
@@ -115,14 +115,14 @@ const SiderLeft = () => {
                     block
                     style={{
                       backgroundColor:
-                        location.pathname === "/sys_data"
+                        location.pathname === "/sys-data"
                           ? "white"
                           : "transparent",
                       color:
-                        location.pathname === "/sys_data" ? "#1f3461" : "white",
+                        location.pathname === "/sys-data" ? "#1f3461" : "white",
                       border: "none",
                     }}
-                    onClick={() => navigate("/sys_data")}
+                    onClick={() => navigate("/sys-data")}
                   >
                     <Flex
                       justify="space-between"
@@ -183,16 +183,16 @@ const SiderLeft = () => {
                         block
                         style={{
                           backgroundColor:
-                            location.pathname === "/sys_data_dga"
+                            location.pathname === "/sys-data-dga"
                               ? "white"
                               : "transparent",
                           color:
-                            location.pathname === "/sys_data_dga"
+                            location.pathname === "/sys-data-dga"
                               ? "#1f3461"
                               : "white",
                           border: "none",
                         }}
-                        onClick={() => navigate("/sys_data_dga")}
+                        onClick={() => navigate("/sys-data-dga")}
                       >
                         <Flex
                           justify="space-between"
@@ -218,16 +218,16 @@ const SiderLeft = () => {
                     style={{
                       height: "50px",
                       backgroundColor:
-                        location.pathname === "/extraction_data"
+                        location.pathname === "/extraction-data"
                           ? "white"
                           : "transparent",
                       color:
-                        location.pathname === "/extraction_data"
+                        location.pathname === "/extraction-data"
                           ? "#1f3461"
                           : "white",
                       border: "none",
                     }}
-                    onClick={() => navigate("/extraction_data")}
+                    onClick={() => navigate("/extraction-data")}
                   >
                     <Flex
                       justify="space-between"
@@ -243,14 +243,14 @@ const SiderLeft = () => {
                     block
                     style={{
                       backgroundColor:
-                        location.pathname === "/sys_docs"
+                        location.pathname === "/sys-docs"
                           ? "white"
                           : "transparent",
                       color:
-                        location.pathname === "/sys_docs" ? "#1f3461" : "white",
+                        location.pathname === "/sys-docs" ? "#1f3461" : "white",
                       border: "none",
                     }}
-                    onClick={() => navigate("/sys_docs")}
+                    onClick={() => navigate("/sys-docs")}
                   >
                     <Flex
                       justify="space-between"
@@ -267,16 +267,16 @@ const SiderLeft = () => {
                     block
                     style={{
                       backgroundColor:
-                        location.pathname === "/sys_alerts"
+                        location.pathname === "/sys-alerts"
                           ? "white"
                           : "transparent",
                       color:
-                        location.pathname === "/sys_alerts"
+                        location.pathname === "/sys-alerts"
                           ? "#1f3461"
                           : "white",
                       border: "none",
                     }}
-                    onClick={() => navigate("/sys_alerts")}
+                    onClick={() => navigate("/sys-alerts")}
                   >
                     <Flex
                       justify="space-between"
@@ -293,16 +293,16 @@ const SiderLeft = () => {
                     block
                     style={{
                       backgroundColor:
-                        location.pathname === "/sys_support"
+                        location.pathname === "/sys-support"
                           ? "white"
                           : "transparent",
                       color:
-                        location.pathname === "/sys_support"
+                        location.pathname === "/sys-support"
                           ? "#1f3461"
                           : "white",
                       border: "none",
                     }}
-                    onClick={() => navigate("/sys_support")}
+                    onClick={() => navigate("/sys-support")}
                   >
                     <Flex
                       justify="space-between"

@@ -1,0 +1,504 @@
+import React, { useContext, useState, useEffect } from "react";
+import {
+  Card,
+  Row,
+  Col,
+  Typography,
+  Flex,
+  Statistic,
+  Table,
+  Tag,
+  Spin,
+  Alert,
+  Tabs,
+  Button,
+  Select,
+  notification,
+  Switch,
+} from "antd";
+import {
+  DashboardOutlined,
+  WifiOutlined,
+  AlertOutlined,
+  DatabaseOutlined,
+  FileTextOutlined,
+  ReloadOutlined,
+  ThunderboltOutlined,
+} from "@ant-design/icons";
+import { AppContext } from "../../App";
+import sh from "../../api/sh/endpoints";
+import { useResponsive } from "../../hooks/useResponsive";
+import dayjs from "dayjs";
+
+const { Title, Text } = Typography;
+const { TabPane } = Tabs;
+
+const KPI_CARD_STYLES = {
+  puntos: { borderColor: "#1F3461", iconColor: "#1F3461", bg: "#F2F5FA" },
+  activos: { borderColor: "#52C41A", iconColor: "#52C41A", bg: "#F6FFF0" },
+  desconectados: { borderColor: "#FF6B35", iconColor: "#FF6B35", bg: "#FFF7F2" },
+  registros: { borderColor: "#BDC00C", iconColor: "#BDC00C", bg: "#FAFBF0" },
+  cola: { borderColor: "#006FB3", iconColor: "#006FB3", bg: "#F0F7FF" },
+  alertas: { borderColor: "#722ED1", iconColor: "#722ED1", bg: "#F9F0FF" },
+};
+
+const AdminDashboard = () => {
+  const { state } = useContext(AppContext);
+  const { isMobile } = useResponsive();
+
+  const [activeTab, setActiveTab] = useState("1");
+  const [loading, setLoading] = useState(true);
+  const [systemStatus, setSystemStatus] = useState(null);
+  const [pointsStatus, setPointsStatus] = useState([]);
+  const [dgaQueue, setDgaQueue] = useState(null);
+  const [notificationsSummary, setNotificationsSummary] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const isStaff = state.user?.is_staff;
+
+  const loadSystemStatus = async () => {
+    try {
+      const res = await sh.management.systemStatus();
+      setSystemStatus(res);
+    } catch (err) {
+      console.error("Error cargando system status:", err);
+    }
+  };
+
+  const loadPointsStatus = async () => {
+    try {
+      const res = await sh.management.pointsStatus();
+      setPointsStatus(res.points || []);
+    } catch (err) {
+      console.error("Error cargando points status:", err);
+    }
+  };
+
+  const loadDgaQueue = async () => {
+    try {
+      const res = await sh.management.dgaQueueStatus();
+      setDgaQueue(res);
+    } catch (err) {
+      console.error("Error cargando DGA queue:", err);
+    }
+  };
+
+  const loadNotificationsSummary = async () => {
+    try {
+      const res = await sh.management.notificationsSummary();
+      setNotificationsSummary(res);
+    } catch (err) {
+      console.error("Error cargando notifications summary:", err);
+    }
+  };
+
+  const loadAll = async () => {
+    setLoading(true);
+    await Promise.all([
+      loadSystemStatus(),
+      loadPointsStatus(),
+      loadDgaQueue(),
+      loadNotificationsSummary(),
+    ]);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadAll();
+  }, []);
+
+  const handleToggleTelemetry = async (pointId, enabled) => {
+    setActionLoading(true);
+    try {
+      await sh.management.toggleTelemetry(pointId, enabled);
+      notification.success({
+        message: "Telemetría actualizada",
+        description: `Punto ${pointId} ${enabled ? "activado" : "desactivado"}.`,
+      });
+      loadPointsStatus();
+    } catch (err) {
+      notification.error({
+        message: "Error",
+        description: "No se pudo actualizar la telemetría.",
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleClearDgaQueue = async () => {
+    setActionLoading(true);
+    try {
+      await sh.management.clearDgaQueue({ only_errors: true });
+      notification.success({ message: "Cola DGA limpiada" });
+      loadDgaQueue();
+    } catch (err) {
+      notification.error({ message: "Error", description: "No se pudo limpiar la cola." });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRequeueDga = async () => {
+    setActionLoading(true);
+    try {
+      await sh.management.requeueDga({ only_errors: false });
+      notification.success({ message: "Registros reencolados" });
+      loadDgaQueue();
+    } catch (err) {
+      notification.error({ message: "Error", description: "No se pudo reencolar." });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  if (!isStaff) {
+    return (
+      <div style={{ maxWidth: "800px", margin: "40px auto", padding: "0 16px" }}>
+        <Alert
+          message="Acceso restringido"
+          description="No tienes permisos de administrador para ver esta sección."
+          type="warning"
+          showIcon
+          style={{ borderRadius: 12 }}
+        />
+      </div>
+    );
+  }
+
+  const stats = systemStatus?.statistics || {};
+
+  const renderKPIs = () => (
+    <Row gutter={[16, 16]} style={{ marginBottom: "24px" }}>
+      <Col xs={12} sm={8} md={4} lg={4}>
+        <Card
+          size="small"
+          bordered
+          style={{
+            borderRadius: 12,
+            borderLeft: `4px solid ${KPI_CARD_STYLES.puntos.borderColor}`,
+            background: KPI_CARD_STYLES.puntos.bg,
+            borderColor: "transparent",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+          }}
+          bodyStyle={{ padding: "16px" }}
+        >
+          <Flex align="center" gap="small">
+            <DatabaseOutlined style={{ fontSize: 20, color: KPI_CARD_STYLES.puntos.iconColor }} />
+            <Statistic
+              title={<span style={{ fontSize: 11, color: "#888" }}>Total Puntos</span>}
+              value={stats.total_points || 0}
+              valueStyle={{ color: "#1F3461", fontSize: 20, fontWeight: 700 }}
+            />
+          </Flex>
+        </Card>
+      </Col>
+      <Col xs={12} sm={8} md={4} lg={4}>
+        <Card
+          size="small"
+          bordered
+          style={{
+            borderRadius: 12,
+            borderLeft: `4px solid ${KPI_CARD_STYLES.activos.borderColor}`,
+            background: KPI_CARD_STYLES.activos.bg,
+            borderColor: "transparent",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+          }}
+          bodyStyle={{ padding: "16px" }}
+        >
+          <Flex align="center" gap="small">
+            <WifiOutlined style={{ fontSize: 20, color: KPI_CARD_STYLES.activos.iconColor }} />
+            <Statistic
+              title={<span style={{ fontSize: 11, color: "#888" }}>Activos</span>}
+              value={stats.active_telemetry || 0}
+              valueStyle={{ color: "#1F3461", fontSize: 20, fontWeight: 700 }}
+            />
+          </Flex>
+        </Card>
+      </Col>
+      <Col xs={12} sm={8} md={4} lg={4}>
+        <Card
+          size="small"
+          bordered
+          style={{
+            borderRadius: 12,
+            borderLeft: `4px solid ${KPI_CARD_STYLES.desconectados.borderColor}`,
+            background: KPI_CARD_STYLES.desconectados.bg,
+            borderColor: "transparent",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+          }}
+          bodyStyle={{ padding: "16px" }}
+        >
+          <Flex align="center" gap="small">
+            <AlertOutlined style={{ fontSize: 20, color: KPI_CARD_STYLES.desconectados.iconColor }} />
+            <Statistic
+              title={<span style={{ fontSize: 11, color: "#888" }}>Desconectados</span>}
+              value={stats.disconnected_points || 0}
+              valueStyle={{ color: "#1F3461", fontSize: 20, fontWeight: 700 }}
+            />
+          </Flex>
+        </Card>
+      </Col>
+      <Col xs={12} sm={8} md={4} lg={4}>
+        <Card
+          size="small"
+          bordered
+          style={{
+            borderRadius: 12,
+            borderLeft: `4px solid ${KPI_CARD_STYLES.registros.borderColor}`,
+            background: KPI_CARD_STYLES.registros.bg,
+            borderColor: "transparent",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+          }}
+          bodyStyle={{ padding: "16px" }}
+        >
+          <Flex align="center" gap="small">
+            <ThunderboltOutlined style={{ fontSize: 20, color: KPI_CARD_STYLES.registros.iconColor }} />
+            <Statistic
+              title={<span style={{ fontSize: 11, color: "#888" }}>Registros 24h</span>}
+              value={stats.records_last_24h || 0}
+              valueStyle={{ color: "#1F3461", fontSize: 20, fontWeight: 700 }}
+            />
+          </Flex>
+        </Card>
+      </Col>
+      <Col xs={12} sm={8} md={4} lg={4}>
+        <Card
+          size="small"
+          bordered
+          style={{
+            borderRadius: 12,
+            borderLeft: `4px solid ${KPI_CARD_STYLES.cola.borderColor}`,
+            background: KPI_CARD_STYLES.cola.bg,
+            borderColor: "transparent",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+          }}
+          bodyStyle={{ padding: "16px" }}
+        >
+          <Flex align="center" gap="small">
+            <FileTextOutlined style={{ fontSize: 20, color: KPI_CARD_STYLES.cola.iconColor }} />
+            <Statistic
+              title={<span style={{ fontSize: 11, color: "#888" }}>Cola DGA</span>}
+              value={stats.dga_queue_size || 0}
+              valueStyle={{ color: "#1F3461", fontSize: 20, fontWeight: 700 }}
+            />
+          </Flex>
+        </Card>
+      </Col>
+      <Col xs={12} sm={8} md={4} lg={4}>
+        <Card
+          size="small"
+          bordered
+          style={{
+            borderRadius: 12,
+            borderLeft: `4px solid ${KPI_CARD_STYLES.alertas.borderColor}`,
+            background: KPI_CARD_STYLES.alertas.bg,
+            borderColor: "transparent",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+          }}
+          bodyStyle={{ padding: "16px" }}
+        >
+          <Flex align="center" gap="small">
+            <AlertOutlined style={{ fontSize: 20, color: KPI_CARD_STYLES.alertas.iconColor }} />
+            <Statistic
+              title={<span style={{ fontSize: 11, color: "#888" }}>Alertas Activas</span>}
+              value={stats.active_notifications || 0}
+              valueStyle={{ color: "#1F3461", fontSize: 20, fontWeight: 700 }}
+            />
+          </Flex>
+        </Card>
+      </Col>
+    </Row>
+  );
+
+  const pointsColumns = [
+    { title: "ID", dataIndex: "id", width: 60 },
+    { title: "Nombre", dataIndex: "title", render: (t) => <Text strong>{t}</Text> },
+    { title: "Proyecto", dataIndex: "project" },
+    { title: "Cliente", dataIndex: "client" },
+    { title: "Frecuencia", dataIndex: "frecuency", render: (f) => `${f} min` },
+    {
+      title: "Telemetría",
+      dataIndex: "telemetry_active",
+      render: (active) => (
+        <Tag color={active ? "green" : "red"}>{active ? "Activa" : "Inactiva"}</Tag>
+      ),
+    },
+    {
+      title: "Última conexión",
+      dataIndex: ["last_interaction", "days_not_connection"],
+      render: (days) => (
+        <Tag color={days === 0 ? "green" : days > 2 ? "red" : "orange"}>
+          {days === 0 ? "Hoy" : `${days} días`}
+        </Tag>
+      ),
+    },
+    {
+      title: "Acciones",
+      key: "actions",
+      render: (_, record) => (
+        <Switch
+          checked={record.telemetry_active}
+          onChange={(checked) => handleToggleTelemetry(record.id, checked)}
+          loading={actionLoading}
+          size="small"
+        />
+      ),
+    },
+  ];
+
+  const dgaQueueColumns = [
+    { title: "Punto", dataIndex: "catchment_point__title" },
+    { title: "ID", dataIndex: "catchment_point__id", width: 80 },
+    { title: "Cantidad", dataIndex: "count", width: 100, render: (c) => <Text strong>{c}</Text> },
+  ];
+
+  return (
+    <div
+      style={{
+        maxWidth: "1600px",
+        margin: isMobile ? "12px auto" : "0 auto",
+        padding: isMobile ? "0 8px" : "0",
+        minHeight: "90vh",
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          borderRadius: "12px",
+          background: "linear-gradient(135deg, #1F3461 0%, #2A4B8D 100%)",
+          border: "none",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          padding: "24px",
+          marginBottom: "24px",
+        }}
+      >
+        <Flex align="center" justify="space-between" wrap="wrap" gap="middle">
+          <Flex align="center" gap="middle">
+            <DashboardOutlined style={{ fontSize: 32, color: "white" }} />
+            <div>
+              <Title level={3} style={{ margin: 0, color: "white" }}>
+                Panel de Administración
+              </Title>
+              <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 14 }}>
+                Gestión del sistema SmartHydro
+              </Text>
+            </div>
+          </Flex>
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={loadAll}
+            loading={loading}
+            style={{
+              background: "white",
+              color: "#1F3461",
+              borderColor: "white",
+              borderRadius: 8,
+              fontWeight: 600,
+            }}
+          >
+            Actualizar
+          </Button>
+        </Flex>
+      </div>
+
+      {loading && !systemStatus ? (
+        <Flex justify="center" align="center" style={{ minHeight: 300 }}>
+          <Spin size="large" tip="Cargando datos administrativos..." />
+        </Flex>
+      ) : (
+        <>
+          {renderKPIs()}
+
+          <Tabs
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            type="card"
+            style={{ background: "white", borderRadius: 12, padding: "0 16px" }}
+          >
+            <TabPane tab="Puntos de Captación" key="1">
+              <Card
+                style={{ borderRadius: 12, border: "none", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}
+                bodyStyle={{ padding: isMobile ? "16px" : "24px" }}
+              >
+                <Table
+                  size="small"
+                  columns={pointsColumns}
+                  dataSource={pointsStatus}
+                  rowKey="id"
+                  pagination={{ pageSize: 10 }}
+                  scroll={{ x: 900 }}
+                  locale={{ emptyText: "No hay puntos disponibles" }}
+                />
+              </Card>
+            </TabPane>
+
+            <TabPane tab="Cola DGA" key="2">
+              <Card
+                style={{ borderRadius: 12, border: "none", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}
+                bodyStyle={{ padding: isMobile ? "16px" : "24px" }}
+              >
+                <Flex gap="small" wrap="wrap" style={{ marginBottom: 16 }}>
+                  <Button onClick={handleClearDgaQueue} loading={actionLoading} danger>
+                    Limpiar errores
+                  </Button>
+                  <Button onClick={handleRequeueDga} loading={actionLoading} type="primary" style={{ background: "#1F3461" }}>
+                    Reencolar registros
+                  </Button>
+                </Flex>
+                {dgaQueue && (
+                  <>
+                    <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+                      <Col span={8}>
+                        <Statistic title="Total en cola" value={dgaQueue.queue_status?.total || 0} />
+                      </Col>
+                      <Col span={8}>
+                        <Statistic title="Errores" value={dgaQueue.queue_status?.errors || 0} valueStyle={{ color: "#FF6B35" }} />
+                      </Col>
+                      <Col span={8}>
+                        <Statistic title="Registros antiguos" value={dgaQueue.queue_status?.old_records || 0} />
+                      </Col>
+                    </Row>
+                    <Table
+                      size="small"
+                      columns={dgaQueueColumns}
+                      dataSource={dgaQueue.by_point || []}
+                      rowKey="catchment_point__id"
+                      pagination={{ pageSize: 5 }}
+                    />
+                  </>
+                )}
+              </Card>
+            </TabPane>
+
+            <TabPane tab="Alertas" key="3">
+              <Card
+                style={{ borderRadius: 12, border: "none", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}
+                bodyStyle={{ padding: isMobile ? "16px" : "24px" }}
+              >
+                {notificationsSummary && (
+                  <Row gutter={[16, 16]}>
+                    <Col span={6}>
+                      <Statistic title="Total" value={notificationsSummary.summary?.total || 0} />
+                    </Col>
+                    <Col span={6}>
+                      <Statistic title="Activas" value={notificationsSummary.summary?.active || 0} valueStyle={{ color: "#FF6B35" }} />
+                    </Col>
+                    <Col span={6}>
+                      <Statistic title="No leídas" value={notificationsSummary.summary?.unread || 0} />
+                    </Col>
+                    <Col span={6}>
+                      <Statistic title="Finalizadas" value={notificationsSummary.summary?.finished || 0} valueStyle={{ color: "#52C41A" }} />
+                    </Col>
+                  </Row>
+                )}
+              </Card>
+            </TabPane>
+          </Tabs>
+        </>
+      )}
+    </div>
+  );
+};
+
+export default AdminDashboard;

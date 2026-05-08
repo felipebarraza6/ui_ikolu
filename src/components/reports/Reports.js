@@ -9,10 +9,10 @@ import {
   notification,
   Tag,
   Form,
-  Tabs, // Added Tabs for the 'main' branch logic, but will be removed if 'ikolu_sma' is chosen
-  Tooltip, // Added missing Tooltip import
   ConfigProvider,
   Flex,
+  Card,
+  Statistic,
 } from "antd";
 import { AppContext } from "../../App";
 import dayjs from "dayjs";
@@ -23,6 +23,8 @@ import {
   FileExcelFilled,
   ClearOutlined,
   CalendarOutlined,
+  DatabaseOutlined,
+  CheckCircleOutlined,
 } from "@ant-design/icons";
 import sh from "../../api/sh/endpoints";
 import QueueAnim from "rc-queue-anim";
@@ -31,68 +33,48 @@ import {
   formatFlow,
   formatLevel,
 } from "../../utils/numberFormatter";
+import { useResponsive } from "../../hooks/useResponsive";
 
 // Configurar dayjs para español
 dayjs.locale("es");
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
+
+const KPI_CARD_STYLES = {
+  registros: {
+    borderColor: "#1F3461",
+    iconColor: "#1F3461",
+    bg: "#F2F5FA",
+    icon: <DatabaseOutlined />,
+  },
+  rango: {
+    borderColor: "#006FB3",
+    iconColor: "#006FB3",
+    bg: "#F0F7FF",
+    icon: <CalendarOutlined />,
+  },
+  estado: {
+    borderColor: "#52C41A",
+    iconColor: "#52C41A",
+    bg: "#F6FFF0",
+    icon: <CheckCircleOutlined />,
+  },
+};
 
 const Reports = () => {
   const { state } = useContext(AppContext);
+  const { isMobile } = useResponsive();
   const status_module = state.selected_profile.profile_ikolu.m3;
-  // console.log(status_module); // Removed console.log
+
   const [data, setData] = useState([]);
-  const [data2, setData2] = useState([]); // This state is not used in the ikolu_sma branch
   const [loadingTab1, setLoadingTab1] = useState(false);
   const [initialDate, setInitialDate] = useState("");
   const [finishDate, setFinishDate] = useState("");
-
   const [loadingExcel, setLoadingExcel] = useState(false);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  // Removido: const numberForMiles = new Intl.NumberFormat("de-DE");
-  // Ahora usamos las funciones globales de formateo
 
   const [form] = Form.useForm();
-
-  // The following functions (processLevel, processFlow, processAccumulated)
-  // are part of a merge conflict and are commented out to prioritize
-  // the 'ikolu_sma' branch's data fetching logic.
-  // If these processing steps are needed, they should be carefully
-  // re-integrated and tested.
-
-  // const processLevel = (level_response) => {
-  //   if (level_response > 0.0 && level_response < position_sensor_nivel) {
-  //     return parseFloat(position_sensor_nivel - level_response).toFixed(1);
-  //   } else if (level_response > position_sensor_nivel || level_response < 0.0) {
-  //     level_response = 50.0;
-  //     return parseFloat(position_sensor_nivel - level_response).toFixed(1);
-  //   } else {
-  //     level_response = 0.0;
-  //     return parseFloat(position_sensor_nivel - level_response).toFixed(1);
-  //   }
-  // };
-
-  // const processFlow = (flow) => {
-  //   const flowValue = parseFloat(flow).toFixed(1);
-  //   if (flowValue > 0.5) {
-  //     return flowValue;
-  //   } else if (flowValue < 0.0) {
-  //     return 0.0;
-  //   } else {
-  //     return parseFloat(0.0).toFixed(1);
-  //   }
-  // };
-
-  // const processAccumulated = (accumulated, last_total) => {
-  //   console.log(last_total);
-  //   const accumulatedValue = parseInt(accumulated);
-  //   if (accumulatedValue > 0) {
-  //     return accumulatedValue;
-  //   } else {
-  //     return last_total;
-  //   }
-  // };
 
   const downloadDataToExcel = async () => {
     setLoadingExcel(true);
@@ -117,66 +99,14 @@ const Reports = () => {
   const getData = async () => {
     setLoadingTab1(true);
     try {
-      // Get the data for the requested page
       const rq = await sh.get_data_sh_range(
         state.selected_profile.id,
         initialDate,
         finishDate,
         page
       );
-      console.log("🔍 Datos del backend (primer registro):", rq.results[0]);
-      console.log("🔍 Claves disponibles:", rq.results[0] ? Object.keys(rq.results[0]) : []);
       setData(rq.results);
       setTotal(rq.count);
-
-      // The following data processing logic was present in the 'main' branch
-      // but is excluded here to resolve the merge conflict and adhere to 'ikolu_sma'.
-      // If this processing is required, it should be re-implemented and tested.
-      // const updatedResults = rq.results.map((item, index) => {
-      //   const nextTotal = rq.results[index + 1] ? rq.results[index + 1].total : 0;
-      //   const previusTotal = rq.results[index - 1]
-      //     ? rq.results[index - 1].total
-      //     : 0;
-      //   var currentTotal = item.total;
-      //   if (currentTotal < 0) {
-      //     currentTotal = previusTotal;
-      //   } else {
-      //     currentTotal = item.total;
-      //   }
-
-      //   var total_hora = currentTotal - nextTotal;
-
-      //   if (total_hora > item.total) {
-      //     total_hora = 0;
-      //   }
-
-      //   return {
-      //     ...item,
-      //     date_time_medition_hour: item.date_time_medition.slice(11, 16),
-      //     level: processLevel(item.level),
-      //     flow: processFlow(item.flow),
-      //     total: processAccumulated(item.total, previusTotal),
-      //     total_hora: index === rq.results.length - 1 ? 0 : total_hora,
-      //     date_time_medition: item.date_time_medition.slice(0, 10),
-      //   };
-      // });
-
-      // const sumTotal = updatedResults.reduce((acc, item) => {
-      //   const currentDate = item.date_time_medition.slice(0, 10);
-      //   const existingItem = acc.find((el) => el.date === currentDate);
-
-      //   if (existingItem) {
-      //     existingItem.total_hora += item.total_hora;
-      //   } else {
-      //     acc.push({
-      //       ...item,
-      //       total_hora: item.total_hora,
-      //       date: currentDate,
-      //     });
-      //   }
-
-      //   return acc;
-      // }, []);
     } catch (error) {
       notification.error({
         message: "Error al cargar datos",
@@ -190,68 +120,55 @@ const Reports = () => {
   };
 
   useEffect(() => {
-    // No hacer nada si las fechas no están seleccionadas
     if (!initialDate || !finishDate) {
-      setData([]); // Limpiar datos si no hay rango
+      setData([]);
       setTotal(0);
       return;
     }
     getData();
   }, [page, initialDate, finishDate, state.selected_profile.id]);
 
-  // Función para generar columnas dinámicamente basadas en las variables configuradas
   const getTableColumns = () => {
     const variables = state.selected_profile.config_data?.variables || [];
 
-    console.log("📊 Variables configuradas:", variables);
-
-    // Columna de fecha siempre presente
     const columns = [
       {
         title: "Fecha",
         dataIndex: "date_time_medition",
-        render: (date) => {
-          return dayjs(date).format("YYYY-MM-DD HH:mm");
-        },
+        render: (date) => dayjs(date).format("YYYY-MM-DD HH:mm"),
       },
     ];
 
-    // Agregar columnas basadas en las variables configuradas
     variables.forEach((variable) => {
-      console.log(`  📌 Procesando variable: ${variable.label} (${variable.type_variable})`);
-
       switch (variable.type_variable) {
         case "CAUDAL":
+        case "CAUDAL_PROMEDIO":
           columns.push({
             title: variable.label || "Caudal (L/s)",
             dataIndex: "flow",
-          });
-          break;
-        case "CAUDAL_PROMEDIO":
-          columns.push({
-            title: variable.label || "Caudal Promedio (L/s)",
-            dataIndex: "flow",
+            render: (v) => formatFlow(v),
           });
           break;
         case "NIVEL":
-          // Si viene NIVEL, mostrar ambas columnas usando el mismo dato
           columns.push({
             title: variable.label || "Nivel (m)",
             dataIndex: "nivel",
+            render: (v) => formatLevel(v),
           });
           columns.push({
             title: "Nivel Freático (m)",
             dataIndex: "water_table",
+            render: (v) => formatLevel(v),
           });
           break;
         case "NIVEL_FREATICO":
           columns.push({
             title: variable.label || "Nivel Freático (m)",
             dataIndex: "water_table",
+            render: (v) => formatLevel(v),
           });
           break;
         case "TOTALIZADO":
-          // Si existe TOTALIZADO, agregamos columnas de acumulado
           columns.push({
             title: variable.label || "Acumulado (m³)",
             dataIndex: "total",
@@ -269,13 +186,137 @@ const Reports = () => {
           });
           break;
         default:
-          console.log(`  ⚠️ Tipo de variable no reconocido: ${variable.type_variable}`);
           break;
       }
     });
 
-    console.log("📊 Columnas generadas:", columns.map(c => c.title));
     return columns;
+  };
+
+  const renderKPIs = () => {
+    const dias =
+      initialDate && finishDate
+        ? dayjs(finishDate).diff(dayjs(initialDate), "day") + 1
+        : 0;
+
+    return (
+      <Row gutter={[16, 16]} style={{ marginBottom: "24px" }}>
+        <Col xs={12} sm={12} md={8} lg={8}>
+          <Card
+            size="small"
+            bordered
+            style={{
+              borderRadius: 12,
+              borderLeft: `4px solid ${KPI_CARD_STYLES.registros.borderColor}`,
+              background: KPI_CARD_STYLES.registros.bg,
+              borderColor: "transparent",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+            }}
+            bodyStyle={{ padding: "16px" }}
+          >
+            <Flex align="center" gap="middle">
+              <DatabaseOutlined
+                style={{
+                  fontSize: 24,
+                  color: KPI_CARD_STYLES.registros.iconColor,
+                }}
+              />
+              <Statistic
+                title={
+                  <span style={{ fontSize: 12, color: "#888" }}>
+                    Total Registros
+                  </span>
+                }
+                value={total}
+                valueStyle={{
+                  color: "#1F3461",
+                  fontSize: 22,
+                  fontWeight: 700,
+                }}
+              />
+            </Flex>
+          </Card>
+        </Col>
+
+        <Col xs={12} sm={12} md={8} lg={8}>
+          <Card
+            size="small"
+            bordered
+            style={{
+              borderRadius: 12,
+              borderLeft: `4px solid ${KPI_CARD_STYLES.rango.borderColor}`,
+              background: KPI_CARD_STYLES.rango.bg,
+              borderColor: "transparent",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+            }}
+            bodyStyle={{ padding: "16px" }}
+          >
+            <Flex align="center" gap="middle">
+              <CalendarOutlined
+                style={{
+                  fontSize: 24,
+                  color: KPI_CARD_STYLES.rango.iconColor,
+                }}
+              />
+              <div>
+                <div style={{ fontSize: 12, color: "#888" }}>Rango</div>
+                <div
+                  style={{
+                    color: "#1F3461",
+                    fontSize: 14,
+                    fontWeight: 700,
+                  }}
+                >
+                  {dias > 0 ? `${dias} días` : "Sin selección"}
+                </div>
+                {initialDate && finishDate && (
+                  <div style={{ fontSize: 11, color: "#aaa" }}>
+                    {dayjs(initialDate).format("DD/MM/YY")} -{" "}
+                    {dayjs(finishDate).format("DD/MM/YY")}
+                  </div>
+                )}
+              </div>
+            </Flex>
+          </Card>
+        </Col>
+
+        <Col xs={12} sm={12} md={8} lg={8}>
+          <Card
+            size="small"
+            bordered
+            style={{
+              borderRadius: 12,
+              borderLeft: `4px solid ${KPI_CARD_STYLES.estado.borderColor}`,
+              background: KPI_CARD_STYLES.estado.bg,
+              borderColor: "transparent",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+            }}
+            bodyStyle={{ padding: "16px" }}
+          >
+            <Flex align="center" gap="middle">
+              <CheckCircleOutlined
+                style={{
+                  fontSize: 24,
+                  color: KPI_CARD_STYLES.estado.iconColor,
+                }}
+              />
+              <div>
+                <div style={{ fontSize: 12, color: "#888" }}>Estado</div>
+                <div
+                  style={{
+                    color: status_module ? "#52C41A" : "#FF6B35",
+                    fontSize: 14,
+                    fontWeight: 700,
+                  }}
+                >
+                  {status_module ? "Activo" : "Inactivo"}
+                </div>
+              </div>
+            </Flex>
+          </Card>
+        </Col>
+      </Row>
+    );
   };
 
   const renderContent = () => {
@@ -341,60 +382,124 @@ const Reports = () => {
 
   return (
     <QueueAnim delay={300} duration={900} type="right">
-      <div key="reports">
-        <Title level={2}>Descarga de Datos</Title>
-        <ConfigProvider locale={locale}>
-          <Form
-            form={form}
-            onFinish={onFinish}
+      <div
+        key="reports"
+        style={{
+          maxWidth: "1600px",
+          margin: isMobile ? "12px auto" : "0 auto",
+          padding: isMobile ? "0 8px" : "0",
+          minHeight: "90vh",
+        }}
+      >
+        {/* KPIs */}
+        {renderKPIs()}
+
+        {/* Filtros */}
+        <Card
+          style={{
+            borderRadius: "12px",
+            background: "white",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+            border: "none",
+            marginBottom: "24px",
+          }}
+          bodyStyle={{ padding: isMobile ? "16px" : "24px" }}
+        >
+          <ConfigProvider locale={locale}>
+            <Form
+              form={form}
+              onFinish={onFinish}
+              style={{ marginBottom: "20px" }}
+              layout="inline"
+            >
+              <Row gutter={[16, 16]} style={{ width: "100%" }}>
+                <Col xs={24} sm={12} md={8}>
+                  <Form.Item name="range" style={{ marginBottom: 0 }}>
+                    <DatePicker.RangePicker
+                      style={{ width: "100%" }}
+                      format="DD/MM/YYYY"
+                      disabledDate={(current) => {
+                        return (
+                          current &&
+                          (current < dayjs("2025-02-01") ||
+                            current > dayjs().endOf("day"))
+                        );
+                      }}
+                      onChange={(dates, dateStrings) => {
+                        if (dates) {
+                          setInitialDate(dateStrings[0]);
+                          setFinishDate(dateStrings[1]);
+                        } else {
+                          clearFilters();
+                        }
+                      }}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12} md={16}>
+                  <Flex gap="small" wrap="wrap">
+                    <Button icon={<ClearOutlined />} onClick={clearFilters}>
+                      Limpiar
+                    </Button>
+                    <Button
+                      icon={<FileExcelFilled />}
+                      type="primary"
+                      style={{ background: "#1f3461", color: "white" }}
+                      onClick={downloadDataToExcel}
+                      loading={loadingExcel}
+                      disabled={!initialDate || !finishDate || !status_module}
+                    >
+                      Descargar reporte (.xlsx)
+                    </Button>
+                  </Flex>
+                </Col>
+              </Row>
+            </Form>
+          </ConfigProvider>
+        </Card>
+
+        {/* Tabla */}
+        <Card
+          style={{
+            borderRadius: "12px",
+            background: "white",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+            border: "none",
+          }}
+          bodyStyle={{ padding: isMobile ? "16px" : "24px" }}
+        >
+          <Flex
+            justify="space-between"
+            align="center"
             style={{ marginBottom: "20px" }}
-            layout="inline"
           >
-            <Row gutter={[16, 16]} style={{ width: "100%" }}>
-              <Col xs={24} sm={12} md={8}>
-                <Form.Item name="range">
-                  <DatePicker.RangePicker
-                    style={{ width: "100%" }}
-                    format="DD/MM/YYYY"
-                    disabledDate={(current) => {
-                      return (
-                        current &&
-                        (current < dayjs("2025-02-01") ||
-                          current > dayjs().endOf("day"))
-                      );
-                    }}
-                    onChange={(dates, dateStrings) => {
-                      if (dates) {
-                        setInitialDate(dateStrings[0]);
-                        setFinishDate(dateStrings[1]);
-                      } else {
-                        clearFilters();
-                      }
-                    }}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} md={16}>
-                <Flex gap="small" wrap="wrap">
-                  <Button icon={<ClearOutlined />} onClick={clearFilters}>
-                    Limpiar
-                  </Button>
-                  <Button
-                    icon={<FileExcelFilled />}
-                    type="primary"
-                    style={{ background: "#1f3461", color: "white" }}
-                    onClick={downloadDataToExcel}
-                    loading={loadingExcel}
-                    disabled={!initialDate || !finishDate || !status_module}
-                  >
-                    Descargar reporte (.xlsx)
-                  </Button>
-                </Flex>
-              </Col>
-            </Row>
-          </Form>
-        </ConfigProvider>
-        {renderContent()}
+            <span
+              style={{
+                margin: 0,
+                color: "#1F3461",
+                fontSize: 16,
+                fontWeight: 700,
+              }}
+            >
+              <TableOutlined style={{ marginRight: 8 }} />
+              Registros de Telemetría
+            </span>
+            <Tag
+              style={{
+                fontWeight: 600,
+                fontSize: "12px",
+                padding: "4px 12px",
+                borderRadius: "6px",
+                borderColor: "#1F3461",
+                color: "#1F3461",
+                background: "#f2f5fa",
+              }}
+            >
+              {total} registros
+            </Tag>
+          </Flex>
+          {renderContent()}
+        </Card>
       </div>
     </QueueAnim>
   );

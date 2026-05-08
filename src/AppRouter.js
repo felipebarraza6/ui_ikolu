@@ -12,7 +12,7 @@ const AppRouter = () => {
     <Routes>
       <Route path="/login" element={<Login />} />
       {/* Ruta pública para preview del certificado - no requiere autenticación */}
-      <Route path="/preview-certificado" element={<PreviewModalQR />} />
+      <Route path="/preview-certificate" element={<PreviewModalQR />} />
       <Route
         path="/"
         element={isAuth ? <Home /> : <Navigate to="/login" replace />}

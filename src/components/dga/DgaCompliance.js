@@ -6,29 +6,30 @@ import {
   Statistic,
   Progress,
   Typography,
-  Divider,
   Space,
   Tag,
   Tooltip,
   Tabs,
   Alert,
+  Empty,
+  Flex,
 } from "antd";
 import {
   CheckCircleOutlined,
   SyncOutlined,
   CloseCircleOutlined,
-  WarningOutlined,
   BarChartOutlined,
   LineChartOutlined,
   PieChartOutlined,
-  FileTextOutlined,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
 import { formatInteger, formatFlow } from "../../utils/numberFormatter";
 import { Area, DualAxes } from "@ant-design/plots";
 
 const { Title, Text } = Typography;
-const { TabPane } = Tabs;
+
+const safeMin = (arr) => (arr.length ? Math.min(...arr) : 0);
+const safeMax = (arr) => (arr.length ? Math.max(...arr) : 0);
 
 const DgaCompliance = ({ dataDga = [] }) => {
   const { state } = useContext(AppContext);
@@ -54,32 +55,22 @@ const DgaCompliance = ({ dataDga = [] }) => {
   const calculateStats = () => {
     const total = dataDga.length;
 
-    // Completados: tienen n_voucher válido
     const completed = dataDga.filter(
       (item) =>
         item.n_voucher && item.n_voucher !== "..." && item.n_voucher !== ""
     ).length;
 
-    // Pendientes: send_dga = true Y no tienen n_voucher
     const pending = dataDga.filter(
       (item) =>
         item.send_dga === true &&
         (!item.n_voucher || item.n_voucher === "..." || item.n_voucher === "")
     ).length;
 
-    // Errores: cuando is_error = true
     const errors = dataDga.filter((item) => item.is_error === true).length;
 
-    // Con comprobante válido
-    const withVoucher = dataDga.filter(
-      (item) =>
-        item.n_voucher && item.n_voucher !== "..." && item.n_voucher !== ""
-    ).length;
-
-    // Sin comprobante
+    const withVoucher = completed;
     const withoutVoucher = total - withVoucher;
 
-    // Calcular promedios de valores
     const validCaudal = dataDga.filter(
       (item) => item.caudal !== null && item.caudal !== undefined
     );
@@ -126,14 +117,10 @@ const DgaCompliance = ({ dataDga = [] }) => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "success":
-        return "green";
-      case "warning":
-        return "orange";
-      case "error":
-        return "red";
-      default:
-        return "blue";
+      case "success": return "green";
+      case "warning": return "orange";
+      case "error": return "red";
+      default: return "blue";
     }
   };
 
@@ -145,16 +132,12 @@ const DgaCompliance = ({ dataDga = [] }) => {
   };
 
   const complianceStatus = getComplianceStatus();
-
-  // Obtener el caudal autorizado del perfil
   const flowGranted = state.selected_profile?.dga?.flow_granted_dga || 0;
-
   const hasFlowLimit = flowGranted && parseFloat(flowGranted) > 0;
 
-  // Preparar datos para el gráfico de caudal
-  const prepareCaudalData = () => {
+  // Preparar datos para gráficos
+  const caudalData = React.useMemo(() => {
     if (!dataDga || dataDga.length === 0) return [];
-
     return dataDga.map((item) => ({
       date_time_medition: item.date_time_medition,
       flow: parseFloat(item.flow) || 0,
@@ -162,11 +145,11 @@ const DgaCompliance = ({ dataDga = [] }) => {
       limit: parseFloat(flowGranted) || 0,
       exceeded: parseFloat(item.flow) > parseFloat(flowGranted),
     }));
-  };
+  }, [dataDga, flowGranted]);
 
-  const caudalData = prepareCaudalData();
+  const flows = caudalData.map((d) => d.flow);
+  const waterTables = caudalData.map((d) => d.water_table);
 
-  // Configuración del gráfico de caudal
   const caudalChartConfig = {
     data: caudalData,
     xField: "date_time_medition",
@@ -178,9 +161,7 @@ const DgaCompliance = ({ dataDga = [] }) => {
       date_time_medition: { alias: "Fecha/hora medición" },
     },
     xAxis: {
-      label: {
-        formatter: (text) => `${text.slice(11, 16)}`,
-      },
+      label: { formatter: (text) => `${text.slice(11, 16)}` },
       title: { text: "Hora" },
     },
     tooltip: {
@@ -191,17 +172,9 @@ const DgaCompliance = ({ dataDga = [] }) => {
       }),
     },
     yAxis: {
-      min: Math.min(
-        ...caudalData.map((d) => d.flow),
-        parseFloat(flowGranted) * 0.8
-      ),
-      max: Math.max(
-        ...caudalData.map((d) => d.flow),
-        parseFloat(flowGranted) * 1.2
-      ),
-      title: {
-        text: "Caudal (lt/s)",
-      },
+      min: flows.length ? Math.min(...flows, parseFloat(flowGranted) * 0.8) : 0,
+      max: flows.length ? Math.max(...flows, parseFloat(flowGranted) * 1.2) : 10,
+      title: { text: "Caudal (lt/s)" },
     },
     annotations: hasFlowLimit
       ? [
@@ -209,20 +182,11 @@ const DgaCompliance = ({ dataDga = [] }) => {
             type: "line",
             start: ["min", flowGranted],
             end: ["max", flowGranted],
-            style: {
-              stroke: "red",
-              lineWidth: 2,
-              lineDash: [4, 4],
-            },
+            style: { stroke: "red", lineWidth: 2, lineDash: [4, 4] },
             text: {
               content: `Límite: ${flowGranted} lt/s`,
               position: "end",
-              style: {
-                fill: "red",
-                fontSize: 12,
-                fontWeight: 500,
-                textAlign: "right",
-              },
+              style: { fill: "red", fontSize: 12, fontWeight: 500, textAlign: "right" },
             },
           },
         ]
@@ -237,76 +201,51 @@ const DgaCompliance = ({ dataDga = [] }) => {
     yAxis: {
       flow: {
         title: { text: "Caudal (lt/s)", style: { fill: "#1890ff" } },
-        min: Math.min(...caudalData.map((d) => d.flow)) * 0.9,
-        max: Math.max(...caudalData.map((d) => d.flow)) * 1.1,
+        min: flows.length ? safeMin(flows) * 0.9 : 0,
+        max: flows.length ? safeMax(flows) * 1.1 : 10,
       },
       water_table: {
         title: { text: "Nivel Freático (m)", style: { fill: "#2ca02c" } },
-        min: Math.min(...caudalData.map((d) => d.water_table)) * 0.9,
-        max: Math.max(...caudalData.map((d) => d.water_table)) * 1.1,
+        min: waterTables.length ? safeMin(waterTables) * 0.9 : 0,
+        max: waterTables.length ? safeMax(waterTables) * 1.1 : 10,
         inverse: true,
       },
     },
     xAxis: {
-      label: {
-        formatter: (text) => `${text.slice(11, 16)}`,
-      },
+      label: { formatter: (text) => `${text.slice(11, 16)}` },
       title: { text: "Hora" },
     },
     geometryOptions: [
-      {
-        geometry: "line",
-        color: "#1890ff",
-        smooth: true,
-      },
-      {
-        geometry: "line",
-        color: "#2ca02c",
-        smooth: true,
-      },
+      { geometry: "line", color: "#1890ff", smooth: true },
+      { geometry: "line", color: "#2ca02c", smooth: true },
     ],
     tooltip: {
       showTitle: false,
       showMarkers: true,
       customContent: (title, items) => {
-        if (!items || items.length === 0 || !items[0]?.data) {
-          return null;
-        }
-
+        if (!items || items.length === 0 || !items[0]?.data) return null;
         const data = items[0].data;
         const time = data.date_time_medition.slice(11, 16) + " hrs";
-
         const listItems = items
           .map((item) => {
             if (item.value === undefined || item.value === null) return "";
-
             let name = "";
             let unit = "";
-
-            if (item.name === "flow") {
-              name = "Caudal";
-              unit = "lt/s";
-            } else if (item.name === "water_table") {
-              name = "Nivel Freático";
-              unit = "m";
-            }
-
+            if (item.name === "flow") { name = "Caudal"; unit = "lt/s"; }
+            else if (item.name === "water_table") { name = "Nivel Freático"; unit = "m"; }
             const value = parseFloat(item.value).toFixed(2);
-
             return `<li style="list-style: none; margin: 6px 0; font-size: 12px;">
-                    <span style="background-color:${item.color}; width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:8px;"></span>
-                    <span>${name}</span>
-                    <span style="float: right; font-weight: 600; margin-left: 12px;">${value} ${unit}</span>
-                  </li>`;
+              <span style="background-color:${item.color}; width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:8px;"></span>
+              <span>${name}</span>
+              <span style="float: right; font-weight: 600; margin-left: 12px;">${value} ${unit}</span>
+            </li>`;
           })
           .join("");
-
         if (listItems.trim() === "") return null;
-
         return `<div style="padding: 8px 12px; background: white; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
-                  <div style="font-weight: 600; margin-bottom: 8px; font-size: 13px;">${time}</div>
-                  <ul style="padding: 0; margin: 0;">${listItems}</ul>
-                </div>`;
+          <div style="font-weight: 600; margin-bottom: 8px; font-size: 13px;">${time}</div>
+          <ul style="padding: 0; margin: 0;">${listItems}</ul>
+        </div>`;
       },
     },
     legend: {
@@ -320,17 +259,97 @@ const DgaCompliance = ({ dataDga = [] }) => {
     },
   };
 
+  const tabItems = [
+    {
+      key: "1",
+      label: (
+        <span>
+          <BarChartOutlined style={{ marginRight: 6 }} />
+          Caudal vs Límite
+        </span>
+      ),
+      children: (
+        <div style={{ height: 300 }}>
+          {caudalData.length > 0 ? (
+            <Area {...caudalChartConfig} />
+          ) : (
+            <Flex justify="center" align="center" style={{ height: "100%" }}>
+              <Empty description="No hay datos de caudal disponibles" />
+            </Flex>
+          )}
+          <Alert
+            style={{ marginTop: 16, background: "#f0f2f5", border: "none" }}
+            message={
+              <Space direction="vertical" size={0}>
+                {hasFlowLimit ? (
+                  <Text style={{ fontSize: 12 }}>
+                    <span style={{ color: "red", fontWeight: "bold" }}>●</span>{" "}
+                    Límite autorizado: <strong>{flowGranted} lt/s</strong>
+                  </Text>
+                ) : (
+                  <Text style={{ fontSize: 12 }}>
+                    <span style={{ color: "orange", fontWeight: "bold" }}>●</span>{" "}
+                    Límite no disponible
+                  </Text>
+                )}
+                <Text style={{ fontSize: 12 }}>
+                  <span style={{ color: "rgb(31, 52, 97)", fontWeight: "bold" }}>●</span>{" "}
+                  Mediciones de caudal
+                </Text>
+              </Space>
+            }
+          />
+        </div>
+      ),
+    },
+    {
+      key: "2",
+      label: (
+        <span>
+          <LineChartOutlined style={{ marginRight: 6 }} />
+          Caudal vs Nivel
+        </span>
+      ),
+      children: (
+        <div style={{ height: 300 }}>
+          {caudalData.length > 0 ? (
+            <DualAxes {...caudalNivelChartConfig} />
+          ) : (
+            <Flex justify="center" align="center" style={{ height: "100%" }}>
+              <Empty description="No hay datos disponibles" />
+            </Flex>
+          )}
+          <Alert
+            style={{ marginTop: 16, background: "#f0f2f5", border: "none" }}
+            message={
+              <Space direction="vertical" size={0}>
+                <Text style={{ fontSize: 12 }}>
+                  <span style={{ color: "#1890ff", fontWeight: "bold" }}>●</span>{" "}
+                  Caudal (lt/s)
+                </Text>
+                <Text style={{ fontSize: 12 }}>
+                  <span style={{ color: "#2ca02c", fontWeight: "bold" }}>●</span>{" "}
+                  Nivel Freático (m)
+                </Text>
+              </Space>
+            }
+          />
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div style={{ padding: "16px", background: "#f5f5f5" }}>
-      <Row gutter={[16, 16]} style={{ marginBottom: "24px" }}>
+      {/* KPIs */}
+      <Row gutter={[12, 12]} style={{ marginBottom: "16px" }}>
         <Col xs={12} sm={12} md={6}>
           <Card size="small" style={{ borderRadius: 8, textAlign: "center" }}>
             <Statistic
               title="Total Registros"
               value={stats.total}
-              prefix={<FileTextOutlined />}
-              valueStyle={{ color: "#1890ff", fontSize: "22px" }}
-              titleStyle={{ fontSize: "12px", color: "#8c8c8c" }}
+              prefix={<BarChartOutlined />}
+              valueStyle={{ color: "#1890ff", fontSize: "20px" }}
             />
           </Card>
         </Col>
@@ -340,8 +359,7 @@ const DgaCompliance = ({ dataDga = [] }) => {
               title="Completados"
               value={stats.sent}
               prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: "#52c41a", fontSize: "22px" }}
-              titleStyle={{ fontSize: "12px", color: "#8c8c8c" }}
+              valueStyle={{ color: "#52c41a", fontSize: "20px" }}
             />
           </Card>
         </Col>
@@ -351,8 +369,7 @@ const DgaCompliance = ({ dataDga = [] }) => {
               title="Pendientes"
               value={stats.pending}
               prefix={<SyncOutlined />}
-              valueStyle={{ color: "#faad14", fontSize: "22px" }}
-              titleStyle={{ fontSize: "12px", color: "#8c8c8c" }}
+              valueStyle={{ color: "#faad14", fontSize: "20px" }}
             />
           </Card>
         </Col>
@@ -362,15 +379,14 @@ const DgaCompliance = ({ dataDga = [] }) => {
               title="Con Errores"
               value={stats.errors}
               prefix={<CloseCircleOutlined />}
-              valueStyle={{ color: "#ff4d4f", fontSize: "22px" }}
-              titleStyle={{ fontSize: "12px", color: "#8c8c8c" }}
+              valueStyle={{ color: "#ff4d4f", fontSize: "20px" }}
             />
           </Card>
         </Col>
       </Row>
 
-      {/* Resumen de Cumplimiento */}
-      <Card style={{ marginBottom: "24px", borderRadius: 12 }}>
+      {/* Cumplimiento */}
+      <Card style={{ marginBottom: "16px", borderRadius: 12 }}>
         <Row gutter={[32, 16]}>
           <Col xs={24} md={12}>
             <Title level={5}>Tasa de Completado</Title>
@@ -383,20 +399,13 @@ const DgaCompliance = ({ dataDga = [] }) => {
                 />
               </Col>
               <Col>
-                <Tag
-                  color={getStatusColor(complianceStatus.status)}
-                  size="large"
-                >
+                <Tag color={getStatusColor(complianceStatus.status)} size="large">
                   {complianceStatus.text}
                 </Tag>
               </Col>
             </Row>
-            <Text
-              type="secondary"
-              style={{ fontSize: "12px", marginTop: 8, display: "block" }}
-            >
-              {stats.sent} de {stats.total} registros completados (con
-              comprobante válido)
+            <Text type="secondary" style={{ fontSize: "12px", marginTop: 8, display: "block" }}>
+              {stats.sent} de {stats.total} registros completados (con comprobante válido)
             </Text>
           </Col>
           <Col xs={24} md={12}>
@@ -425,109 +434,7 @@ const DgaCompliance = ({ dataDga = [] }) => {
           <LineChartOutlined style={{ marginRight: "8px" }} />
           Análisis Gráfico
         </Title>
-        <Tabs defaultActiveKey="1" type="card">
-          <TabPane
-            tab={
-              <span>
-                <BarChartOutlined /> Caudal vs Límite
-              </span>
-            }
-            key="1"
-          >
-            <div style={{ height: "300px" }}>
-              {caudalData.length > 0 ? (
-                <Area {...caudalChartConfig} />
-              ) : (
-                <div
-                  style={{
-                    height: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#999",
-                  }}
-                >
-                  No hay datos de caudal disponibles
-                </div>
-              )}
-            </div>
-            <Alert
-              style={{ marginTop: 16, background: "#f0f2f5", border: "none" }}
-              message={
-                <Space direction="vertical" size={0}>
-                  {hasFlowLimit ? (
-                    <Text style={{ fontSize: 12 }}>
-                      <span style={{ color: "red", fontWeight: "bold" }}>
-                        ●
-                      </span>{" "}
-                      Límite autorizado: <strong>{flowGranted} lt/s</strong>
-                    </Text>
-                  ) : (
-                    <Text style={{ fontSize: 12 }}>
-                      <span style={{ color: "orange", fontWeight: "bold" }}>
-                        ●
-                      </span>{" "}
-                      Límite no disponible
-                    </Text>
-                  )}
-                  <Text style={{ fontSize: 12 }}>
-                    <span
-                      style={{ color: "rgb(31, 52, 97)", fontWeight: "bold" }}
-                    >
-                      ●
-                    </span>{" "}
-                    Mediciones de caudal
-                  </Text>
-                </Space>
-              }
-            />
-          </TabPane>
-          <TabPane
-            tab={
-              <span>
-                <LineChartOutlined /> Caudal vs Nivel
-              </span>
-            }
-            key="2"
-          >
-            <div style={{ height: "300px" }}>
-              {caudalData.length > 0 ? (
-                <DualAxes {...caudalNivelChartConfig} />
-              ) : (
-                <div
-                  style={{
-                    height: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#999",
-                  }}
-                >
-                  No hay datos disponibles
-                </div>
-              )}
-            </div>
-            <Alert
-              style={{ marginTop: 16, background: "#f0f2f5", border: "none" }}
-              message={
-                <Space direction="vertical" size={0}>
-                  <Text style={{ fontSize: 12 }}>
-                    <span style={{ color: "#1890ff", fontWeight: "bold" }}>
-                      ●
-                    </span>{" "}
-                    Caudal (lt/s)
-                  </Text>
-                  <Text style={{ fontSize: 12 }}>
-                    <span style={{ color: "#2ca02c", fontWeight: "bold" }}>
-                      ●
-                    </span>{" "}
-                    Nivel Freático (m)
-                  </Text>
-                </Space>
-              }
-            />
-          </TabPane>
-        </Tabs>
+        <Tabs defaultActiveKey="1" type="card" items={tabItems} />
       </Card>
     </div>
   );

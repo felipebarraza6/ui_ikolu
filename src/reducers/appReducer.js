@@ -102,6 +102,23 @@ export const appReducer = (state, action) => {
         list_default: action.payload.list,
       };
 
+    case "SET_PROFILE_CLIENT":
+      localStorage.setItem(
+        "profile_client",
+        JSON.stringify(action.payload.profile_client)
+      );
+      if (action.payload.selected_profile) {
+        localStorage.setItem(
+          "selected_profile",
+          JSON.stringify(action.payload.selected_profile)
+        );
+      }
+      return {
+        ...state,
+        profile_client: action.payload.profile_client,
+        selected_profile: action.payload.selected_profile || state.selected_profile,
+      };
+
     case "LOGOUT":
       localStorage.clear();
       // Limpiar caché al hacer logout

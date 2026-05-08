@@ -46,38 +46,38 @@ const HomeResponsive = () => {
         <Route path="/" element={<MainRoute />} />
 
         {/* Smart Análisis */}
-        <Route path="/sys_data" element={<GraphisNav />} />
-        <Route path="/analisis" element={<GraphisNav />} />
+        <Route path="/sys-data" element={<GraphisNav />} />
+        <Route path="/analysis" element={<GraphisNav />} />
 
         {/* DGA - MEE */}
         <Route path="/dga" element={<Dga />} />
 
         {/* DGA Análisis */}
-        <Route path="/sys_data_dga" element={<GraphisNavDga />} />
-        <Route path="/dga-analisis" element={<GraphisNavDga />} />
+        <Route path="/sys-data-dga" element={<GraphisNavDga />} />
+        <Route path="/dga-analysis" element={<GraphisNavDga />} />
 
         {/* Descarga */}
-        <Route path="/extraction_data" element={<Reports />} />
-        <Route path="/descarga" element={<Reports />} />
+        <Route path="/extraction-data" element={<Reports />} />
+        <Route path="/download" element={<Reports />} />
 
         {/* Documentos */}
-        <Route path="/sys_docs" element={<DocRes />} />
-        <Route path="/documentos" element={<DocRes />} />
+        <Route path="/sys-docs" element={<DocRes />} />
+        <Route path="/documents" element={<DocRes />} />
 
         {/* Alertas */}
-        <Route path="/sys_alerts" element={<Alerts />} />
-        <Route path="/alertas" element={<Alerts />} />
+        <Route path="/sys-alerts" element={<Alerts />} />
+        <Route path="/alerts" element={<Alerts />} />
 
         {/* Soporte */}
-        <Route path="/sys_support" element={<Dash />} />
-        <Route path="/soporte" element={<Dash />} />
+        <Route path="/sys-support" element={<Dash />} />
+        <Route path="/support" element={<Dash />} />
 
         {/* Rutas adicionales existentes */}
-        <Route path="/registers_pti" element={<DataTable />} />
+        <Route path="/registers-pti" element={<DataTable />} />
         <Route path="/well" element={<Well />} />
-        <Route path="/graficos" element={<MyGraphics />} />
-        <Route path="/formmultidata" element={<FormMultiData />} />
-        <Route path="/reportes" element={<Reports />} />
+        <Route path="/charts" element={<MyGraphics />} />
+        <Route path="/form-multi-data" element={<FormMultiData />} />
+        <Route path="/reports" element={<Reports />} />
         <Route path="/supp" element={<Supp />} />
 
         {/* Ruta por defecto */}
