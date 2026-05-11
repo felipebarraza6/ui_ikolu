@@ -66,7 +66,6 @@ const { Title, Text } = Typography;
 const Sma = () => {
   const { state } = useContext(AppContext);
   const { isMobile, getSpacing, getColSpan, getTableScroll } = useResponsive();
-  const [selected, setSelect] = useState(state.user.catchment_points[0]?.id);
   const [loading, setLoading] = useState(false);
   const [loadingExcel, setLoadingExcel] = useState(false);
   const [dataSelected, setDataSelected] = useState(state.selected_profile);

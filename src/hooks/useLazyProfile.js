@@ -92,7 +92,7 @@ export const useLazyProfile = (options = {}) => {
     } finally {
       setLoadingList(false);
     }
-  }, [state.isAuth, state.user, state.selected_profile, dispatch]);
+  }, [state.isAuth, state.user, dispatch]);
 
   // ──────────────────────────────────────────
   // 2. Cargar detalle completo de un punto

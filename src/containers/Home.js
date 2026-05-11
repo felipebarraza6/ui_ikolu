@@ -14,6 +14,7 @@ import {
   Spin,
   Skeleton,
   Tag,
+  notification,
 } from "antd";
 
 import {
@@ -523,25 +524,10 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
       }
     } catch (e) {
       console.error("Error cargando puntos del proyecto:", e);
-      // Fallback: cargar todos los puntos y filtrar manualmente
-      try {
-        const res = await sh.getPointsAll();
-        const allPoints = res.results || res || [];
-        const filtered = allPoints.filter((p) => Number(p.project) === Number(projectId));
-        setProjectPoints(filtered);
-        // 🚫 NO auto-seleccionar primer punto
-        if (filtered.length > 0) {
-          dispatch({
-            type: "SET_PROFILE_CLIENT",
-            payload: {
-              profile_client: filtered,
-              selected_profile: state.selected_profile,
-            },
-          });
-        }
-      } catch (e2) {
-        console.error("Fallback también falló:", e2);
-      }
+      notification.error({
+        message: "Error cargando puntos",
+        description: "No se pudieron cargar los puntos del proyecto seleccionado. Intenta con otro proyecto.",
+      });
     } finally {
       setAdminLoading(false);
     }

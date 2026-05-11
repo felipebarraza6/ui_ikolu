@@ -434,8 +434,11 @@ export const useDataStatistics = (profiles) => {
 
         // Almacenar resumen histórico calculado robustamente
         const histSummary = validators.getHistoricalSummary(profile);
-        if (!profile._computed) profile._computed = {};
-        profile._computed.historical = histSummary;
+        const profileClone = { ...profile };
+        if (!profileClone._computed) profileClone._computed = {};
+        profileClone._computed.historical = histSummary;
+        // Reemplazar en el array original para no mutar el estado global
+        profiles[index] = profileClone;
       } catch (error) {
         console.error(`Error procesando perfil ${profile.title}:`, error);
         stats.errors.push({

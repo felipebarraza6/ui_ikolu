@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   Card,
   Row,
@@ -24,10 +24,28 @@ import {
   FaChartLine,
 } from "react-icons/fa";
 import sh from "../../api/sh/endpoints";
+import { AppContext } from "../../App";
 
 const { Title, Text } = Typography;
 
 const AdminOverview = () => {
+  const { state } = useContext(AppContext);
+  const isStaff = state.user?.is_staff || state.user?.is_superuser;
+
+  if (!isStaff) {
+    return (
+      <div style={{ maxWidth: "800px", margin: "40px auto", padding: "0 16px" }}>
+        <Alert
+          message="Acceso restringido"
+          description="No tienes permisos de administrador para ver esta sección."
+          type="warning"
+          showIcon
+          style={{ borderRadius: 12 }}
+        />
+      </div>
+    );
+  }
+
   const [loading, setLoading] = useState(true);
   const [systemStatus, setSystemStatus] = useState(null);
   const [resourcesStatus, setResourcesStatus] = useState(null);
