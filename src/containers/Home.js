@@ -275,7 +275,7 @@ const AppRoutes = React.memo(() => {
     const isAdmin = state.user?.is_staff || state.user?.is_superuser;
     const userProfiles = state.selected_profile?.id
       ? [state.selected_profile]
-      : (isAdmin ? undefined : (state.profile_client || []));
+      : (isAdmin ? undefined : (state.profile_client || state.points_list || []));
 
     if (state.user && state.user.id === 34) {
       return <GeneralSummaryUser34 profiles={userProfiles} />;

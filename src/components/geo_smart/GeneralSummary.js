@@ -57,7 +57,7 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
   // 🛡️ Usuarios normales: SIEMPRE usan sus puntos asignados.
   // NUNCA llamar al endpoint global que retorna todos los puntos del sistema.
   const userProfiles = !isAdmin
-    ? (initialProfiles?.length > 0 ? initialProfiles : state.profile_client) || []
+    ? (initialProfiles?.length > 0 ? initialProfiles : (state.profile_client || state.points_list)) || []
     : (initialProfiles || []);
 
   const [profiles, setProfiles] = useState(userProfiles);
@@ -85,14 +85,23 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
         setProfiles(freshProfiles);
         setLastRefresh(new Date());
       } else {
-        // Usuario normal: SIEMPRE usar /api/ik/my_points/ para obtener SOLO sus puntos
-        const response = await sh.getMyPoints();
-        // my_points puede responder un array directo o un objeto con points/results
-        const myPoints = Array.isArray(response)
-          ? response
-          : (response.points || response.results || []);
-        setProfiles(myPoints);
-        setLastRefresh(new Date());
+        // 🆕 Usuario normal: usar get_profile() para obtener datos COMPLETOS
+        // (catchment_points con config_data, modules, dga, latest_telemetry)
+        // Necesarios para mostrar KPIs de consumo, estado del servicio, etc.
+        const response = await sh.get_profile();
+        const freshProfiles = response?.user?.catchment_points || [];
+        if (freshProfiles.length > 0) {
+          setProfiles(freshProfiles);
+          setLastRefresh(new Date());
+        } else {
+          // Fallback: si get_profile() no trae puntos, intentar my_points
+          const response2 = await sh.getMyPoints();
+          const myPoints = Array.isArray(response2)
+            ? response2
+            : (response2.points || response2.results || []);
+          setProfiles(myPoints);
+          setLastRefresh(new Date());
+        }
       }
     } catch (error) {
       console.error("Error cargando datos:", error);
