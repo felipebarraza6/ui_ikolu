@@ -24,12 +24,12 @@ export const useDataValidation = () => {
       },
 
       // Valida si un objeto tiene la estructura esperada de perfil
+      // 🆕 Acepta tanto formato antiguo (modules) como nuevo (latest_telemetry)
       isValidProfile: (profile) => {
         return (
           profile &&
           typeof profile === "object" &&
           profile.title &&
-          profile.modules &&
           typeof profile.title === "string" &&
           profile.title.trim() !== ""
         );
@@ -46,12 +46,27 @@ export const useDataValidation = () => {
       },
 
       // Obtiene datos de hoy de forma segura con validación estricta
+      // 🆕 Si no hay modules.today, usa latest_telemetry como único registro
       getTodayData: (profile) => {
         try {
           if (!validators.isValidProfile(profile)) {
             return [];
           }
 
+          // Formato nuevo: points_summary con latest_telemetry
+          if (profile.latest_telemetry && profile.latest_telemetry.date_time_medition) {
+            const todayStr = moment().format("YYYY-MM-DD");
+            const recordDate = moment(profile.latest_telemetry.date_time_medition, [
+              moment.ISO_8601,
+              "YYYY-MM-DD",
+            ]);
+            if (recordDate.isValid() && recordDate.isSame(moment(), "day")) {
+              return [profile.latest_telemetry];
+            }
+            return [];
+          }
+
+          // Formato antiguo: modules.today
           if (
             !profile.modules?.today ||
             !Array.isArray(profile.modules.today)
@@ -83,12 +98,19 @@ export const useDataValidation = () => {
       },
 
       // Obtiene datos de ayer de forma segura
+      // 🆕 Si no hay modules.yesterday, retorna vacío (latest_telemetry solo tiene el último)
       getYesterdayData: (profile) => {
         try {
           if (!validators.isValidProfile(profile)) {
             return [];
           }
 
+          // Formato nuevo: no tenemos datos de ayer en points_summary
+          if (profile.latest_telemetry && !profile.modules?.yesterday) {
+            return [];
+          }
+
+          // Formato antiguo: modules.yesterday
           if (
             !profile.modules?.yesterday ||
             !Array.isArray(profile.modules.yesterday)
@@ -181,8 +203,14 @@ export const useDataValidation = () => {
       },
 
       // Obtiene el registro más reciente de cualquier módulo
+      // 🆕 Si no hay modules, usa latest_telemetry
       getLatestRecord: (profile) => {
         if (!validators.isValidProfile(profile)) return null;
+        
+        // Formato nuevo: latest_telemetry directamente
+        if (profile.latest_telemetry && profile.latest_telemetry.date_time_medition) {
+          return profile.latest_telemetry;
+        }
         
         const candidateRecords = [];
         
@@ -212,11 +240,22 @@ export const useDataValidation = () => {
       },
 
       // Obtiene el total histórico y su fecha de forma robusta
+      // 🆕 Si no hay modules, usa latest_telemetry
       getHistoricalSummary: (profile) => {
         if (!validators.isValidProfile(profile)) return { total: 0, date: "" };
 
         let total = 0;
         let date = "";
+
+        // Formato nuevo: latest_telemetry
+        if (profile.latest_telemetry) {
+          total = Number(profile.latest_telemetry.total) || 0;
+          date = profile.latest_telemetry.date_time_medition || "";
+          return {
+            total,
+            date: date ? formatSafeDate(date, "YYYY-MM-DD") : "",
+          };
+        }
 
         // Preferencia 1: m1 (si tiene total y fecha)
         if (profile.modules?.m1 && profile.modules.m1.total) {
@@ -388,7 +427,8 @@ export const useDataStatistics = (profiles) => {
           name: profile.title,
           last_updated: lastMoment,
           is_today: lastMoment ? lastMoment.isSame(moment(), "day") : false,
-          is_telemetry: profile.config_data?.is_telemetry === true,
+          // 🆕 Acepta is_telemetry tanto en root como en config_data
+          is_telemetry: profile.is_telemetry === true || profile.config_data?.is_telemetry === true,
           dataPoints: todayData.length,
         });
 

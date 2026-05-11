@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { AppContext } from "../../App";
-import optimizedSh from "../../api/sh/optimizedEndpoints";
-import AnalysisPrompt from "./AnalysisPrompt";
+import sh from "../../api/sh/endpoints";
 import ConsumptionChart from "./ConsumptionChart";
 import CombinedVariablesChart from "./CombinedVariablesChart";
 import {
@@ -19,9 +18,11 @@ import {
   Modal,
   Table,
   Spin,
+  Alert,
+  Tooltip,
 } from "antd";
-import { FaMapMarkerAlt, FaSatelliteDish, FaChartBar } from "react-icons/fa";
-import { CloseOutlined, ReloadOutlined } from "@ant-design/icons";
+import { FaMapMarkerAlt, FaSatelliteDish, FaChartBar, FaWifi, FaExclamationTriangle, FaEye, FaHome } from "react-icons/fa";
+import { CloseOutlined } from "@ant-design/icons";
 import { useDataStatistics } from "./hooks/useDataValidation";
 import { formatInteger } from "../../utils/numberFormatter";
 import { parseSafeDate, formatSafeDate } from "../../utils/dateFormatter";
@@ -51,45 +52,67 @@ try {
  */
 const GeneralSummary = ({ profiles: initialProfiles }) => {
   const { state, dispatch } = useContext(AppContext);
-  const [profiles, setProfiles] = useState(initialProfiles || []);
+  const isAdmin = state.user?.is_staff || state.user?.is_superuser;
+
+  // 🛡️ Usuarios normales: SIEMPRE usan sus puntos asignados.
+  // NUNCA llamar al endpoint global que retorna todos los puntos del sistema.
+  const userProfiles = !isAdmin
+    ? (initialProfiles?.length > 0 ? initialProfiles : state.profile_client) || []
+    : (initialProfiles || []);
+
+  const [profiles, setProfiles] = useState(userProfiles);
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(null);
 
   useBreakpoint(); // se mantiene la llamada para futura lógica responsiva
 
-  // ✅ OPTIMIZADO: Usa endpoint con deduplicación y caché
-  const fetchFreshData = async () => {
-    setLoading(true);
+  // ✅ Auto-refresh silencioso cada 60 segundos
+  // 🆕 Carga puntos desde endpoints específicos según el tipo de usuario
+  const fetchFreshData = async (silent = false, pointId = null) => {
+    if (!silent) setLoading(true);
     try {
-      // Usa versión optimizada que incluye deduplicación
-      const response = await optimizedSh.get_profile();
-      if (response && response.user && response.user.catchment_points) {
-        const freshProfiles = response.user.catchment_points;
+      if (pointId) {
+        // Si hay un punto seleccionado explícitamente, cargar su summary
+        const response = await sh.getPointSummary(pointId);
+        if (response && response.id) {
+          setProfiles([response]);
+          setLastRefresh(new Date());
+        }
+      } else if (isAdmin) {
+        // Solo admin puede ver el resumen global de todos los puntos
+        const response = await sh.getPointsSummary();
+        const freshProfiles = response.points || response.results || response || [];
         setProfiles(freshProfiles);
         setLastRefresh(new Date());
-
-        // Actualizar el contexto global con los datos frescos
-        dispatch({
-          type: "UPDATE",
-          payload: {
-            user: response.user,
-            selected_profile: state.selected_profile || freshProfiles[0],
-          },
-        });
+      } else {
+        // Usuario normal: SIEMPRE usar /api/ik/my_points/ para obtener SOLO sus puntos
+        const response = await sh.getMyPoints();
+        // my_points puede responder un array directo o un objeto con points/results
+        const myPoints = Array.isArray(response)
+          ? response
+          : (response.points || response.results || []);
+        setProfiles(myPoints);
+        setLastRefresh(new Date());
       }
     } catch (error) {
-      console.error("Error fetching fresh profile data:", error);
-      // Si falla, usar los datos del contexto o los iniciales
-      setProfiles(state.profile_client || initialProfiles || []);
+      console.error("Error cargando datos:", error);
+      // Fallback: usar los puntos que ya teníamos (del login o props)
+      setProfiles(userProfiles);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
-  // Cargar datos frescos al montar el componente
   useEffect(() => {
-    fetchFreshData();
-  }, []); // Solo al montar
+    // Solo pasar pointId cuando initialProfiles tiene exactamente 1 elemento
+    // (punto seleccionado explícitamente). Si tiene 0 o >1, es lista de puntos.
+    const explicitPointId = initialProfiles?.length === 1 ? initialProfiles[0]?.id : null;
+    fetchFreshData(false, explicitPointId);
+    // Auto-refresh cada 60 segundos para todos (admin: points_summary, normal: my_points)
+    const interval = setInterval(() => fetchFreshData(true, explicitPointId), 60000);
+    return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userProfiles.length, isAdmin, initialProfiles?.length]);
 
   const stats = useDataStatistics(profiles);
 
@@ -97,20 +120,31 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
   const loggerStatusesFinal = stats.loggerStatuses || [];
 
   // --- Detectar si AL MENOS UN punto tiene TOTALIZADO o CAUDAL ---
+  // 🆕 Acepta tanto formato antiguo (objetos con type_variable) como nuevo (strings)
   const hasAnyTotalizado = profiles.some(p => {
     const vars = p?.profile_ikolu?.vars || p?.config_data?.vars || p?.config_data?.variables || [];
-    return vars.some(v => v.type_variable?.includes("TOTALIZADO"));
+    return vars.some(v => {
+      if (typeof v === "string") return v.includes("TOTALIZADO");
+      return v.type_variable?.includes("TOTALIZADO");
+    });
   });
 
-  const hasAnyCaudal = profiles.some(p => {
-    const vars = p?.profile_ikolu?.vars || p?.config_data?.vars || p?.config_data?.variables || [];
-    return vars.some(v => v.type_variable?.includes("CAUDAL"));
-  });
-
-  // Mostrar secciones solo si hay al menos un punto con la variable correspondiente
+  // Mostrar sección de consumo solo si hay al menos un punto con TOTALIZADO
   const showConsumoSection = hasAnyTotalizado;
-  const showAnalysisSection = hasAnyTotalizado || hasAnyCaudal; // Solo si hay datos de consumo/caudal
   const showServiceSection = true; // Estado del Servicio siempre visible
+
+  // 🆕 Detectar si los perfiles tienen datos de telemetría (vienen de points_summary)
+  // o son simples (vienen de my_points: solo id, title, project_name, is_owner, is_viewer)
+  const hasTelemetryData = profiles.some(p => p.latest_telemetry || p.config_data || p.dga);
+  const isSimpleMode = !hasTelemetryData && profiles.length > 0 && !isAdmin;
+
+  // Handler para seleccionar un punto desde la lista simple
+  const handleSelectPoint = (point) => {
+    dispatch({
+      type: "CHANGE_SELECTED_PROFILE",
+      payload: { selected_profile: { ...point, key: point.id } },
+    });
+  };
 
   // --- Mapa auxiliar por nombre de punto ---
   const profilesByName = profiles.reduce((acc, p) => {
@@ -222,215 +256,180 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
 
   return (
     <div style={{ marginBottom: 24 }}>
-      {/* Botón de refresco manual */}
-      <Flex justify="flex-end" style={{ marginBottom: 16 }}>
-        <Flex align="center" gap={12}>
-          {lastRefresh && (
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              Última actualización: {lastRefresh.toLocaleTimeString()}
-            </Text>
+      {/* HEADER ELEGANTE */}
+      <Flex align="center" justify="flex-end" style={{ marginBottom: 20 }}>
+        <Flex gap={8}>
+          {loading && <Spin size="small" />}
+          {puntosDesconectados.length > 0 && (
+            <Badge
+              count={puntosDesconectados.length}
+              style={{ backgroundColor: "#ff4d4f" }}
+            >
+              <Tag icon={<FaExclamationTriangle />} color="error">
+                Desconectados
+              </Tag>
+            </Badge>
           )}
-          <button
-            onClick={fetchFreshData}
-            disabled={loading}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "6px 12px",
-              border: "1px solid #d9d9d9",
-              borderRadius: 6,
-              background: loading ? "#f5f5f5" : "white",
-              cursor: loading ? "not-allowed" : "pointer",
-              fontSize: 13,
-            }}
-          >
-            <ReloadOutlined spin={loading} />
-            {loading ? "Actualizando..." : "Actualizar datos"}
-          </button>
         </Flex>
       </Flex>
 
-      {/* Indicadores principales - Siempre visibles */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }} justify="center">
+      {/* KPIs MODERNOS */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         {/* Total de Puntos */}
-        <Col xs={24} sm={12} md={6}>
+        <Col xs={12} sm={6} md={6}>
           <Card
-            bordered
-            className="general-summary-card"
+            size="small"
             style={{
-              textAlign: "center",
-              minHeight: 200,
-              padding: 16,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              borderRadius: 16,
+              background: "linear-gradient(135deg, #1F3461 0%, #2A4A8A 100%)",
+              border: "none",
+              boxShadow: "0 4px 12px rgba(31, 52, 97, 0.25)",
             }}
+            bodyStyle={{ padding: "20px 16px" }}
           >
-            <Statistic
-              title={
-                <Flex align="center" justify="center" gap="small">
-                  <FaMapMarkerAlt style={{ color: "#1976d2" }} />
-                  <Text>Total de Puntos</Text>
-                </Flex>
-              }
-              value={stats.totalProfiles}
-            />
+            <Flex align="center" gap="small">
+              <div style={{
+                width: 44, height: 44, borderRadius: 12,
+                background: "rgba(255,255,255,0.15)",
+                display: "flex", alignItems: "center", justifyContent: "center"
+              }}>
+                <FaMapMarkerAlt style={{ fontSize: 20, color: "white" }} />
+              </div>
+              <div>
+                <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", display: "block" }}>
+                  Total Puntos
+                </Text>
+                <Text style={{ fontSize: 28, color: "white", fontWeight: 700, lineHeight: 1 }}>
+                  {stats.totalProfiles}
+                </Text>
+              </div>
+            </Flex>
           </Card>
         </Col>
 
         {/* Con GPS */}
-        <Col xs={24} sm={12} md={6}>
+        <Col xs={12} sm={6} md={6}>
           <Card
-            bordered
-            className="general-summary-card"
+            size="small"
             style={{
-              textAlign: "center",
-              minHeight: 200,
-              padding: 16,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              borderRadius: 16,
+              background: "linear-gradient(135deg, #2A4A7A 0%, #3B6CA8 100%)",
+              border: "none",
+              boxShadow: "0 4px 12px rgba(42, 74, 122, 0.25)",
             }}
+            bodyStyle={{ padding: "20px 16px" }}
           >
-            <Statistic
-              title={
-                <Flex align="center" justify="center" gap="small">
-                  <FaSatelliteDish style={{ color: "#43a047" }} />
-                  <Text>GPS</Text>
-                </Flex>
-              }
-              value={conGPS.length}
-              suffix={
-                <span style={{ color: "#888" }}>/ {stats.totalProfiles}</span>
-              }
-            />
+            <Flex align="center" gap="small">
+              <div style={{
+                width: 44, height: 44, borderRadius: 12,
+                background: "rgba(255,255,255,0.15)",
+                display: "flex", alignItems: "center", justifyContent: "center"
+              }}>
+                <FaSatelliteDish style={{ fontSize: 20, color: "white" }} />
+              </div>
+              <div>
+                <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", display: "block" }}>
+                  Con GPS
+                </Text>
+                <Text style={{ fontSize: 28, color: "white", fontWeight: 700, lineHeight: 1 }}>
+                  {conGPS.length}<span style={{ fontSize: 14, color: "rgba(255,255,255,0.6)" }}>/{stats.totalProfiles}</span>
+                </Text>
+              </div>
+            </Flex>
           </Card>
         </Col>
 
-        {/* Consumo Hoy - Solo si hay TOTALIZADO */}
+        {/* Consumo Hoy */}
         {showConsumoSection && (
-        <Col xs={24} sm={12} md={6}>
+        <Col xs={12} sm={6} md={6}>
           <Card
-            bordered
-            className="general-summary-card"
+            size="small"
             style={{
-              textAlign: "center",
-              minHeight: 200,
-              padding: 16,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              borderRadius: 16,
+              background: "linear-gradient(135deg, #1F3461 0%, #2A4A7A 100%)",
+              border: "none",
+              boxShadow: "0 4px 12px rgba(31, 52, 97, 0.25)",
             }}
+            bodyStyle={{ padding: "20px 16px" }}
           >
-            <div className="card-waves">
-              <svg
-                viewBox="0 0 800 50"
-                width="200%"
-                height="50"
-                style={{
-                  position: "absolute",
-                  left: 0,
-                  bottom: 0,
-                  zIndex: 0,
-                  animation: "waveMove 8s linear infinite",
-                }}
-                preserveAspectRatio="none"
-              >
-                <path
-                  d="M0,30 Q100,50 200,30 T400,30 T600,30 T800,30 V50 H0 Z"
-                  fill="#e3f2fd"
-                  opacity="0.7"
-                />
-              </svg>
-            </div>
-            <Statistic
-              title={
-                <Flex align="center" justify="center" gap="small">
-                  <FaChartBar style={{ color: "#1976d2" }} />
-                  <Text>Consumo Hoy</Text>
-                </Flex>
-              }
-              value={formatInteger(totalHoy)}
-              suffix=" m³"
-            />
+            <Flex align="center" gap="small">
+              <div style={{
+                width: 44, height: 44, borderRadius: 12,
+                background: "rgba(255,255,255,0.15)",
+                display: "flex", alignItems: "center", justifyContent: "center"
+              }}>
+                <FaChartBar style={{ fontSize: 20, color: "white" }} />
+              </div>
+              <div>
+                <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", display: "block" }}>
+                  Consumo Hoy
+                </Text>
+                <Text style={{ fontSize: 28, color: "white", fontWeight: 700, lineHeight: 1 }}>
+                  {formatInteger(totalHoy)}
+                </Text>
+                <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.6)" }}>m³</Text>
+              </div>
+            </Flex>
           </Card>
         </Col>
         )}
 
-        {/* Total Acumulado - Solo si hay TOTALIZADO */}
+        {/* Total Histórico */}
         {showConsumoSection && (
-        <Col xs={24} sm={12} md={6}>
+        <Col xs={12} sm={6} md={6}>
           <Card
-            bordered
-            className="general-summary-card"
+            size="small"
             style={{
-              textAlign: "center",
-              minHeight: 200,
-              padding: 16,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              borderRadius: 16,
+              background: "linear-gradient(135deg, #1B2D52 0%, #1F3461 100%)",
+              border: "none",
+              boxShadow: "0 4px 12px rgba(27, 45, 82, 0.25)",
               cursor: "pointer",
             }}
+            bodyStyle={{ padding: "20px 16px" }}
             onClick={() => setModalVisible(true)}
           >
-            <div className="card-waves">
-              <svg
-                viewBox="0 0 800 50"
-                width="200%"
-                height="50"
-                style={{
-                  position: "absolute",
-                  left: 0,
-                  bottom: 0,
-                  zIndex: 0,
-                  animation: "waveMove 8s linear infinite",
-                }}
-                preserveAspectRatio="none"
-              >
-                <path
-                  d="M0,30 Q100,50 200,30 T400,30 T600,30 T800,30 V50 H0 Z"
-                  fill="#e3f2fd"
-                  opacity="0.7"
-                />
-              </svg>
-            </div>
-            <div className="card-content">
-              <Statistic
-                title={
-                  <Flex align="center" justify="center" gap="small">
-                    <IoIosWater style={{ color: "#1976d2" }} />
-                    <Text>Total Histórico</Text>
-                  </Flex>
-                }
-                value={formatInteger(
-                  totalHistoricoPorPunto.reduce((acc, p) => acc + p.total, 0)
-                )}
-                suffix="m³"
-              />
-              <div style={{ marginTop: 12, fontSize: 12 }}>
-                Click para ver detalle
+            <Flex align="center" gap="small">
+              <div style={{
+                width: 44, height: 44, borderRadius: 12,
+                background: "rgba(255,255,255,0.15)",
+                display: "flex", alignItems: "center", justifyContent: "center"
+              }}>
+                <IoIosWater style={{ fontSize: 20, color: "white" }} />
               </div>
-            </div>
+              <div>
+                <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", display: "block" }}>
+                  Histórico Total
+                </Text>
+                <Text style={{ fontSize: 28, color: "white", fontWeight: 700, lineHeight: 1 }}>
+                  {formatInteger(totalHistoricoPorPunto.reduce((acc, p) => acc + p.total, 0))}
+                </Text>
+                <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.6)" }}>m³ · Click para detalle</Text>
+              </div>
+            </Flex>
           </Card>
         </Col>
         )}
       </Row>
 
-      {/* Estado del servicio - Solo si hay TOTALIZADO o CAUDAL */}
+      {/* Estado del Servicio + Consumo */}
       {showServiceSection && (
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} md={8}>
-          <Card title="Estado del Servicio" bordered style={{ height: "100%" }}>
-            {/* Indicador global de salud del sistema basado en puntos con datos HOY */}
-            <Flex
-              align="center"
-              justify="space-between"
-              style={{ marginBottom: 8 }}
-            >
-              <span>Salud del sistema</span>
-              <Tag color={getStatusColor(serviceHealth)}>
+          <Card
+            size="small"
+            title={
+              <Flex align="center" gap="small">
+                <FaWifi style={{ color: "#52C41A" }} />
+                <span>Estado del Servicio</span>
+              </Flex>
+            }
+            style={{ borderRadius: 16, height: "100%" }}
+            headStyle={{ borderBottom: "1px solid #f0f0f0" }}
+          >
+            <Flex align="center" justify="space-between" style={{ marginBottom: 12 }}>
+              <Text type="secondary" style={{ fontSize: 13 }}>Salud del sistema</Text>
+              <Tag color={getStatusColor(serviceHealth)} style={{ fontWeight: 600 }}>
                 {getStatusText(serviceHealth)}
               </Tag>
             </Flex>
@@ -438,245 +437,239 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
               percent={serviceHealth}
               strokeColor={getStatusColor(serviceHealth)}
               format={(percent) => `${Math.round(percent)}%`}
+              strokeWidth={10}
             />
-            <div
-              style={{
-                marginTop: 8,
-                fontSize: 12,
-                color: "#666",
-                display: "flex",
-                justifyContent: "space-between",
-              }}
-            >
-              <span>
-                Activos hoy: <b>{activosHoy}</b> / {totalPerfiles}
-              </span>
-              <span style={{ color: inactivosHoy > 0 ? "#ff4d4f" : "#999" }}>
-                Sin datos hoy: <b>{inactivosHoy}</b>
-              </span>
-            </div>
-            <div style={{ marginTop: 16, display: "flex", gap: 24 }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 500, marginBottom: 4 }}>
-                  Puntos de telemetría
-                </div>
+            <Row gutter={16} style={{ marginTop: 16 }}>
+              <Col span={12}>
+                <Card size="small" style={{ background: "#f2f5fa", border: "none", borderRadius: 8, textAlign: "center" }}>
+                  <Text style={{ fontSize: 12, color: "#1F3461", display: "block" }}>Activos hoy</Text>
+                  <Text style={{ fontSize: 24, fontWeight: 700, color: "#1F3461" }}>{activosHoy}</Text>
+                </Card>
+              </Col>
+              <Col span={12}>
+                <Card size="small" style={{ background: inactivosHoy > 0 ? "#FFF2F0" : "#f2f5fa", border: "none", borderRadius: 8, textAlign: "center" }}>
+                  <Text style={{ fontSize: 12, color: inactivosHoy > 0 ? "#FF6B35" : "#1F3461", display: "block" }}>Sin datos hoy</Text>
+                  <Text style={{ fontSize: 24, fontWeight: 700, color: inactivosHoy > 0 ? "#FF6B35" : "#1F3461" }}>{inactivosHoy}</Text>
+                </Card>
+              </Col>
+            </Row>
+
+            <div style={{ marginTop: 16 }}>
+              <Text strong style={{ fontSize: 12, display: "block", marginBottom: 8 }}>
+                {isSimpleMode ? "Mis Puntos" : "Estado por punto"}
+              </Text>
+              {isSimpleMode ? (
                 <List
                   size="small"
-                  dataSource={loggerStatusesFinal}
-                  renderItem={(item) => {
-                    const isTelemetry =
-                      item.is_telemetry ??
-                      item.config_data?.is_telemetry === true;
-                    const isToday = item.is_today ?? false;
-
-                    return (
-                      <List.Item
-                        style={{
-                          padding: "2px 0",
-                          border: "none",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                          fontSize: 12,
-                        }}
-                      >
-                        {isTelemetry ? (
-                          isToday ? (
-                            <Badge
-                              status="processing"
-                              color="#52c41a"
-                              text={
-                                <span style={{ color: "#52c41a" }}>OK hoy</span>
-                              }
-                            />
-                          ) : (
-                            <Badge
-                              status="error"
-                              color="#ff4d4f"
-                              text={
-                                <span style={{ color: "#ff4d4f" }}>
-                                  Sin datos hoy
-                                </span>
-                              }
-                            />
-                          )
-                        ) : (
-                          <CloseOutlined
-                            style={{ color: "red", marginRight: 4 }}
+                  dataSource={profiles}
+                  renderItem={(item) => (
+                    <List.Item
+                      style={{
+                        padding: "10px 12px",
+                        border: "none",
+                        fontSize: 13,
+                        cursor: "pointer",
+                        borderRadius: 8,
+                        background: state.selected_profile?.id === item.id ? "#e6f7ff" : "#f6ffed",
+                        marginBottom: 4,
+                        border: state.selected_profile?.id === item.id ? "1px solid #1890ff" : "1px solid transparent",
+                        transition: "all 0.2s",
+                      }}
+                      onClick={() => handleSelectPoint(item)}
+                    >
+                      <Flex align="center" gap="small" style={{ width: "100%" }}>
+                        {/* Indicador de telemetría */}
+                        <Badge
+                          status={item.is_telemetry ? "processing" : "default"}
+                          color={item.is_telemetry ? "#52C41A" : "#d9d9d9"}
+                          style={{ flexShrink: 0 }}
+                        />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <Flex align="center" gap={4}>
+                            <span style={{ fontWeight: 600, fontSize: 13 }}>{item.title}</span>
+                            {item.is_owner ? (
+                              <Tooltip title="Propietario">
+                                <FaHome style={{ color: "#52c41a", fontSize: 12 }} />
+                              </Tooltip>
+                            ) : item.is_viewer ? (
+                              <Tooltip title="Observador">
+                                <FaEye style={{ color: "#1890ff", fontSize: 12 }} />
+                              </Tooltip>
+                            ) : null}
+                          </Flex>
+                          <Text type="secondary" style={{ fontSize: 11, display: "block" }}>
+                            {item.project_name}
+                            {item.frecuency && (
+                              <Tag size="small" style={{ fontSize: 10, marginLeft: 6, marginRight: 0 }}>
+                                {item.frecuency}min
+                              </Tag>
+                            )}
+                          </Text>
+                        </div>
+                        {/* Badge de alertas (preparado para cuando el backend lo envíe) */}
+                        {item.alerts_count > 0 && (
+                          <Badge
+                            count={item.alerts_count}
+                            style={{ backgroundColor: "#ff4d4f", flexShrink: 0 }}
                           />
                         )}
-                        <span>{item.name}</span>
-                      </List.Item>
-                    );
-                  }}
-                  locale={{ emptyText: "—" }}
+                      </Flex>
+                    </List.Item>
+                  )}
+                  locale={{ emptyText: "Sin puntos asignados" }}
                 />
-                {puntosDesconectados.length > 0 && (
-                  <div
-                    style={{
-                      marginTop: 8,
-                      fontSize: 11,
-                      color: "#ff4d4f",
+              ) : (
+                <>
+                  <List
+                    size="small"
+                    dataSource={loggerStatusesFinal}
+                    renderItem={(item) => {
+                      const isTelemetry = item.is_telemetry ?? item.config_data?.is_telemetry === true;
+                      const isToday = item.is_today ?? false;
+                      return (
+                        <List.Item style={{ padding: "4px 0", border: "none", fontSize: 12 }}>
+                          <Flex align="center" gap="small" style={{ width: "100%" }}>
+                            <Badge
+                              status={isTelemetry ? (isToday ? "success" : "error") : "default"}
+                              color={isTelemetry ? (isToday ? "#52C41A" : "#ff4d4f") : "#d9d9d9"}
+                            />
+                            <span style={{ flex: 1 }}>{item.name}</span>
+                            <Tag
+                              size="small"
+                              color={isTelemetry ? (isToday ? "success" : "error") : "default"}
+                              style={{ fontSize: 10, margin: 0 }}
+                            >
+                              {isTelemetry ? (isToday ? "OK" : "Sin datos") : "No telemetría"}
+                            </Tag>
+                          </Flex>
+                        </List.Item>
+                      );
                     }}
-                  >
-                    Posibles desconexiones: {puntosDesconectados.join(", ")}
-                  </div>
-                )}
-              </div>
+                    locale={{ emptyText: "Sin puntos" }}
+                  />
+                  {puntosDesconectados.length > 0 && (
+                    <Alert
+                      message={`${puntosDesconectados.length} punto(s) sin datos hoy`}
+                      description={puntosDesconectados.join(", ")}
+                      type="warning"
+                      showIcon
+                      size="small"
+                      style={{ marginTop: 8, fontSize: 11 }}
+                    />
+                  )}
+                </>
+              )}
             </div>
           </Card>
         </Col>
 
         <Col xs={24} md={16}>
-          <Card title="Resumen de Consumo" bordered>
-            <Row gutter={16}>
+          <Card
+            size="small"
+            title={
+              <Flex align="center" gap="small">
+                <FaChartBar style={{ color: "#1890ff" }} />
+                <span>Resumen de Consumo</span>
+              </Flex>
+            }
+            style={{ borderRadius: 16, height: "100%" }}
+            headStyle={{ borderBottom: "1px solid #f0f0f0" }}
+          >
+            <Row gutter={16} style={{ marginBottom: 16 }}>
               <Col span={8}>
-                <Statistic
-                  title="Hoy"
-                  value={formatInteger(totalHoy)}
-                  suffix="m³"
-                />
+                <div style={{ textAlign: "center", padding: "12px 0", background: "#f2f5fa", borderRadius: 12 }}>
+                  <Text style={{ fontSize: 11, color: "#1F3461", display: "block" }}>Hoy</Text>
+                  <Text style={{ fontSize: 22, fontWeight: 700, color: "#1F3461" }}>{formatInteger(totalHoy)}</Text>
+                  <Text style={{ fontSize: 11, color: "#1F3461" }}>m³</Text>
+                </div>
               </Col>
               <Col span={8}>
-                <Statistic
-                  title="Diferencia"
-                  value={formatInteger(Math.max(0, totalAyer - totalHoy))}
-                  suffix="m³"
-                  valueStyle={{ color: "orange" }}
-                />
+                <div style={{ textAlign: "center", padding: "12px 0", background: "#f2f5fa", borderRadius: 12 }}>
+                  <Text style={{ fontSize: 11, color: "#1F3461", display: "block" }}>Diferencia</Text>
+                  <Text style={{ fontSize: 22, fontWeight: 700, color: totalHoy >= totalAyer ? "#1F3461" : "#FF6B35" }}>
+                    {totalHoy >= totalAyer ? "+" : "-"}{formatInteger(Math.abs(totalHoy - totalAyer))}
+                  </Text>
+                  <Text style={{ fontSize: 11, color: "#1F3461" }}>m³</Text>
+                </div>
               </Col>
-
               <Col span={8}>
-                <Statistic
-                  title="Ayer"
-                  value={formatInteger(totalAyer)}
-                  suffix="m³"
-                  valueStyle={{ color: "#666" }}
-                />
+                <div style={{ textAlign: "center", padding: "12px 0", background: "#f2f5fa", borderRadius: 12 }}>
+                  <Text style={{ fontSize: 11, color: "#1F3461", display: "block" }}>Ayer</Text>
+                  <Text style={{ fontSize: 22, fontWeight: 700, color: "#1F3461" }}>{formatInteger(totalAyer)}</Text>
+                  <Text style={{ fontSize: 11, color: "#1F3461" }}>m³</Text>
+                </div>
               </Col>
             </Row>
-            <div style={{ marginTop: 16 }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: "left", padding: "4px 0" }}>
-                      Punto
-                    </th>
-                    <th style={{ textAlign: "right", padding: "4px 0" }}>
-                      Diferencia
-                    </th>
-                    <th style={{ textAlign: "right", padding: "4px 0" }}>
-                      Hoy
-                    </th>
-                    <th style={{ textAlign: "right", padding: "4px 0" }}>
-                      Ayer
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.keys(consumoPorNombre)
-                    .map((punto) => {
-                    // Verificar si el punto tiene TOTALIZADO
-                    const profile = profilesByName[punto];
-                    const vars = profile?.profile_ikolu?.vars || profile?.config_data?.vars || profile?.config_data?.variables || [];
-                    const hasTotalizado = vars.some(v => v.type_variable?.includes("TOTALIZADO"));
-                    
-                    if (!hasTotalizado) {
-                      // Mostrar fila indicando que no tiene totalizado
-                      return (
-                        <tr key={punto}>
-                          <td style={{ padding: "2px 0" }}>{punto}</td>
-                          <td
-                            colSpan={3}
-                            style={{
-                              textAlign: "center",
-                              color: "#999",
-                              fontStyle: "italic",
-                              fontSize: 11,
-                            }}
-                          >
-                            Punto sin totalizado
-                          </td>
-                        </tr>
-                      );
-                    }
-                    
-                    // Mostrar datos normales para puntos con totalizado
-                    const hoy = consumoPorNombre[punto].hoy || 0;
-                    const ayer = consumoPorNombre[punto].ayer || 0;
-                    const diferencia = hoy - ayer;
-                    let color = "#666";
-                    if (diferencia > 0) color = "#fa8c16";
-                    else if (diferencia < 0) color = "#1976d2";
-                    return (
-                      <tr key={punto}>
-                        <td style={{ padding: "2px 0" }}>{punto}</td>
-                        <td
-                          style={{
-                            textAlign: "right",
-                            color,
-                            fontWeight: 600,
-                          }}
-                        >
-                          {diferencia > 0 ? "+" : diferencia < 0 ? "-" : ""}
-                          {formatInteger(Math.abs(diferencia))} m³
-                        </td>
-                        <td style={{ textAlign: "right", fontWeight: 600 }}>
-                          {formatInteger(hoy)} m³
-                        </td>
-                        <td style={{ textAlign: "right", fontWeight: 600 }}>
-                          {formatInteger(ayer)} m³
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              {/* Línea de debug para validar suma de columna Hoy */}
-              <div style={{ marginTop: 8, fontSize: 12, color: "#888" }}>
-                Suma columna Hoy: {formatInteger(totalHoy)} m³
-              </div>
-              {/* Resumen rápido de caudales excedidos según caudal autorizado (DGA) */}
-              {caudalesExcedidos.length > 0 && (
-                <div
-                  style={{
-                    marginTop: 8,
-                    fontSize: 12,
-                    color: "#ff4d4f",
-                  }}
-                >
-                  Puntos con caudal sobre el autorizado:{" "}
-                  {caudalesExcedidos
-                    .map(
-                      (c) =>
-                        `${c.name} (máx ${
-                          c.maxFlow?.toFixed?.(1) || 0
-                        } L/s vs ${c.flowGranted} L/s)`
-                    )
-                    .join(", ")}
-                </div>
-              )}
-            </div>
+
+            <Table
+              size="small"
+              pagination={false}
+              dataSource={Object.keys(consumoPorNombre).map((punto) => {
+                const profile = profilesByName[punto];
+                const vars = profile?.profile_ikolu?.vars || profile?.config_data?.vars || profile?.config_data?.variables || [];
+                const hasTotalizado = vars.some(v => v.type_variable?.includes("TOTALIZADO"));
+                const hoy = consumoPorNombre[punto]?.hoy || 0;
+                const ayer = consumoPorNombre[punto]?.ayer || 0;
+                const diferencia = hoy - ayer;
+                return {
+                  key: punto,
+                  punto,
+                  hasTotalizado,
+                  hoy,
+                  ayer,
+                  diferencia,
+                };
+              })}
+              columns={[
+                {
+                  title: "Punto",
+                  dataIndex: "punto",
+                  key: "punto",
+                  render: (text, record) => !record.hasTotalizado ? (
+                    <Text type="secondary" style={{ fontSize: 11 }}>{text} <Tag size="small" style={{ fontSize: 10 }}>Sin totalizado</Tag></Text>
+                  ) : text,
+                },
+                {
+                  title: "Diferencia",
+                  dataIndex: "diferencia",
+                  key: "diferencia",
+                  align: "right",
+                  render: (val, record) => !record.hasTotalizado ? "—" : (
+                    <span style={{ color: val > 0 ? "#fa8c16" : val < 0 ? "#1976d2" : "#666", fontWeight: 600 }}>
+                      {val > 0 ? "+" : val < 0 ? "-" : ""}{formatInteger(Math.abs(val))} m³
+                    </span>
+                  ),
+                },
+                {
+                  title: "Hoy",
+                  dataIndex: "hoy",
+                  key: "hoy",
+                  align: "right",
+                  render: (val, record) => !record.hasTotalizado ? "—" : <b>{formatInteger(val)} m³</b>,
+                },
+                {
+                  title: "Ayer",
+                  dataIndex: "ayer",
+                  key: "ayer",
+                  align: "right",
+                  render: (val, record) => !record.hasTotalizado ? "—" : <span style={{ color: "#888" }}>{formatInteger(val)} m³</span>,
+                },
+              ]}
+              locale={{ emptyText: "Sin datos de consumo" }}
+            />
+            {caudalesExcedidos.length > 0 && (
+              <Alert
+                message="Caudales excedidos"
+                description={caudalesExcedidos.map(c => `${c.name}: ${c.maxFlow?.toFixed?.(1) || 0} L/s vs ${c.flowGranted} L/s autorizado`).join(" · ")}
+                type="error"
+                showIcon
+                size="small"
+                style={{ marginTop: 12 }}
+              />
+            )}
           </Card>
         </Col>
       </Row>
-      )}
-
-      {/* Análisis inteligente del día - Solo si hay TOTALIZADO o CAUDAL */}
-      {showAnalysisSection && (
-      <div style={{ marginTop: 8, marginBottom: 8 }}>
-        <Text strong style={{ fontSize: 14 }}>
-          Análisis inteligente del día
-        </Text>
-        <br />
-        <Text type="secondary" style={{ fontSize: 12 }}>
-          Aquí se resume cómo han cambiado los consumos, qué puntos bajaron y
-          cómo está la conexión de los loggers.
-        </Text>
-      </div>
-      )}
-      {showAnalysisSection && (
-      <AnalysisPrompt profiles={profiles} />
       )}
 
       {/* Variables en Tiempo Real - Siempre visible */}

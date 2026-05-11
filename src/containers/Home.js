@@ -12,7 +12,10 @@ import {
   Badge,
   Select,
   Spin,
+  Skeleton,
+  Tag,
 } from "antd";
+
 import {
   HomeOutlined,
   BarChartOutlined,
@@ -28,6 +31,8 @@ import {
   BookOutlined,
   DashboardOutlined,
   FolderOutlined,
+  UserOutlined,
+  PushpinOutlined,
 } from "@ant-design/icons";
 import {
   Outlet,
@@ -63,17 +68,19 @@ import { useResponsive } from "../hooks/useResponsive";
 import Documentation from "../components/documentation/Documentation";
 import UserDocumentation from "../components/documentation/UserDocumentation";
 import UserProfile from "../components/profile/UserProfile";
-import AdminDashboard from "../components/admin/AdminDashboard";
+import AdminRoot from "../components/admin/AdminRoot";
 import GeoSmart from "../components/geo_smart/GeoSmart";
+import PointDetailGuard from "../components/common/PointDetailGuard";
 import GeneralSummary from "../components/geo_smart/GeneralSummary";
 import GeneralSummaryUser34 from "../components/geo_smart/GeneralSummaryUser34";
 import ListWells from "../components/home/ListWells";
 import sh from "../api/sh/endpoints";
 import { FcDoughnutChart } from "react-icons/fc";
+import { useLazyProfile } from "../hooks/useLazyProfile";
 
 const { Header, Sider, Content } = Layout;
 const { useToken } = theme;
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 // ──────────────────────────────────────────
 // Menú agrupado con submenús
@@ -195,15 +202,38 @@ const filterMenuItems = (items, selectedProfile) => {
 // ──────────────────────────────────────────
 const AppRoutes = React.memo(() => {
   const { state } = useContext(AppContext);
+  // 🆕 Lazy loading: cargar lista de puntos (SIN auto-seleccionar)
+  const { loading } = useLazyProfile();
 
   const renderMainRoute = () => {
-    if (!state.selected_profile || !state.selected_profile.id) {
+    // 🆕 Si está cargando el detalle del punto, mostrar spinner
+    if (loading) {
       return (
-        <Flex align="center" justify="center" style={{ height: "50vh" }}>
+        <Flex align="center" justify="center" style={{ height: "50vh" }} gap="middle">
+          <Spin size="large" />
           <p>Cargando información del punto de captación...</p>
         </Flex>
       );
     }
+
+    if (!state.selected_profile || !state.selected_profile.id) {
+      return (
+        <Flex align="center" justify="center" style={{ height: "50vh" }}>
+          <p>Selecciona un punto de captación para ver la telemetría</p>
+        </Flex>
+      );
+    }
+
+    // 🆕 Si no tenemos config_data aún, el detalle se está cargando
+    if (!state.selected_profile.config_data) {
+      return (
+        <Flex align="center" justify="center" style={{ height: "50vh" }} gap="middle">
+          <Spin size="large" />
+          <p>Cargando detalle del punto...</p>
+        </Flex>
+      );
+    }
+
     const hasValidDga =
       state.selected_profile.dga && typeof state.selected_profile.dga === "object";
     const hasValidUser = state.user && typeof state.user === "object";
@@ -235,40 +265,83 @@ const AppRoutes = React.memo(() => {
   };
 
   const renderCentroControl = () => {
-    if (state.user && state.user.id === 34) {
-      return <GeneralSummaryUser34 profiles={state.profile_client} />;
+    // Admin sin punto seleccionado: mostrar AdminRoot (dashboard del sistema)
+    if (!state.selected_profile?.id && (state.user?.is_staff || state.user?.is_superuser)) {
+      return <AdminRoot />;
     }
-    return <GeneralSummary profiles={state.profile_client} />;
+    // Si hay un punto seleccionado, mostrar SOLO ese punto (admin o normal).
+    // Si no hay punto, admin ve resumen global; normal ve sus puntos asignados.
+    const isAdmin = state.user?.is_staff || state.user?.is_superuser;
+    const userProfiles = state.selected_profile?.id
+      ? [state.selected_profile]
+      : (isAdmin ? undefined : (state.profile_client || []));
+
+    if (state.user && state.user.id === 34) {
+      return <GeneralSummaryUser34 profiles={userProfiles} />;
+    }
+    return <GeneralSummary profiles={userProfiles} />;
   };
+
+  // 🆕 Wrapper para rutas que necesitan detalle completo del punto
+  const withDetail = (element) => <PointDetailGuard>{element}</PointDetailGuard>;
+
+  const isAdmin = state.user?.is_staff || state.user?.is_superuser;
+  const hasPoint = !!state.selected_profile?.id;
 
   return (
     <Routes>
+      {/* Rutas SIEMPRE visibles */}
       <Route path="/" element={renderCentroControl()} />
-      <Route path="/geo" element={<GeoSmart />} />
-      <Route path="/telemetry" element={renderMainRoute()} />
-      <Route path="/analysis" element={<ResponsiveSmartAnalysis />} />
-      <Route path="/dga" element={<ResponsiveDga />} />
-      <Route path="/dga-analysis" element={<GraphisNavDga />} />
-      <Route path="/download" element={<Reports />} />
-      <Route path="/documents" element={<DocRes />} />
-      <Route path="/alerts" element={<ResponsiveAlerts />} />
-      <Route path="/support" element={<Dash />} />
-      <Route path="/extraction-data" element={<Reports />} />
-      <Route path="/registers-pti" element={<DataTable />} />
-      <Route path="/well" element={<Well />} />
-      <Route path="/sys-data" element={<GraphisNav />} />
-      <Route path="/sys-data-dga" element={<GraphisNavDga />} />
-      <Route path="/sys-docs" element={<DocRes />} />
-      <Route path="/sys-support" element={<Dash />} />
-      <Route path="/sys-alerts" element={<ResponsiveAlerts />} />
-      <Route path="/charts" element={<MyGraphics />} />
-      <Route path="/form-multi-data" element={<FormMultiData />} />
-      <Route path="/reports" element={<Reports />} />
-      <Route path="/supp" element={<Supp />} />
       <Route path="/documentation" element={<Documentation />} />
       <Route path="/user-documentation" element={<UserDocumentation />} />
       <Route path="/profile" element={<UserProfile />} />
-      <Route path="/admin" element={<AdminDashboard />} />
+      <Route path="/admin" element={isAdmin ? <AdminRoot /> : <Navigate to="/" />} />
+
+      {/* Rutas disponibles SIN punto: Centro de Control + Geo Smart + Admin + Documentación */}
+      <Route path="/geo" element={<GeoSmart />} />
+
+      {/* Rutas que REQUIEREN punto seleccionado */}
+      {hasPoint && (
+        <>
+          <Route path="/support" element={<Dash />} />
+          <Route path="/supp" element={<Supp />} />
+          <Route path="/form-multi-data" element={<FormMultiData />} />
+          <Route path="/telemetry" element={withDetail(renderMainRoute())} />
+          <Route path="/analysis" element={withDetail(<ResponsiveSmartAnalysis />)} />
+          <Route path="/dga" element={withDetail(<ResponsiveDga />)} />
+          <Route path="/dga-analysis" element={withDetail(<GraphisNavDga />)} />
+          <Route path="/download" element={withDetail(<Reports />)} />
+          <Route path="/documents" element={withDetail(<DocRes />)} />
+          <Route path="/alerts" element={withDetail(<ResponsiveAlerts />)} />
+          <Route path="/extraction-data" element={withDetail(<Reports />)} />
+          <Route path="/registers-pti" element={withDetail(<DataTable />)} />
+          <Route path="/well" element={withDetail(<Well />)} />
+          <Route path="/sys-data" element={withDetail(<GraphisNav />)} />
+          <Route path="/sys-data-dga" element={withDetail(<GraphisNavDga />)} />
+          <Route path="/sys-docs" element={withDetail(<DocRes />)} />
+          <Route path="/sys-support" element={<Dash />} />
+          <Route path="/sys-alerts" element={withDetail(<ResponsiveAlerts />)} />
+          <Route path="/charts" element={withDetail(<MyGraphics />)} />
+          <Route path="/reports" element={withDetail(<Reports />)} />
+        </>
+      )}
+
+      {/* Ruta comodín: bloquear rutas que requieren punto cuando no hay punto */}
+      {!hasPoint && (
+        <Route path="*" element={
+          <Flex align="center" justify="center" style={{ height: "50vh" }} vertical>
+            <Text strong style={{ fontSize: 18, color: "#1F3461", marginBottom: 8 }}>
+              Debes elegir un punto de captación
+            </Text>
+            <Text type="secondary" style={{ marginBottom: 16 }}>
+              Selecciona un proyecto y un punto desde el menú lateral
+            </Text>
+            <Tag color="blue">
+              {isAdmin ? "Cliente → Proyecto → Punto" : "Usa el selector en el menú lateral"}
+            </Tag>
+          </Flex>
+        } />
+      )}
     </Routes>
   );
 });
@@ -276,17 +349,23 @@ const AppRoutes = React.memo(() => {
 // ──────────────────────────────────────────
 // Bottom Navigation (móvil)
 // ──────────────────────────────────────────
-const BOTTOM_NAV_ITEMS = [
-  { key: "0", icon: <GlobalOutlined />, label: "Inicio", to: "/" },
-  { key: "2", icon: <WifiOutlined />, label: "Telemetría", to: "/telemetry" },
-  { key: "3", icon: <BarChartOutlined />, label: "Análisis", to: "/analysis" },
-  { key: "5", icon: <DownloadOutlined />, label: "Descarga", to: "/download" },
-];
-
 const BottomNav = ({ onMoreClick }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { state } = useContext(AppContext);
   const activeKey = findActiveKey(location.pathname, ALL_MENU_ITEMS);
+
+  const hasPoint = !!state.selected_profile?.id;
+
+  // Items disponibles según estado
+  const navItems = [
+    { key: "0", icon: <GlobalOutlined />, label: "Inicio", to: "/" },
+    ...(hasPoint ? [
+      { key: "2", icon: <WifiOutlined />, label: "Telemetría", to: "/telemetry" },
+      { key: "3", icon: <BarChartOutlined />, label: "Análisis", to: "/analysis" },
+      { key: "5", icon: <DownloadOutlined />, label: "Descarga", to: "/download" },
+    ] : []),
+  ];
 
   return (
     <div
@@ -305,7 +384,7 @@ const BottomNav = ({ onMoreClick }) => {
         alignItems: "center",
       }}
     >
-      {BOTTOM_NAV_ITEMS.map((item) => {
+      {navItems.map((item) => {
         const isActive = activeKey === item.key;
         return (
           <Button
@@ -353,6 +432,7 @@ const BottomNav = ({ onMoreClick }) => {
 // ──────────────────────────────────────────
 const SideMenu = ({ inDrawer = false, onLinkClick }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { token } = useToken();
   const { isMobile } = useResponsive();
   const { state, dispatch } = useContext(AppContext);
@@ -360,26 +440,36 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
   const [alertCount, setAlertCount] = useState(0);
   const [openKeys, setOpenKeys] = useState(["analisis", "gestion"]);
 
-  // ── Admin: proyectos y clientes ──
+  // ── Admin: clientes + proyectos juntos (nuevo endpoint optimizado) ──
   const isAdmin = state.user?.is_staff || false;
-  const [clients, setClients] = useState([]);
-  const [projects, setProjects] = useState([]);
+  const [clientTree, setClientTree] = useState([]);
+  const [selectedClient, setSelectedClient] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [projectPoints, setProjectPoints] = useState([]);
+  const [selectedProjectPoint, setSelectedProjectPoint] = useState(null);
   const [adminLoading, setAdminLoading] = useState(false);
 
+  // Cargar árbol cliente→proyecto de una sola llamada
   useEffect(() => {
     if (!isAdmin) return;
     const loadAdminData = async () => {
       setAdminLoading(true);
       try {
-        const [cRes, pRes] = await Promise.all([
-          sh.admin.clients(),
-          sh.admin.projects(),
-        ]);
-        setClients(cRes.results || cRes || []);
-        setProjects(pRes.results || pRes || []);
+        const res = await sh.admin.clientsWithProjects();
+        const tree = Array.isArray(res) ? res : (res.results || []);
+        setClientTree(tree);
       } catch (e) {
         console.error("Error cargando datos admin:", e);
+        // Fallback a endpoints separados si el nuevo no existe aún
+        try {
+          const [cRes, pRes] = await Promise.all([
+            sh.admin.clients(),
+            sh.admin.projects(),
+          ]);
+          setClientTree([{ id: 0, name: "Todos", projects: (pRes.results || pRes || []) }]);
+        } catch (e2) {
+          console.error("Fallback también falló:", e2);
+        }
       } finally {
         setAdminLoading(false);
       }
@@ -387,26 +477,112 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
     loadAdminData();
   }, [isAdmin]);
 
+  const handleClientChange = (clientId) => {
+    setSelectedClient(clientId || null);
+    setSelectedProject(null);
+    setSelectedProjectPoint(null);
+    setProjectPoints([]);
+    // 🚫 Limpiar todo al cambiar de cliente
+    dispatch({
+      type: "CHANGE_SELECTED_PROFILE",
+      payload: { selected_profile: null },
+    });
+  };
+
   const handleProjectChange = async (projectId) => {
     setSelectedProject(projectId);
+    setSelectedProjectPoint(null);
+    setProjectPoints([]);
+    // 🚫 Limpiar punto seleccionado al cambiar de proyecto
+    dispatch({
+      type: "CHANGE_SELECTED_PROFILE",
+      payload: { selected_profile: null },
+    });
     if (!projectId) return;
     setAdminLoading(true);
+
     try {
-      const res = await sh.admin.catchmentPoints({ project: projectId });
+      // ✅ Endpoint que filtra por proyecto: /api/catchment_point/all/?project={id}
+      const res = await sh.admin.pointsByProject(projectId);
       const points = res.results || res || [];
-      dispatch({
-        type: "SET_PROFILE_CLIENT",
-        payload: {
-          profile_client: points,
-          selected_profile: points.length > 0 ? { ...points[0], key: points[0].id } : null,
-        },
-      });
+
+      console.log(`Proyecto ${projectId}: ${points.length} puntos`);
+
+      setProjectPoints(points);
+
+      // 🚫 NO auto-seleccionar primer punto — admin debe elegir manualmente
+      // Solo guardar la lista de puntos disponibles para el proyecto
+      if (points.length > 0) {
+        dispatch({
+          type: "SET_PROFILE_CLIENT",
+          payload: {
+            profile_client: points,
+            selected_profile: state.selected_profile,
+          },
+        });
+      }
     } catch (e) {
       console.error("Error cargando puntos del proyecto:", e);
+      // Fallback: cargar todos los puntos y filtrar manualmente
+      try {
+        const res = await sh.getPointsAll();
+        const allPoints = res.results || res || [];
+        const filtered = allPoints.filter((p) => Number(p.project) === Number(projectId));
+        setProjectPoints(filtered);
+        // 🚫 NO auto-seleccionar primer punto
+        if (filtered.length > 0) {
+          dispatch({
+            type: "SET_PROFILE_CLIENT",
+            payload: {
+              profile_client: filtered,
+              selected_profile: state.selected_profile,
+            },
+          });
+        }
+      } catch (e2) {
+        console.error("Fallback también falló:", e2);
+      }
     } finally {
       setAdminLoading(false);
     }
   };
+
+  const handleProjectPointChange = (pointId) => {
+    const numericId = pointId ? Number(pointId) : null;
+    console.log('[Admin] handleProjectPointChange:', { pointId, numericId, projectPointsCount: projectPoints.length });
+    setSelectedProjectPoint(numericId);
+    if (!numericId) {
+      // Clear: limpiar punto seleccionado
+      dispatch({
+        type: "CHANGE_SELECTED_PROFILE",
+        payload: { selected_profile: null },
+      });
+      return;
+    }
+    // Buscar en projectPoints primero, fallback a state.profile_client
+    let point = projectPoints.find((p) => p.id === numericId || String(p.id) === String(numericId));
+    if (!point && state.profile_client) {
+      point = state.profile_client.find((p) => p.id === numericId || String(p.id) === String(numericId));
+    }
+    console.log('[Admin] Punto encontrado:', point);
+    if (point) {
+      dispatch({
+        type: "CHANGE_SELECTED_PROFILE",
+        payload: {
+          selected_profile: { ...point, key: point.id },
+        },
+      });
+    } else {
+      console.warn('[Admin] No se encontró punto con id:', numericId);
+    }
+  };
+
+  // Proyectos del cliente seleccionado
+  const availableProjects = useMemo(() => {
+    if (!selectedClient) return [];
+    const client = clientTree.find((c) => c.id === selectedClient);
+    return client?.projects || [];
+  }, [selectedClient, clientTree]);
 
   useEffect(() => {
     const fetchAlerts = async () => {
@@ -481,42 +657,243 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
   return (
     <Flex vertical style={{ height: "100%" }} justify="space-between">
       <div>
-        {/* Logo */}
-        <Flex
-          align="center"
-          justify="center"
-          style={{ padding: "16px 0 12px 0", gap: 10 }}
-        >
-          <img src={logo} alt="Logo Zivo" style={{ width: "28px" }} />
-          <span
-            style={{
-              color: "white",
-              fontWeight: 700,
-              fontSize: 16,
-              letterSpacing: 1,
-            }}
+        {/* Logo — SOLO para usuarios normales */}
+        {!isAdmin && (
+          <Flex
+            align="center"
+            justify="center"
+            style={{ padding: "16px 0 12px 0", gap: 10 }}
           >
-            Ikolu App
-          </span>
-        </Flex>
+            <img src={logo} alt="Logo Zivo" style={{ width: "28px" }} />
+            <span
+              style={{
+                color: "white",
+                fontWeight: 700,
+                fontSize: 16,
+                letterSpacing: 1,
+              }}
+            >
+              Ikolu App
+            </span>
+          </Flex>
+        )}
 
-        {/* Selects de Admin: Cliente / Proyecto */}
+        {/* Breadcrumb IKOLU_ROOT para admin */}
+        {isAdmin && (
+          <div style={{ padding: "12px 12px 8px 12px" }}>
+            <Tag
+              color="blue"
+              style={{
+                background: "rgba(255,255,255,0.1)",
+                border: "1px solid rgba(255,255,255,0.2)",
+                color: "rgba(255,255,255,0.9)",
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: 1,
+              }}
+            >
+              IKOLU_ROOT
+            </Tag>
+            <Text
+              style={{
+                color: "rgba(255,255,255,0.5)",
+                fontSize: 10,
+                marginLeft: 8,
+                display: "block",
+                marginTop: 4,
+              }}
+            >
+              {selectedClient
+                ? `${clientTree.find((c) => c.id === selectedClient)?.name || "Cliente"} / ${selectedProject ? (availableProjects.find((p) => p.id === selectedProject)?.name || "Proyecto") : "..."}`
+                : "Selecciona un cliente para comenzar"}
+            </Text>
+          </div>
+        )}
+
+        {/* Selects de Admin: Cliente / Proyecto / Punto */}
         {isAdmin && (
           <div style={{ padding: "0 12px 12px 12px", minWidth: 0 }}>
+            {/* Estilos CSS para selects dark en sidebar */}
+            <style>{`
+              .admin-select .ant-select-selector {
+                background: rgba(255,255,255,0.08) !important;
+                border: 1px solid rgba(255,255,255,0.12) !important;
+                border-radius: 8px !important;
+                color: rgba(255,255,255,0.9) !important;
+                min-height: 38px !important;
+                padding: 2px 8px !important;
+                transition: all 0.2s ease !important;
+              }
+              .admin-select:hover .ant-select-selector {
+                background: rgba(255,255,255,0.12) !important;
+                border-color: rgba(255,255,255,0.25) !important;
+              }
+              .admin-select.ant-select-focused .ant-select-selector {
+                background: rgba(255,255,255,0.12) !important;
+                border-color: rgba(255,255,255,0.4) !important;
+                box-shadow: 0 0 0 2px rgba(255,255,255,0.1) !important;
+              }
+              .admin-select .ant-select-selection-placeholder {
+                color: rgba(255,255,255,0.45) !important;
+              }
+              .admin-select .ant-select-selection-item {
+                color: rgba(255,255,255,0.9) !important;
+                font-weight: 500 !important;
+              }
+              .admin-select.ant-select-disabled .ant-select-selector {
+                background: rgba(255,255,255,0.04) !important;
+                border-color: rgba(255,255,255,0.06) !important;
+                color: rgba(255,255,255,0.25) !important;
+                cursor: not-allowed !important;
+              }
+              .admin-select .ant-select-selection-search-input {
+                color: rgba(255,255,255,0.9) !important;
+              }
+              .admin-select .ant-select-arrow {
+                color: rgba(255,255,255,0.5) !important;
+              }
+              .admin-select .ant-select-clear {
+                color: rgba(255,255,255,0.5) !important;
+                background: transparent !important;
+              }
+              .admin-select .ant-select-prefix {
+                margin-right: 6px !important;
+              }
+            `}</style>
             <Spin spinning={adminLoading} size="small">
               <Flex vertical gap="small">
+                {/* Select Cliente */}
                 <Select
+                  className="admin-select"
+                  placeholder="Seleccionar cliente"
+                  value={selectedClient}
+                  onChange={handleClientChange}
+                  style={{ width: "100%" }}
+                  showSearch
+                  optionFilterProp="label"
+                  optionLabelProp="label"
+                  allowClear
+                  prefix={<UserOutlined style={{ color: "rgba(255,255,255,0.55)", fontSize: 14 }} />}
+                  popupMatchSelectWidth
+                  listHeight={280}
+                  dropdownStyle={{ borderRadius: 8 }}
+                >
+                  {clientTree.map((c) => (
+                    <Select.Option key={c.id} value={c.id} label={c.name || `Cliente ${c.id}`}>
+                      <Flex align="center" justify="space-between" style={{ width: "100%" }}>
+                        <span style={{ fontWeight: 500 }}>{c.name || `Cliente ${c.id}`}</span>
+                        <Tag
+                          size="small"
+                          style={{
+                            fontSize: 10,
+                            background: "#1F3461",
+                            color: "white",
+                            border: "none",
+                            marginLeft: 8,
+                          }}
+                        >
+                          {c.projects?.length || 0} proyectos
+                        </Tag>
+                      </Flex>
+                    </Select.Option>
+                  ))}
+                </Select>
+
+                {/* Select Proyecto (filtrado por cliente) */}
+                <Select
+                  className="admin-select"
                   placeholder="Seleccionar proyecto"
                   value={selectedProject}
                   onChange={handleProjectChange}
                   style={{ width: "100%" }}
                   showSearch
-                  optionFilterProp="children"
-                  dropdownStyle={{ zIndex: 1001 }}
+                  optionFilterProp="label"
+                  optionLabelProp="label"
+                  disabled={!selectedClient}
+                  allowClear
+                  prefix={<FolderOutlined style={{ color: "rgba(255,255,255,0.55)", fontSize: 14 }} />}
+                  popupMatchSelectWidth
+                  listHeight={280}
+                  dropdownStyle={{ borderRadius: 8 }}
                 >
-                  {projects.map((p) => (
-                    <Select.Option key={p.id} value={p.id}>
-                      {p.name || p.title || `Proyecto ${p.id}`}
+                  {availableProjects.map((p) => (
+                    <Select.Option
+                      key={p.id}
+                      value={p.id}
+                      label={p.name || p.title || `Proyecto ${p.id}`}
+                    >
+                      <Flex align="center" justify="space-between" style={{ width: "100%" }}>
+                        <Flex vertical style={{ flex: 1, minWidth: 0 }}>
+                          <span style={{ fontWeight: 500 }}>{p.name || p.title || `Proyecto ${p.id}`}</span>
+                          {p.code_internal && (
+                            <span style={{ fontSize: 11, color: "#888" }}>
+                              Código: {p.code_internal}
+                            </span>
+                          )}
+                        </Flex>
+                      </Flex>
+                    </Select.Option>
+                  ))}
+                </Select>
+
+                {/* Select Punto (puntos del proyecto seleccionado) */}
+                <Select
+                  className="admin-select"
+                  placeholder="Seleccionar punto"
+                  value={selectedProjectPoint}
+                  onChange={handleProjectPointChange}
+                  style={{ width: "100%" }}
+                  showSearch
+                  optionFilterProp="label"
+                  optionLabelProp="label"
+                  disabled={!selectedProject || projectPoints.length === 0}
+                  allowClear
+                  prefix={<PushpinOutlined style={{ color: "rgba(255,255,255,0.55)", fontSize: 14 }} />}
+                  popupMatchSelectWidth
+                  listHeight={280}
+                  dropdownStyle={{ borderRadius: 8 }}
+                >
+                  {projectPoints.map((p) => (
+                    <Select.Option
+                      key={p.id}
+                      value={p.id}
+                      label={p.title || `Punto ${p.id}`}
+                    >
+                      <Flex align="center" justify="space-between" style={{ width: "100%" }}>
+                        <Flex vertical style={{ flex: 1, minWidth: 0 }}>
+                          <span style={{ fontWeight: 500 }}>{p.title || `Punto ${p.id}`}</span>
+                          {p.frecuency && (
+                            <span style={{ fontSize: 11, color: "#888" }}>
+                              Frec: {p.frecuency} min
+                            </span>
+                          )}
+                        </Flex>
+                        <Flex gap="small">
+                          {p.dga?.code_dga && (
+                            <Tag
+                              size="small"
+                              color="green"
+                              style={{ fontSize: 10, margin: 0 }}
+                            >
+                              {p.dga.code_dga}
+                            </Tag>
+                          )}
+                          {p.lat && p.lon && (
+                            <Tag
+                              size="small"
+                              style={{
+                                fontSize: 10,
+                                background: "#1F3461",
+                                color: "white",
+                                border: "none",
+                                margin: 0,
+                              }}
+                            >
+                              GPS
+                            </Tag>
+                          )}
+                        </Flex>
+                      </Flex>
                     </Select.Option>
                   ))}
                 </Select>
@@ -525,70 +902,156 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
           </div>
         )}
 
-        {/* Selector de pozo */}
-        <div style={{ padding: "0 12px 16px 12px", minWidth: 0 }}>
-          <ListWells />
-        </div>
+        {/* Selector de pozo — SOLO para usuarios normales (no admin/staff) */}
+        {!isAdmin && (
+          <div style={{ padding: "0 12px 16px 12px", minWidth: 0 }}>
+            <ListWells />
+          </div>
+        )}
 
-        {/* Items globales: arriba, fuera de submenús */}
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[selectedKey]}
-          onClick={onLinkClick}
-          style={{
-            background: "transparent",
-            border: "none",
-            borderBottom: "1px solid rgba(255,255,255,0.08)",
-            paddingBottom: 8,
-            marginBottom: 8,
-          }}
-          items={GLOBAL_ITEMS.filter((item) => {
-            if (item.key === "4") return !!state.selected_profile?.dga?.code_dga;
-            return true;
-          }).map((item) => ({
-            key: item.key,
-            icon: item.icon,
-            label: <Link to={item.to}>{item.label}</Link>,
-          }))}
-        />
+        {/* MENÚ UNIFICADO: siempre visible, bloqueado si no hay punto */}
+        {(() => {
+          const hasPoint = !!state.selected_profile?.id;
+          const isAdminUser = state.user?.is_staff || state.user?.is_superuser;
 
-        {/* Menú agrupado por categorías */}
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[selectedKey]}
-          openKeys={openKeys}
-          onOpenChange={(keys) => {
-            // Solo un submenu abierto a la vez
-            const latest = keys.find((k) => !openKeys.includes(k));
-            setOpenKeys(latest ? [latest] : []);
-          }}
-          onClick={onLinkClick}
-          style={{
-            background: "transparent",
-            border: "none",
-          }}
-          items={buildMenuItems(menuItemsWithBadge, onLinkClick)}
-        />
+          const blockMsg = "Debes seleccionar un punto de captación";
+
+          // Helper: crear item de menú con soporte para bloqueo
+          const mkItem = (key, icon, label, to, requiresPoint = false) => ({
+            key,
+            icon,
+            label: requiresPoint && !hasPoint ? (
+              <span style={{ opacity: 0.45 }}>{label}</span>
+            ) : (
+              <Link to={to}>{label}</Link>
+            ),
+            disabled: requiresPoint && !hasPoint,
+            title: requiresPoint && !hasPoint ? blockMsg : undefined,
+          });
+
+          // Items que SIEMPRE están disponibles
+          const alwaysItems = [
+            {
+              key: "0",
+              icon: <GlobalOutlined />,
+              label: "Centro de Control",
+              onClick: () => {
+                dispatch({ type: "CHANGE_SELECTED_PROFILE", payload: { selected_profile: null } });
+                navigate("/");
+                if (onLinkClick) onLinkClick();
+              },
+            },
+            {
+              key: "1",
+              icon: <EnvironmentOutlined />,
+              label: "GEO Smart",
+              onClick: () => {
+                dispatch({ type: "CHANGE_SELECTED_PROFILE", payload: { selected_profile: null } });
+                navigate("/geo");
+                if (onLinkClick) onLinkClick();
+              },
+            },
+          ];
+
+          // Items que REQUIEREN punto seleccionado
+          const pointItems = [
+            mkItem("2", <WifiOutlined />, "Telemetría", "/telemetry", true),
+            ...(state.selected_profile?.dga?.code_dga ? [mkItem("4", <FileTextOutlined />, "DGA - MEE", "/dga", true)] : []),
+          ];
+
+          // Submenú Análisis
+          const analisisChildren = [
+            mkItem("3", <BarChartOutlined />, "Smart Análisis", "/analysis", true),
+            mkItem("5", <DownloadOutlined />, "Descarga", "/download", true),
+          ];
+
+          // Submenú Gestión
+          const gestionChildren = [
+            mkItem("6", <FileTextOutlined />, "Documentos", "/documents", true),
+            mkItem("7", <AlertOutlined />, "Alertas", "/alerts", true),
+          ];
+
+          // Admin siempre ve Admin
+          const adminItem = isAdminUser
+            ? [mkItem("admin", <DashboardOutlined />, "Admin", "/admin")]
+            : [];
+
+          // Documentación siempre visible
+          const docsItem = [mkItem("docs", <BookOutlined />, "Documentación", "/documentation")];
+
+          // Soporte solo para usuarios normales
+          const soporteItem = !isAdminUser
+            ? [mkItem("8", <CustomerServiceOutlined />, "Soporte", "/support", true)]
+            : [];
+
+          // Items globales (siempre visibles)
+          const globalMenuItems = [
+            ...alwaysItems,
+            ...pointItems,
+          ];
+
+          // Items agrupados
+          const groupedItems = [
+            {
+              key: "analisis",
+              icon: <BarChartOutlined />,
+              label: "Análisis",
+              children: analisisChildren,
+            },
+            {
+              key: "gestion",
+              icon: <FolderOutlined />,
+              label: "Gestión",
+              children: gestionChildren,
+            },
+            ...soporteItem,
+            ...adminItem,
+            ...docsItem,
+          ];
+
+          return (
+            <>
+              {/* Items globales */}
+              <Menu
+                theme="dark"
+                mode="inline"
+                selectedKeys={[selectedKey]}
+                onClick={onLinkClick}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  borderBottom: "1px solid rgba(255,255,255,0.08)",
+                  paddingBottom: 8,
+                  marginBottom: 8,
+                }}
+                items={globalMenuItems}
+              />
+
+              {/* Menú agrupado */}
+              <Menu
+                theme="dark"
+                mode="inline"
+                selectedKeys={[selectedKey]}
+                openKeys={openKeys}
+                onOpenChange={(keys) => {
+                  const latest = keys.find((k) => !openKeys.includes(k));
+                  setOpenKeys(latest ? [latest] : []);
+                }}
+                onClick={onLinkClick}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                }}
+                items={groupedItems}
+              />
+            </>
+          );
+        })()}
       </div>
 
       {/* Footer del menú */}
       <div style={{ padding: "12px" }}>
         <Flex gap="small" vertical>
-          <Button
-            block
-            size="small"
-            icon={<BookOutlined />}
-            onClick={() => window.location.assign("/documentation")}
-            style={{
-              background: "rgba(255,255,255,0.08)",
-              color: "rgba(255,255,255,0.7)",
-              border: "none",
-            }}
-          >
-            Docs
-          </Button>
           {state.user && state.user.username === "demosmart" && (
             <Button
               block

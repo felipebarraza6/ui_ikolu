@@ -15,6 +15,7 @@ import {
   Select,
   notification,
   Switch,
+  Progress,
 } from "antd";
 import {
   DashboardOutlined,
@@ -24,6 +25,8 @@ import {
   FileTextOutlined,
   ReloadOutlined,
   ThunderboltOutlined,
+  GlobalOutlined,
+  DesktopOutlined,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
 import sh from "../../api/sh/endpoints";
@@ -49,6 +52,8 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("1");
   const [loading, setLoading] = useState(true);
   const [systemStatus, setSystemStatus] = useState(null);
+  const [systemMap, setSystemMap] = useState(null);
+  const [resourcesStatus, setResourcesStatus] = useState(null);
   const [pointsStatus, setPointsStatus] = useState([]);
   const [dgaQueue, setDgaQueue] = useState(null);
   const [notificationsSummary, setNotificationsSummary] = useState(null);
@@ -64,6 +69,24 @@ const AdminDashboard = () => {
       setSystemStatus(res);
     } catch (err) {
       console.error("Error cargando system status:", err);
+    }
+  };
+
+  const loadSystemMap = async () => {
+    try {
+      const res = await sh.management.systemMap();
+      setSystemMap(res);
+    } catch (err) {
+      console.error("Error cargando system map:", err);
+    }
+  };
+
+  const loadResourcesStatus = async () => {
+    try {
+      const res = await sh.management.resourcesStatus();
+      setResourcesStatus(res);
+    } catch (err) {
+      console.error("Error cargando resources status:", err);
     }
   };
 
@@ -108,6 +131,8 @@ const AdminDashboard = () => {
     setLoading(true);
     await Promise.all([
       loadSystemStatus(),
+      loadSystemMap(),
+      loadResourcesStatus(),
       loadPointsStatus(),
       loadDgaQueue(),
       loadNotificationsSummary(),
@@ -522,6 +547,232 @@ const AdminDashboard = () => {
                       <Statistic title="Finalizadas" value={notificationsSummary.summary?.finished || 0} valueStyle={{ color: "#52C41A" }} />
                     </Col>
                   </Row>
+                )}
+              </Card>
+            </TabPane>
+
+            <TabPane
+              tab={
+                <span>
+                  <GlobalOutlined />
+                  Mapa del Sistema
+                </span>
+              }
+              key="4"
+            >
+              <Card
+                style={{ borderRadius: 12, border: "none", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}
+                bodyStyle={{ padding: isMobile ? "16px" : "24px" }}
+              >
+                {systemMap ? (
+                  <>
+                    <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+                      <Col span={8}>
+                        <Statistic
+                          title="Clientes"
+                          value={systemMap.clients?.length || 0}
+                          valueStyle={{ color: "#1F3461", fontWeight: 700 }}
+                        />
+                      </Col>
+                      <Col span={8}>
+                        <Statistic
+                          title="Proyectos"
+                          value={systemMap.projects?.length || 0}
+                          valueStyle={{ color: "#1F3461", fontWeight: 700 }}
+                        />
+                      </Col>
+                      <Col span={8}>
+                        <Statistic
+                          title="Puntos"
+                          value={systemMap.points?.length || 0}
+                          valueStyle={{ color: "#1F3461", fontWeight: 700 }}
+                        />
+                      </Col>
+                    </Row>
+
+                    <Title level={5} style={{ marginTop: 16, marginBottom: 12 }}>
+                      Resumen por Cliente
+                    </Title>
+                    <Table
+                      size="small"
+                      columns={[
+                        { title: "Cliente", dataIndex: "name", key: "name" },
+                        { title: "Proyectos", dataIndex: "project_count", key: "project_count" },
+                        { title: "Puntos", dataIndex: "point_count", key: "point_count" },
+                      ]}
+                      dataSource={systemMap.clients || []}
+                      rowKey="id"
+                      pagination={{ pageSize: 5 }}
+                      locale={{ emptyText: "No hay datos de clientes" }}
+                    />
+
+                    <Title level={5} style={{ marginTop: 24, marginBottom: 12 }}>
+                      Puntos en el Mapa
+                    </Title>
+                    <Table
+                      size="small"
+                      columns={[
+                        { title: "ID", dataIndex: "id", key: "id", width: 60 },
+                        { title: "Título", dataIndex: "title", key: "title" },
+                        { title: "Lat", dataIndex: "lat", key: "lat" },
+                        { title: "Lon", dataIndex: "lon", key: "lon" },
+                        {
+                          title: "Estado",
+                          key: "status",
+                          render: (_, record) => (
+                            <Tag color={record.is_active ? "green" : "red"}>
+                              {record.is_active ? "Activo" : "Inactivo"}
+                            </Tag>
+                          ),
+                        },
+                      ]}
+                      dataSource={systemMap.points || []}
+                      rowKey="id"
+                      pagination={{ pageSize: 10 }}
+                      scroll={{ x: 700 }}
+                      locale={{ emptyText: "No hay puntos en el mapa" }}
+                    />
+                  </>
+                ) : (
+                  <Flex justify="center" align="center" style={{ minHeight: 200 }}>
+                    <Spin tip="Cargando mapa del sistema..." />
+                  </Flex>
+                )}
+              </Card>
+            </TabPane>
+
+            <TabPane
+              tab={
+                <span>
+                  <DesktopOutlined />
+                  Rendimiento
+                </span>
+              }
+              key="5"
+            >
+              <Card
+                style={{ borderRadius: 12, border: "none", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}
+                bodyStyle={{ padding: isMobile ? "16px" : "24px" }}
+              >
+                {resourcesStatus ? (
+                  <>
+                    {/* SERVIDOR */}
+                    <Title level={5} style={{ marginBottom: 12 }}>
+                      <DesktopOutlined style={{ marginRight: 8 }} />
+                      Servidor
+                    </Title>
+                    <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+                      <Col span={8}>
+                        <Card size="small" style={{ background: "#f2f5fa", border: "none", borderRadius: 8, textAlign: "center" }}>
+                          <Text style={{ fontSize: 11, color: "#1F3461", display: "block" }}>CPU</Text>
+                          <Text style={{ fontSize: 22, fontWeight: 700, color: "#1F3461" }}>
+                            {resourcesStatus.server?.cpu_percent != null ? `${resourcesStatus.server.cpu_percent}%` : "N/A"}
+                          </Text>
+                          {resourcesStatus.server?.cpu_percent != null && (
+                            <Progress percent={resourcesStatus.server.cpu_percent} size="small" showInfo={false} strokeColor="#1F3461" />
+                          )}
+                        </Card>
+                      </Col>
+                      <Col span={8}>
+                        <Card size="small" style={{ background: "#f2f5fa", border: "none", borderRadius: 8, textAlign: "center" }}>
+                          <Text style={{ fontSize: 11, color: "#1F3461", display: "block" }}>RAM</Text>
+                          <Text style={{ fontSize: 22, fontWeight: 700, color: "#1F3461" }}>
+                            {resourcesStatus.server?.memory_percent != null ? `${resourcesStatus.server.memory_percent}%` : "N/A"}
+                          </Text>
+                          {resourcesStatus.server?.memory_percent != null && (
+                            <Progress percent={resourcesStatus.server.memory_percent} size="small" showInfo={false} strokeColor="#2A4A7A" />
+                          )}
+                          <Text style={{ fontSize: 10, color: "#888" }}>{resourcesStatus.server?.memory_used || "—"} / {resourcesStatus.server?.memory_total || "—"}</Text>
+                        </Card>
+                      </Col>
+                      <Col span={8}>
+                        <Card size="small" style={{ background: "#f2f5fa", border: "none", borderRadius: 8, textAlign: "center" }}>
+                          <Text style={{ fontSize: 11, color: "#1F3461", display: "block" }}>Disco</Text>
+                          <Text style={{ fontSize: 22, fontWeight: 700, color: "#1F3461" }}>
+                            {resourcesStatus.server?.disk_percent != null ? `${resourcesStatus.server.disk_percent}%` : "N/A"}
+                          </Text>
+                          {resourcesStatus.server?.disk_percent != null && (
+                            <Progress percent={resourcesStatus.server.disk_percent} size="small" showInfo={false} strokeColor="#3B6CA8" />
+                          )}
+                          <Text style={{ fontSize: 10, color: "#888" }}>{resourcesStatus.server?.disk_used_gb || "—"} / {resourcesStatus.server?.disk_total_gb || "—"} GB</Text>
+                        </Card>
+                      </Col>
+                    </Row>
+                    {resourcesStatus.server?.uptime && (
+                      <Tag color="blue" style={{ marginBottom: 16 }}>
+                        Uptime: {resourcesStatus.server.uptime}
+                      </Tag>
+                    )}
+
+                    {/* BASE DE DATOS + REDIS */}
+                    <Title level={5} style={{ marginBottom: 12 }}>
+                      <DatabaseOutlined style={{ marginRight: 8 }} />
+                      Servicios
+                    </Title>
+                    <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+                      <Col span={12}>
+                        <Card size="small" style={{ borderRadius: 8 }}>
+                          <Flex align="center" justify="space-between">
+                            <Text strong>PostgreSQL</Text>
+                            <Tag color={resourcesStatus.database?.status === "connected" ? "success" : "error"}>
+                              {resourcesStatus.database?.status || "—"}
+                            </Tag>
+                          </Flex>
+                          <Text type="secondary" style={{ fontSize: 12, display: "block", marginTop: 4 }}>
+                            {resourcesStatus.database?.engine || "—"}
+                          </Text>
+                          <Text type="secondary" style={{ fontSize: 12, display: "block" }}>
+                            Tamaño: {resourcesStatus.database?.size_mb ? `${resourcesStatus.database.size_mb} MB` : "—"}
+                          </Text>
+                        </Card>
+                      </Col>
+                      <Col span={12}>
+                        <Card size="small" style={{ borderRadius: 8 }}>
+                          <Flex align="center" justify="space-between">
+                            <Text strong>Redis</Text>
+                            <Tag color={resourcesStatus.redis?.status === "connected" ? "success" : "error"}>
+                              {resourcesStatus.redis?.status || "—"}
+                            </Tag>
+                          </Flex>
+                          <Text type="secondary" style={{ fontSize: 12, display: "block", marginTop: 4 }}>
+                            Versión: {resourcesStatus.redis?.version || "—"}
+                          </Text>
+                          <Text type="secondary" style={{ fontSize: 12, display: "block" }}>
+                            Memoria: {resourcesStatus.redis?.used_memory_human || "—"} · Clientes: {resourcesStatus.redis?.connected_clients || 0}
+                          </Text>
+                        </Card>
+                      </Col>
+                    </Row>
+
+                    {/* DJANGO STATS */}
+                    <Title level={5} style={{ marginBottom: 12 }}>
+                      <ThunderboltOutlined style={{ marginRight: 8 }} />
+                      Django
+                    </Title>
+                    <Row gutter={[16, 16]}>
+                      {resourcesStatus.django?.model_counts && Object.entries(resourcesStatus.django.model_counts).map(([model, count]) => (
+                        <Col span={8} key={model}>
+                          <Card size="small" style={{ background: "#f2f5fa", border: "none", borderRadius: 8, textAlign: "center" }}>
+                            <Text style={{ fontSize: 11, color: "#1F3461", display: "block", textTransform: "capitalize" }}>
+                              {model.replace(/_/g, " ")}
+                            </Text>
+                            <Text style={{ fontSize: 22, fontWeight: 700, color: "#1F3461" }}>
+                              {count?.toLocaleString?.() || count}
+                            </Text>
+                          </Card>
+                        </Col>
+                      ))}
+                    </Row>
+                    <div style={{ marginTop: 12 }}>
+                      <Tag color="blue">Debug: {resourcesStatus.django?.debug ? "ON" : "OFF"}</Tag>
+                      <Tag color="blue">Timezone: {resourcesStatus.django?.time_zone || "—"}</Tag>
+                      <Tag color="blue">Apps: {resourcesStatus.django?.installed_apps_count || "—"}</Tag>
+                    </div>
+                  </>
+                ) : (
+                  <Flex justify="center" align="center" style={{ minHeight: 200 }}>
+                    <Spin tip="Cargando estado del sistema..." />
+                  </Flex>
                 )}
               </Card>
             </TabPane>

@@ -38,28 +38,20 @@ const Login = () => {
     try {
       const response = await sh.authenticated(values);
 
-      // Guardar el token en localStorage ANTES de llamar a get_profile
-      // para que esté disponible cuando se haga la petición
+      // 🆕 LOGIN LIVIANO: Solo guardar token + user básico
+      // La lista de puntos y detalles se cargan bajo demanda después
       localStorage.setItem("token", JSON.stringify(response.access_token));
       localStorage.setItem("user", JSON.stringify(response.user));
 
-      // Después del login exitoso, obtener datos frescos del perfil
-      // Pasar el username y token de la respuesta del login para evitar problemas de timing
-      const profileResponse = await sh.get_profile(
-        response.user?.username,
-        response.access_token
-      );
+      // Guardar points_summary si viene en la respuesta
+      if (response.points_summary) {
+        localStorage.setItem("points_summary", JSON.stringify(response.points_summary));
+      }
 
-      // Combinar respuesta de login con datos actualizados del perfil
+      // Ya NO llamamos get_profile aquí — se carga lazy por página
       dispatch({
         type: "LOGIN",
-        payload: {
-          ...response,
-          user: {
-            ...response.user,
-            catchment_points: profileResponse.user.catchment_points, // Datos frescos
-          },
-        },
+        payload: response,
       });
 
       notification.success({

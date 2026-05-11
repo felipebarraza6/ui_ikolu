@@ -29,57 +29,36 @@ export const appReducer = (state, action) => {
         JSON.stringify(action.payload.access_token)
       );
       localStorage.setItem("user", JSON.stringify(action.payload.user));
-      localStorage.setItem(
-        "profile_client",
-        JSON.stringify(action.payload.user.catchment_points)
-      );
-      localStorage.setItem(
-        "selected_profile",
-        JSON.stringify(action.payload.user.catchment_points[0])
-      );
+      // 🆕 Guardar points_summary si viene en la respuesta
+      if (action.payload.points_summary) {
+        localStorage.setItem("points_summary", JSON.stringify(action.payload.points_summary));
+      }
 
       return {
         ...state,
         isAuth: true,
         token: action.payload.access_token,
         user: action.payload.user,
-        profile_client: action.payload.user.catchment_points,
-        selected_profile: {
-          ...action.payload.user.catchment_points[0],
-          key: 0,
-        },
+        points_summary: action.payload.points_summary || null,
+        // Inicializar como null, se cargan lazy
+        profile_client: null,
+        selected_profile: null,
+        points_list: null,
       };
 
     case "UPDATE":
       localStorage.setItem("user", JSON.stringify(action.payload.user));
-      localStorage.setItem(
-        "profile_client",
-        JSON.stringify(action.payload.user.catchment_points)
-      );
+      // 🆕 Solo guardar profile_client si viene en el payload
+      if (action.payload.user.catchment_points) {
+        localStorage.setItem(
+          "profile_client",
+          JSON.stringify(action.payload.user.catchment_points)
+        );
+      }
 
-      // Validar selected_profile
-      let validSelectedProfile = action.payload.selected_profile;
-      const catchmentPoints = action.payload.user.catchment_points;
-
-      if (catchmentPoints && catchmentPoints.length > 0) {
-        if (!validSelectedProfile || !validSelectedProfile.id) {
-          // Si no hay selected_profile válido, usar el primero
-          validSelectedProfile = {
-            ...catchmentPoints[0],
-            key: catchmentPoints[0].id,
-          };
-        } else {
-          // Verificar si el selected_profile existe en los catchment_points
-          const profileExists = catchmentPoints.find(
-            (p) => p.id === validSelectedProfile.id
-          );
-          if (!profileExists) {
-            validSelectedProfile = {
-              ...catchmentPoints[0],
-              key: catchmentPoints[0].id,
-            };
-          }
-        }
+      // 🚫 NO auto-seleccionar perfil — el usuario debe elegir explícitamente
+      const validSelectedProfile = action.payload.selected_profile || state.selected_profile;
+      if (validSelectedProfile) {
         localStorage.setItem(
           "selected_profile",
           JSON.stringify(validSelectedProfile)
@@ -90,7 +69,7 @@ export const appReducer = (state, action) => {
         ...state,
         isAuth: true,
         user: action.payload.user,
-        profile_client: action.payload.user.catchment_points,
+        profile_client: action.payload.user.catchment_points || state.profile_client,
         selected_profile: validSelectedProfile,
       };
 
@@ -119,6 +98,48 @@ export const appReducer = (state, action) => {
         selected_profile: action.payload.selected_profile || state.selected_profile,
       };
 
+    // 🆕 NUEVO: Guardar lista minimal de puntos
+    case "SET_POINTS_LIST":
+      if (action.payload.points_list) {
+        localStorage.setItem(
+          "points_list",
+          JSON.stringify(action.payload.points_list)
+        );
+      }
+      return {
+        ...state,
+        points_list: action.payload.points_list,
+      };
+
+    // 🆕 NUEVO: Guardar detalle del punto seleccionado
+    case "SET_SELECTED_PROFILE_DETAIL":
+      const detail = action.payload.selected_profile;
+      // 🛡️ Solo guardar si tiene id válido
+      if (!detail || !detail.id) {
+        return state;
+      }
+      localStorage.setItem("selected_profile", JSON.stringify(detail));
+      // Actualizar también en profile_client si existe
+      const updatedClient = state.profile_client
+        ? state.profile_client.map((p) =>
+            p.id === detail.id ? { ...p, ...detail } : p
+          )
+        : [detail];
+      localStorage.setItem("profile_client", JSON.stringify(updatedClient));
+      return {
+        ...state,
+        selected_profile: detail,
+        profile_client: state.profile_client
+          ? state.profile_client.map((p) =>
+              p.id === detail.id ? { ...p, ...detail } : p
+            )
+          : [detail],
+      };
+
+    case "SET_ADMIN_VIEW":
+      localStorage.setItem("admin_view", action.payload.view);
+      return { ...state, adminView: action.payload.view };
+
     case "LOGOUT":
       localStorage.clear();
       // Limpiar caché al hacer logout
@@ -131,6 +152,10 @@ export const appReducer = (state, action) => {
         token: null,
         user: null,
         profile_client: null,
+        selected_profile: null,
+        points_summary: null,
+        points_list: null,
+        adminView: "operacional",
       };
 
     default:

@@ -2,7 +2,7 @@ import { upload } from "@testing-library/user-event/dist/upload";
 import { POST_LOGIN, GET, DOWNLOAD, DELETE, POST, PATCH } from "./config";
 
 const login = async (data) => {
-  const request = await POST_LOGIN("users/login/", {
+  const request = await POST_LOGIN("ik/login/", {
     email: data.email,
     password: data.password,
   });
@@ -111,6 +111,51 @@ const get_profile = async (username = null, token = null) => {
     });
   }
 
+  return rq.data;
+};
+
+/**
+ * 🆕 NUEVO: Obtener lista de puntos de captación (básica)
+ * Endpoint: /api/catchment_point/all/
+ */
+const get_catchment_points_all = async () => {
+  const rq = await GET(`catchment_point/all/`);
+  return rq.data;
+};
+
+/**
+ * 🆕 NUEVO: Obtener detalle completo de UN punto de captación
+ * Usa el retrieve del endpoint existente: /api/catchment_point/{id}/
+ */
+const get_catchment_point_detail = async (pointId) => {
+  const rq = await GET(`catchment_point/${pointId}/`);
+  return rq.data;
+};
+
+/**
+ * 🆕 NUEVO: Resumen de todos los puntos con última telemetría
+ * Endpoint: /api/ik/points_summary/
+ */
+const get_points_summary = async () => {
+  const rq = await GET(`ik/points_summary/`);
+  return rq.data;
+};
+
+/**
+ * 🆕 NUEVO: Resumen de un punto específico con última telemetría
+ * Endpoint: /api/ik/point/{id}/summary/
+ */
+const get_point_summary = async (pointId) => {
+  const rq = await GET(`ik/point/${pointId}/summary/`);
+  return rq.data;
+};
+
+/**
+ * 🆕 NUEVO: Puntos asignados al usuario autenticado (select/dropdown)
+ * Endpoint: /api/ik/my_points/
+ */
+const get_my_points = async () => {
+  const rq = await GET(`ik/my_points/`);
   return rq.data;
 };
 
@@ -390,6 +435,16 @@ const getSystemStatus = async () => {
   return rq.data;
 };
 
+const getSystemMap = async () => {
+  const rq = await GET(`management/system_map/`);
+  return rq.data;
+};
+
+const getResourcesStatus = async () => {
+  const rq = await GET(`management/resources_status/`);
+  return rq.data;
+};
+
 const getPointsStatus = async (params = {}) => {
   const query = new URLSearchParams(params).toString();
   const rq = await GET(`management/points_status/${query ? "?" + query : ""}`);
@@ -458,6 +513,24 @@ const getCatchmentPoints = async (params = {}) => {
   return rq.data;
 };
 
+/**
+ * 🆕 NUEVO: Obtener clientes con sus proyectos (para admin)
+ * Endpoint optimizado que devuelve el árbol cliente → proyecto
+ */
+const getClientsWithProjects = async () => {
+  const rq = await GET(`client/with-projects/`);
+  return rq.data;
+};
+
+/**
+ * 🆕 NUEVO: Obtener puntos de captación por proyecto (para admin)
+ * Solo devuelve los puntos del proyecto seleccionado
+ */
+const getCatchmentPointsByProject = async (projectId) => {
+  const rq = await GET(`catchment_point/all/?project=${projectId}`);
+  return rq.data;
+};
+
 const sh = {
   authenticated: login,
   billing_data: get_history_data,
@@ -497,6 +570,8 @@ const sh = {
   },
   management: {
     systemStatus: getSystemStatus,
+    systemMap: getSystemMap,
+    resourcesStatus: getResourcesStatus,
     pointsStatus: getPointsStatus,
     telemetryMetrics: getTelemetryMetrics,
     toggleTelemetry,
@@ -510,7 +585,17 @@ const sh = {
     clients: getClients,
     projects: getProjects,
     catchmentPoints: getCatchmentPoints,
+    clientsWithProjects: getClientsWithProjects,
+    pointsByProject: getCatchmentPointsByProject,
   },
+  // 🆕 NUEVO: Endpoints para lazy loading de puntos
+  getPointsAll: get_catchment_points_all,
+  getPointDetail: get_catchment_point_detail,
+  // 🆕 NUEVO: Endpoints optimizados con última telemetría
+  getPointsSummary: get_points_summary,
+  getPointSummary: get_point_summary,
+  // 🆕 NUEVO: Puntos del usuario autenticado
+  getMyPoints: get_my_points,
 };
 
 export default sh;

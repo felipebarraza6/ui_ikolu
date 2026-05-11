@@ -16,6 +16,7 @@ import {
   WifiOutlined,
   RightOutlined,
   SettingOutlined,
+  DesktopOutlined,
 } from "@ant-design/icons";
 import { Typography, Button, Popconfirm, Flex, Breadcrumb, Dropdown, Badge } from "antd";
 import AlertPreview from "./AlertPreview";
@@ -245,6 +246,50 @@ const HeaderNav = ({ onMenuClick }) => {
   ) : (
     <Flex align="center" justify="space-between" style={{ height: "100%" }}>
       <Flex align="center" gap={10}>
+        {/* ── Toggle Operacional / Técnico para admin/staff ── */}
+        {(state.user?.is_staff || state.user?.is_superuser) && (location.pathname === "/" || location.pathname === "/admin") && (
+          <Flex
+            align="center"
+            gap={2}
+            style={{
+              background: "#f5f7fa",
+              borderRadius: 20,
+              padding: "2px 4px",
+              border: "1px solid #e8e8e8",
+            }}
+          >
+            <Button
+              type={state.adminView === "operacional" ? "primary" : "text"}
+              size="small"
+              icon={<BarChartOutlined />}
+              onClick={() => dispatch({ type: "SET_ADMIN_VIEW", payload: { view: "operacional" } })}
+              style={{
+                borderRadius: 16,
+                fontSize: 12,
+                background: state.adminView === "operacional" ? "#1F3461" : "transparent",
+                borderColor: state.adminView === "operacional" ? "#1F3461" : "transparent",
+                color: state.adminView === "operacional" ? "#fff" : "#595959",
+              }}
+            >
+              Operacional
+            </Button>
+            <Button
+              type={state.adminView === "tecnico" ? "primary" : "text"}
+              size="small"
+              icon={<DesktopOutlined />}
+              onClick={() => dispatch({ type: "SET_ADMIN_VIEW", payload: { view: "tecnico" } })}
+              style={{
+                borderRadius: 16,
+                fontSize: 12,
+                background: state.adminView === "tecnico" ? "#1F3461" : "transparent",
+                borderColor: state.adminView === "tecnico" ? "#1F3461" : "transparent",
+                color: state.adminView === "tecnico" ? "#fff" : "#595959",
+              }}
+            >
+              Técnico
+            </Button>
+          </Flex>
+        )}
         {breadcrumbContent}
         {configFor && (
           <Button

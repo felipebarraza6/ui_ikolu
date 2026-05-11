@@ -181,7 +181,7 @@ const Sma = () => {
       setCountApi(0);
       setPage(1);
     }
-  }, [state.selected_profile]);
+  }, [state.selected_profile?.id]);
 
   const primaryColor = "#002766";
   const accentColor = "#1890ff";
