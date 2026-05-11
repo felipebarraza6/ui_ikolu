@@ -2,7 +2,6 @@ import React, { useContext, useCallback, useMemo, useEffect } from "react";
 import { AppContext } from "../../App";
 import { Badge, Select, Flex, Button, Tooltip, Tag } from "antd";
 import { useNavigate, useLocation } from "react-router";
-import sh from "../../api/sh/endpoints";
 import { FaEye } from "react-icons/fa";
 import { MdSensorOccupied } from "react-icons/md";
 
@@ -24,27 +23,6 @@ const ListWells = () => {
       pointsSource.length > 0
     );
   }, [pointsSource]);
-
-  // Función para cargar detalle del punto seleccionado
-  const loadPointDetail = useCallback(async (pointId) => {
-    try {
-      dispatch({ type: "SET_LOADING", payload: { isLoading: true } });
-      const detail = await sh.getPointDetail(pointId);
-
-      if (detail) {
-        dispatch({
-          type: "SET_SELECTED_PROFILE_DETAIL",
-          payload: { selected_profile: detail },
-        });
-      }
-      dispatch({ type: "SET_LOADING", payload: { isLoading: false } });
-      return detail;
-    } catch (err) {
-      console.error("Error cargando detalle del punto:", err);
-      dispatch({ type: "SET_LOADING", payload: { isLoading: false } });
-      return null;
-    }
-  }, [dispatch]);
 
   // Función para sincronizar el perfil seleccionado si está desincronizado
   useEffect(() => {
@@ -112,16 +90,15 @@ const ListWells = () => {
           },
         });
 
-        // Cargar el detalle completo del punto
-        await loadPointDetail(key);
-
         // 🆕 Navegar a telemetría automáticamente si no está ya ahí
+        // El detalle completo se carga en PointDetailGuard (usePointDetail)
+        // para evitar llamadas duplicadas a getPointDetail()
         if (location.pathname !== "/telemetry") {
           navigate("/telemetry");
         }
       }
     },
-    [navigate, pointsSource, dispatch, hasValidData, state.isLoading, loadPointDetail]
+    [navigate, pointsSource, dispatch, hasValidData, state.isLoading]
   );
 
   const selectStyle = useMemo(

@@ -14,10 +14,8 @@ import { notification } from 'antd';
 export const useLazyProfile = (options = {}) => {
   const { state, dispatch } = useContext(AppContext);
   const [loadingList, setLoadingList] = useState(false);
-  const [loadingDetail, setLoadingDetail] = useState(false);
   const [error, setError] = useState(null);
   const hasFetchedList = useRef(false);
-  const attemptedDetailRef = useRef(null);
 
   // 🚫 autoSelectFirst eliminado — el usuario debe elegir un punto explícitamente
 
@@ -95,48 +93,6 @@ export const useLazyProfile = (options = {}) => {
   }, [state.isAuth, state.user, dispatch]);
 
   // ──────────────────────────────────────────
-  // 2. Cargar detalle completo de un punto
-  // ──────────────────────────────────────────
-  const fetchPointDetail = useCallback(async (pointId) => {
-    if (!pointId) return null;
-
-    setLoadingDetail(true);
-    setError(null);
-
-    try {
-      const detail = await sh.getPointDetail(pointId);
-
-      // 🛡️ Solo guardar si el detalle tiene id válido
-      if (detail && detail.id) {
-        dispatch({
-          type: 'SET_SELECTED_PROFILE_DETAIL',
-          payload: { selected_profile: detail }
-        });
-      } else {
-        console.warn(`Detalle del punto ${pointId} incompleto, no se actualiza estado`);
-      }
-
-      return detail;
-    } catch (err) {
-      console.error(`Error cargando detalle del punto ${pointId}:`, err);
-      setError(err);
-
-      // Notificación silenciosa (no molestar al usuario)
-      if (err?.response?.status === 404) {
-        notification.error({
-          message: 'Punto no encontrado',
-          description: `El punto de captación #${pointId} no existe o no tienes acceso.`
-        });
-      }
-
-      // 🛡️ No limpiar selected_profile si el endpoint falla
-      return null;
-    } finally {
-      setLoadingDetail(false);
-    }
-  }, [dispatch]);
-
-  // ──────────────────────────────────────────
   // Efecto: cargar lista al montar si está autenticado
   // ──────────────────────────────────────────
   useEffect(() => {
@@ -150,30 +106,19 @@ export const useLazyProfile = (options = {}) => {
     }
   }, [state.isAuth, state.user, fetchPointsList]);
 
-  // ──────────────────────────────────────────
-  // Efecto: cuando cambia selected_profile sin detalle completo, cargarlo
-  // ──────────────────────────────────────────
-  useEffect(() => {
-    const sp = state.selected_profile;
-    // Si tenemos un punto seleccionado pero no tiene config_data (faltan detalles)
-    if (sp?.id && !sp?.config_data && !loadingDetail && attemptedDetailRef.current !== sp.id) {
-      attemptedDetailRef.current = sp.id;
-      fetchPointDetail(sp.id);
-    }
-  }, [state.selected_profile?.id, loadingDetail, fetchPointDetail]);
-
-  // Resetear attemptedDetailRef cuando cambia el punto seleccionado
-  useEffect(() => {
-    if (state.selected_profile?.id && attemptedDetailRef.current !== state.selected_profile.id) {
-      attemptedDetailRef.current = null;
-    }
-  }, [state.selected_profile?.id]);
+  // 🚫 Auto-fetch de detalle ELIMINADO — ahora es responsabilidad de PointDetailGuard
+  // (usePointDetail hook) cargar el detalle completo cuando se navega a rutas
+  // que lo requieren. Esto evita llamadas duplicadas a getPointDetail().
+  //
+  // Antes: useLazyProfile y ListWells y PointDetailGuard TODOS llamaban
+  // getPointDetail() al seleccionar un punto → 3 llamadas API + re-renders
+  //
+  // Ahora: solo PointDetailGuard carga el detalle cuando la ruta lo necesita.
 
   return {
     // Estados
     loadingList,
-    loadingDetail,
-    loading: loadingList || loadingDetail,
+    loading: loadingList,
     error,
 
     // Data
@@ -184,7 +129,6 @@ export const useLazyProfile = (options = {}) => {
 
     // Acciones
     fetchPointsList,
-    fetchPointDetail,
     refresh: () => {
       hasFetchedList.current = false;
       return fetchPointsList();
