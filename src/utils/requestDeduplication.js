@@ -47,6 +47,9 @@ export const DedupKeys = {
   dayData: (profileId, date) => `day_${profileId}_${date}`,
   monthData: (profileId, yearMonth) => `month_${profileId}_${yearMonth}`,
   notifications: (profileId, page, type) => `notifications_${profileId}_${page}_${type}`,
+  batchTelemetry: (pointIds, hours) => `batch_telemetry_${pointIds}_${hours}`,
+  batchStats: (pointIds, days) => `batch_stats_${pointIds}_${days}`,
+  batchSummary: (pointIds) => `batch_summary_${pointIds}`,
 };
 
 /**

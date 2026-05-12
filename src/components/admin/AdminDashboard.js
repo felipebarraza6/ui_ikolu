@@ -27,10 +27,12 @@ import {
   ThunderboltOutlined,
   GlobalOutlined,
   DesktopOutlined,
+  CustomerServiceOutlined,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
 import sh from "../../api/sh/endpoints";
 import { useResponsive } from "../../hooks/useResponsive";
+import SlaDashboard from "./sla/SlaDashboard";
 import dayjs from "dayjs";
 
 const { Title, Text } = Typography;
@@ -775,6 +777,18 @@ const AdminDashboard = () => {
                   </Flex>
                 )}
               </Card>
+            </TabPane>
+
+            <TabPane
+              tab={
+                <span>
+                  <CustomerServiceOutlined />
+                  SLA
+                </span>
+              }
+              key="6"
+            >
+              <SlaDashboard />
             </TabPane>
           </Tabs>
         </>

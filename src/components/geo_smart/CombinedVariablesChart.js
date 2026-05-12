@@ -726,4 +726,6 @@ const CombinedVariablesChart = ({ profiles }) => {
   );
 };
 
-export default CombinedVariablesChart;
+CombinedVariablesChart.displayName = 'CombinedVariablesChart';
+
+export default React.memo(CombinedVariablesChart);

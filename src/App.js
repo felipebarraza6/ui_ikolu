@@ -1,21 +1,31 @@
-import React, { createContext, useReducer } from "react";
+import React, { createContext, useReducer, useMemo } from "react";
 import AppRouter from "./AppRouter";
 import { appReducer } from "./reducers/appReducer";
+import { AuthProvider } from "./contexts/AuthContext";
+import { DataProvider } from "./contexts/DataContext";
+import { UIProvider } from "./contexts/UIContext";
 
+/**
+ * ⚠️ DEPRECATED: AppContext monolítico
+ * Usar contextos especializados en su lugar:
+ * - useAuth()  → AuthContext  (isAuth, user, token)
+ * - useData()  → DataContext  (points, profiles)
+ * - useUI()    → UIContext    (loading, adminView)
+ *
+ * Este contexto se mantiene para compatibilidad con componentes
+ * existentes durante la migración gradual.
+ */
 export const AppContext = createContext();
 
 function getInitialState() {
   // 🧹 Limpiar datos masivos viejos de sesiones anteriores
-  // El nuevo sistema usa lazy loading, no necesitamos todo el profile_client en localStorage
   try {
     const oldProfileClient = localStorage.getItem("profile_client");
     if (oldProfileClient && oldProfileClient.length > 50000) {
-      // Si es muy grande, era la data masiva vieja — la limpiamos
       localStorage.removeItem("profile_client");
     }
   } catch (e) { /* ignore */ }
 
-  // Función auxiliar para parsear localStorage de forma segura
   const safeParseJSON = (key, defaultValue) => {
     try {
       const item = localStorage.getItem(key);
@@ -32,10 +42,6 @@ function getInitialState() {
   const user = safeParseJSON("user", null);
   const token = safeParseJSON("token", null);
   const points_summary = safeParseJSON("points_summary", null);
-
-  // 🆕 Lazy loading: profile_client ya no se carga al inicio
-  // selected_profile NO se recupera de localStorage — el usuario debe seleccionar explícitamente
-  // El detalle completo se recarga bajo demanda cuando se selecciona un punto
   const points_list = safeParseJSON("points_list", null);
   const adminView = safeParseJSON("admin_view", "operacional");
 
@@ -43,22 +49,63 @@ function getInitialState() {
     isAuth: !!user && !!token,
     token: token,
     user: user || {},
-    points_summary: points_summary,  // Resumen de puntos del login
-    profile_client: null,      // Se carga lazy
-    selected_profile: null,    // SIEMPRE null al iniciar — el usuario debe elegir
-    points_list: points_list,  // Lista minimal cacheada
-    adminView: adminView,      // Vista del admin dashboard
-    isLoading: false,          // Estado de carga global
+    points_summary: points_summary,
+    profile_client: null,
+    selected_profile: null,
+    points_list: points_list,
+    adminView: adminView,
+    isLoading: false,
   };
 }
 
 const App = () => {
   const [state, dispatch] = useReducer(appReducer, {}, getInitialState);
 
+  // 🆕 Separar state en slices para contextos especializados
+  // Esto evita que cualquier cambio en el state dispare re-renders
+  // en TODOS los consumidores del contexto global.
+  const authValue = useMemo(() => ({
+    isAuth: state.isAuth,
+    user: state.user,
+    token: state.token,
+    dispatch,
+  }), [state.isAuth, state.user, state.token, dispatch]);
+
+  const dataValue = useMemo(() => ({
+    points_summary: state.points_summary,
+    profile_client: state.profile_client,
+    selected_profile: state.selected_profile,
+    points_list: state.points_list,
+    dispatch,
+  }), [
+    state.points_summary,
+    state.profile_client,
+    state.selected_profile,
+    state.points_list,
+    dispatch,
+  ]);
+
+  const uiValue = useMemo(() => ({
+    isLoading: state.isLoading,
+    adminView: state.adminView,
+    dispatch,
+  }), [state.isLoading, state.adminView, dispatch]);
+
+  // Contexto legacy: solo se actualiza cuando cambia el state completo
+  // (mismo comportamiento que antes, para compatibilidad)
+  const legacyContextValue = useMemo(() => ({ state, dispatch }), [state, dispatch]);
+
   return (
-    <AppContext.Provider value={{ state, dispatch }}>
-      <AppRouter />
-    </AppContext.Provider>
+    <AuthProvider value={authValue}>
+      <DataProvider value={dataValue}>
+        <UIProvider value={uiValue}>
+          {/* Contexto legacy para compatibilidad durante migración */}
+          <AppContext.Provider value={legacyContextValue}>
+            <AppRouter />
+          </AppContext.Provider>
+        </UIProvider>
+      </DataProvider>
+    </AuthProvider>
   );
 };
 

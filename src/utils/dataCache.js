@@ -98,7 +98,7 @@ class DataCache {
     let expiredEntries = 0;
     const now = Date.now();
 
-    for (const [key, timestamp] of this.timestamps.entries()) {
+    for (const [, timestamp] of this.timestamps.entries()) {
       if (now > timestamp) {
         expiredEntries++;
       } else {
@@ -127,6 +127,9 @@ export const CacheKeys = {
   dayData: (profileId, date) => `day_${profileId}_${date}`,
   monthData: (profileId, yearMonth) => `month_${profileId}_${yearMonth}`,
   notifications: (profileId, type) => `notifications_${profileId}_${type}`,
+  batchTelemetry: (pointIds, hours) => `batch_telemetry_${pointIds}_${hours}`,
+  batchStats: (pointIds, days) => `batch_stats_${pointIds}_${days}`,
+  batchSummary: (pointIds) => `batch_summary_${pointIds}`,
 };
 
 /**

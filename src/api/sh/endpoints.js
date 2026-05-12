@@ -380,6 +380,32 @@ const getNotificationsActives = async (id_point, page, type) => {
   return rq.data;
 };
 
+/**
+ * 🆕 NUEVO: Obtener todas las notificaciones por tipo (sin filtro de punto)
+ * Para uso admin — el backend permite filtros opcionales con DjangoFilterBackend
+ */
+const getAllNotificationsByType = async (type, page = 1, isActive = null) => {
+  let url = `notifications_catchment/?type_notification=${type}&page=${page}`;
+  if (isActive !== null) {
+    url += `&is_active=${isActive}`;
+  }
+  const rq = await GET(url);
+  return rq.data;
+};
+
+/**
+ * 🆕 NUEVO: Obtener notificaciones de un punto específico por tipo
+ * Wrapper más flexible que getNotifications
+ */
+const getNotificationsByPoint = async (pointId, type, page = 1, isActive = null) => {
+  let url = `notifications_catchment/?point_catchment=${pointId}&type_notification=${type}&page=${page}`;
+  if (isActive !== null) {
+    url += `&is_active=${isActive}`;
+  }
+  const rq = await GET(url);
+  return rq.data;
+};
+
 const deleteNotification = async (id) => {
   const rq = await DELETE(`notifications_catchment/${id}/`);
   return rq.data;
@@ -494,6 +520,47 @@ const getNotificationsSummary = async (days = 7) => {
 };
 
 // ==========================================
+// API OPTIMIZADA — /api/ik/ (Batch nativos)
+// ==========================================
+
+/**
+ * 🆕 BATCH NATIVO: Telemetría multi-punto en una sola llamada
+ * Endpoint: POST /api/ik/batch/telemetry/
+ * Máximo 50 puntos por request
+ */
+const batchTelemetryNative = async (pointIds, hours = 1) => {
+  const rq = await POST(`ik/batch/telemetry/`, {
+    point_ids: pointIds,
+    hours: hours,
+  });
+  return rq.data;
+};
+
+/**
+ * 🆕 BATCH NATIVO: Estadísticas agregadas multi-punto
+ * Endpoint: POST /api/ik/batch/stats/
+ */
+const batchStatsNative = async (pointIds, days = 30) => {
+  const rq = await POST(`ik/batch/stats/`, {
+    point_ids: pointIds,
+    days: days,
+  });
+  return rq.data;
+};
+
+/**
+ * 🆕 BATCH NATIVO: Resumen optimizado de puntos del usuario
+ * Endpoint: POST /api/ik/batch/summary/
+ * Devuelve resumen con última telemetría para múltiples puntos
+ */
+const batchSummaryNative = async (pointIds) => {
+  const rq = await POST(`ik/batch/summary/`, {
+    point_ids: pointIds,
+  });
+  return rq.data;
+};
+
+// ==========================================
 // ADMIN: CLIENTES, PROYECTOS, PUNTOS
 // ==========================================
 
@@ -563,6 +630,9 @@ const sh = {
     getById: getNotificationById,
     delete: deleteNotification,
     update: updateNotification,
+    // 🆕 NUEVO: Endpoints sin filtro de punto (para admin)
+    getAllByType: getAllNotificationsByType,
+    getByPoint: getNotificationsByPoint,
     responses: {
       get: getNotificationsResponse,
       create: createNotificationResponse,
@@ -596,6 +666,12 @@ const sh = {
   getPointSummary: get_point_summary,
   // 🆕 NUEVO: Puntos del usuario autenticado
   getMyPoints: get_my_points,
+  // 🆕 BATCH NATIVO: Endpoints optimizados del backend
+  batch: {
+    telemetry: batchTelemetryNative,
+    stats: batchStatsNative,
+    summary: batchSummaryNative,
+  },
 };
 
 export default sh;

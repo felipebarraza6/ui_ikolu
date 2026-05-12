@@ -253,4 +253,6 @@ const FlowStatusGauges = ({ profiles }) => {
   );
 };
 
-export default FlowStatusGauges;
+FlowStatusGauges.displayName = 'FlowStatusGauges';
+
+export default React.memo(FlowStatusGauges);
