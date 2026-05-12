@@ -75,6 +75,15 @@ const generateMockTickets = () => {
     { count: 6, is_read: true, is_wait: false, is_active: false, is_finish: true, daysAgoRange: [5, 30] },
   ];
 
+  const priorities = ['low', 'medium', 'high', 'critical'];
+  const categories = ['back', 'hard'];
+  const sources = ['internal', 'client'];
+  const mockUsers = [
+    { id: 1, username: 'soporte.ikolu' },
+    { id: 2, username: 'admin' },
+    { id: 3, username: 'tecnico1' },
+  ];
+
   let idCounter = 100;
 
   configs.forEach((config) => {
@@ -106,6 +115,8 @@ const generateMockTickets = () => {
         });
       }
 
+      const responseCount = responses.length + Math.floor(Math.random() * 15);
+      const assignedUser = Math.random() > 0.3 ? mockUsers[Math.floor(Math.random() * mockUsers.length)] : null;
       tickets.push({
         id: idCounter++,
         title: titles[titleIdx],
@@ -117,6 +128,10 @@ const generateMockTickets = () => {
         type_notification: TYPE_SUPPORT,
         type_variable: variables[Math.floor(Math.random() * variables.length)],
         type_alert: 'SOPORTE',
+        priority: priorities[Math.floor(Math.random() * priorities.length)],
+        category: categories[Math.floor(Math.random() * categories.length)],
+        source: sources[Math.floor(Math.random() * sources.length)],
+        assigned_to: assignedUser,
         is_periodic: false,
         is_read: config.is_read,
         is_wait: config.is_wait,
@@ -132,6 +147,7 @@ const generateMockTickets = () => {
         modified: created,
         user: { id: Math.floor(Math.random() * 10) + 1, username: `cliente${Math.floor(Math.random() * 10) + 1}` },
         responses: responses,
+        response_count: responseCount,
       });
     }
   });
@@ -143,6 +159,7 @@ export const useSlaTickets = (options = {}) => {
   const { autoRefresh = false, refreshInterval = 60000 } = options;
 
   const [tickets, setTickets] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
@@ -171,7 +188,9 @@ export const useSlaTickets = (options = {}) => {
             .filter(t => t.type_notification === TYPE_SUPPORT)
             .map(t => enrichTicket(t));
           usedRealData = true;
-          console.log('[SLA] Tickets SUPPORT reales cargados:', allTickets.length);
+          // Guardar count real del backend (total paginado)
+          if (isMountedRef.current) setTotalCount(allSupport.count || allTickets.length);
+          console.log('[SLA] Tickets SUPPORT reales cargados:', allTickets.length, 'de', allSupport.count || allTickets.length);
         }
       } catch (e) {
         console.log('[SLA] getAllByType no disponible, intentando por punto...');
@@ -215,6 +234,7 @@ export const useSlaTickets = (options = {}) => {
       if (!usedRealData || allTickets.length === 0) {
         console.log('[SLA] Usando mock data para demostracion');
         allTickets = generateMockTickets();
+        if (isMountedRef.current) setTotalCount(allTickets.length);
       }
 
       if (isMountedRef.current) {
@@ -225,7 +245,9 @@ export const useSlaTickets = (options = {}) => {
       console.error('[SLA] Error fetching tickets:', err);
       if (isMountedRef.current) {
         setError(err);
-        setTickets(generateMockTickets());
+        const mocks = generateMockTickets();
+        setTickets(mocks);
+        setTotalCount(mocks.length);
       }
     } finally {
       if (isMountedRef.current) setLoading(false);
@@ -233,13 +255,16 @@ export const useSlaTickets = (options = {}) => {
   }, []);
 
   const enrichTicket = (ticket, pointData = null) => {
+    const validResponses = (ticket.responses || []).filter(r => r.response && r.response.trim().length > 0);
     return {
       ...ticket,
       point_title: pointData?.title || ticket.point_catchment_title || `Punto ${ticket.point_catchment}`,
       project: pointData?.project_name || pointData?.project || ticket.project || '-',
       client: pointData?.client_name || pointData?.client || ticket.client || '-',
       // Filtrar respuestas vacias
-      responses: (ticket.responses || []).filter(r => r.response && r.response.trim().length > 0),
+      responses: validResponses,
+      // Usar response_count del backend si existe, sino calcular del array disponible
+      response_count: ticket.response_count ?? validResponses.length,
     };
   };
 
@@ -381,15 +406,15 @@ export const useSlaTickets = (options = {}) => {
     }).length;
 
     return {
-      total: tickets.length,
+      total: totalCount || tickets.length,
       activos: activos.length,
       resueltos: resueltos.length,
-      tasaResolucion: tickets.length > 0 ? Math.round((resueltos.length / tickets.length) * 100) : 0,
+      tasaResolucion: totalCount > 0 ? Math.round((resueltos.length / totalCount) * 100) : 0,
       tiempoPromedioRespuesta: ticketsConRespuesta.length > 0 ? Math.round(tiempoRespuesta / ticketsConRespuesta.length) : 0,
       tiempoPromedioResolucion: resueltos.length > 0 ? Math.round(tiempoResolucion / resueltos.length) : 0,
       porVencer,
     };
-  }, [tickets]);
+  }, [tickets, totalCount]);
 
   return {
     tickets, columns, metrics, loading, error, lastRefresh,

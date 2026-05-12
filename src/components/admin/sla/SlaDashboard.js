@@ -1,46 +1,52 @@
-import React from 'react';
-import { Card, Typography, Divider } from 'antd';
+import React, { useState } from 'react';
+import { Divider } from 'antd';
 import SlaMetrics from './SlaMetrics';
 import KanbanBoard from './KanbanBoard';
+import SlaDashboardHeader from './SlaDashboardHeader';
+import TicketCreateDrawer from './TicketCreateDrawer';
+import SlaChatbot from './SlaChatbot';
 import { useSlaTickets } from './useSlaTickets';
 
-const { Title } = Typography;
-
 /**
- * SlaDashboard — Tablero completo de gestión SLA con Kanban
- *
- * Visible solo para usuarios staff en el panel de admin.
+ * SlaDashboard — Tablero completo de gestión SLA con diseño moderno
  */
 const SlaDashboard = () => {
+  const [createDrawerVisible, setCreateDrawerVisible] = useState(false);
+
   const {
+    tickets,
     columns,
     metrics,
     loading,
+    lastRefresh,
     refresh,
     updateTicketStatus,
     addComment,
     convertAlertToTicket,
     deleteTicket,
   } = useSlaTickets({
-    autoRefresh: false, // Manual refresh para no saturar
+    autoRefresh: false,
   });
 
+  const handleTicketCreated = () => {
+    refresh();
+  };
+
   return (
-    <Card
-      style={{
-        borderRadius: 12,
-        border: 'none',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-      }}
-      bodyStyle={{ padding: 24 }}
-    >
-      <Title level={4} style={{ marginBottom: 4 }}>
-        Gestión SLA de Tickets de Soporte
-      </Title>
-      <Divider style={{ margin: '12px 0 16px' }} />
+    <div style={{ padding: '0 0 24px' }}>
+      {/* Header moderno */}
+      <SlaDashboardHeader
+        metrics={metrics}
+        loading={loading}
+        onRefresh={refresh}
+        lastRefresh={lastRefresh}
+        onCreateTicket={() => setCreateDrawerVisible(true)}
+      />
 
       {/* Métricas */}
-      <SlaMetrics metrics={metrics} />
+      <SlaMetrics metrics={metrics} tickets={tickets} />
+
+      <Divider style={{ margin: '16px 0 20px', borderColor: '#E2E8F0' }} />
 
       {/* Kanban */}
       <KanbanBoard
@@ -52,7 +58,17 @@ const SlaDashboard = () => {
         onConvertAlert={convertAlertToTicket}
         onDeleteTicket={deleteTicket}
       />
-    </Card>
+
+      {/* Drawer para crear ticket */}
+      <TicketCreateDrawer
+        visible={createDrawerVisible}
+        onClose={() => setCreateDrawerVisible(false)}
+        onSuccess={handleTicketCreated}
+      />
+
+      {/* Agente de chat SLA */}
+      <SlaChatbot tickets={tickets} metrics={metrics} />
+    </div>
   );
 };
 
