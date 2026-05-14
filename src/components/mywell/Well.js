@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./Well.css";
-import { Typography, Spin } from "antd";
-import { LoadingOutlined } from "@ant-design/icons";
+import { Typography } from "antd";
 
 const { Text } = Typography;
 
@@ -154,8 +153,18 @@ const Well = (props) => {
 
   if (loading) {
     return (
-      <div className="pozo" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <Spin indicator={<LoadingOutlined style={{ fontSize: 32, color: "#1F3461" }} spin />} />
+      <div className="pozo" style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "#f5f7fa", borderRadius: 16 }}>
+        <div
+          style={{
+            width: "60%",
+            maxWidth: 200,
+            height: "70%",
+            borderRadius: 12,
+            background: "linear-gradient(90deg, #e8ecf1 25%, #dfe4ea 50%, #e8ecf1 75%)",
+            backgroundSize: "200% 100%",
+            animation: "wellShimmer 1.6s ease-in-out infinite",
+          }}
+        />
       </div>
     );
   }
@@ -244,139 +253,143 @@ const Well = (props) => {
           </div>
 
           {/* ETIQUETAS DE NIVEL - Lado Derecho */}
-          {/* Bloque 1: Nivel Freático (parte superior) */}
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: "100%",
-              marginLeft: 8,
-              height: `${100 - totalWaterHeightPercent}%`,
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              borderLeft: "1px solid rgba(0, 0, 0, 0.12)",
-              whiteSpace: "nowrap",
-              zIndex: 20,
-              pointerEvents: "none",
-            }}
-          >
+          {/* Bloque 1: Nivel Freático (parte superior) - solo si hay valor */}
+          {currentWaterTable > 0 && (
             <div
               style={{
                 position: "absolute",
                 top: 0,
-                left: 0,
-                width: 10,
-                height: 1,
-                background: "rgba(0, 0, 0, 0.12)",
+                left: "100%",
+                marginLeft: 8,
+                height: `${Math.max(15, 100 - totalWaterHeightPercent)}%`,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                borderLeft: "1px solid rgba(0, 0, 0, 0.12)",
+                whiteSpace: "nowrap",
+                zIndex: 20,
+                pointerEvents: "none",
               }}
-            ></div>
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: 10,
+                  height: 1,
+                  background: "rgba(0, 0, 0, 0.12)",
+                }}
+              ></div>
 
-            <div style={{ paddingLeft: 4, pointerEvents: "auto" }}>
-              <Text
+              <div style={{ paddingLeft: 4, pointerEvents: "auto" }}>
+                <Text
+                  style={{
+                    display: "block",
+                    fontSize: 9,
+                    color: "rgba(0, 0, 0, 0.6)",
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                  }}
+                >
+                  Nivel freático
+                </Text>
+                <Text
+                  style={{
+                    display: "block",
+                    fontSize: 13,
+                    color: "#1F3461",
+                    fontWeight: 900,
+                    lineHeight: 1,
+                  }}
+                >
+                  {currentWaterTable.toFixed(2)} m
+                </Text>
+              </div>
+
+              <div
                 style={{
-                  display: "block",
-                  fontSize: 9,
-                  color: "rgba(0, 0, 0, 0.6)",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  width: 10,
+                  height: 1,
+                  background: "rgba(0, 0, 0, 0.12)",
                 }}
-              >
-                Nivel freático
-              </Text>
-              <Text
-                style={{
-                  display: "block",
-                  fontSize: 13,
-                  color: "#1F3461",
-                  fontWeight: 900,
-                  lineHeight: 1,
-                }}
-              >
-                {currentWaterTable.toFixed(2)} m
-              </Text>
+              ></div>
             </div>
+          )}
 
+          {/* Bloque 2: Columna de Agua (parte media del agua total) - solo si hay valor */}
+          {currentNivel > 0 && (
             <div
               style={{
                 position: "absolute",
-                bottom: 0,
-                left: 0,
-                width: 10,
-                height: 1,
-                background: "rgba(0, 0, 0, 0.12)",
+                bottom:
+                  hasProfundidad && nivelEstatico > 0
+                    ? `${(nivelEstatico / currentProf) * 100}%`
+                    : "0",
+                left: "100%",
+                marginLeft: 8,
+                height: `${Math.max(15, (currentNivel / currentProf) * 100)}%`,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                borderLeft: "1px solid rgba(0, 0, 0, 0.18)",
+                whiteSpace: "nowrap",
+                zIndex: 20,
+                pointerEvents: "none",
               }}
-            ></div>
-          </div>
-
-          {/* Bloque 2: Columna de Agua (parte media del agua total) */}
-          <div
-            style={{
-              position: "absolute",
-              bottom:
-                hasProfundidad && nivelEstatico > 0
-                  ? `${(nivelEstatico / currentProf) * 100}%`
-                  : "0",
-              left: "100%",
-              marginLeft: 8,
-              height: `${(currentNivel / currentProf) * 100}%`,
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              borderLeft: "1px solid rgba(0, 0, 0, 0.18)",
-              whiteSpace: "nowrap",
-              zIndex: 20,
-              pointerEvents: "none",
-            }}
-          >
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: 10,
-                height: 1,
-                background: "rgba(0, 0, 0, 0.18)",
-              }}
-            ></div>
-
-            <div style={{ paddingLeft: 4, pointerEvents: "auto" }}>
-              <Text
+            >
+              <div
                 style={{
-                  fontSize: 9,
-                  color: "rgba(0, 0, 0, 0.6)",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: 10,
+                  height: 1,
+                  background: "rgba(0, 0, 0, 0.18)",
                 }}
-              >
-                Columna de Agua
-              </Text>
-              <Text
+              ></div>
+
+              <div style={{ paddingLeft: 4, pointerEvents: "auto" }}>
+                <Text
+                  style={{
+                    fontSize: 9,
+                    color: "rgba(0, 0, 0, 0.6)",
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                  }}
+                >
+                  Columna de Agua
+                </Text>
+                <Text
+                  style={{
+                    display: "block",
+                    fontSize: 13,
+                    color: "#1F3461",
+                    fontWeight: 800,
+                    lineHeight: 1,
+                  }}
+                >
+                  {currentNivel.toFixed(2)} m
+                </Text>
+              </div>
+
+              <div
                 style={{
-                  display: "block",
-                  fontSize: 13,
-                  color: "#1F3461",
-                  fontWeight: 800,
-                  lineHeight: 1,
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  width: 10,
+                  height: 1,
+                  background: "rgba(0, 0, 0, 0.18)",
                 }}
-              >
-                {currentNivel.toFixed(2)} m
-              </Text>
+              ></div>
             </div>
-
-            <div
-              style={{
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-                width: 10,
-                height: 1,
-                background: "rgba(0, 0, 0, 0.18)",
-              }}
-            ></div>
-          </div>
+          )}
 
           {/* Agua Interior - Un solo cuerpo de agua (Columna + Estático) */}
           <div className="nivel" style={styles.nivel}>

@@ -14,6 +14,8 @@ import {
   BarChartOutlined,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
+import ModuleTour from "../common/ModuleTour";
+import { analysisTour } from "../../config/tours";
 import sh from "../../api/sh/endpoints";
 import ContainerDays from "./days/Container";
 import ContainerMonth from "./month/Container";
@@ -131,6 +133,7 @@ const ResponsiveSmartAnalysis = () => {
     >
       {/* Selector de análisis */}
       <Card
+        id="analysis-selector"
         style={{
           borderRadius: "12px",
           background: "white",
@@ -210,6 +213,7 @@ const ResponsiveSmartAnalysis = () => {
       </Card>
 
       {/* Contenedor de gráficos */}
+      <div id="analysis-charts">
       {activate ? (
         loading ? (
           <div
@@ -270,6 +274,16 @@ const ResponsiveSmartAnalysis = () => {
           </p>
         </Card>
       )}
+      </div>
+
+      <ModuleTour
+        tourKey={analysisTour.key}
+        steps={analysisTour.steps}
+        requiresPoint={analysisTour.requiresPoint}
+        hasPoint={!!state.selected_profile?.id}
+        autoStart={true}
+        delay={1000}
+      />
     </div>
   );
 };

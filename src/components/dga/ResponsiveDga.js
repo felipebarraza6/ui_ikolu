@@ -6,6 +6,8 @@ import DgaCompliance from "./DgaCompliance";
 import { useResponsive } from "../../hooks/useResponsive";
 import { AppContext } from "../../App";
 import { BarChartOutlined, CloseOutlined } from "@ant-design/icons";
+import ModuleTour from "../common/ModuleTour";
+import { dgaTour } from "../../config/tours";
 
 /**
  * 📊 DGA RESPONSIVO — Rediseñado
@@ -52,8 +54,12 @@ const ResponsiveDga = () => {
           </Flex>
         ) : (
           <>
-            <CodeQR onDiagnoseClick={() => setIsDiagnosticVisible(true)} />
-            <Registers dataDga={dataDga} loading={loading} />
+            <div id="dga-qr">
+              <CodeQR onDiagnoseClick={() => setIsDiagnosticVisible(true)} />
+            </div>
+            <div id="dga-registers">
+              <Registers dataDga={dataDga} loading={loading} />
+            </div>
           </>
         )}
       </Space>
@@ -91,8 +97,18 @@ const ResponsiveDga = () => {
           </Button>
         }
       >
-        <DgaCompliance dataDga={dataDga || []} />
+        <div id="dga-ficha">
+          <DgaCompliance dataDga={dataDga || []} />
+        </div>
       </Drawer>
+      <ModuleTour
+        tourKey={dgaTour.key}
+        steps={dgaTour.steps}
+        requiresPoint={dgaTour.requiresPoint}
+        hasPoint={!!state.selected_profile?.id}
+        autoStart={true}
+        delay={1000}
+      />
     </div>
   );
 };

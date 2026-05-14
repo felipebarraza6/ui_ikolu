@@ -27,16 +27,6 @@ const PointDetailGuard = ({ children, fallback = null }) => {
     );
   }
 
-  // Si está cargando el detalle
-  if (loading) {
-    return (
-      <Flex align="center" justify="center" style={{ height: '50vh' }} gap="middle" vertical>
-        <Spin size="large" />
-        <p>Cargando detalle del punto...</p>
-      </Flex>
-    );
-  }
-
   // Si no tiene el detalle completo después de cargar
   if (!hasDetail) {
     return (

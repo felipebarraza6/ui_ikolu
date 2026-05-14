@@ -90,3 +90,19 @@ code {
   border-radius: 3px;
   padding-top: 2px
 }
+
+/* Transición suave entre rutas */
+.route-fade-in {
+  animation: routeFadeIn 0.35s ease-out;
+}
+
+@keyframes routeFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

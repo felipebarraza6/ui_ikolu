@@ -15,6 +15,8 @@ import {
   Statistic,
 } from "antd";
 import { AppContext } from "../../App";
+import ModuleTour from "../common/ModuleTour";
+import { downloadTour } from "../../config/tours";
 import dayjs from "dayjs";
 import locale from "antd/locale/es_ES";
 import "dayjs/locale/es";
@@ -396,6 +398,7 @@ const Reports = () => {
 
         {/* Filtros */}
         <Card
+          id="download-filters"
           style={{
             borderRadius: "12px",
             background: "white",
@@ -442,6 +445,7 @@ const Reports = () => {
                       Limpiar
                     </Button>
                     <Button
+                      id="download-action"
                       icon={<FileExcelFilled />}
                       type="primary"
                       style={{ background: "#1f3461", color: "white" }}

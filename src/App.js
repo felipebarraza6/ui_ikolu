@@ -4,6 +4,7 @@ import { appReducer } from "./reducers/appReducer";
 import { AuthProvider } from "./contexts/AuthContext";
 import { DataProvider } from "./contexts/DataContext";
 import { UIProvider } from "./contexts/UIContext";
+import { TourProvider } from "./contexts/TourContext";
 
 /**
  * ⚠️ DEPRECATED: AppContext monolítico
@@ -101,7 +102,9 @@ const App = () => {
         <UIProvider value={uiValue}>
           {/* Contexto legacy para compatibilidad durante migración */}
           <AppContext.Provider value={legacyContextValue}>
-            <AppRouter />
+            <TourProvider>
+              <AppRouter />
+            </TourProvider>
           </AppContext.Provider>
         </UIProvider>
       </DataProvider>

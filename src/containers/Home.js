@@ -46,6 +46,8 @@ import {
 } from "react-router-dom";
 import logo from "../assets/images/logozivo.png";
 import HeaderNav from "../components/home/HeaderNav";
+import ModuleTour from "../components/common/ModuleTour";
+import { generalTour } from "../config/tours";
 import MyWell from "../components/mywell/MyWell";
 import GraphisNav from "../components/smart_data/GraphisNav";
 import ResponsiveSmartAnalysis from "../components/smart_data/ResponsiveSmartAnalysis";
@@ -207,30 +209,10 @@ const AppRoutes = React.memo(() => {
   const { loading } = useLazyProfile();
 
   const renderMainRoute = () => {
-    // 🆕 Si está cargando el detalle del punto, mostrar spinner
-    if (loading) {
-      return (
-        <Flex align="center" justify="center" style={{ height: "50vh" }} gap="middle">
-          <Spin size="large" />
-          <p>Cargando información del punto de captación...</p>
-        </Flex>
-      );
-    }
-
     if (!state.selected_profile || !state.selected_profile.id) {
       return (
         <Flex align="center" justify="center" style={{ height: "50vh" }}>
           <p>Selecciona un punto de captación para ver la telemetría</p>
-        </Flex>
-      );
-    }
-
-    // 🆕 Si no tenemos config_data aún, el detalle se está cargando
-    if (!state.selected_profile.config_data) {
-      return (
-        <Flex align="center" justify="center" style={{ height: "50vh" }} gap="middle">
-          <Spin size="large" />
-          <p>Cargando detalle del punto...</p>
         </Flex>
       );
     }
@@ -289,7 +271,9 @@ const AppRoutes = React.memo(() => {
   const isAdmin = state.user?.is_staff || state.user?.is_superuser;
   const hasPoint = !!state.selected_profile?.id;
 
+  const location = useLocation();
   return (
+    <div key={location.pathname} className="route-fade-in">
     <Routes>
       {/* Rutas SIEMPRE visibles */}
       <Route path="/" element={renderCentroControl()} />
@@ -344,6 +328,7 @@ const AppRoutes = React.memo(() => {
         } />
       )}
     </Routes>
+    </div>
   );
 });
 
@@ -747,7 +732,7 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
               }
             `}</style>
             <Spin spinning={adminLoading} size="small">
-              <Flex vertical gap="small">
+              <Flex id="point-selector" vertical gap="small">
                 {/* Select Cliente */}
                 <Select
                   className="admin-select"
@@ -890,7 +875,7 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
 
         {/* Selector de pozo — SOLO para usuarios normales (no admin/staff) */}
         {!isAdmin && (
-          <div style={{ padding: "0 12px 16px 12px", minWidth: 0 }}>
+          <div id="point-selector" style={{ padding: "0 12px 16px 12px", minWidth: 0 }}>
             <ListWells />
           </div>
         )}
@@ -1099,6 +1084,7 @@ const AppLayout = ({ children }) => {
     <Layout style={{ minHeight: "100vh" }}>
       {!isMobile && (
         <Sider
+          id="app-sider"
           width={240}
           style={{
             background: token.colorPrimary,
@@ -1116,6 +1102,7 @@ const AppLayout = ({ children }) => {
       )}
       <Layout style={{ marginLeft: isMobile ? 0 : 240 }}>
         <Header
+          id="app-header"
           style={{
             padding: "0 16px",
             background: token.colorBgContainer,
@@ -1134,6 +1121,7 @@ const AppLayout = ({ children }) => {
           </div>
         </Header>
         <Content
+          id="app-content"
           style={{
             margin: isMobile ? "52px 0 64px 0" : "12px 12px 12px 12px",
             padding: isMobile ? 8 : 12,
@@ -1196,6 +1184,14 @@ const Home = () => {
       }}
     >
 
+      <ModuleTour
+        tourKey={generalTour.key}
+        steps={generalTour.steps}
+        requiresPoint={generalTour.requiresPoint}
+        hasPoint={true}
+        autoStart={true}
+        delay={1500}
+      />
       <AppLayout>
         <AppRoutes />
       </AppLayout>

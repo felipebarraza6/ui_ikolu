@@ -1,5 +1,23 @@
 import { upload } from "@testing-library/user-event/dist/upload";
-import { POST_LOGIN, GET, DOWNLOAD, DELETE, POST, PATCH } from "./config";
+import { POST_LOGIN, GET, DOWNLOAD, DELETE, POST, PATCH, Axios } from "./config";
+
+const requestPasswordReset = async (email) => {
+  const request = await Axios.post("ik/auth/password-reset/", { email });
+  return request.data;
+};
+
+const confirmPasswordReset = async (token, newPassword) => {
+  const request = await Axios.post("ik/auth/password-reset/confirm/", {
+    token,
+    password: newPassword,
+  });
+  return request.data;
+};
+
+const getPublicAnnouncements = async (limit = 20) => {
+  const request = await Axios.get(`ik/announcements/public/?limit=${limit}`);
+  return request.data;
+};
 
 const login = async (data) => {
   const request = await POST_LOGIN("ik/login/", {
@@ -600,6 +618,9 @@ const getCatchmentPointsByProject = async (projectId) => {
 
 const sh = {
   authenticated: login,
+  requestPasswordReset,
+  confirmPasswordReset,
+  getPublicAnnouncements,
   billing_data: get_history_data,
   billing_data_admin: get_history_data_admin,
   get_profile: get_profile,

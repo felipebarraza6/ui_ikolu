@@ -3,6 +3,8 @@ import { AppContext } from "../../App";
 import { useData } from "../../contexts/DataContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useDashboardData } from "../../hooks/useDashboardData";
+import ModuleTour from "../common/ModuleTour";
+import { centroControlTour } from "../../config/tours";
 import { useDataStatistics } from "./hooks/useDataValidation";
 import ConsumptionChart from "./ConsumptionChart";
 import CombinedVariablesChart from "./CombinedVariablesChart";
@@ -200,7 +202,7 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
       </Flex>
 
       {/* KPIs */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+      <Row id="cc-kpi-cards" gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={12} sm={6} md={6}>
           <KPICard
             icon={<FaMapMarkerAlt style={{ fontSize: 20, color: "white" }} />}
@@ -242,7 +244,7 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
       </Row>
 
       {/* Estado del Servicio + Consumo */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+      <Row id="cc-geo-map" gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} md={8}>
           <ServiceStatusCard
             serviceHealth={serviceHealth}
@@ -268,7 +270,7 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
       </Row>
 
       {/* Variables en Tiempo Real */}
-      <div style={{ marginTop: 32 }}>
+      <div id="cc-consumption-chart" style={{ marginTop: 32 }}>
         <Text strong style={{ fontSize: 14, display: "block", marginBottom: 4 }}>
           Detalle por punto en tiempo real
         </Text>
@@ -277,6 +279,15 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
         </Text>
         <CombinedVariablesChart profiles={profiles} />
       </div>
+
+      <ModuleTour
+        tourKey={centroControlTour.key}
+        steps={centroControlTour.steps}
+        requiresPoint={centroControlTour.requiresPoint}
+        hasPoint={true}
+        autoStart={true}
+        delay={1000}
+      />
 
       {/* Modal Histórico */}
       <Modal

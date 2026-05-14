@@ -22,6 +22,7 @@ import { Typography, Button, Popconfirm, Flex, Breadcrumb, Dropdown, Badge } fro
 import AlertPreview from "./AlertPreview";
 import WellConfigDrawer from "../well/WellConfigDrawer";
 import DgaConfigDrawer from "../well/DgaConfigDrawer";
+import TourHelpButton from "../common/TourHelpButton";
 import { useResponsive } from "../../hooks/useResponsive";
 import sh from "../../api/sh/endpoints";
 import logo from "../../assets/images/logozivo.png";
@@ -230,6 +231,7 @@ const HeaderNav = ({ onMenuClick }) => {
       <div style={breadcrumbMobileStyle}>
         <span style={{ color: "white", opacity: 0.85 }}>{moduleName}</span>
       </div>
+      <TourHelpButton />
       <Popconfirm
         cancelText="Volver"
         okText="SALIR"
@@ -300,14 +302,28 @@ const HeaderNav = ({ onMenuClick }) => {
               if (configFor === "dga") setDgaDrawerOpen(true);
             }}
             title={configFor === "well" ? "Configuración del punto" : "Configuración DGA"}
+            className="config-btn-modern"
             style={{
-              width: 32,
-              height: 32,
+              width: 34,
+              height: 34,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              borderRadius: "50%",
-              background: "#f0f2f5",
+              borderRadius: 10,
+              background: "linear-gradient(135deg, #f0f5ff 0%, #e6f0ff 100%)",
+              border: "1px solid rgba(24, 144, 255, 0.15)",
+              boxShadow: "0 2px 6px rgba(24, 144, 255, 0.08)",
+              transition: "all 0.25s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "scale(1.08)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(24, 144, 255, 0.2)";
+              e.currentTarget.style.background = "linear-gradient(135deg, #e6f0ff 0%, #d6e4ff 100%)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "scale(1)";
+              e.currentTarget.style.boxShadow = "0 2px 6px rgba(24, 144, 255, 0.08)";
+              e.currentTarget.style.background = "linear-gradient(135deg, #f0f5ff 0%, #e6f0ff 100%)";
             }}
           />
         )}
@@ -328,6 +344,8 @@ const HeaderNav = ({ onMenuClick }) => {
           }}
         >
           <AlertPreview />
+
+          <TourHelpButton />
 
           <Dropdown
             menu={{
