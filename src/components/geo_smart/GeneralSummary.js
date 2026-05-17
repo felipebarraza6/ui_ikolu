@@ -73,7 +73,7 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
   const [modalVisible, setModalVisible] = useState(false);
 
   // Estadísticas computadas (memoizado internamente)
-  const stats = useDataStatistics(profiles);
+  const { stats, computedProfiles } = useDataStatistics(profiles);
 
   // --- Detección de TOTALIZADO ---
   const hasAnyTotalizado = useMemo(() => {
@@ -136,7 +136,7 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
 
   // --- Total Histórico ---
   const totalHistoricoPorPunto = useMemo(() => {
-    return profiles.map((p) => {
+    return computedProfiles.map((p) => {
       const computedHist = p._computed?.historical;
       return {
         name: p.title,

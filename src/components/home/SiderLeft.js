@@ -59,13 +59,14 @@ const SiderLeft = () => {
               <Button
                 style={{
                   backgroundColor:
-                    location.pathname === "/" ? "white" : "transparent",
-                  color: location.pathname === "/" ? "#1f3461" : "white",
+                    (location.pathname === "/" || location.pathname === "/control_center") ? "white" : "transparent",
+                  color: (location.pathname === "/" || location.pathname === "/control_center") ? "#1f3461" : "white",
                   border: "none",
                 }}
                 block
                 onClick={() => {
-                  navigate("/");
+                  const isAdmin = state.user?.is_staff || state.user?.is_superuser;
+                  navigate(isAdmin ? "/" : "/control_center");
                 }}
                 children={
                   <Flex

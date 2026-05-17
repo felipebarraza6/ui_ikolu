@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useContext } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Card,
   Row,
@@ -14,8 +14,9 @@ import {
   Skeleton,
   Statistic,
   Button,
+  theme,
 } from "antd";
-import { AppContext } from "../../App";
+import { useData } from "../../contexts/DataContext";
 import GeoMap from "./GeoMap";
 import StatusTag from "./StatusTag";
 import { formatInteger, formatFlow } from "../../utils/numberFormatter";
@@ -48,14 +49,17 @@ import moment from "moment";
 import { parseSafeDate, formatSafeDate } from "../../utils/dateFormatter";
 import { ReloadOutlined } from "@ant-design/icons";
 import { useDataValidation } from "./hooks/useDataValidation";
+import { ikoluTokens } from "../../theme";
 
 const { Title, Text, Paragraph } = Typography;
 const { useBreakpoint } = Grid;
+const { useToken } = theme;
 
 const GeoSmart = () => {
-  const { state } = useContext(AppContext);
+  const { profile_client } = useData();
   const validators = useDataValidation();
   const screens = useBreakpoint();
+  const { token } = useToken();
   const [geoData, setGeoData] = useState([]);
   const [selectedPoint, setSelectedPoint] = useState(null);
   const [stats, setStats] = useState({
@@ -68,7 +72,7 @@ const GeoSmart = () => {
   });
 
   useEffect(() => {
-    const profiles = state.profile_client || [];
+    const profiles = profile_client || [];
     const processedData = profiles.map((profile) => {
       const hasGPS =
         profile.lat &&
@@ -79,11 +83,11 @@ const GeoSmart = () => {
         profile.lon !== "";
       const lat = hasGPS ? parseFloat(profile.lat.replace(",", ".")) : null;
       const lon = hasGPS ? parseFloat(profile.lon.replace(",", ".")) : null;
-      
+
       // Obtener el registro más reciente de forma robusta
       const latest = validators.getLatestRecord(profile);
       const lastData = latest || profile.modules?.m1 || {};
-      
+
       return {
         id: profile.id,
         title: profile.title,
@@ -123,7 +127,7 @@ const GeoSmart = () => {
             processedData.length
           : 0,
     });
-  }, [state.profile_client]);
+  }, [profile_client]);
 
   const handlePointClick = useCallback((point) => {
     setSelectedPoint(point);
@@ -132,7 +136,6 @@ const GeoSmart = () => {
   const columns = [
     { title: "Nombre", dataIndex: "title", key: "title" },
     { title: "Código de obra", dataIndex: "codeDga", key: "codeDga" },
-
     {
       title: "Latitud",
       dataIndex: "lat",
@@ -142,7 +145,7 @@ const GeoSmart = () => {
         value ? (
           <span>{value}</span>
         ) : (
-          <span style={{ color: "#bdbdbd" }}>-</span>
+          <span style={{ color: ikoluTokens.colorGreyTextDisabled }}>-</span>
         ),
     },
     {
@@ -154,7 +157,7 @@ const GeoSmart = () => {
         value ? (
           <span>{value}</span>
         ) : (
-          <span style={{ color: "#bdbdbd" }}>-</span>
+          <span style={{ color: ikoluTokens.colorGreyTextDisabled }}>-</span>
         ),
     },
     {
@@ -167,9 +170,9 @@ const GeoSmart = () => {
           return (
             <Badge
               status="processing"
-              color="#43a047"
+              color={ikoluTokens.colorGreenText}
               text={
-                <span style={{ color: "#43a047", fontWeight: 600 }}>
+                <span style={{ color: ikoluTokens.colorGreenText, fontWeight: 600 }}>
                   Activo
                 </span>
               }
@@ -193,7 +196,7 @@ const GeoSmart = () => {
             {formatSafeDate(value, "YYYY-MM-DD")} <b>{formatSafeDate(value, "HH:mm")} hrs</b>
           </span>
         ) : (
-          <span style={{ color: "#bdbdbd" }}>-</span>
+          <span style={{ color: ikoluTokens.colorGreyTextDisabled }}>-</span>
         ),
     },
   ];
@@ -210,22 +213,11 @@ const GeoSmart = () => {
         >
           <Flex vertical style={{ width: "100%" }}>
             <Flex align="center" gap={16} style={{ marginBottom: 8 }}>
-              <Skeleton.Avatar
-                size={48}
-                shape="circle"
-                style={{ marginBottom: 16 }}
-              />
-              <Skeleton
-                active
-                paragraph={{ rows: 5 }}
-                title={false}
-                style={{ width: "100%" }}
-              />
+              <Skeleton.Avatar size={48} shape="circle" style={{ marginBottom: 16 }} />
+              <Skeleton active paragraph={{ rows: 5 }} title={false} style={{ width: "100%" }} />
             </Flex>
             <div style={{ textAlign: "center", width: "100%", marginTop: 16 }}>
-              <Text type="secondary">
-                Selecciona un punto en el mapa para ver detalles
-              </Text>
+              <Text type="secondary">Selecciona un punto en el mapa para ver detalles</Text>
             </div>
           </Flex>
           {/* Onda plana, sin animación */}
@@ -243,7 +235,7 @@ const GeoSmart = () => {
           >
             <path
               d="M0,40 Q100,40 200,40 T400,40 T600,40 T800,40 V50 H0 Z"
-              fill="#e3f2fd"
+              fill={ikoluTokens.colorBlueTint}
               opacity="0.7"
             />
           </svg>
@@ -268,29 +260,23 @@ const GeoSmart = () => {
 
     // Estado de fechas
     const today = moment().format("YYYY-MM-DD");
-    const lastMedDate = lastMeasurement
-      ? formatSafeDate(lastMeasurement, "YYYY-MM-DD")
-      : null;
-    const lastLoggerDate = lastLogger
-      ? formatSafeDate(lastLogger, "YYYY-MM-DD")
-      : null;
+    const lastMedDate = lastMeasurement ? formatSafeDate(lastMeasurement, "YYYY-MM-DD") : null;
+    const lastLoggerDate = lastLogger ? formatSafeDate(lastLogger, "YYYY-MM-DD") : null;
     let estado = "";
     let estadoColor = "success";
-    let estadoIcon = (
-      <FaCheckCircle style={{ color: "#43a047", marginRight: 6 }} />
-    );
+    let estadoIcon = <FaCheckCircle style={{ color: ikoluTokens.colorGreenText, marginRight: 6 }} />;
     if (!lastMedDate || lastMedDate < today) {
       if (lastMedDate === moment().subtract(1, "days").format("YYYY-MM-DD")) {
         estado = "Medición de ayer";
         estadoColor = "warning";
         estadoIcon = (
-          <FaExclamationTriangle style={{ color: "#faad14", marginRight: 6 }} />
+          <FaExclamationTriangle style={{ color: token.colorWarning, marginRight: 6 }} />
         );
       } else {
         estado = "Sin datos recientes";
         estadoColor = "error";
         estadoIcon = (
-          <FaExclamationTriangle style={{ color: "#ff4d4f", marginRight: 6 }} />
+          <FaExclamationTriangle style={{ color: token.colorError, marginRight: 6 }} />
         );
       }
     } else {
@@ -308,11 +294,7 @@ const GeoSmart = () => {
           <Tag
             color="error"
             style={{ textAlign: "center" }}
-            icon={
-              <FaExclamationTriangle
-                style={{ color: "#ff4d4f", marginRight: 4 }}
-              />
-            }
+            icon={<FaExclamationTriangle style={{ color: token.colorError, marginRight: 4 }} />}
           >
             Desincronizado: {Math.floor(diffMin / 60)}h {diffMin % 60}m
           </Tag>
@@ -326,9 +308,7 @@ const GeoSmart = () => {
       } else {
         diffTag = (
           <Tag
-            icon={
-              <FaCheckCircle style={{ color: "#43a047", marginRight: 4 }} />
-            }
+            icon={<FaCheckCircle style={{ color: ikoluTokens.colorGreenText, marginRight: 4 }} />}
             style={{ textAlign: "center" }}
             color="success"
           >
@@ -344,16 +324,14 @@ const GeoSmart = () => {
       alertas.push({
         msg: "Caudal en 0 L/s",
         color: "error",
-        icon: <FaBolt style={{ color: "#ff4d4f", marginRight: 4 }} />,
+        icon: <FaBolt style={{ color: token.colorError, marginRight: 4 }} />,
       });
     }
     if (total_today_diff === 0) {
       alertas.push({
         msg: "Sin consumo hoy",
         color: "warning",
-        icon: (
-          <FaExclamationTriangle style={{ color: "#faad14", marginRight: 4 }} />
-        ),
+        icon: <FaExclamationTriangle style={{ color: token.colorWarning, marginRight: 4 }} />,
       });
     }
 
@@ -363,7 +341,7 @@ const GeoSmart = () => {
         {currentCaudal === 0 && (
           <Typography.Text
             type="danger"
-            style={{ fontWeight: 600, fontSize: 14, animation: "fadeIn 1s" }}
+            style={{ fontWeight: 600, fontSize: ikoluTokens.fontSizeLarge, animation: "fadeIn 1s" }}
           >
             <FaExclamationTriangle style={{ marginRight: 6 }} /> Caudal en 0 L/s
           </Typography.Text>
@@ -392,19 +370,11 @@ const GeoSmart = () => {
         >
           Limpiar
         </Button>
-        <Flex
-          vertical
-          style={{ width: "100%" }}
-          align="stretch"
-          justify="space-between"
-        >
+        <Flex vertical style={{ width: "100%" }} align="stretch" justify="space-between">
           <Flex align="center" gap={16} style={{ marginBottom: 8 }}>
-            <FaMapMarkerAlt style={{ fontSize: 22, color: "#1f3461" }} />
+            <FaMapMarkerAlt style={{ fontSize: 22, color: ikoluTokens.colorCorporateBlue }} />
             <div style={{ flex: 1 }}>
-              <Title
-                level={5}
-                style={{ margin: 0, color: "#1f3461", fontWeight: 700 }}
-              >
+              <Title level={5} style={{ margin: 0, color: ikoluTokens.colorCorporateBlue, fontWeight: 700 }}>
                 {title}
               </Title>
               <Text type="secondary" style={{ fontSize: 15 }}>
@@ -412,36 +382,25 @@ const GeoSmart = () => {
               </Text>
             </div>
           </Flex>
-          <Flex
-            gap={"small"}
-            justify="space-between"
-            style={{ width: "100%" }}
-            wrap
-          >
+          <Flex gap="small" justify="space-between" style={{ width: "100%" }} wrap>
             <Statistic
-              style={{ fontWeight: 700, color: "#1f3461" }}
+              style={{ fontWeight: 700, color: ikoluTokens.colorCorporateBlue }}
               title="Caudal"
-              valueStyle={{
-                fontSize: 14,
-              }}
+              valueStyle={{ fontSize: ikoluTokens.fontSizeLarge }}
               value={formatFlow(currentCaudal || 0)}
               suffix="lt/s"
             />
             <Statistic
-              style={{ fontWeight: 700, color: "#1f3461" }}
+              style={{ fontWeight: 700, color: ikoluTokens.colorCorporateBlue }}
               title="Total"
               value={total}
-              valueStyle={{
-                fontSize: 14,
-              }}
+              valueStyle={{ fontSize: ikoluTokens.fontSizeLarge }}
               suffix="m³"
             />
             <Statistic
-              style={{ fontWeight: 700, color: "#1f3461" }}
+              style={{ fontWeight: 700, color: ikoluTokens.colorCorporateBlue }}
               title="N.Freático"
-              valueStyle={{
-                fontSize: 14,
-              }}
+              valueStyle={{ fontSize: ikoluTokens.fontSizeLarge }}
               value={
                 waterTable !== undefined && waterTable !== null
                   ? Number(waterTable).toFixed(2)
@@ -450,14 +409,14 @@ const GeoSmart = () => {
               suffix="m"
             />
           </Flex>
-          <Divider style={{ margin: "16px 0 12px 0" }}></Divider>
+          <Divider style={{ margin: "16px 0 12px 0" }} />
           <Flex vertical gap={8}>
             <Text>
-              <FaClock style={{ color: "#1F3461", marginRight: 5 }} />{" "}
+              <FaClock style={{ color: ikoluTokens.colorCorporateBlue, marginRight: 5 }} />{" "}
               {formatSafeDate(lastMeasurement, "YYYY-MM-DD HH:mm") + " hrs"}
             </Text>
             <Text>
-              <FaCalendarAlt style={{ color: "#1F3461", marginRight: 5 }} />{" "}
+              <FaCalendarAlt style={{ color: ikoluTokens.colorCorporateBlue, marginRight: 5 }} />{" "}
               {formatSafeDate(lastLogger, "YYYY-MM-DD HH:mm") + " hrs"}
             </Text>
             {diffTag}
@@ -465,12 +424,12 @@ const GeoSmart = () => {
           <Divider style={{ margin: "16px 0 12px 0" }} />
           {hasGPS && (
             <>
-              <Text style={{ color: "#388e3c", fontSize: 13 }}>
-                <FaMapMarkerAlt style={{ marginRight: 6, color: "#43a047" }} />
+              <Text style={{ color: ikoluTokens.colorGreenDarkText, fontSize: 13 }}>
+                <FaMapMarkerAlt style={{ marginRight: 6, color: ikoluTokens.colorGreenText }} />
                 Lat: <b>{lat}</b>
               </Text>
-              <Text style={{ color: "#388e3c", fontSize: 13 }}>
-                <FaMapMarkerAlt style={{ marginRight: 6, color: "#43a047" }} />
+              <Text style={{ color: ikoluTokens.colorGreenDarkText, fontSize: 13 }}>
+                <FaMapMarkerAlt style={{ marginRight: 6, color: ikoluTokens.colorGreenText }} />
                 Lon: <b>{lon}</b>
               </Text>
             </>
@@ -493,7 +452,7 @@ const GeoSmart = () => {
             >
               <path
                 d="M0,30 Q100,50 200,30 T400,30 T600,30 T800,30 V50 H0 Z"
-                fill="#e3f2fd"
+                fill={ikoluTokens.colorBlueTint}
                 opacity="0.7"
               />
             </svg>
@@ -521,7 +480,7 @@ const GeoSmart = () => {
           >
             <path
               d="M0,40 Q100,40 200,40 T400,40 T600,40 T800,40 V50 H0 Z"
-              fill="#e3f2fd"
+              fill={ikoluTokens.colorBlueTint}
               opacity="0.7"
             />
           </svg>
@@ -540,7 +499,7 @@ const GeoSmart = () => {
             style={{
               height: 400,
               background: "#f8fafc",
-              border: "1.5px solid #e3f2fd",
+              border: `1.5px solid ${ikoluTokens.colorBlueTint}`,
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
@@ -551,12 +510,10 @@ const GeoSmart = () => {
               <GeoMap geoData={geoData} onPointClick={handlePointClick} />
             ) : (
               <Flex align="center" justify="center" style={{ height: "100%" }} vertical gap="small">
-                <Typography.Title level={4} style={{ color: "#1f3461", margin: 0 }}>
+                <Typography.Title level={4} style={{ color: ikoluTokens.colorCorporateBlue, margin: 0 }}>
                   GEO Smart
                 </Typography.Title>
-                <Typography.Text type="secondary">
-                  No hay puntos con GPS configurados
-                </Typography.Text>
+                <Typography.Text type="secondary">No hay puntos con GPS configurados</Typography.Text>
               </Flex>
             )}
           </Card>
@@ -583,4 +540,4 @@ const GeoSmart = () => {
   );
 };
 
-export default GeoSmart;
+export default React.memo(GeoSmart);

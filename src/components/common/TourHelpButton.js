@@ -65,7 +65,6 @@ const TourHelpButton = () => {
       placement="bottomRight"
       trigger={["click"]}
     >
-      <Tooltip title="Capacitación">
         <Badge dot={hasUnseenModuleTour} color="#FF6B35" offset={[-2, 2]}>
           <Button
             shape="circle"
@@ -83,7 +82,6 @@ const TourHelpButton = () => {
             }}
           />
         </Badge>
-      </Tooltip>
     </Dropdown>
   );
 };

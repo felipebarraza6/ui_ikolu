@@ -166,7 +166,10 @@ const ResponsiveLayout = ({ children }) => {
                   height: isMobile ? 30 : 40,
                   cursor: "pointer",
                 }}
-                onClick={() => navigate("/")}
+                onClick={() => {
+                  const isAdmin = state.user?.is_staff || state.user?.is_superuser;
+                  navigate(isAdmin ? "/" : "/control_center");
+                }}
               />
             </Col>
             {!isMobile && (

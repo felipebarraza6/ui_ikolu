@@ -54,6 +54,7 @@ import { formatInteger, formatFlow } from "../../utils/numberFormatter";
 import { parseSafeDate, formatSafeDate } from "../../utils/dateFormatter";
 import { useDataValidation } from "../geo_smart/hooks/useDataValidation";
 import { useResponsive } from "../../hooks/useResponsive";
+import { ikoluTokens } from "../../theme";
 import moment from "moment";
 import "moment/locale/es";
 const { Countdown } = Statistic;
@@ -85,11 +86,11 @@ const TechInfoRow = ({ icon, label, value, loading = false }) => (
   <Flex
     justify="space-between"
     align="center"
-    style={{ padding: "4px 2px", borderBottom: "1px solid #f0f0f0" }}
+    style={{ padding: "4px 2px", borderBottom: `1px solid ${ikoluTokens.colorBorderLight}` }}
   >
     <Flex align="center" gap="small">
       {icon}
-      <Text type="secondary" style={{ fontSize: 13 }}>
+      <Text type="secondary" style={{ fontSize: ikoluTokens.fontSizeMid }}>
         {label}
       </Text>
     </Flex>
@@ -97,7 +98,7 @@ const TechInfoRow = ({ icon, label, value, loading = false }) => (
       {loading ? (
         <Skeleton.Input active size="small" style={{ width: 50, height: 14 }} />
       ) : (
-        <Text strong style={{ fontSize: 12, lineHeight: "16px" }}>
+        <Text strong style={{ fontSize: ikoluTokens.fontSizeBase, lineHeight: "16px" }}>
           {value}
         </Text>
       )}
@@ -111,16 +112,16 @@ const TechItem = ({ label, value, tooltip, loading = false }) => (
     <Flex
       justify="space-between"
       align="center"
-      style={{ padding: "4px 2px", borderBottom: "1px solid #f0f0f0", minHeight: 26 }}
+      style={{ padding: "4px 2px", borderBottom: `1px solid ${ikoluTokens.colorBorderLight}`, minHeight: 26 }}
     >
-      <Text type="secondary" style={{ fontSize: 11 }}>
+      <Text type="secondary" style={{ fontSize: ikoluTokens.fontSizeSmall }}>
         {label}
       </Text>
       <div style={{ minWidth: 45, height: 16, display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
         {loading ? (
           <Skeleton.Input active size="small" style={{ width: 45, height: 14 }} />
         ) : (
-          <Text strong style={{ fontSize: 12, lineHeight: "16px" }}>
+          <Text strong style={{ fontSize: ikoluTokens.fontSizeBase, lineHeight: "16px" }}>
             {value}
           </Text>
         )}
@@ -141,7 +142,7 @@ const StatusBadge = ({ active }) => (
         boxShadow: `0 0 4px ${active ? "#52c41a" : "#ff4d4f"}`,
       }}
     />
-    <Text strong style={{ fontSize: 12, color: active ? "#52c41a" : "#ff4d4f" }}>
+    <Text strong style={{ fontSize: ikoluTokens.fontSizeBase, color: active ? "#52c41a" : "#ff4d4f" }}>
       {active ? "Activo" : "Inactivo"}
     </Text>
   </Flex>
@@ -154,7 +155,7 @@ const SectionTitle = ({ children, tooltip }) => (
         display: "block",
         color: "rgb(31, 52, 97)",
         fontWeight: 500,
-        fontSize: 11,
+        fontSize: ikoluTokens.fontSizeSmall,
       }}
       strong
     >
@@ -194,7 +195,7 @@ const ConsumptionStats = ({
       padding: "12px 16px", 
       background: "rgba(255, 255, 255, 0.4)", 
       backdropFilter: "blur(5px)", 
-      borderRadius: "12px", 
+      borderRadius: ikoluTokens.borderRadiusLG, 
       border: "1px solid rgba(255, 255, 255, 0.5)",
       marginTop: "16px",
         boxShadow: "0 2px 10px rgba(0,0,0,0.02)",
@@ -216,7 +217,7 @@ const ConsumptionStats = ({
                     style={{
                       fontSize: 10,
                       fontWeight: 700,
-                      color: "#8c8c8c",
+                      color: ikoluTokens.colorGreyText,
                       textTransform: "uppercase",
                     }}
                   >
@@ -226,11 +227,11 @@ const ConsumptionStats = ({
                 <Flex align="center" gap={2}>
                   {isIncrease ? (
                         <ArrowUpOutlined
-                          style={{ fontSize: 10, color: "#faad14" }}
+                          style={{ fontSize: 10, color: ikoluTokens.colorWarning }}
                         />
                   ) : (
                         <ArrowDownOutlined
-                          style={{ fontSize: 10, color: "#52c41a" }}
+                          style={{ fontSize: 10, color: ikoluTokens.colorSuccess }}
                         />
                   )}
                       <Text
@@ -247,7 +248,7 @@ const ConsumptionStats = ({
             </Flex>
             <Text
               style={{
-                fontSize: 18,
+                fontSize: ikoluTokens.fontSize2XL,
                 fontWeight: 900,
                 lineHeight: 1,
                 color: loading ? "#bfbfbf" : "#52c41a",
@@ -279,7 +280,7 @@ const ConsumptionStats = ({
                   style={{
                     fontSize: 10,
                     fontWeight: 700,
-                    color: "#8c8c8c",
+                    color: ikoluTokens.colorGreyText,
                     textTransform: "uppercase",
                   }}
                 >
@@ -287,7 +288,7 @@ const ConsumptionStats = ({
             </Text>
             <Text
               style={{
-                fontSize: 18,
+                fontSize: ikoluTokens.fontSize2XL,
                 fontWeight: 900,
                 lineHeight: 1,
                 color: loading ? "#bfbfbf" : "#faad14",
@@ -325,14 +326,14 @@ const ConsumptionStats = ({
               style={{
                 fontSize: 10,
                 fontWeight: 700,
-                color: "#8c8c8c",
+                color: ikoluTokens.colorGreyText,
                 textTransform: "uppercase",
               }}
             >
               Refresco
             </Text>
             {loading ? (
-              <Text style={{ fontSize: 18, fontWeight: 900, lineHeight: 1, color: "#bfbfbf" }}>—</Text>
+              <Text style={{ fontSize: ikoluTokens.fontSize2XL, fontWeight: 900, lineHeight: 1, color: ikoluTokens.colorGreyTextLight }}>—</Text>
             ) : deadline ? (
               <Countdown
                 value={deadline}
@@ -346,7 +347,7 @@ const ConsumptionStats = ({
                 onFinish={onRefresh}
               />
             ) : (
-              <Text style={{ fontSize: 14, color: "#bfbfbf", fontWeight: 700 }}>
+              <Text style={{ fontSize: ikoluTokens.fontSizeLarge, color: ikoluTokens.colorGreyTextLight, fontWeight: 700 }}>
                 N/A
               </Text>
             )}
@@ -396,16 +397,16 @@ const ConfiguredVariables = ({ variables, loading = false }) => {
           style={{
             width: 28,
             height: 28,
-            borderRadius: 8,
+            borderRadius: ikoluTokens.borderRadius,
             background: "linear-gradient(135deg, #1F3461 0%, #1890ff 100%)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <SettingOutlined style={{ color: "white", fontSize: 14 }} />
+          <SettingOutlined style={{ color: ikoluTokens.colorWhite, fontSize: ikoluTokens.fontSizeLarge }} />
         </div>
-        <Text strong style={{ fontSize: 13, color: "#1F3461" }}>
+        <Text strong style={{ fontSize: ikoluTokens.fontSizeMid, color: ikoluTokens.colorCorporateBlue }}>
           Variables Configuradas
         </Text>
       </Flex>
@@ -417,9 +418,9 @@ const ConfiguredVariables = ({ variables, loading = false }) => {
               key={i}
               style={{
                 padding: "10px 12px",
-                borderRadius: "8px",
+                borderRadius: ikoluTokens.borderRadius,
                 background: "#f8fafc",
-                border: "1px solid #f0f0f0",
+                border: `1px solid ${ikoluTokens.colorBorderLight}`,
               }}
             >
               <Skeleton active paragraph={false} title={{ width: "80%" }} />
@@ -433,9 +434,9 @@ const ConfiguredVariables = ({ variables, loading = false }) => {
               key={variable.id || index}
               style={{
                 padding: "10px 12px",
-                borderRadius: "8px",
-                background: "#ffffff",
-                border: "1px solid #f0f0f0",
+                borderRadius: ikoluTokens.borderRadius,
+                background: ikoluTokens.colorWhite,
+                border: `1px solid ${ikoluTokens.colorBorderLight}`,
                 transition: "all 0.2s ease",
               }}
               onMouseEnter={(e) => {
@@ -450,7 +451,7 @@ const ConfiguredVariables = ({ variables, loading = false }) => {
               <Flex justify="space-between" align="center" style={{ marginBottom: 4 }}>
                 <Flex align="center" gap={8}>
                   {renderTypeIcon(variable.type_variable)}
-                  <Text strong style={{ fontSize: 12, color: "#1F3461" }}>
+                  <Text strong style={{ fontSize: ikoluTokens.fontSizeBase, color: ikoluTokens.colorCorporateBlue }}>
                     {variable.label || "Sin Etiqueta"}
                   </Text>
                 </Flex>
@@ -459,23 +460,23 @@ const ConfiguredVariables = ({ variables, loading = false }) => {
                 </span>
               </Flex>
               <Flex justify="space-between" align="center">
-                <Text style={{ fontSize: 10, color: "#8c8c8c", fontWeight: 500 }}>
+                <Text style={{ fontSize: 10, color: ikoluTokens.colorGreyText, fontWeight: 500 }}>
                   {variable.str_variable || `Var ${variable.id}`}
                 </Text>
                 <Flex gap="small" wrap="wrap">
                   {variable.type_variable === "TOTALIZADO" && (
-                    <Text style={{ fontSize: 10, color: "#595959" }}>
+                    <Text style={{ fontSize: 10, color: ikoluTokens.colorGreyTextMid }}>
                       {variable.pulses_factor ? `${numberForMiles.format(variable.pulses_factor)} Lt/p · ` : ""}
                       Adic: {numberForMiles.format(variable.addition || 0)}
                     </Text>
                   )}
                   {variable.type_variable === "NIVEL" && variable.calculate_nivel !== null && variable.calculate_nivel !== undefined && (
-                    <Text style={{ fontSize: 10, color: "#595959" }}>
+                    <Text style={{ fontSize: 10, color: ikoluTokens.colorGreyTextMid }}>
                       Base: {variable.calculate_nivel}
                     </Text>
                   )}
                   {variable.type_variable === "CAUDAL" && (
-                    <Text style={{ fontSize: 10, color: "#595959" }}>
+                    <Text style={{ fontSize: 10, color: ikoluTokens.colorGreyTextMid }}>
                       Conv: {variable.convert_to_lt ? "Sí" : "No"}
                     </Text>
                   )}
@@ -585,10 +586,10 @@ const TechnicalSheetWithTabs = ({ profile, loading = false }) => {
   return (
     <Card
       style={{
-        borderRadius: "12px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+        borderRadius: ikoluTokens.borderRadiusLG,
+        boxShadow: ikoluTokens.shadowCard,
         height: "100%",
-        border: "1px solid #f0f0f0",
+        border: `1px solid ${ikoluTokens.colorBorderLight}`,
       }}
       bodyStyle={{ padding: 0 }}
     >
@@ -596,7 +597,7 @@ const TechnicalSheetWithTabs = ({ profile, loading = false }) => {
       <div
         style={{
           padding: "14px 16px",
-          borderBottom: "1px solid #f0f0f0",
+          borderBottom: `1px solid ${ikoluTokens.colorBorderLight}`,
           background: "linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)",
         }}
       >
@@ -606,23 +607,23 @@ const TechnicalSheetWithTabs = ({ profile, loading = false }) => {
               style={{
                 width: 32,
                 height: 32,
-                borderRadius: 8,
+                borderRadius: ikoluTokens.borderRadius,
                 background: "linear-gradient(135deg, #1F3461 0%, #1890ff 100%)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                boxShadow: "0 2px 6px rgba(24, 144, 255, 0.25)",
+                boxShadow: ikoluTokens.shadowPrimary,
               }}
             >
-              <IdcardOutlined style={{ color: "white", fontSize: 16 }} />
+              <IdcardOutlined style={{ color: ikoluTokens.colorWhite, fontSize: ikoluTokens.fontSizeXL }} />
             </div>
             <Flex vertical gap={2}>
-              <Text strong style={{ fontSize: 15, color: "#1F3461", lineHeight: 1.2 }}>
+              <Text strong style={{ fontSize: 15, color: ikoluTokens.colorCorporateBlue, lineHeight: 1.2 }}>
                 {loading ? <Skeleton.Input active size="small" style={{ width: 120, height: 16 }} /> : (profile?.title || "Punto de captación")}
               </Text>
               <Flex align="center" gap={4}>
-                <ArrowDownOutlined style={{ fontSize: 10, color: "#1F3461" }} />
-                <Text style={{ fontSize: 11, color: "#1F3461", fontWeight: 600 }}>
+                <ArrowDownOutlined style={{ fontSize: 10, color: ikoluTokens.colorCorporateBlue }} />
+                <Text style={{ fontSize: ikoluTokens.fontSizeSmall, color: ikoluTokens.colorCorporateBlue, fontWeight: 600 }}>
                   {loading ? <Skeleton.Input active size="small" style={{ width: 80, height: 12 }} /> : `${parseFloat(profile?.config_data?.d1 || 0).toFixed(2)} m de profundidad`}
                 </Text>
               </Flex>
@@ -632,7 +633,7 @@ const TechnicalSheetWithTabs = ({ profile, loading = false }) => {
           {/* DGA al lado del nombre */}
           {profile?.dga?.code_dga && (
             <Tooltip title="Código único de registro en DGA">
-              <Flex align="center" gap={6} style={{ background: "#f0f2f5", padding: "4px 10px", borderRadius: 6 }}>
+              <Flex align="center" gap={6} style={{ background: "#f0f2f5", padding: "4px 10px", borderRadius: ikoluTokens.radiusSmall }}>
                 <div
                   style={{
                     width: 14,
@@ -646,7 +647,7 @@ const TechnicalSheetWithTabs = ({ profile, loading = false }) => {
                   <div style={{ flex: 1, background: "#D52B1E" }} />
                   <div style={{ flex: 1, background: "#0039A6" }} />
                 </div>
-                <Text copyable style={{ fontSize: 12, color: "#1F3461", fontWeight: 700 }}>
+                <Text copyable style={{ fontSize: ikoluTokens.fontSizeBase, color: ikoluTokens.colorCorporateBlue, fontWeight: 700 }}>
                   {profile.dga.code_dga}
                 </Text>
               </Flex>
@@ -683,7 +684,7 @@ const MetricCard = ({
       className="metric-card-hover"
       style={{
         marginBottom: "6px",
-        borderRadius: "16px",
+        borderRadius: ikoluTokens.radiusXL,
         boxShadow: "0 4px 20px rgba(0, 50, 150, 0.08)",
         border: "1px solid rgba(255, 255, 255, 0.6)",
         overflow: "hidden",
@@ -702,7 +703,7 @@ const MetricCard = ({
             zIndex: 2,
           background: "linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)", 
           padding: 6, 
-          borderRadius: 8, 
+          borderRadius: ikoluTokens.borderRadius, 
           display: "flex", 
           alignItems: "center", 
           justifyContent: "center",
@@ -724,7 +725,7 @@ const MetricCard = ({
               strong
               style={{
                 fontSize: 10,
-                color: "#1F3461",
+                color: ikoluTokens.colorCorporateBlue,
                 textTransform: "uppercase",
                 letterSpacing: 0.5,
               }}
@@ -744,9 +745,9 @@ const MetricCard = ({
             Math.abs(variation) > 0.1 && (
             <Flex align="center" gap={3}>
                 {variation > 0 ? (
-                  <RiseOutlined style={{ color: "#52c41a", fontSize: 10 }} />
+                  <RiseOutlined style={{ color: ikoluTokens.colorSuccess, fontSize: 10 }} />
                 ) : (
-                <FallOutlined style={{ color: "#ff4d4f", fontSize: 10 }} />
+                <FallOutlined style={{ color: ikoluTokens.colorError, fontSize: 10 }} />
                 )}
               <Text 
                 style={{ 
@@ -781,9 +782,9 @@ const MetricCard = ({
           <Flex align="baseline" gap={4} style={{ marginBottom: 6 }} justify="space-between">
             <div
               style={{
-                fontSize: 16,
+                fontSize: ikoluTokens.fontSizeXL,
                 fontWeight: 900,
-                color: "#1F3461",
+                color: ikoluTokens.colorCorporateBlue,
                 lineHeight: 1,
                 textShadow: "0 2px 4px rgba(0,0,0,0.05)",
               }}
@@ -800,7 +801,7 @@ const MetricCard = ({
               style={{
                 fontSize: 10,
                 fontWeight: 500,
-                color: "#8c8c8c",
+                color: ikoluTokens.colorGreyText,
                 marginTop: 8,
                 fontStyle: "italic",
                 opacity: 0.8,
@@ -848,7 +849,7 @@ const MetricCard = ({
             </div>
           )}
           {footer && (
-            <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid #f0f0f0" }}>
+            <div style={{ marginTop: 8, paddingTop: 8, borderTop: `1px solid ${ikoluTokens.colorBorderLight}` }}>
               {footer}
             </div>
           )}
@@ -1258,7 +1259,7 @@ const MyWell = () => {
               title="Último Registro"
               value={lastCaption ? formatDate(lastCaption).date : "N/A"}
               unit={lastCaption ? formatDate(lastCaption).time : ""}
-              icon={<ClockCircleOutlined style={{ color: "#1F3461" }} />}
+              icon={<ClockCircleOutlined style={{ color: ikoluTokens.colorCorporateBlue }} />}
               loading={loading}
               helpText="Fecha y hora de la última medición registrada. El Logger muestra el último registro que tenía el datalogger al momento de esa medición."
               extraInfo={
@@ -1299,7 +1300,7 @@ const MyWell = () => {
               <Card
                 hoverable
                 style={{
-                  borderRadius: "16px",
+                  borderRadius: ikoluTokens.radiusXL,
                   boxShadow: "0 4px 20px rgba(0, 50, 150, 0.08)",
                   border: "1px solid rgba(255, 255, 255, 0.6)",
                   overflow: "hidden",
@@ -1340,33 +1341,33 @@ const MyWell = () => {
                               style={{
                                 background: "linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)",
                                 padding: 6,
-                                borderRadius: 8,
+                                borderRadius: ikoluTokens.borderRadius,
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
                                 flexShrink: 0,
                               }}
                             >
-                              <ColumnHeightOutlined style={{ fontSize: 16, color: "#1890ff" }} />
+                              <ColumnHeightOutlined style={{ fontSize: ikoluTokens.fontSizeXL, color: ikoluTokens.colorInfo }} />
                             </div>
-                            <Text strong style={{ fontSize: 11, color: "#1F3461" }}>
+                            <Text strong style={{ fontSize: ikoluTokens.fontSizeSmall, color: ikoluTokens.colorCorporateBlue }}>
                               Nivel de Agua
                             </Text>
                           </Flex>
                           <Flex align="baseline" gap={4} justify="space-between">
-                            <Text strong style={{ fontSize: 18, color: "#1F3461" }}>
+                            <Text strong style={{ fontSize: ikoluTokens.fontSize2XL, color: ikoluTokens.colorCorporateBlue }}>
                               {(parseFloat(nivel) || 0).toFixed(2)}
                             </Text>
-                            <Text style={{ fontSize: 11, color: "#597ef7", fontWeight: 700 }}>
+                            <Text style={{ fontSize: ikoluTokens.fontSizeSmall, color: "#597ef7", fontWeight: 700 }}>
                               m
                             </Text>
                           </Flex>
                           {varNivel !== null && (
                             <Flex align="center" gap={4} justify="flex-end">
                               {varNivel > 0 ? (
-                                <RiseOutlined style={{ color: "#52c41a", fontSize: 10 }} />
+                                <RiseOutlined style={{ color: ikoluTokens.colorSuccess, fontSize: 10 }} />
                               ) : (
-                                <FallOutlined style={{ color: "#ff4d4f", fontSize: 10 }} />
+                                <FallOutlined style={{ color: ikoluTokens.colorError, fontSize: 10 }} />
                               )}
                               <Text style={{ fontSize: 10, color: varNivel > 0 ? "#52c41a" : "#ff4d4f", fontWeight: 700 }}>
                                 {varNivel > 0 ? "+" : ""}{varNivel.toFixed(1)}%
@@ -1388,33 +1389,33 @@ const MyWell = () => {
                               style={{
                                 background: "linear-gradient(135deg, #fff7e6 0%, #ffe7ba 100%)",
                                 padding: 6,
-                                borderRadius: 8,
+                                borderRadius: ikoluTokens.borderRadius,
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
                                 flexShrink: 0,
                               }}
                             >
-                              <ArrowDownOutlined style={{ fontSize: 16, color: "#fa8c16" }} />
+                              <ArrowDownOutlined style={{ fontSize: ikoluTokens.fontSizeXL, color: "#fa8c16" }} />
                             </div>
-                            <Text strong style={{ fontSize: 11, color: "#1F3461" }}>
+                            <Text strong style={{ fontSize: ikoluTokens.fontSizeSmall, color: ikoluTokens.colorCorporateBlue }}>
                               Nivel Freático
                             </Text>
                           </Flex>
                           <Flex align="baseline" gap={4} justify="space-between">
-                            <Text strong style={{ fontSize: 18, color: "#1F3461" }}>
+                            <Text strong style={{ fontSize: ikoluTokens.fontSize2XL, color: ikoluTokens.colorCorporateBlue }}>
                               {(parseFloat(waterTable) || 0).toFixed(2)}
                             </Text>
-                            <Text style={{ fontSize: 11, color: "#597ef7", fontWeight: 700 }}>
+                            <Text style={{ fontSize: ikoluTokens.fontSizeSmall, color: "#597ef7", fontWeight: 700 }}>
                               m
                             </Text>
                           </Flex>
                           {varWaterTable !== null && (
                             <Flex align="center" gap={4} justify="flex-end">
                               {varWaterTable > 0 ? (
-                                <RiseOutlined style={{ color: "#52c41a", fontSize: 10 }} />
+                                <RiseOutlined style={{ color: ikoluTokens.colorSuccess, fontSize: 10 }} />
                               ) : (
-                                <FallOutlined style={{ color: "#ff4d4f", fontSize: 10 }} />
+                                <FallOutlined style={{ color: ikoluTokens.colorError, fontSize: 10 }} />
                               )}
                               <Text style={{ fontSize: 10, color: varWaterTable > 0 ? "#52c41a" : "#ff4d4f", fontWeight: 700 }}>
                                 {varWaterTable > 0 ? "+" : ""}{varWaterTable.toFixed(1)}%
@@ -1449,20 +1450,20 @@ const MyWell = () => {
                   loading ? null : (
                     <Flex justify="space-between" align="center">
                       <Flex vertical gap={2}>
-                        <Text style={{ fontSize: 9, color: "#8c8c8c", fontWeight: 700, textTransform: "uppercase" }}>
+                        <Text style={{ fontSize: 9, color: ikoluTokens.colorGreyText, fontWeight: 700, textTransform: "uppercase" }}>
                           Hoy
                         </Text>
-                        <Text strong style={{ fontSize: 13, color: "#52c41a", lineHeight: 1 }}>
+                        <Text strong style={{ fontSize: ikoluTokens.fontSizeMid, color: ikoluTokens.colorSuccess, lineHeight: 1 }}>
                           {validateNumericValue(acumDia, 0) !== null ? validateNumericValue(acumDia, 0) : 0}{" "}
                           <span style={{ fontSize: 9, fontWeight: 600 }}>m³</span>
                         </Text>
                       </Flex>
-                      <div style={{ width: "1px", height: "24px", background: "#f0f0f0" }} />
+                      <div style={{ width: "1px", height: "24px", background: ikoluTokens.colorBorderLight }} />
                       <Flex vertical gap={2} align="end">
-                        <Text style={{ fontSize: 9, color: "#8c8c8c", fontWeight: 700, textTransform: "uppercase" }}>
+                        <Text style={{ fontSize: 9, color: ikoluTokens.colorGreyText, fontWeight: 700, textTransform: "uppercase" }}>
                           Ayer
                         </Text>
-                        <Text strong style={{ fontSize: 13, color: "#faad14", lineHeight: 1 }}>
+                        <Text strong style={{ fontSize: ikoluTokens.fontSizeMid, color: ikoluTokens.colorWarning, lineHeight: 1 }}>
                           {validateNumericValue(acumAyer, 0) !== null ? validateNumericValue(acumAyer, 0) : 0}{" "}
                           <span style={{ fontSize: 9, fontWeight: 600 }}>m³</span>
                         </Text>
@@ -1493,7 +1494,7 @@ const MyWell = () => {
                 top: 10,
                 right: 10,
                 zIndex: 100,
-                borderRadius: "8px",
+                borderRadius: ikoluTokens.borderRadius,
                 boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
               }}
               onClick={async () => {
@@ -1552,8 +1553,8 @@ const MyWell = () => {
           {/* Variables Configuradas - Vista Móvil */}
           <Card
             style={{
-              borderRadius: "12px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+              borderRadius: ikoluTokens.borderRadiusLG,
+              boxShadow: ikoluTokens.shadowCard,
               background: "rgba(255,255,255,0.9)",
               backdropFilter: "blur(10px)",
               border: "1px solid rgba(255,255,255,0.5)",
@@ -1574,8 +1575,8 @@ const MyWell = () => {
               </Flex>
             }
             style={{
-              borderRadius: "12px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+              borderRadius: ikoluTokens.borderRadiusLG,
+              boxShadow: ikoluTokens.shadowCard,
             }}
           >
             <div style={{ marginTop: "8px" }}>
@@ -1678,7 +1679,7 @@ const MyWell = () => {
                   title="Último Registro"
                   value={lastCaption ? formatDate(lastCaption).date : "N/A"}
                   unit={lastCaption ? formatDate(lastCaption).time : ""}
-                  icon={<ClockCircleOutlined style={{ color: "#1F3461" }} />}
+                  icon={<ClockCircleOutlined style={{ color: ikoluTokens.colorCorporateBlue }} />}
                   loading={loading}
                   helpText="Fecha y hora de la última medición registrada. El Logger muestra el último registro que tenía el datalogger al momento de esa medición."
                   extraInfo={
@@ -1727,7 +1728,7 @@ const MyWell = () => {
                   <Card
                     hoverable
                     style={{
-                      borderRadius: "16px",
+                      borderRadius: ikoluTokens.radiusXL,
                       boxShadow: "0 4px 20px rgba(0, 50, 150, 0.08)",
                       border: "1px solid rgba(255, 255, 255, 0.6)",
                       overflow: "hidden",
@@ -1768,24 +1769,36 @@ const MyWell = () => {
                                       style={{
                                         background: "linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)",
                                         padding: 6,
-                                        borderRadius: 8,
+                                        borderRadius: ikoluTokens.borderRadius,
                                         display: "flex",
                                         alignItems: "center",
                                         justifyContent: "center",
                                         flexShrink: 0,
                                       }}
                                     >
-                                      <ColumnHeightOutlined style={{ fontSize: 16, color: "#1890ff" }} />
+                                      <ColumnHeightOutlined style={{ fontSize: ikoluTokens.fontSizeXL, color: ikoluTokens.colorInfo }} />
                                     </div>
-                                    <Text strong style={{ fontSize: 11, color: "#1F3461" }}>
+                                    <Text strong style={{ fontSize: ikoluTokens.fontSizeSmall, color: ikoluTokens.colorCorporateBlue }}>
                                       Nivel de Agua
                                     </Text>
                                   </Flex>
+                              {varNivel !== undefined && varNivel !== null && Math.abs(varNivel) > 0.1 && (
+                                <Flex align="center" gap={3}>
+                                  {varNivel > 0 ? (
+                                    <RiseOutlined style={{ color: ikoluTokens.colorSuccess, fontSize: 10 }} />
+                                  ) : (
+                                    <FallOutlined style={{ color: ikoluTokens.colorError, fontSize: 10 }} />
+                                  )}
+                                  <Text style={{ fontSize: 9, color: varNivel > 0 ? "#52c41a" : "#ff4d4f", fontWeight: 700 }}>
+                                    {varNivel > 0 ? "+" : ""}{varNivel.toFixed(1)}%
+                                  </Text>
+                                </Flex>
+                              )}
                               <Flex align="baseline" gap={4} justify="space-between">
-                                <Text strong style={{ fontSize: 18, color: "#1F3461" }}>
+                                <Text strong style={{ fontSize: ikoluTokens.fontSize2XL, color: ikoluTokens.colorCorporateBlue }}>
                                   {(parseFloat(nivel) || 0).toFixed(2)}
                                 </Text>
-                                <Text style={{ fontSize: 11, color: "#597ef7", fontWeight: 700 }}>
+                                <Text style={{ fontSize: ikoluTokens.fontSizeSmall, color: "#597ef7", fontWeight: 700 }}>
                                   m
                                 </Text>
                               </Flex>
@@ -1804,24 +1817,36 @@ const MyWell = () => {
                                   style={{
                                     background: "linear-gradient(135deg, #fff7e6 0%, #ffe7ba 100%)",
                                     padding: 6,
-                                    borderRadius: 8,
+                                    borderRadius: ikoluTokens.borderRadius,
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
                                     flexShrink: 0,
                                   }}
                                 >
-                                  <ArrowDownOutlined style={{ fontSize: 16, color: "#fa8c16" }} />
+                                  <ArrowDownOutlined style={{ fontSize: ikoluTokens.fontSizeXL, color: "#fa8c16" }} />
                                 </div>
-                                <Text strong style={{ fontSize: 11, color: "#1F3461" }}>
+                                <Text strong style={{ fontSize: ikoluTokens.fontSizeSmall, color: ikoluTokens.colorCorporateBlue }}>
                                   Nivel Freático
                                 </Text>
                               </Flex>
+                              {varWaterTable !== undefined && varWaterTable !== null && Math.abs(varWaterTable) > 0.1 && (
+                                <Flex align="center" gap={3}>
+                                  {varWaterTable > 0 ? (
+                                    <RiseOutlined style={{ color: ikoluTokens.colorSuccess, fontSize: 10 }} />
+                                  ) : (
+                                    <FallOutlined style={{ color: ikoluTokens.colorError, fontSize: 10 }} />
+                                  )}
+                                  <Text style={{ fontSize: 9, color: varWaterTable > 0 ? "#52c41a" : "#ff4d4f", fontWeight: 700 }}>
+                                    {varWaterTable > 0 ? "+" : ""}{varWaterTable.toFixed(1)}%
+                                  </Text>
+                                </Flex>
+                              )}
                               <Flex align="baseline" gap={4} justify="space-between">
-                                <Text strong style={{ fontSize: 18, color: "#1F3461" }}>
+                                <Text strong style={{ fontSize: ikoluTokens.fontSize2XL, color: ikoluTokens.colorCorporateBlue }}>
                                   {(parseFloat(waterTable) || 0).toFixed(2)}
                                 </Text>
-                                <Text style={{ fontSize: 11, color: "#597ef7", fontWeight: 700 }}>
+                                <Text style={{ fontSize: ikoluTokens.fontSizeSmall, color: "#597ef7", fontWeight: 700 }}>
                                   m
                                 </Text>
                               </Flex>
@@ -1852,20 +1877,20 @@ const MyWell = () => {
                       loading ? null : (
                         <Flex justify="space-between" align="center">
                           <Flex vertical gap={2}>
-                            <Text style={{ fontSize: 9, color: "#8c8c8c", fontWeight: 700, textTransform: "uppercase" }}>
+                            <Text style={{ fontSize: 9, color: ikoluTokens.colorGreyText, fontWeight: 700, textTransform: "uppercase" }}>
                               Hoy
                             </Text>
-                            <Text strong style={{ fontSize: 13, color: "#52c41a", lineHeight: 1 }}>
+                            <Text strong style={{ fontSize: ikoluTokens.fontSizeMid, color: ikoluTokens.colorSuccess, lineHeight: 1 }}>
                               {validateNumericValue(acumDia, 0) !== null ? validateNumericValue(acumDia, 0) : 0}{" "}
                               <span style={{ fontSize: 9, fontWeight: 600 }}>m³</span>
                             </Text>
                           </Flex>
-                          <div style={{ width: "1px", height: "24px", background: "#f0f0f0" }} />
+                          <div style={{ width: "1px", height: "24px", background: ikoluTokens.colorBorderLight }} />
                           <Flex vertical gap={2} align="end">
-                            <Text style={{ fontSize: 9, color: "#8c8c8c", fontWeight: 700, textTransform: "uppercase" }}>
+                            <Text style={{ fontSize: 9, color: ikoluTokens.colorGreyText, fontWeight: 700, textTransform: "uppercase" }}>
                               Ayer
                             </Text>
-                            <Text strong style={{ fontSize: 13, color: "#faad14", lineHeight: 1 }}>
+                            <Text strong style={{ fontSize: ikoluTokens.fontSizeMid, color: ikoluTokens.colorWarning, lineHeight: 1 }}>
                               {validateNumericValue(acumAyer, 0) !== null ? validateNumericValue(acumAyer, 0) : 0}{" "}
                               <span style={{ fontSize: 9, fontWeight: 600 }}>m³</span>
                             </Text>
@@ -1894,10 +1919,10 @@ const MyWell = () => {
               {/* Tarjeta del Pozo */}
               <Card
                 style={{
-                  borderRadius: "12px",
+                  borderRadius: ikoluTokens.borderRadiusLG,
                   boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                  background: "#ffffff",
-                  border: "1px solid #f0f0f0",
+                  background: ikoluTokens.colorWhite,
+                  border: `1px solid ${ikoluTokens.colorBorderLight}`,
                   overflow: "hidden",
                 }}
                 bodyStyle={{ 
@@ -1923,7 +1948,7 @@ const MyWell = () => {
                       style={{
                         width: 100,
                         height: 24,
-                        borderRadius: 12,
+                        borderRadius: ikoluTokens.borderRadiusLG,
                         background: "linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%)",
                         backgroundSize: "200% 100%",
                         animation: "ikoluShimmer 1.5s infinite",
@@ -1960,7 +1985,7 @@ const MyWell = () => {
                   ) : deadline ? (
                     <Tooltip title="Tiempo hasta la próxima medición">
                       <Flex align="center" gap={4}>
-                        <WifiOutlined style={{ fontSize: 10, color: "#1F3461" }} />
+                        <WifiOutlined style={{ fontSize: 10, color: ikoluTokens.colorCorporateBlue }} />
                         <Countdown
                           value={deadline}
                           format="mm:ss"
@@ -1974,7 +1999,7 @@ const MyWell = () => {
                       </Flex>
                     </Tooltip>
                   ) : (
-                    <Text style={{ fontSize: 11, fontWeight: 700, color: "#bfbfbf" }}>N/A</Text>
+                    <Text style={{ fontSize: ikoluTokens.fontSizeSmall, fontWeight: 700, color: ikoluTokens.colorGreyTextLight }}>N/A</Text>
                   )}
                 </div>
                 
@@ -2030,8 +2055,8 @@ const MyWell = () => {
               </div>
               <Card
                 style={{
-                  borderRadius: "12px",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                  borderRadius: ikoluTokens.borderRadiusLG,
+                  boxShadow: ikoluTokens.shadowCard,
                   background: "rgba(255,255,255,0.9)",
                   backdropFilter: "blur(10px)",
                   border: "1px solid rgba(255,255,255,0.5)",

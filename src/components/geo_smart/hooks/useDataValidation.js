@@ -295,13 +295,17 @@ export const useDataStatistics = (profiles) => {
 
   return useMemo(() => {
     const validProfiles = validators.validateProfiles(profiles);
+    const validProfileIds = new Set(validProfiles.map((p) => p.id || p.title));
 
     if (validProfiles.length === 0) {
       return {
-        hasData: false,
-        totalProfiles: 0,
-        validProfiles: 0,
-        invalidProfiles: profiles ? profiles.length : 0,
+        stats: {
+          hasData: false,
+          totalProfiles: 0,
+          validProfiles: 0,
+          invalidProfiles: profiles ? profiles.length : 0,
+        },
+        computedProfiles: profiles || [],
       };
     }
 
@@ -322,7 +326,11 @@ export const useDataStatistics = (profiles) => {
       errors: [],
     };
 
-    validProfiles.forEach((profile, index) => {
+    const computedProfiles = (profiles || []).map((profile) => {
+      if (!validProfileIds.has(profile.id || profile.title)) {
+        return profile;
+      }
+
       try {
         const todayData = validators.getTodayData(profile);
         const yesterdayData = validators.getYesterdayData(profile);
@@ -330,8 +338,8 @@ export const useDataStatistics = (profiles) => {
         // Priorizar el cálculo basado en registros individuales (telemetría) si hay datos disponibles,
         // ya que el campo total_consumed_today puede estar desincronizado o con formato inconsistente.
         const telemetrySum = validators.calculateTotalConsumption(todayData);
-        const todaySum = todayData.length > 0 
-          ? telemetrySum 
+        const todaySum = todayData.length > 0
+          ? telemetrySum
           : validators.getSafeNumber(profile.modules?.total_consumed_today, 0);
         const yesterdaySum =
           validators.calculateTotalConsumption(yesterdayData);
@@ -437,15 +445,14 @@ export const useDataStatistics = (profiles) => {
         const profileClone = { ...profile };
         if (!profileClone._computed) profileClone._computed = {};
         profileClone._computed.historical = histSummary;
-        // Reemplazar en el array original para no mutar el estado global
-        profiles[index] = profileClone;
+        return profileClone;
       } catch (error) {
         console.error(`Error procesando perfil ${profile.title}:`, error);
         stats.errors.push({
           profile: profile.title,
           error: error.message,
-          index,
         });
+        return profile;
       }
     });
 
@@ -469,15 +476,18 @@ export const useDataStatistics = (profiles) => {
         : 0;
 
     return {
-      ...stats,
-      biggestDecreases: stats.consumptionChanges
-        .filter((c) => c.change < 0)
-        .sort((a, b) => a.change - b.change),
-      overallChange,
-      totalProfiles: profiles ? profiles.length : 0,
-      validProfiles: validProfiles.length,
-      invalidProfiles: (profiles ? profiles.length : 0) - validProfiles.length,
-      hasData: stats.totals.today > 0 || stats.totals.yesterday > 0,
+      stats: {
+        ...stats,
+        biggestDecreases: stats.consumptionChanges
+          .filter((c) => c.change < 0)
+          .sort((a, b) => a.change - b.change),
+        overallChange,
+        totalProfiles: profiles ? profiles.length : 0,
+        validProfiles: validProfiles.length,
+        invalidProfiles: (profiles ? profiles.length : 0) - validProfiles.length,
+        hasData: stats.totals.today > 0 || stats.totals.yesterday > 0,
+      },
+      computedProfiles,
     };
   }, [profiles, validators]);
 };

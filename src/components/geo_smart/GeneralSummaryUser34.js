@@ -62,7 +62,7 @@ try {
  */
 const GeneralSummaryUser34 = ({ profiles }) => {
   const screens = useBreakpoint();
-  const stats = useDataStatistics(profiles);
+  const { stats } = useDataStatistics(profiles);
   const { state } = useContext(AppContext);
 
   // Función para fusionar profiles duplicados por nombre, sumando los consumos

@@ -307,18 +307,26 @@ const MyLastRegisters = () => {
         {stats && (
           <div style={{ padding: "20px 24px", background: "#ffffff", borderBottom: "1px solid #f0f0f0" }}>
             <Flex gap={16} wrap="wrap">
-              <Card id="drawer-stat-total" size="small" style={{ flex: 1, minWidth: 140, borderRadius: 10, border: "1px solid #f0f0f0" }} bodyStyle={{ padding: "12px 16px" }}>
-                <Statistic title="Total Registros" value={stats.totalRegistros} suffix="regs" valueStyle={{ color: "#1F3461", fontSize: 20, fontWeight: 800 }} titleStyle={{ fontSize: 11, color: "#8c8c8c" }} />
-              </Card>
-              <Card id="drawer-stat-consumo" size="small" style={{ flex: 1, minWidth: 140, borderRadius: 10, border: "1px solid #f0f0f0" }} bodyStyle={{ padding: "12px 16px" }}>
-                <Statistic title="Consumo Acum." value={numberForMiles.format(Math.round(stats.consumoTotal))} suffix="m³" valueStyle={{ color: "#52c41a", fontSize: 20, fontWeight: 800 }} titleStyle={{ fontSize: 11, color: "#8c8c8c" }} />
-              </Card>
-              <Card id="drawer-stat-primero" size="small" style={{ flex: 1, minWidth: 140, borderRadius: 10, border: "1px solid #f0f0f0" }} bodyStyle={{ padding: "12px 16px" }}>
-                <Statistic title="Primer Registro" value={stats.primerRegistro} valueStyle={{ color: "#1F3461", fontSize: 20, fontWeight: 800 }} titleStyle={{ fontSize: 11, color: "#8c8c8c" }} />
-              </Card>
-              <Card id="drawer-stat-ultimo" size="small" style={{ flex: 1, minWidth: 140, borderRadius: 10, border: "1px solid #f0f0f0" }} bodyStyle={{ padding: "12px 16px" }}>
-                <Statistic title="Último Registro" value={stats.ultimoRegistro} valueStyle={{ color: "#1F3461", fontSize: 20, fontWeight: 800 }} titleStyle={{ fontSize: 11, color: "#8c8c8c" }} />
-              </Card>
+              <div id="drawer-stat-total" style={{ flex: 1, minWidth: 140 }}>
+                <Card size="small" style={{ borderRadius: 10, border: "1px solid #f0f0f0" }} bodyStyle={{ padding: "12px 16px" }}>
+                  <Statistic title="Total Registros" value={stats.totalRegistros} suffix="regs" valueStyle={{ color: "#1F3461", fontSize: 20, fontWeight: 800 }} titleStyle={{ fontSize: 11, color: "#8c8c8c" }} />
+                </Card>
+              </div>
+              <div id="drawer-stat-consumo" style={{ flex: 1, minWidth: 140 }}>
+                <Card size="small" style={{ borderRadius: 10, border: "1px solid #f0f0f0" }} bodyStyle={{ padding: "12px 16px" }}>
+                  <Statistic title="Consumo Acum." value={numberForMiles.format(Math.round(stats.consumoTotal))} suffix="m³" valueStyle={{ color: "#52c41a", fontSize: 20, fontWeight: 800 }} titleStyle={{ fontSize: 11, color: "#8c8c8c" }} />
+                </Card>
+              </div>
+              <div id="drawer-stat-primero" style={{ flex: 1, minWidth: 140 }}>
+                <Card size="small" style={{ borderRadius: 10, border: "1px solid #f0f0f0" }} bodyStyle={{ padding: "12px 16px" }}>
+                  <Statistic title="Primer Registro" value={stats.primerRegistro} valueStyle={{ color: "#1F3461", fontSize: 20, fontWeight: 800 }} titleStyle={{ fontSize: 11, color: "#8c8c8c" }} />
+                </Card>
+              </div>
+              <div id="drawer-stat-ultimo" style={{ flex: 1, minWidth: 140 }}>
+                <Card size="small" style={{ borderRadius: 10, border: "1px solid #f0f0f0" }} bodyStyle={{ padding: "12px 16px" }}>
+                  <Statistic title="Último Registro" value={stats.ultimoRegistro} valueStyle={{ color: "#1F3461", fontSize: 20, fontWeight: 800 }} titleStyle={{ fontSize: 11, color: "#8c8c8c" }} />
+                </Card>
+              </div>
             </Flex>
           </div>
         )}

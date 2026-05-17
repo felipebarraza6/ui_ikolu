@@ -36,7 +36,7 @@ const MENU_ITEMS = [
     label: "Monitoreo",
     global: true,
     children: [
-      { key: "0", label: "Centro de Control", to: "/" },
+      { key: "0", label: "Centro de Control", to: "/control_center" },
       { key: "1", label: "GEO Smart", to: "/geo" },
       { key: "2", label: "Telemetría", to: "/telemetry" },
     ],
@@ -130,7 +130,7 @@ const HeaderNav = ({ onMenuClick }) => {
 
   // Detectar si es módulo global (no depende del punto seleccionado)
   const isGlobalModule = useMemo(() => {
-    const globalPaths = ["/", "/geo"];
+    const globalPaths = ["/", "/control_center", "/geo"];
     return globalPaths.includes(location.pathname);
   }, [location.pathname]);
 

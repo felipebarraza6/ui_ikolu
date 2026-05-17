@@ -16,6 +16,7 @@ import {
   notification,
   Switch,
   Progress,
+  theme,
 } from "antd";
 import {
   DashboardOutlined,
@@ -34,20 +35,22 @@ import sh from "../../api/sh/endpoints";
 import { useResponsive } from "../../hooks/useResponsive";
 import SlaDashboard from "./sla/SlaDashboard";
 import dayjs from "dayjs";
+import { ikoluTokens, kpiGradients, ikoluTheme } from "../../theme";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 
 const KPI_CARD_STYLES = {
-  puntos: { borderColor: "#1F3461", iconColor: "#1F3461", bg: "#F2F5FA" },
-  activos: { borderColor: "#52C41A", iconColor: "#52C41A", bg: "#F6FFF0" },
-  desconectados: { borderColor: "#FF6B35", iconColor: "#FF6B35", bg: "#FFF7F2" },
+  puntos: { borderColor: ikoluTokens.colorCorporateBlue, iconColor: ikoluTokens.colorCorporateBlue, bg: ikoluTokens.colorBackgroundLight },
+  activos: { borderColor: ikoluTheme.token.colorSuccess, iconColor: ikoluTheme.token.colorSuccess, bg: "#F6FFF0" },
+  desconectados: { borderColor: ikoluTokens.colorAccentOrange, iconColor: ikoluTokens.colorAccentOrange, bg: "#FFF7F2" },
   registros: { borderColor: "#BDC00C", iconColor: "#BDC00C", bg: "#FAFBF0" },
   cola: { borderColor: "#006FB3", iconColor: "#006FB3", bg: "#F0F7FF" },
   alertas: { borderColor: "#722ED1", iconColor: "#722ED1", bg: "#F9F0FF" },
 };
 
 const AdminDashboard = () => {
+  const { token } = theme.useToken();
   const { state } = useContext(AppContext);
   const { isMobile } = useResponsive();
 
@@ -200,7 +203,7 @@ const AdminDashboard = () => {
           description="No tienes permisos de administrador para ver esta sección."
           type="warning"
           showIcon
-          style={{ borderRadius: 12 }}
+          style={{ borderRadius: token.borderRadiusLG }}
         />
       </div>
     );
@@ -215,7 +218,7 @@ const AdminDashboard = () => {
           size="small"
           bordered
           style={{
-            borderRadius: 12,
+            borderRadius: token.borderRadiusLG,
             borderLeft: `4px solid ${KPI_CARD_STYLES.puntos.borderColor}`,
             background: KPI_CARD_STYLES.puntos.bg,
             borderColor: "transparent",
@@ -226,7 +229,7 @@ const AdminDashboard = () => {
           <Flex align="center" gap="small">
             <DatabaseOutlined style={{ fontSize: 20, color: KPI_CARD_STYLES.puntos.iconColor }} />
             <Statistic
-              title={<span style={{ fontSize: 11, color: "#888" }}>Total Puntos</span>}
+              title={<span style={{ fontSize: ikoluTokens.fontSizeSmall, color: ikoluTokens.colorGreyText }}>Total Puntos</span>}
               value={stats.total_points || 0}
               valueStyle={{ color: "#1F3461", fontSize: 20, fontWeight: 700 }}
             />
@@ -238,7 +241,7 @@ const AdminDashboard = () => {
           size="small"
           bordered
           style={{
-            borderRadius: 12,
+            borderRadius: token.borderRadiusLG,
             borderLeft: `4px solid ${KPI_CARD_STYLES.activos.borderColor}`,
             background: KPI_CARD_STYLES.activos.bg,
             borderColor: "transparent",
@@ -249,7 +252,7 @@ const AdminDashboard = () => {
           <Flex align="center" gap="small">
             <WifiOutlined style={{ fontSize: 20, color: KPI_CARD_STYLES.activos.iconColor }} />
             <Statistic
-              title={<span style={{ fontSize: 11, color: "#888" }}>Activos</span>}
+              title={<span style={{ fontSize: ikoluTokens.fontSizeSmall, color: ikoluTokens.colorGreyText }}>Activos</span>}
               value={stats.active_telemetry || 0}
               valueStyle={{ color: "#1F3461", fontSize: 20, fontWeight: 700 }}
             />
@@ -261,7 +264,7 @@ const AdminDashboard = () => {
           size="small"
           bordered
           style={{
-            borderRadius: 12,
+            borderRadius: token.borderRadiusLG,
             borderLeft: `4px solid ${KPI_CARD_STYLES.desconectados.borderColor}`,
             background: KPI_CARD_STYLES.desconectados.bg,
             borderColor: "transparent",
@@ -272,7 +275,7 @@ const AdminDashboard = () => {
           <Flex align="center" gap="small">
             <AlertOutlined style={{ fontSize: 20, color: KPI_CARD_STYLES.desconectados.iconColor }} />
             <Statistic
-              title={<span style={{ fontSize: 11, color: "#888" }}>Desconectados</span>}
+              title={<span style={{ fontSize: ikoluTokens.fontSizeSmall, color: ikoluTokens.colorGreyText }}>Desconectados</span>}
               value={stats.disconnected_points || 0}
               valueStyle={{ color: "#1F3461", fontSize: 20, fontWeight: 700 }}
             />
@@ -284,7 +287,7 @@ const AdminDashboard = () => {
           size="small"
           bordered
           style={{
-            borderRadius: 12,
+            borderRadius: token.borderRadiusLG,
             borderLeft: `4px solid ${KPI_CARD_STYLES.registros.borderColor}`,
             background: KPI_CARD_STYLES.registros.bg,
             borderColor: "transparent",
@@ -295,7 +298,7 @@ const AdminDashboard = () => {
           <Flex align="center" gap="small">
             <ThunderboltOutlined style={{ fontSize: 20, color: KPI_CARD_STYLES.registros.iconColor }} />
             <Statistic
-              title={<span style={{ fontSize: 11, color: "#888" }}>Registros 24h</span>}
+              title={<span style={{ fontSize: ikoluTokens.fontSizeSmall, color: ikoluTokens.colorGreyText }}>Registros 24h</span>}
               value={stats.records_last_24h || 0}
               valueStyle={{ color: "#1F3461", fontSize: 20, fontWeight: 700 }}
             />
@@ -307,7 +310,7 @@ const AdminDashboard = () => {
           size="small"
           bordered
           style={{
-            borderRadius: 12,
+            borderRadius: token.borderRadiusLG,
             borderLeft: `4px solid ${KPI_CARD_STYLES.cola.borderColor}`,
             background: KPI_CARD_STYLES.cola.bg,
             borderColor: "transparent",
@@ -318,7 +321,7 @@ const AdminDashboard = () => {
           <Flex align="center" gap="small">
             <FileTextOutlined style={{ fontSize: 20, color: KPI_CARD_STYLES.cola.iconColor }} />
             <Statistic
-              title={<span style={{ fontSize: 11, color: "#888" }}>Cola DGA</span>}
+              title={<span style={{ fontSize: ikoluTokens.fontSizeSmall, color: ikoluTokens.colorGreyText }}>Cola DGA</span>}
               value={stats.dga_queue_size || 0}
               valueStyle={{ color: "#1F3461", fontSize: 20, fontWeight: 700 }}
             />
@@ -330,7 +333,7 @@ const AdminDashboard = () => {
           size="small"
           bordered
           style={{
-            borderRadius: 12,
+            borderRadius: token.borderRadiusLG,
             borderLeft: `4px solid ${KPI_CARD_STYLES.alertas.borderColor}`,
             background: KPI_CARD_STYLES.alertas.bg,
             borderColor: "transparent",
@@ -341,7 +344,7 @@ const AdminDashboard = () => {
           <Flex align="center" gap="small">
             <AlertOutlined style={{ fontSize: 20, color: KPI_CARD_STYLES.alertas.iconColor }} />
             <Statistic
-              title={<span style={{ fontSize: 11, color: "#888" }}>Alertas Activas</span>}
+              title={<span style={{ fontSize: ikoluTokens.fontSizeSmall, color: ikoluTokens.colorGreyText }}>Alertas Activas</span>}
               value={stats.active_notifications || 0}
               valueStyle={{ color: "#1F3461", fontSize: 20, fontWeight: 700 }}
             />
@@ -405,8 +408,8 @@ const AdminDashboard = () => {
       {/* Header */}
       <div
         style={{
-          borderRadius: "12px",
-          background: "linear-gradient(135deg, #1F3461 0%, #2A4B8D 100%)",
+          borderRadius: token.borderRadiusLG,
+          background: kpiGradients.primary,
           border: "none",
           boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
           padding: "24px",
@@ -415,12 +418,12 @@ const AdminDashboard = () => {
       >
         <Flex align="center" justify="space-between" wrap="wrap" gap="middle">
           <Flex align="center" gap="middle">
-            <DashboardOutlined style={{ fontSize: 32, color: "white" }} />
+            <DashboardOutlined style={{ fontSize: 32, color: ikoluTokens.colorWhite }} />
             <div>
-              <Title level={3} style={{ margin: 0, color: "white" }}>
+              <Title level={3} style={{ margin: 0, color: ikoluTokens.colorWhite }}>
                 Panel de Administración
               </Title>
-              <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 14 }}>
+              <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: token.fontSize }}>
                 Gestión del sistema SmartHydro
               </Text>
             </div>
@@ -447,10 +450,10 @@ const AdminDashboard = () => {
               onClick={loadAll}
               loading={loading}
               style={{
-                background: "white",
-                color: "#1F3461",
-                borderColor: "white",
-                borderRadius: 8,
+                background: ikoluTokens.colorWhite,
+                color: ikoluTokens.colorCorporateBlue,
+                borderColor: ikoluTokens.colorWhite,
+                borderRadius: token.borderRadius,
                 fontWeight: 600,
               }}
             >
@@ -472,11 +475,11 @@ const AdminDashboard = () => {
             activeKey={activeTab}
             onChange={setActiveTab}
             type="card"
-            style={{ background: "white", borderRadius: 12, padding: "0 16px" }}
+            style={{ background: ikoluTokens.colorWhite, borderRadius: token.borderRadiusLG, padding: "0 16px" }}
           >
             <TabPane tab="Puntos de Captación" key="1">
               <Card
-                style={{ borderRadius: 12, border: "none", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}
+                style={{ borderRadius: token.borderRadiusLG, border: "none", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}
                 bodyStyle={{ padding: isMobile ? "16px" : "24px" }}
               >
                 <Table
@@ -493,14 +496,14 @@ const AdminDashboard = () => {
 
             <TabPane tab="Cola DGA" key="2">
               <Card
-                style={{ borderRadius: 12, border: "none", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}
+                style={{ borderRadius: token.borderRadiusLG, border: "none", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}
                 bodyStyle={{ padding: isMobile ? "16px" : "24px" }}
               >
                 <Flex gap="small" wrap="wrap" style={{ marginBottom: 16 }}>
                   <Button onClick={handleClearDgaQueue} loading={actionLoading} danger>
                     Limpiar errores
                   </Button>
-                  <Button onClick={handleRequeueDga} loading={actionLoading} type="primary" style={{ background: "#1F3461" }}>
+                  <Button onClick={handleRequeueDga} loading={actionLoading} type="primary" style={{ background: ikoluTokens.colorCorporateBlue }}>
                     Reencolar registros
                   </Button>
                 </Flex>
@@ -531,7 +534,7 @@ const AdminDashboard = () => {
 
             <TabPane tab="Alertas" key="3">
               <Card
-                style={{ borderRadius: 12, border: "none", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}
+                style={{ borderRadius: token.borderRadiusLG, border: "none", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}
                 bodyStyle={{ padding: isMobile ? "16px" : "24px" }}
               >
                 {notificationsSummary && (
@@ -563,7 +566,7 @@ const AdminDashboard = () => {
               key="4"
             >
               <Card
-                style={{ borderRadius: 12, border: "none", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}
+                style={{ borderRadius: token.borderRadiusLG, border: "none", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}
                 bodyStyle={{ padding: isMobile ? "16px" : "24px" }}
               >
                 {systemMap ? (
@@ -653,7 +656,7 @@ const AdminDashboard = () => {
               key="5"
             >
               <Card
-                style={{ borderRadius: 12, border: "none", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}
+                style={{ borderRadius: token.borderRadiusLG, border: "none", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}
                 bodyStyle={{ padding: isMobile ? "16px" : "24px" }}
               >
                 {resourcesStatus ? (
@@ -665,9 +668,9 @@ const AdminDashboard = () => {
                     </Title>
                     <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
                       <Col span={8}>
-                        <Card size="small" style={{ background: "#f2f5fa", border: "none", borderRadius: 8, textAlign: "center" }}>
-                          <Text style={{ fontSize: 11, color: "#1F3461", display: "block" }}>CPU</Text>
-                          <Text style={{ fontSize: 22, fontWeight: 700, color: "#1F3461" }}>
+                        <Card size="small" style={{ background: ikoluTokens.colorBackgroundLight, border: "none", borderRadius: token.borderRadius, textAlign: "center" }}>
+                          <Text style={{ fontSize: ikoluTokens.fontSizeSmall, color: ikoluTokens.colorCorporateBlue, display: "block" }}>CPU</Text>
+                          <Text style={{ fontSize: ikoluTokens.fontSize3XL, fontWeight: 700, color: ikoluTokens.colorCorporateBlue }}>
                             {resourcesStatus.server?.cpu_percent != null ? `${resourcesStatus.server.cpu_percent}%` : "N/A"}
                           </Text>
                           {resourcesStatus.server?.cpu_percent != null && (
@@ -676,27 +679,27 @@ const AdminDashboard = () => {
                         </Card>
                       </Col>
                       <Col span={8}>
-                        <Card size="small" style={{ background: "#f2f5fa", border: "none", borderRadius: 8, textAlign: "center" }}>
-                          <Text style={{ fontSize: 11, color: "#1F3461", display: "block" }}>RAM</Text>
-                          <Text style={{ fontSize: 22, fontWeight: 700, color: "#1F3461" }}>
+                        <Card size="small" style={{ background: ikoluTokens.colorBackgroundLight, border: "none", borderRadius: token.borderRadius, textAlign: "center" }}>
+                          <Text style={{ fontSize: ikoluTokens.fontSizeSmall, color: ikoluTokens.colorCorporateBlue, display: "block" }}>RAM</Text>
+                          <Text style={{ fontSize: ikoluTokens.fontSize3XL, fontWeight: 700, color: ikoluTokens.colorCorporateBlue }}>
                             {resourcesStatus.server?.memory_percent != null ? `${resourcesStatus.server.memory_percent}%` : "N/A"}
                           </Text>
                           {resourcesStatus.server?.memory_percent != null && (
                             <Progress percent={resourcesStatus.server.memory_percent} size="small" showInfo={false} strokeColor="#2A4A7A" />
                           )}
-                          <Text style={{ fontSize: 10, color: "#888" }}>{resourcesStatus.server?.memory_used || "—"} / {resourcesStatus.server?.memory_total || "—"}</Text>
+                          <Text style={{ fontSize: 10, color: ikoluTokens.colorGreyText }}>{resourcesStatus.server?.memory_used || "—"} / {resourcesStatus.server?.memory_total || "—"}</Text>
                         </Card>
                       </Col>
                       <Col span={8}>
-                        <Card size="small" style={{ background: "#f2f5fa", border: "none", borderRadius: 8, textAlign: "center" }}>
-                          <Text style={{ fontSize: 11, color: "#1F3461", display: "block" }}>Disco</Text>
-                          <Text style={{ fontSize: 22, fontWeight: 700, color: "#1F3461" }}>
+                        <Card size="small" style={{ background: ikoluTokens.colorBackgroundLight, border: "none", borderRadius: token.borderRadius, textAlign: "center" }}>
+                          <Text style={{ fontSize: ikoluTokens.fontSizeSmall, color: ikoluTokens.colorCorporateBlue, display: "block" }}>Disco</Text>
+                          <Text style={{ fontSize: ikoluTokens.fontSize3XL, fontWeight: 700, color: ikoluTokens.colorCorporateBlue }}>
                             {resourcesStatus.server?.disk_percent != null ? `${resourcesStatus.server.disk_percent}%` : "N/A"}
                           </Text>
                           {resourcesStatus.server?.disk_percent != null && (
                             <Progress percent={resourcesStatus.server.disk_percent} size="small" showInfo={false} strokeColor="#3B6CA8" />
                           )}
-                          <Text style={{ fontSize: 10, color: "#888" }}>{resourcesStatus.server?.disk_used_gb || "—"} / {resourcesStatus.server?.disk_total_gb || "—"} GB</Text>
+                          <Text style={{ fontSize: 10, color: ikoluTokens.colorGreyText }}>{resourcesStatus.server?.disk_used_gb || "—"} / {resourcesStatus.server?.disk_total_gb || "—"} GB</Text>
                         </Card>
                       </Col>
                     </Row>
@@ -713,33 +716,33 @@ const AdminDashboard = () => {
                     </Title>
                     <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
                       <Col span={12}>
-                        <Card size="small" style={{ borderRadius: 8 }}>
+                        <Card size="small" style={{ borderRadius: token.borderRadius }}>
                           <Flex align="center" justify="space-between">
                             <Text strong>PostgreSQL</Text>
                             <Tag color={resourcesStatus.database?.status === "connected" ? "success" : "error"}>
                               {resourcesStatus.database?.status || "—"}
                             </Tag>
                           </Flex>
-                          <Text type="secondary" style={{ fontSize: 12, display: "block", marginTop: 4 }}>
+                          <Text type="secondary" style={{ fontSize: ikoluTokens.fontSizeBase, display: "block", marginTop: 4 }}>
                             {resourcesStatus.database?.engine || "—"}
                           </Text>
-                          <Text type="secondary" style={{ fontSize: 12, display: "block" }}>
+                          <Text type="secondary" style={{ fontSize: ikoluTokens.fontSizeBase, display: "block" }}>
                             Tamaño: {resourcesStatus.database?.size_mb ? `${resourcesStatus.database.size_mb} MB` : "—"}
                           </Text>
                         </Card>
                       </Col>
                       <Col span={12}>
-                        <Card size="small" style={{ borderRadius: 8 }}>
+                        <Card size="small" style={{ borderRadius: token.borderRadius }}>
                           <Flex align="center" justify="space-between">
                             <Text strong>Redis</Text>
                             <Tag color={resourcesStatus.redis?.status === "connected" ? "success" : "error"}>
                               {resourcesStatus.redis?.status || "—"}
                             </Tag>
                           </Flex>
-                          <Text type="secondary" style={{ fontSize: 12, display: "block", marginTop: 4 }}>
+                          <Text type="secondary" style={{ fontSize: ikoluTokens.fontSizeBase, display: "block", marginTop: 4 }}>
                             Versión: {resourcesStatus.redis?.version || "—"}
                           </Text>
-                          <Text type="secondary" style={{ fontSize: 12, display: "block" }}>
+                          <Text type="secondary" style={{ fontSize: ikoluTokens.fontSizeBase, display: "block" }}>
                             Memoria: {resourcesStatus.redis?.used_memory_human || "—"} · Clientes: {resourcesStatus.redis?.connected_clients || 0}
                           </Text>
                         </Card>
@@ -754,11 +757,11 @@ const AdminDashboard = () => {
                     <Row gutter={[16, 16]}>
                       {resourcesStatus.django?.model_counts && Object.entries(resourcesStatus.django.model_counts).map(([model, count]) => (
                         <Col span={8} key={model}>
-                          <Card size="small" style={{ background: "#f2f5fa", border: "none", borderRadius: 8, textAlign: "center" }}>
-                            <Text style={{ fontSize: 11, color: "#1F3461", display: "block", textTransform: "capitalize" }}>
+                          <Card size="small" style={{ background: ikoluTokens.colorBackgroundLight, border: "none", borderRadius: token.borderRadius, textAlign: "center" }}>
+                            <Text style={{ fontSize: ikoluTokens.fontSizeSmall, color: ikoluTokens.colorCorporateBlue, display: "block", textTransform: "capitalize" }}>
                               {model.replace(/_/g, " ")}
                             </Text>
-                            <Text style={{ fontSize: 22, fontWeight: 700, color: "#1F3461" }}>
+                            <Text style={{ fontSize: ikoluTokens.fontSize3XL, fontWeight: 700, color: ikoluTokens.colorCorporateBlue }}>
                               {count?.toLocaleString?.() || count}
                             </Text>
                           </Card>

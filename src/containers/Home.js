@@ -76,10 +76,12 @@ import GeoSmart from "../components/geo_smart/GeoSmart";
 import PointDetailGuard from "../components/common/PointDetailGuard";
 import GeneralSummary from "../components/geo_smart/GeneralSummary";
 import GeneralSummaryUser34 from "../components/geo_smart/GeneralSummaryUser34";
+import ControlCenter from "../components/geo_smart/ControlCenter";
 import ListWells from "../components/home/ListWells";
 import sh from "../api/sh/endpoints";
 import { FcDoughnutChart } from "react-icons/fc";
 import { useLazyProfile } from "../hooks/useLazyProfile";
+import { ikoluTokens, ikoluTheme } from "../theme";
 
 const { Header, Sider, Content } = Layout;
 const { useToken } = theme;
@@ -91,7 +93,7 @@ const { Title, Text } = Typography;
 // ── Items globales: siempre visibles, no dependen de punto seleccionado ──
 // ── Items planos (globales o que no necesitan submenú) ──
 const GLOBAL_ITEMS = [
-  { key: "0", icon: <GlobalOutlined />, label: "Centro de Control", to: "/" },
+  { key: "0", icon: <GlobalOutlined />, label: "Centro de Control", to: "/control_center" },
   { key: "1", icon: <EnvironmentOutlined />, label: "GEO Smart", to: "/geo" },
   { key: "2", icon: <WifiOutlined />, label: "Telemetría", to: "/telemetry" },
   { key: "4", icon: <FileTextOutlined />, label: "DGA - MEE", to: "/dga" },
@@ -247,26 +249,30 @@ const AppRoutes = React.memo(() => {
     }
   };
 
-  const renderCentroControl = () => {
+  const renderControlCenter = () => {
+    // Caso especial hardcodeado: usuario 34
+    if (state.user && state.user.id === 34) {
+      const userProfiles = state.selected_profile?.id
+        ? [state.selected_profile]
+        : (state.profile_client || state.points_list || []);
+      return <GeneralSummaryUser34 profiles={userProfiles} />;
+    }
+    // Nuevo Centro de Control optimizado (daily_summary nativo o fallback legacy)
+    return <ControlCenter />;
+  };
+
+  const renderHome = () => {
     // Admin sin punto seleccionado: mostrar AdminRoot (dashboard del sistema)
     if (!state.selected_profile?.id && (state.user?.is_staff || state.user?.is_superuser)) {
       return <AdminRoot />;
     }
-    // Si hay un punto seleccionado, mostrar SOLO ese punto (admin o normal).
-    // Si no hay punto, admin ve resumen global; normal ve sus puntos asignados.
-    const isAdmin = state.user?.is_staff || state.user?.is_superuser;
-    const userProfiles = state.selected_profile?.id
-      ? [state.selected_profile]
-      : (isAdmin ? undefined : (state.profile_client || state.points_list || []));
-
-    if (state.user && state.user.id === 34) {
-      return <GeneralSummaryUser34 profiles={userProfiles} />;
-    }
-    return <GeneralSummary profiles={userProfiles} />;
+    // Todos los demás (admin con punto o usuarios normales) van a /control_center
+    return <Navigate to="/control_center" replace />;
   };
 
-  // 🆕 Wrapper para rutas que necesitan detalle completo del punto
-  const withDetail = (element) => <PointDetailGuard>{element}</PointDetailGuard>;
+  // Componente estático para rutas que necesitan detalle completo del punto
+  // Se define fuera del render para evitar desmontajes innecesarios
+  const WithDetail = ({ children }) => <PointDetailGuard>{children}</PointDetailGuard>;
 
   const isAdmin = state.user?.is_staff || state.user?.is_superuser;
   const hasPoint = !!state.selected_profile?.id;
@@ -276,7 +282,8 @@ const AppRoutes = React.memo(() => {
     <div key={location.pathname} className="route-fade-in">
     <Routes>
       {/* Rutas SIEMPRE visibles */}
-      <Route path="/" element={renderCentroControl()} />
+      <Route path="/" element={renderHome()} />
+      <Route path="/control_center" element={renderControlCenter()} />
       <Route path="/documentation" element={<Documentation />} />
       <Route path="/user-documentation" element={<UserDocumentation />} />
       <Route path="/profile" element={<UserProfile />} />
@@ -291,23 +298,23 @@ const AppRoutes = React.memo(() => {
           <Route path="/support" element={<Dash />} />
           <Route path="/supp" element={<Supp />} />
           <Route path="/form-multi-data" element={<FormMultiData />} />
-          <Route path="/telemetry" element={withDetail(renderMainRoute())} />
-          <Route path="/analysis" element={withDetail(<ResponsiveSmartAnalysis />)} />
-          <Route path="/dga" element={withDetail(<ResponsiveDga />)} />
-          <Route path="/dga-analysis" element={withDetail(<GraphisNavDga />)} />
-          <Route path="/download" element={withDetail(<Reports />)} />
-          <Route path="/documents" element={withDetail(<DocRes />)} />
-          <Route path="/alerts" element={withDetail(<ResponsiveAlerts />)} />
-          <Route path="/extraction-data" element={withDetail(<Reports />)} />
-          <Route path="/registers-pti" element={withDetail(<DataTable />)} />
-          <Route path="/well" element={withDetail(<Well />)} />
-          <Route path="/sys-data" element={withDetail(<GraphisNav />)} />
-          <Route path="/sys-data-dga" element={withDetail(<GraphisNavDga />)} />
-          <Route path="/sys-docs" element={withDetail(<DocRes />)} />
+          <Route path="/telemetry" element={<WithDetail>{renderMainRoute()}</WithDetail>} />
+          <Route path="/analysis" element={<WithDetail><ResponsiveSmartAnalysis /></WithDetail>} />
+          <Route path="/dga" element={<WithDetail><ResponsiveDga /></WithDetail>} />
+          <Route path="/dga-analysis" element={<WithDetail><GraphisNavDga /></WithDetail>} />
+          <Route path="/download" element={<WithDetail><Reports /></WithDetail>} />
+          <Route path="/documents" element={<WithDetail><DocRes /></WithDetail>} />
+          <Route path="/alerts" element={<WithDetail><ResponsiveAlerts /></WithDetail>} />
+          <Route path="/extraction-data" element={<WithDetail><Reports /></WithDetail>} />
+          <Route path="/registers-pti" element={<WithDetail><DataTable /></WithDetail>} />
+          <Route path="/well" element={<WithDetail><Well /></WithDetail>} />
+          <Route path="/sys-data" element={<WithDetail><GraphisNav /></WithDetail>} />
+          <Route path="/sys-data-dga" element={<WithDetail><GraphisNavDga /></WithDetail>} />
+          <Route path="/sys-docs" element={<WithDetail><DocRes /></WithDetail>} />
           <Route path="/sys-support" element={<Dash />} />
-          <Route path="/sys-alerts" element={withDetail(<ResponsiveAlerts />)} />
-          <Route path="/charts" element={withDetail(<MyGraphics />)} />
-          <Route path="/reports" element={withDetail(<Reports />)} />
+          <Route path="/sys-alerts" element={<WithDetail><ResponsiveAlerts /></WithDetail>} />
+          <Route path="/charts" element={<WithDetail><MyGraphics /></WithDetail>} />
+          <Route path="/reports" element={<WithDetail><Reports /></WithDetail>} />
         </>
       )}
 
@@ -315,7 +322,7 @@ const AppRoutes = React.memo(() => {
       {!hasPoint && (
         <Route path="*" element={
           <Flex align="center" justify="center" style={{ height: "50vh" }} vertical>
-            <Text strong style={{ fontSize: 18, color: "#1F3461", marginBottom: 8 }}>
+            <Text strong style={{ fontSize: 18, color: ikoluTokens.colorCorporateBlue, marginBottom: 8 }}>
               Debes elegir un punto de captación
             </Text>
             <Text type="secondary" style={{ marginBottom: 16 }}>
@@ -345,7 +352,7 @@ const BottomNav = ({ onMoreClick }) => {
 
   // Items disponibles según estado
   const navItems = [
-    { key: "0", icon: <GlobalOutlined />, label: "Inicio", to: "/" },
+    { key: "0", icon: <GlobalOutlined />, label: "Inicio", to: "/control_center" },
     ...(hasPoint ? [
       { key: "2", icon: <WifiOutlined />, label: "Telemetría", to: "/telemetry" },
       { key: "3", icon: <BarChartOutlined />, label: "Análisis", to: "/analysis" },
@@ -360,11 +367,11 @@ const BottomNav = ({ onMoreClick }) => {
         bottom: 0,
         left: 0,
         right: 0,
-        background: "#fff",
-        borderTop: "1px solid #f0f0f0",
+        background: ikoluTokens.colorWhite,
+        borderTop: `1px solid ${ikoluTokens.colorBorderLight}`,
         zIndex: 100,
         padding: "6px 0",
-        boxShadow: "0 -2px 8px rgba(0,0,0,0.06)",
+        boxShadow: ikoluTokens.shadowNav,
         display: "flex",
         justifyContent: "space-around",
         alignItems: "center",
@@ -383,9 +390,9 @@ const BottomNav = ({ onMoreClick }) => {
               alignItems: "center",
               height: "auto",
               padding: "4px 8px",
-              color: isActive ? "#1F3461" : "#8c8c8c",
-              background: isActive ? "#f0f5ff" : "transparent",
-              borderRadius: "8px",
+              color: isActive ? ikoluTokens.colorCorporateBlue : ikoluTokens.colorGreyText,
+              background: isActive ? ikoluTokens.colorBlueBg : "transparent",
+              borderRadius: ikoluTokens.radiusDefault,
             }}
           >
             <span style={{ fontSize: 18, marginBottom: 2 }}>{item.icon}</span>
@@ -402,8 +409,8 @@ const BottomNav = ({ onMoreClick }) => {
           alignItems: "center",
           height: "auto",
           padding: "4px 8px",
-          color: "#8c8c8c",
-          borderRadius: "8px",
+          color: ikoluTokens.colorGreyText,
+          borderRadius: ikoluTokens.radiusDefault,
         }}
       >
         <span style={{ fontSize: 18, marginBottom: 2 }}><MenuOutlined /></span>
@@ -419,7 +426,6 @@ const BottomNav = ({ onMoreClick }) => {
 const SideMenu = ({ inDrawer = false, onLinkClick }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { token } = useToken();
   const { isMobile } = useResponsive();
   const { state, dispatch } = useContext(AppContext);
 
@@ -591,39 +597,7 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
     }
   }, [activeParentKey]);
 
-  // Badge en Alertas
-  const menuItemsWithBadge = useMemo(() => {
-    return filteredMenuItems.map((item) => {
-      if (item.children) {
-        return {
-          ...item,
-          children: item.children.map((child) => {
-            if (child.key === "7" && alertCount > 0) {
-              return {
-                ...child,
-                label: (
-                  <Link to={child.to}>
-                    <Flex justify="space-between" align="center">
-                      {child.label}
-                      <Badge count={alertCount} size="small" style={{ background: "#FF6B35" }} />
-                    </Flex>
-                  </Link>
-                ),
-              };
-            }
-            return {
-              ...child,
-              label: <Link to={child.to}>{child.label}</Link>,
-            };
-          }),
-        };
-      }
-      return {
-        ...item,
-        label: <Link to={item.to}>{item.label}</Link>,
-      };
-    });
-  }, [filteredMenuItems, alertCount]);
+  // Badge en Alertas — se inyecta directamente en groupedItems durante el render
 
   return (
     <Flex vertical style={{ height: "100%" }} justify="space-between">
@@ -684,53 +658,7 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
         {/* Selects de Admin: Cliente / Proyecto / Punto */}
         {isAdmin && (
           <div style={{ padding: "0 12px 12px 12px", minWidth: 0 }}>
-            {/* Estilos CSS para selects dark en sidebar */}
-            <style>{`
-              .admin-select .ant-select-selector {
-                background: rgba(255,255,255,0.08) !important;
-                border: 1px solid rgba(255,255,255,0.12) !important;
-                border-radius: 8px !important;
-                color: rgba(255,255,255,0.9) !important;
-                min-height: 38px !important;
-                padding: 2px 8px !important;
-                transition: all 0.2s ease !important;
-              }
-              .admin-select:hover .ant-select-selector {
-                background: rgba(255,255,255,0.12) !important;
-                border-color: rgba(255,255,255,0.25) !important;
-              }
-              .admin-select.ant-select-focused .ant-select-selector {
-                background: rgba(255,255,255,0.12) !important;
-                border-color: rgba(255,255,255,0.4) !important;
-                box-shadow: 0 0 0 2px rgba(255,255,255,0.1) !important;
-              }
-              .admin-select .ant-select-selection-placeholder {
-                color: rgba(255,255,255,0.45) !important;
-              }
-              .admin-select .ant-select-selection-item {
-                color: rgba(255,255,255,0.9) !important;
-                font-weight: 500 !important;
-              }
-              .admin-select.ant-select-disabled .ant-select-selector {
-                background: rgba(255,255,255,0.04) !important;
-                border-color: rgba(255,255,255,0.06) !important;
-                color: rgba(255,255,255,0.25) !important;
-                cursor: not-allowed !important;
-              }
-              .admin-select .ant-select-selection-search-input {
-                color: rgba(255,255,255,0.9) !important;
-              }
-              .admin-select .ant-select-arrow {
-                color: rgba(255,255,255,0.5) !important;
-              }
-              .admin-select .ant-select-clear {
-                color: rgba(255,255,255,0.5) !important;
-                background: transparent !important;
-              }
-              .admin-select .ant-select-prefix {
-                margin-right: 6px !important;
-              }
-            `}</style>
+            {/* Estilos admin-select movidos a index.css */}
             <Spin spinning={adminLoading} size="small">
               <Flex id="point-selector" vertical gap="small">
                 {/* Select Cliente */}
@@ -757,8 +685,8 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
                           size="small"
                           style={{
                             fontSize: 10,
-                            background: "#1F3461",
-                            color: "white",
+                            background: ikoluTokens.colorCorporateBlue,
+                            color: ikoluTokens.colorWhite,
                             border: "none",
                             marginLeft: 8,
                           }}
@@ -854,8 +782,8 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
                               size="small"
                               style={{
                                 fontSize: 10,
-                                background: "#1F3461",
-                                color: "white",
+                                background: ikoluTokens.colorCorporateBlue,
+                                color: ikoluTokens.colorWhite,
                                 border: "none",
                                 margin: 0,
                               }}
@@ -908,7 +836,11 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
               label: "Centro de Control",
               onClick: () => {
                 dispatch({ type: "CHANGE_SELECTED_PROFILE", payload: { selected_profile: null } });
-                navigate("/");
+                if (isAdminUser) {
+                  navigate("/");
+                } else {
+                  navigate("/control_center");
+                }
                 if (onLinkClick) onLinkClick();
               },
             },
@@ -1060,7 +992,7 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
                 block
                 size="small"
                 icon={<LogoutOutlined />}
-                style={{ borderRadius: "8px" }}
+                style={{ borderRadius: ikoluTokens.radiusDefault }}
               >
                 Salir
               </Button>
@@ -1111,7 +1043,7 @@ const AppLayout = ({ children }) => {
             position: "sticky",
             top: 0,
             zIndex: 10,
-            boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+            boxShadow: ikoluTokens.shadowNav,
             height: 52,
             lineHeight: "52px",
           }}
@@ -1154,35 +1086,7 @@ const AppLayout = ({ children }) => {
 
 const Home = () => {
   return (
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: "#1F3461",
-          borderRadius: 8,
-        },
-        components: {
-          Layout: {
-            headerBg: "#ffffff",
-            bodyBg: "#f5f5f5",
-            siderBg: "#1F3461",
-          },
-          Menu: {
-            darkItemBg: "#1F3461",
-            darkItemColor: "rgba(255, 255, 255, 0.75)",
-            darkItemSelectedBg: "rgba(255,255,255,0.15)",
-            darkItemSelectedColor: "#ffffff",
-            darkItemHoverBg: "rgba(255, 255, 255, 0.1)",
-            darkSubMenuItemBg: "#1a2d55",
-          },
-          Button: {
-            primaryShadow: "none",
-          },
-          Card: {
-            borderRadiusLG: 12,
-          },
-        },
-      }}
-    >
+    <ConfigProvider theme={ikoluTheme}>
 
       <ModuleTour
         tourKey={generalTour.key}

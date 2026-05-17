@@ -578,6 +578,27 @@ const batchSummaryNative = async (pointIds) => {
   return rq.data;
 };
 
+/**
+ * 🆕 CENTRO DE CONTROL: Resumen diario agregado del usuario
+ * Endpoint: GET /api/ik/daily_summary/
+ * Devuelve KPIs, consumo, estado de servicio y lista de puntos pre-calculados
+ */
+const get_daily_summary = async (date) => {
+  const params = date ? `?date=${date}` : "";
+  const rq = await GET(`ik/daily_summary/${params}`);
+  return rq.data;
+};
+
+/**
+ * 🆕 CENTRO DE CONTROL: KPIs agregados del dashboard
+ * Endpoint: GET /api/ik/dashboard_stats/
+ * Devuelve contadores y métricas globales del usuario
+ */
+const get_dashboard_stats = async () => {
+  const rq = await GET(`ik/dashboard_stats/`);
+  return rq.data;
+};
+
 // ==========================================
 // ADMIN: CLIENTES, PROYECTOS, PUNTOS
 // ==========================================
@@ -693,6 +714,9 @@ const sh = {
     stats: batchStatsNative,
     summary: batchSummaryNative,
   },
+  // 🆕 CENTRO DE CONTROL: Resumen diario agregado
+  dailySummary: get_daily_summary,
+  dashboardStats: get_dashboard_stats,
 };
 
 export default sh;

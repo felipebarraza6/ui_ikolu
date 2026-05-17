@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Tour } from "antd";
 import { useTours } from "../../contexts/TourContext";
 
@@ -29,6 +29,7 @@ const ModuleTour = ({
   const [refreshKey, setRefreshKey] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [pendingStep, setPendingStep] = useState(null);
+  const timeoutRef = useRef(null);
 
   // Sincronizar con activeTour global (para iniciar desde fuera)
   useEffect(() => {
@@ -55,15 +56,51 @@ const ModuleTour = ({
   useEffect(() => {
     const handleDrawerOpened = (e) => {
       if (e.detail?.tourKey === tourKey && pendingStep !== null) {
-        setCurrentStep(pendingStep);
-        setPendingStep(null);
-        setIsTransitioning(false);
-        setRefreshKey((k) => k + 1);
+        const stepToGo = pendingStep;
+        const targetFn = steps[stepToGo]?.target;
+
+        // Esperar activamente hasta que el elemento target exista en el DOM
+        // y tenga dimensiones válidas antes de avanzar el paso.
+        // Esto evita que el spotlight se calcule sobre un elemento aún no renderizado.
+        const start = Date.now();
+        const MAX_WAIT = 3000;
+        const POLL_INTERVAL = 80;
+
+        const tryAdvance = () => {
+          const el = typeof targetFn === "function" ? targetFn() : null;
+          const rect = el?.getBoundingClientRect();
+          const isReady = rect && rect.width > 0 && rect.height > 0;
+
+          if (isReady) {
+            setCurrentStep(stepToGo);
+            setPendingStep(null);
+            setIsTransitioning(false);
+            setRefreshKey((k) => k + 1);
+            timeoutRef.current = null;
+          } else if (Date.now() - start < MAX_WAIT) {
+            timeoutRef.current = setTimeout(tryAdvance, POLL_INTERVAL);
+          } else {
+            // Fallback: avanzar de todas formas si se agota el tiempo
+            setCurrentStep(stepToGo);
+            setPendingStep(null);
+            setIsTransitioning(false);
+            setRefreshKey((k) => k + 1);
+            timeoutRef.current = null;
+          }
+        };
+
+        tryAdvance();
       }
     };
     window.addEventListener("tour-drawer-opened", handleDrawerOpened);
-    return () => window.removeEventListener("tour-drawer-opened", handleDrawerOpened);
-  }, [tourKey, pendingStep]);
+    return () => {
+      window.removeEventListener("tour-drawer-opened", handleDrawerOpened);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, [tourKey, pendingStep, steps]);
 
   // Escuchar solicitudes de refresco de targets (cuando un drawer u otro elemento
   // dinámico se abre y los targets necesitan re-evaluarse)

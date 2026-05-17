@@ -144,7 +144,7 @@ const DataList = ({ data, type, renderItem }) => {
 // Componente principal
 const AnalysisPrompt = ({ profiles }) => {
   const { token } = useToken();
-  const analysis = useDataStatistics(profiles);
+  const { stats: analysis } = useDataStatistics(profiles);
 
   // --- Mejoras: agregar hora real a highestFlows y usar m1 en loggerStatuses ---
   // Mapear highestFlows para agregar la hora real del máximo caudal
