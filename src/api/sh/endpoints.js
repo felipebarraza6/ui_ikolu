@@ -52,14 +52,10 @@ const login = async (data) => {
 
   // Si llegamos aquí, el login fue exitoso (tiene user y access_token)
 
-  // Validar y ordenar catchment_points si existen
-  if (
-    request.data.user.catchment_points &&
-    Array.isArray(request.data.user.catchment_points)
-  ) {
-    request.data.user.catchment_points.sort(
-      (a, b) => b.is_monitoring - a.is_monitoring
-    );
+  // 🚀 Login optimizado: no procesar catchment_points aquí.
+  // Si el backend aún los envía, se ignoran para forzar lazy-loading.
+  if (request.data.user.catchment_points) {
+    delete request.data.user.catchment_points;
   }
 
   return request.data;
@@ -105,6 +101,11 @@ const downloadDataMonthToExcel = async (
     `data.xlsx`
   );
 };
+/**
+ * @deprecated Usar getPointsSummary, getMyPoints o batch.summary en su lugar.
+ * Este endpoint carga el perfil completo del usuario con TODOS los catchment_points,
+ * lo que genera respuestas de varios megabytes.
+ */
 const get_profile = async (username = null, token = null) => {
   // Si se proporciona username, usarlo; si no, intentar obtenerlo de localStorage
   let userUsername = username;
@@ -144,6 +145,8 @@ const get_catchment_points_all = async () => {
 /**
  * 🆕 NUEVO: Obtener detalle completo de UN punto de captación
  * Usa el retrieve del endpoint existente: /api/catchment_point/{id}/
+ *
+ * @deprecated Preferir getPointSummary() que usa el endpoint optimizado /api/ik/point/{id}/summary/
  */
 const get_catchment_point_detail = async (pointId) => {
   const rq = await GET(`catchment_point/${pointId}/`);
@@ -599,6 +602,21 @@ const get_dashboard_stats = async () => {
   return rq.data;
 };
 
+const chat = async (message) => {
+  const rq = await POST(`ik/chat/client/general_stats/`, { message });
+  return rq.data;
+};
+
+/**
+ * 🆕 MEDICIONES POR PUNTO Y DÍA
+ * Endpoint: GET /api/ik/point/{id}/records/?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD&limit=100
+ * Devuelve registros detallados de un punto para un rango de fechas.
+ */
+const get_point_records = async (pointId, startDate, endDate, limit = 100) => {
+  const rq = await GET(`ik/point/${pointId}/records/?start_date=${startDate}&end_date=${endDate}&limit=${limit}`);
+  return rq.data;
+};
+
 // ==========================================
 // ADMIN: CLIENTES, PROYECTOS, PUNTOS
 // ==========================================
@@ -717,6 +735,9 @@ const sh = {
   // 🆕 CENTRO DE CONTROL: Resumen diario agregado
   dailySummary: get_daily_summary,
   dashboardStats: get_dashboard_stats,
+  chat,
+  // 🆕 MEDICIONES POR PUNTO Y DÍA
+  pointRecords: get_point_records,
 };
 
 export default sh;

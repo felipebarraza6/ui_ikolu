@@ -1,84 +1,170 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import sh from "../api/sh/endpoints";
+import { useAuth } from "../contexts/AuthContext";
 import moment from "moment";
 import "moment/locale/es";
 
 moment.locale("es");
 
 /**
- * Transforma la respuesta de los endpoints reales del backend
- * (dashboard_stats + points_summary) al formato plano daily_summary.
- *
- * Esto mantiene ControlCenter.js agnóstico de la fuente de datos.
+ * Normaliza valores que el backend manda como:
+ *   - número directo: 46.3
+ *   - null
+ *   - objeto: { source: "490046.0", parsedValue: 490046 }
+ *   - string: "0.0"
  */
-const transformApiResponseToDailySummary = (dashboardStats, pointsSummary) => {
-  if (!pointsSummary || !Array.isArray(pointsSummary)) return null;
+const extractNum = (val) => {
+  if (val == null) return null;
+  if (typeof val === "number") return val;
+  if (typeof val === "string") {
+    const n = Number(val);
+    return isNaN(n) ? null : n;
+  }
+  if (typeof val === "object") {
+    if (val.parsedValue != null) {
+      const n = Number(val.parsedValue);
+      return isNaN(n) ? null : n;
+    }
+    if (val.source != null) {
+      const n = Number(val.source);
+      return isNaN(n) ? null : n;
+    }
+  }
+  return null;
+};
 
+/**
+ * Transforma la respuesta del nuevo endpoint /api/ik/dashboard_stats/
+ * (unificado) al formato que espera ControlCenter.js.
+ */
+const transformDashboardStats = (raw) => {
+  if (!raw || typeof raw !== "object") {
+    console.warn("[useControlCenter] Respuesta inválida:", raw);
+    return null;
+  }
+
+  const ds = raw;
   const today = moment();
-  const yesterday = moment().subtract(1, "day");
 
-  const ds = dashboardStats || {};
+  // ── 1. Contadores globales ──
+  const pointsCounters = ds.points || {};
+  const statusToday = ds.status_today || {};
+  const complianceStats = ds.compliance_stats || {};
 
-  const diffM3 = (ds.consumption_today || 0) - (ds.consumption_yesterday || 0);
-  const diffPercent =
-    (ds.consumption_yesterday || 0) > 0
-      ? ((diffM3 / ds.consumption_yesterday) * 100).toFixed(2)
-      : (ds.consumption_today || 0) > 0 ? 100 : 0;
-
-  const trend = diffM3 > 0 ? "up" : diffM3 < 0 ? "down" : "same";
-
-  const points = pointsSummary.map((p) => {
-    const lt = p.latest_telemetry || {};
-    const daysNotConnection = Number(lt.days_not_connection) || 0;
-    const isConnected = daysNotConnection === 0;
-
-    return {
-      id: p.id,
-      title: p.title,
-      project_name: p.project_name || p.project?.name || "—",
-      client_name: p.client_name || p.client?.name || "—",
-      active: p.active !== false,
-      is_telemetry: p.is_telemetry === true || p.config_data?.is_telemetry === true,
-      has_gps: !!(p.lat && p.lon && p.lat !== "0" && p.lon !== "0"),
-      provider: p.provider || "novus",
-      dga: {
-        code_dga: p.dga?.code_dga || null,
-        type_dga: p.dga?.type_dga || "SUBTERRANEO",
-        send_dga: p.dga?.send_dga || false,
-        flow_granted_lps: p.dga?.flow_granted_dga ? Number(p.dga.flow_granted_dga) : (p.dga?.flow_granted_lps || 0),
-      },
-      config_data: {
-        variables: p.config_data?.variables || p.config_data?.vars || [],
-      },
-      latest_telemetry: {
-        date_time_medition: lt.date_time_medition || lt.date,
-        date_formatted: lt.date_formatted || (lt.date_time_medition ? moment(lt.date_time_medition).format("DD/MM HH:mm") : "—"),
-        flow_lps: lt.flow_lps != null ? Number(lt.flow_lps) : (lt.flow != null ? Number(lt.flow) : null),
-        total_m3: lt.total_m3 != null ? Number(lt.total_m3) : (lt.total != null ? Number(lt.total) : null),
-        nivel_m: lt.nivel_m != null ? Number(lt.nivel_m) : (lt.nivel != null ? Number(lt.nivel) : null),
-        water_table_m: lt.water_table_m != null ? Number(lt.water_table_m) : (lt.water_table != null ? Number(lt.water_table) : null),
-        is_error: lt.is_error || false,
-        days_not_connection: daysNotConnection,
-      },
-      alerts: {
-        count: p.alerts?.count || 0,
-        active: p.alerts?.active || [],
-      },
-      status: {
-        is_connected_today: isConnected,
-        label: isConnected ? "OK" : "Desconectado",
-        color: isConnected ? "success" : "error",
-        description: isConnected
-          ? "Conectado y enviando datos"
-          : `Sin datos hace ${daysNotConnection} día(s)`,
-      },
+  // ── 2. Estadísticas semanales por punto desde last_7 ──
+  const weeklyStatsByPoint = {};
+  Object.entries(ds.last_7 || {}).forEach(([pointName, weekData]) => {
+    weeklyStatsByPoint[pointName] = {
+      total_m3: extractNum(weekData?.total_m3),
+      avg_flow_week: extractNum(weekData?.avg_flow_week),
+      avg_level_week: extractNum(weekData?.avg_level_week),
     };
   });
 
-  const historicalTotal = points.reduce((acc, p) => {
-    return acc + (p.latest_telemetry?.total_m3 || 0);
-  }, 0);
+  // ── 3. Warnings por punto + lista plana reciente ──
+  const warningsByPoint = {};
+  const recentWarningsList = [];
 
+  Object.entries(ds.recent_warnings || {}).forEach(([pointName, warnings]) => {
+    const arr = Array.isArray(warnings) ? warnings : [];
+    warningsByPoint[pointName] = arr.length;
+    arr.forEach((w) => {
+      recentWarningsList.push({
+        pointName,
+        time: w.time,
+        type: w.type,
+        severity: w.severity,
+        message: w.message,
+      });
+    });
+  });
+
+  // Ordenar warnings por tiempo desc
+  recentWarningsList.sort((a, b) => {
+    const ta = a.time ? moment(a.time).valueOf() : 0;
+    const tb = b.time ? moment(b.time).valueOf() : 0;
+    return tb - ta;
+  });
+
+  // ── 4. Construir tabla de puntos desde compliance_summary ──
+  const complianceList = Array.isArray(ds.compliance_summary)
+    ? ds.compliance_summary
+    : [];
+
+  const points = complianceList.map((p) => {
+    const wStats = weeklyStatsByPoint[p.point_name] || {};
+    return {
+      id: p.point_id,
+      title: p.point_name,
+      code: p.code || p.code_dga || null,
+      code_dga: p.code_dga || null,
+      compliance_type: Array.isArray(p.compliance_type) ? p.compliance_type : [],
+      standard: p.standard || "—",
+      type_dga: p.type_dga || "NO_DEFINIDO",
+      send_dga: p.send_dga,
+      send_sma: p.send_sma,
+      last_sent_at: p.last_sent_at,
+      voucher: p.voucher,
+      flow_lps: extractNum(p.flow),
+      water_table_m: extractNum(p.water_table),
+      total_m3: extractNum(p.total),
+      authorized_flow: extractNum(p.authorized_flow),
+      authorized_total: extractNum(p.authorized_total),
+      annual_consumption: extractNum(p.annual_consumption),
+      pct_consumed: extractNum(p.pct_consumed),
+      // Datos enriquecidos desde last_7
+      avg_flow_week: wStats.avg_flow_week,
+      avg_level_week: wStats.avg_level_week,
+      weekly_total_m3: wStats.total_m3,
+      // Datos desde warnings
+      warnings_count: warningsByPoint[p.point_name] || 0,
+    };
+  });
+
+  // ── 5. Calcular consumo hoy/ayer desde last_7 ──
+  let consumptionToday = 0;
+  let consumptionYesterday = 0;
+
+  Object.values(ds.last_7 || {}).forEach((weekData) => {
+    const days = weekData?.days || [];
+    if (days.length >= 1) {
+      const todayDay = days[days.length - 1];
+      consumptionToday += extractNum(todayDay?.consumption) || 0;
+    }
+    if (days.length >= 2) {
+      const yesterdayDay = days[days.length - 2];
+      consumptionYesterday += extractNum(yesterdayDay?.consumption) || 0;
+    }
+  });
+
+  const diffM3 = consumptionToday - consumptionYesterday;
+  const diffPercent =
+    consumptionYesterday > 0
+      ? ((diffM3 / consumptionYesterday) * 100).toFixed(2)
+      : consumptionToday > 0
+      ? 100
+      : 0;
+
+  // ── 6. Normalizar last_7 para el frontend ──
+  // El backend manda days con valores como objetos; los normalizamos aquí
+  // para que ControlCenter.js los use directamente.
+  const last7Normalized = {};
+  Object.entries(ds.last_7 || {}).forEach(([pointName, weekData]) => {
+    last7Normalized[pointName] = {
+      ...weekData,
+      total_m3: extractNum(weekData?.total_m3),
+      avg_flow_week: extractNum(weekData?.avg_flow_week),
+      avg_level_week: extractNum(weekData?.avg_level_week),
+      days: (weekData?.days || []).map((d) => ({
+        ...d,
+        consumption: extractNum(d.consumption),
+        avg_flow: extractNum(d.avg_flow),
+        avg_level: extractNum(d.avg_level),
+      })),
+    };
+  });
+
+  // ── 7. Construir daily_summary plano ──
   return {
     meta: {
       date: today.format("YYYY-MM-DD"),
@@ -86,51 +172,48 @@ const transformApiResponseToDailySummary = (dashboardStats, pointsSummary) => {
       timezone: "America/Santiago",
     },
     overview: {
-      total_points: ds.total_points || points.length,
-      active_points: ds.active_points || 0,
-      points_with_alerts: ds.points_with_alerts || points.filter((p) => (p.alerts?.count || 0) > 0).length,
-      points_with_gps: ds.points_with_gps || points.filter((p) => p.has_gps).length,
+      total_points: pointsCounters.total || 0,
+      active_points: statusToday.connected || 0,
+      points_with_gps: pointsCounters.with_gps || 0,
+      points_with_compliance: pointsCounters.with_compliance || 0,
+      points_with_telemetry: pointsCounters.with_telemetry || 0,
     },
     consumption: {
-      today_m3: ds.consumption_today || 0,
-      yesterday_m3: ds.consumption_yesterday || 0,
+      today_m3: consumptionToday,
+      yesterday_m3: consumptionYesterday,
       difference_m3: diffM3,
       difference_percent: Number(diffPercent),
-      trend,
+      trend: diffM3 > 0 ? "up" : diffM3 < 0 ? "down" : "same",
       date_label_today: `Hoy (${today.format("D MMM")})`,
-      date_label_yesterday: `Ayer (${yesterday.format("D MMM")})`,
+      date_label_yesterday: `Ayer (${today.subtract(1, "day").format("D MMM")})`,
     },
     service_status: {
-      connected_today: ds.connected_today || 0,
-      disconnected_today: ds.disconnected_today || 0,
-      without_telemetry: ds.without_telemetry || 0,
-      health_percent: ds.health_percent || 100,
-      health_label: ds.health_label || "Óptimo",
-      health_color: ds.health_color || "#52c41a",
+      connected_today: statusToday.connected || 0,
+      disconnected_today: statusToday.disconnected || 0,
+      without_telemetry:
+        (pointsCounters.total || 0) - (pointsCounters.with_telemetry || 0),
+      total_points: pointsCounters.total || 0,
     },
     points,
-    historical: {
-      total_accumulated_m3: ds.historical_total || historicalTotal,
-      total_accumulated_formatted: `${new Intl.NumberFormat("de-DE").format(Math.round(ds.historical_total || historicalTotal))} m³`,
-    },
+    last_7: last7Normalized,
+    recent_warnings: ds.recent_warnings || {},
+    recent_warnings_list: recentWarningsList,
+    compliance_stats: complianceStats,
+    chat_quota: ds.chat_quota || null,
   };
 };
 
 /**
  * useControlCenter — Hook unificado para el Centro de Control
  *
- * Usa endpoints reales del backend:
- * 1. GET /api/ik/dashboard_stats/  → KPIs agregados
- * 2. GET /api/ik/points_summary/   → Puntos con última telemetría
+ * Ahora usa UN SOLO endpoint:
+ *   GET /api/ik/dashboard_stats/
  *
- * Transforma ambas respuestas al formato plano daily_summary
- * para mantener ControlCenter.js agnóstico de la fuente.
+ * Que entrega: contadores, status, compliance_summary, last_7, warnings.
  */
 export const useControlCenter = (options = {}) => {
-  const {
-    autoRefresh = true,
-    refreshInterval = 60 * 1000,
-  } = options;
+  const { autoRefresh = true, refreshInterval = 60 * 1000 } = options;
+  const { isAuth } = useAuth();
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -150,6 +233,8 @@ export const useControlCenter = (options = {}) => {
 
   const fetchData = useCallback(
     async (silent = false) => {
+      if (!isAuth) return;
+
       const now = Date.now();
       if (now - lastFetchRef.current < 30000) return;
       lastFetchRef.current = now;
@@ -158,24 +243,10 @@ export const useControlCenter = (options = {}) => {
       setError(null);
 
       try {
-        // Llamadas paralelas a los dos endpoints reales
-        const [dashboardStats, pointsSummary] = await Promise.all([
-          sh.dashboardStats().catch((err) => {
-            console.warn("[useControlCenter] dashboard_stats failed:", err.message);
-            return null;
-          }),
-          sh.getPointsSummary().catch((err) => {
-            console.warn("[useControlCenter] points_summary failed:", err.message);
-            return null;
-          }),
-        ]);
+        const raw = await sh.dashboardStats();
+        console.log("[useControlCenter] dashboard_stats raw:", raw);
 
-        // Si points_summary falla, no tenemos datos de puntos
-        if (!pointsSummary) {
-          throw new Error("No se pudieron obtener los puntos del usuario");
-        }
-
-        const transformed = transformApiResponseToDailySummary(dashboardStats, pointsSummary);
+        const transformed = transformDashboardStats(raw);
 
         if (isMountedRef.current) {
           setData(transformed);
@@ -183,6 +254,7 @@ export const useControlCenter = (options = {}) => {
           setError(null);
         }
       } catch (err) {
+        console.error("[useControlCenter] Error:", err);
         if (isMountedRef.current) {
           setError(err);
         }
@@ -192,22 +264,20 @@ export const useControlCenter = (options = {}) => {
         }
       }
     },
-    []
+    [isAuth]
   );
 
-  // Fetch inicial
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (isAuth) fetchData();
+  }, [isAuth, fetchData]);
 
-  // Auto-refresh
   useEffect(() => {
-    if (!autoRefresh) return;
+    if (!autoRefresh || !isAuth) return;
     intervalRef.current = setInterval(() => {
       fetchData(true);
     }, refreshInterval);
     return () => clearInterval(intervalRef.current);
-  }, [autoRefresh, refreshInterval, fetchData]);
+  }, [autoRefresh, refreshInterval, fetchData, isAuth]);
 
   const refresh = useCallback(() => {
     lastFetchRef.current = 0;
@@ -222,6 +292,7 @@ export const useControlCenter = (options = {}) => {
     refresh,
     isReady: !!data && !loading,
     source: "api",
+    chatQuota: data?.chat_quota || null,
   };
 };
 
