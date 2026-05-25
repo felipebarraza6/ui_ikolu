@@ -254,7 +254,7 @@ const AppRoutes = React.memo(() => {
     if (state.user && state.user.id === 34) {
       const userProfiles = state.selected_profile?.id
         ? [state.selected_profile]
-        : (state.profile_client || state.points_list || []);
+        : (state.points_list || []);
       return <GeneralSummaryUser34 profiles={userProfiles} />;
     }
     // Nuevo Centro de Control optimizado (daily_summary nativo o fallback legacy)
@@ -506,11 +506,8 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
       // Solo guardar la lista de puntos disponibles para el proyecto
       if (points.length > 0) {
         dispatch({
-          type: "SET_PROFILE_CLIENT",
-          payload: {
-            profile_client: points,
-            selected_profile: state.selected_profile,
-          },
+          type: "SET_POINTS_LIST",
+          payload: { points_list: points },
         });
       }
     } catch (e) {
@@ -536,11 +533,8 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
       });
       return;
     }
-    // Buscar en projectPoints primero, fallback a state.profile_client
-    let point = projectPoints.find((p) => p.id === numericId || String(p.id) === String(numericId));
-    if (!point && state.profile_client) {
-      point = state.profile_client.find((p) => p.id === numericId || String(p.id) === String(numericId));
-    }
+    // Buscar en projectPoints
+    const point = projectPoints.find((p) => p.id === numericId || String(p.id) === String(numericId));
     console.log('[Admin] Punto encontrado:', point);
     if (point) {
       dispatch({

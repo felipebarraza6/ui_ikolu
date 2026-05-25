@@ -236,16 +236,15 @@ const TicketDetailDrawer = ({
 
   const renderFileList = (fileList, setFileList) =>
     fileList.length > 0 && (
-      <Flex vertical gap={4} style={{inner}}>
+      <Flex vertical gap={4}>
         {fileList.map((file, idx) => (
           <Flex
             key={idx}
             align="center"
             justify="space-between"
-            style={{inner}}
           >
-            <Text ellipsis style={{inner}}>
-              <PaperClipOutlined style={{inner}} />
+            <Text ellipsis>
+              <PaperClipOutlined />
               {file.name}
             </Text>
             <Button
@@ -290,16 +289,16 @@ const TicketDetailDrawer = ({
           >
             {slaBreached ? <FireOutlined /> : <ClockCircleOutlined />}
           </div>
-          <div style={{inner}}>
+          <div>
             <Flex justify="space-between" align="center">
-              <Text strong style={{inner}}>
+              <Text strong>
                 SLA {slaBreached ? 'excedido' : slaUrgente ? 'urgente' : 'en curso'}
               </Text>
-              <Text strong style={{inner}}>
+              <Text strong>
                 {horasSinRespuesta}h / 48h
               </Text>
             </Flex>
-            <div style={{inner}}>
+            <div>
               <div
                 style={{
                   width: `${slaProgress}%`,
@@ -310,7 +309,7 @@ const TicketDetailDrawer = ({
                 }}
               />
             </div>
-            <Text style={{inner}}>
+            <Text>
               {slaBreached
                 ? 'Este ticket excedió el tiempo de respuesta establecido.'
                 : slaUrgente
@@ -324,15 +323,14 @@ const TicketDetailDrawer = ({
       {/* Descripción */}
       <Card
         size="small"
-        style={{inner}}
         bodyStyle={{ padding: 16 }}
       >
-        <Text type="secondary" style={{inner}}>
-          <FileTextOutlined style={{inner}} />
+        <Text type="secondary">
+          <FileTextOutlined />
           Descripción
         </Text>
-        <div style={{inner}}>
-          <Text style={{inner}}>
+        <div>
+          <Text>
             {ticketMessage}
           </Text>
         </div>
@@ -341,92 +339,91 @@ const TicketDetailDrawer = ({
       {/* Metadatos */}
       <Card
         size="small"
-        style={{inner}}
         bodyStyle={{ padding: 16 }}
       >
-        <Text type="secondary" style={{inner}}>
-          <BarsOutlined style={{inner}} />
+        <Text type="secondary">
+          <BarsOutlined />
           Detalles
         </Text>
-        <Row gutter={[16, 14]} style={{inner}}>
+        <Row gutter={[16, 14]}>
           <Col span={12}>
-            <Text type="secondary" style={{inner}}>Punto</Text>
-            <div style={{inner}}>
-              <EnvironmentOutlined style={{inner}} />
-              <Text strong style={{inner}}>{point_title || '—'}</Text>
+            <Text type="secondary">Punto</Text>
+            <div>
+              <EnvironmentOutlined />
+              <Text strong>{point_title || '—'}</Text>
             </div>
           </Col>
           <Col span={12}>
-            <Text type="secondary" style={{inner}}>Cliente</Text>
-            <div style={{inner}}>
-              <UserOutlined style={{inner}} />
-              <Text strong style={{inner}}>{client || '—'}</Text>
+            <Text type="secondary">Cliente</Text>
+            <div>
+              <UserOutlined />
+              <Text strong>{client || '—'}</Text>
             </div>
           </Col>
           <Col span={12}>
-            <Text type="secondary" style={{inner}}>Proyecto</Text>
-            <div style={{inner}}>
-              <FileTextOutlined style={{inner}} />
-              <Text strong style={{inner}}>{project || '—'}</Text>
+            <Text type="secondary">Proyecto</Text>
+            <div>
+              <FileTextOutlined />
+              <Text strong>{project || '—'}</Text>
             </div>
           </Col>
           <Col span={12}>
-            <Text type="secondary" style={{inner}}>Variable</Text>
-            <div style={{inner}}>
-              <Tag size="small" style={{inner}}>
+            <Text type="secondary">Variable</Text>
+            <div>
+              <Tag size="small">
                 {type_variable || 'Soporte'}
               </Tag>
             </div>
           </Col>
           {type_alert && (
             <Col span={12}>
-              <Text type="secondary" style={{inner}}>Tipo Alerta</Text>
-              <div style={{inner}}
+              <Text type="secondary">Tipo Alerta</Text>
+              <div
               >
-                <Tag size="small" style={{inner}}>{type_alert}</Tag>
+                <Tag size="small">{type_alert}</Tag>
               </div>
             </Col>
           )}
           <Col span={12}>
-            <Text type="secondary" style={{inner}}>Periódico</Text>
-            <div style={{inner}}>
-              <Text style={{inner}}>{is_periodic ? 'Sí' : 'No'}</Text>
+            <Text type="secondary">Periódico</Text>
+            <div>
+              <Text>{is_periodic ? 'Sí' : 'No'}</Text>
             </div>
           </Col>
           <Col span={12}>
-            <Text type="secondary" style={{inner}}>Estado DGA</Text>
-            <div style={{inner}}>
-              <Tag size="small" style={{inner}}>
+            <Text type="secondary">Estado DGA</Text>
+            <div>
+              <Tag size="small">
                 {status_dga || '—'}
               </Tag>
             </div>
           </Col>
           <Col span={12}>
-            <Text type="secondary" style={{inner}}>Estado SMA</Text>
-            <div style={{inner}}>
-              <Tag size="small" style={{inner}}>
+            <Text type="secondary">Estado SMA</Text>
+            <div>
+              <Tag size="small">
                 {status_sma || '—'}
               </Tag>
             </div>
           </Col>
           <Col span={12}>
-            <Text type="secondary" style={{inner}}>Creado</Text>
-            <div style={{inner}}>
-              <Text style={{inner}}>{dayjs(created).format('DD/MM/YYYY HH:mm')}</Text>
+            <Text type="secondary">Creado</Text>
+            <div>
+              <Text>{dayjs(created).format('DD/MM/YYYY HH:mm')}</Text>
             </div>
           </Col>
         </Row>
 
         {hasEmails && (
           <>
-            <Divider style={{inner}} />
-            <Text type="secondary" style={{inner}}>
-              <MailOutlined style={{inner}} />
+            <Divider />
+            <Text type="secondary">
+              <MailOutlined />
               Correos configurados
             </Text>
-            <Flex gap={6} wrap="wrap" style={{inner}}>
+            <Flex gap={6} wrap="wrap">
               {emails.map((email, idx) => (
-                <Tag key={idx} size="small" icon={<MailOutlined />} style={{inner}}>
+                <Tag key={idx} size="small" icon={<MailOutlined />}>
                   {email}
                 </Tag>
               ))}
@@ -438,27 +435,25 @@ const TicketDetailDrawer = ({
       {/* Cambiar estado */}
       <Card
         size="small"
-        style={{inner}}
         bodyStyle={{ padding: 16 }}
       >
-        <Text type="secondary" style={{inner}}>
-          <ReloadOutlined style={{inner}} />
+        <Text type="secondary">
+          <ReloadOutlined />
           Cambiar Estado
         </Text>
-        <Flex vertical gap={10} style={{inner}}>
+        <Flex vertical gap={10}>
           {currentStatus === 'resuelto' && (
-            <Text style={{inner}}>
+            <Text>
               Este ticket está resuelto. Solo puede reabrirse a "En Revisión".
             </Text>
           )}
           {currentStatus === 'revision' && (
-            <Text type="secondary" style={{inner}}>
+            <Text type="secondary">
               De "En Revisión" puede pasar a "En Desarrollo" (re-apertura) o "Resuelto".
             </Text>
           )}
           <Flex gap={10} align="center">
             <Select
-              style={{inner}}
               value={newStatus || currentStatus}
               onChange={setNewStatus}
               placeholder="Seleccionar estado"
@@ -466,7 +461,7 @@ const TicketDetailDrawer = ({
               {allowedOptions.map((opt) => (
                 <Option key={opt.value} value={opt.value}>
                   <Flex align="center" gap={6}>
-                    <div style={{inner}} />
+                    <div />
                     {opt.label}
                   </Flex>
                 </Option>
@@ -478,7 +473,6 @@ const TicketDetailDrawer = ({
               onClick={handleStatusChange}
               loading={updatingStatus}
               disabled={!newStatus || newStatus === currentStatus}
-              style={{inner}}
             >
               Actualizar
             </Button>
@@ -493,14 +487,13 @@ const TicketDetailDrawer = ({
       {is_finish ? (
         <Card
           size="small"
-          style={{inner}}
           bodyStyle={{ padding: 16 }}
         >
           <Flex align="center" gap={10}>
-            <CheckCircleOutlined style={{inner}} />
+            <CheckCircleOutlined />
             <div>
-              <Text strong style={{inner}}>Ticket resuelto</Text>
-              <Text type="secondary" style={{inner}}>
+              <Text strong>Ticket resuelto</Text>
+              <Text type="secondary">
                 Reabre el ticket a "En Revisión" para agregar nuevos comentarios o correos.
               </Text>
             </div>
@@ -508,12 +501,11 @@ const TicketDetailDrawer = ({
         </Card>
       ) : (
         <>
-          <Flex style={{inner}}>
+          <Flex>
             <Button
               type={activeReplyTab === 'comment' ? 'primary' : 'text'}
               icon={<CommentOutlined />}
               onClick={() => setActiveReplyTab('comment')}
-              style={{inner}}
             >
               Comentario interno
             </Button>
@@ -521,7 +513,6 @@ const TicketDetailDrawer = ({
               type={activeReplyTab === 'email' ? 'primary' : 'text'}
               icon={<MailOutlined />}
               onClick={() => setActiveReplyTab('email')}
-              style={{inner}}
             >
               Enviar correo
             </Button>
@@ -530,7 +521,6 @@ const TicketDetailDrawer = ({
           {activeReplyTab === 'comment' ? (
             <Card
               size="small"
-              style={{inner}}
               bodyStyle={{ padding: 16 }}
             >
               <Flex vertical gap={10}>
@@ -539,10 +529,9 @@ const TicketDetailDrawer = ({
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   placeholder="Escribe un comentario interno para el equipo de soporte..."
-                  style={{inner}}
                 />
                 <Upload {...uploadProps(commentFiles, setCommentFiles)}>
-                  <Button icon={<PaperClipOutlined />} size="small" type="dashed" style={{inner}}>
+                  <Button icon={<PaperClipOutlined />} size="small" type="dashed">
                     Adjuntar archivo
                   </Button>
                 </Upload>
@@ -553,7 +542,6 @@ const TicketDetailDrawer = ({
                   onClick={handleSendComment}
                   loading={sendingComment}
                   disabled={!comment.trim()}
-                  style={{inner}}
                 >
                   Agregar comentario
                 </Button>
@@ -562,16 +550,15 @@ const TicketDetailDrawer = ({
           ) : (
             <Card
               size="small"
-              style={{inner}}
               bodyStyle={{ padding: 16 }}
             >
               <Flex vertical gap={10}>
                 {hasEmails && (
                   <div>
-                    <Text type="secondary" style={{inner}}>Destinatarios:</Text>
-                    <Flex gap={6} wrap="wrap" style={{inner}}>
+                    <Text type="secondary">Destinatarios:</Text>
+                    <Flex gap={6} wrap="wrap">
                       {emails.map((email, idx) => (
-                        <Tag key={idx} size="small" icon={<MailOutlined />} style={{inner}}>
+                        <Tag key={idx} size="small" icon={<MailOutlined />}>
                           {email}
                         </Tag>
                       ))}
@@ -584,7 +571,7 @@ const TicketDetailDrawer = ({
                   placeholder={hasEmails ? 'Escribe el contenido del correo...' : 'Escribe el contenido del correo (sin destinatarios configurados)...'}
                 />
                 <Upload {...uploadProps(emailFiles, setEmailFiles)}>
-                  <Button icon={<PaperClipOutlined />} size="small" type="dashed" style={{inner}}>
+                  <Button icon={<PaperClipOutlined />} size="small" type="dashed">
                     Adjuntar archivo
                   </Button>
                 </Upload>
@@ -595,7 +582,6 @@ const TicketDetailDrawer = ({
                   onClick={handleSendEmail}
                   loading={sendingEmail}
                   disabled={!emailContent.trim()}
-                  style={{inner}}
                 >
                   Enviar correo
                 </Button>
@@ -612,7 +598,6 @@ const TicketDetailDrawer = ({
       {/* Resumen de actividad */}
       <Card
         size="small"
-        style={{inner}}
         bodyStyle={{ padding: 14 }}
       >
         <Flex gap={16} justify="space-around">
@@ -621,10 +606,10 @@ const TicketDetailDrawer = ({
             { icon: <MailOutlined />, label: 'Correos', value: emailResponses.length, color: '#3B82F6' },
             { icon: <ClockCircleOutlined />, label: 'Total', value: realResponseCount, color: '#8B5CF6' },
           ].map((stat) => (
-            <div key={stat.label} style={{inner}}>
-              <div style={{inner}}>{stat.icon}</div>
-              <Text strong style={{inner}}>{stat.value}</Text>
-              <Text style={{inner}}>{stat.label}</Text>
+            <div key={stat.label}>
+              <div>{stat.icon}</div>
+              <Text strong>{stat.value}</Text>
+              <Text>{stat.label}</Text>
             </div>
           ))}
         </Flex>
@@ -634,23 +619,23 @@ const TicketDetailDrawer = ({
       <Flex vertical gap={0}>
         {/* Created entry */}
         <Flex gap={12}>
-          <Flex vertical align="center" style={{inner}}>
-            <div style={{inner}}>
+          <Flex vertical align="center">
+            <div>
               <FileAddOutlined />
             </div>
-            <div style={{inner}} />
+            <div />
           </Flex>
-          <div style={{inner}}>
-            <Text type="secondary" style={{inner}}>
+          <div>
+            <Text type="secondary">
               {dayjs(created).format('DD/MM/YYYY HH:mm')}
             </Text>
-            <Text strong style={{inner}}>
+            <Text strong>
               Ticket creado
             </Text>
-            <Text style={{inner}}>por {ticket.user?.username || 'Usuario'}</Text>
+            <Text>por {ticket.user?.username || 'Usuario'}</Text>
             {hasEmails && (
-              <div style={{inner}}>
-                <Tag size="small" icon={<MailOutlined />} style={{inner}}>
+              <div>
+                <Tag size="small" icon={<MailOutlined />}>
                   Notificación por correo activada
                 </Tag>
               </div>
@@ -661,7 +646,7 @@ const TicketDetailDrawer = ({
         {/* Responses */}
         {validResponses.map((resp, idx) => (
           <Flex key={idx} gap={12}>
-            <Flex vertical align="center" style={{inner}}>
+            <Flex vertical align="center">
               <div style={{
                 width: 32, height: 32, borderRadius: '50%', background: resp.is_email ? '#EFF6FF' : '#F0FDF4',
                 border: `2px solid ${resp.is_email ? '#3B82F6' : '#10B981'}`,
@@ -670,20 +655,20 @@ const TicketDetailDrawer = ({
                 {resp.is_email ? <MailOutlined /> : <CommentOutlined />}
               </div>
               {idx < validResponses.length - 1 || is_finish ? (
-                <div style={{inner}} />
+                <div />
               ) : (
-                <div style={{inner}} />
+                <div />
               )}
             </Flex>
-            <div style={{inner}}>
-              <Text type="secondary" style={{inner}}>
+            <div>
+              <Text type="secondary">
                 {dayjs(resp.created).format('DD/MM/YYYY HH:mm')}
               </Text>
-              <Flex align="center" gap={6} style={{inner}}>
-                <Text strong style={{inner}}>
+              <Flex align="center" gap={6}>
+                <Text strong>
                   {resp.user?.username || 'Usuario'}
                 </Text>
-                <Tag size="small" style={{inner}}>
+                <Tag size="small">
                   {resp.is_email ? 'Correo' : 'Comentario'}
                 </Tag>
               </Flex>
@@ -697,7 +682,7 @@ const TicketDetailDrawer = ({
                 }}
                 bodyStyle={{ padding: '10px 12px' }}
               >
-                <Text style={{inner}}>
+                <Text>
                   {resp.response}
                 </Text>
               </Card>
@@ -708,16 +693,16 @@ const TicketDetailDrawer = ({
         {/* Resolved entry */}
         {is_finish && (
           <Flex gap={12}>
-            <Flex vertical align="center" style={{inner}}>
-              <div style={{inner}}>
+            <Flex vertical align="center">
+              <div>
                 <CheckCircleOutlined />
               </div>
             </Flex>
-            <div style={{inner}}>
-              <Text type="secondary" style={{inner}}>
+            <div>
+              <Text type="secondary">
                 {dayjs(ticket.modified || created).format('DD/MM/YYYY HH:mm')}
               </Text>
-              <Text strong style={{inner}}>
+              <Text strong>
                 Ticket resuelto
               </Text>
             </div>
@@ -725,7 +710,7 @@ const TicketDetailDrawer = ({
         )}
 
         {validResponses.length === 0 && (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Sin actividad registrada" style={{inner}} />
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Sin actividad registrada" />
         )}
       </Flex>
     </Flex>
@@ -750,13 +735,12 @@ const TicketDetailDrawer = ({
       closable={false}
     >
       {/* Header del drawer */}
-      <div style={{inner}}>
+      <div>
         <Flex justify="space-between" align="start">
-          <Flex vertical gap={6} style={{inner}}>
+          <Flex vertical gap={6}>
             <Flex align="center" gap={10} wrap="wrap">
               <Badge
                 count={visualId}
-                style={{inner}}
               />
               <Tag
                 icon={slaCfg.icon}
@@ -772,36 +756,36 @@ const TicketDetailDrawer = ({
                 {slaCfg.label}
               </Tag>
               {hasEmails && (
-                <Tag icon={<MailOutlined />} style={{inner}}>
+                <Tag icon={<MailOutlined />}>
                   Email
                 </Tag>
               )}
               {slaBreached && (
-                <Tag icon={<FireOutlined />} style={{inner}}>
+                <Tag icon={<FireOutlined />}>
                   SLA &gt;48h
                 </Tag>
               )}
             </Flex>
-            <Title level={5} style={{inner}}>
+            <Title level={5}>
               {title}
             </Title>
-            <Text style={{inner}}>
-              <EnvironmentOutlined style={{inner}} />
+            <Text>
+              <EnvironmentOutlined />
               {point_title || '—'}
               {project ? ` · ${project}` : ''}
               {client ? ` · ${client}` : ''}
             </Text>
           </Flex>
-          <Button type="text" size="small" onClick={onClose} style={{inner}}>
+          <Button type="text" size="small" onClick={onClose}>
             ✕
           </Button>
         </Flex>
       </div>
 
       {/* Contenido con sidebar */}
-      <Flex style={{inner}}>
+      <Flex>
         {/* Sidebar de navegación */}
-        <div style={{inner}}>
+        <div>
           {NAV_ITEMS.map((item) => {
             const isActive = activeSection === item.key;
             const data = navData[item.key];
@@ -809,23 +793,21 @@ const TicketDetailDrawer = ({
               <button
                 key={item.key}
                 onClick={() => setActiveSection(item.key)}
-                style={{inner}}
               >
                 <Flex align="center" gap={8}>
-                  <span style={{inner}}>
+                  <span>
                     {item.icon}
                   </span>
-                  <Text strong style={{inner}}>
+                  <Text strong>
                     {item.label}
                   </Text>
                   {data.badge !== null && (
                     <Badge
                       count={data.badge}
-                      style={{inner}}
                     />
                   )}
                 </Flex>
-                <Text style={{inner}}>
+                <Text>
                   {data.sub}
                 </Text>
               </button>
@@ -834,7 +816,7 @@ const TicketDetailDrawer = ({
         </div>
 
         {/* Área de contenido */}
-        <div style={{inner}}>
+        <div>
           {sectionMap[activeSection]}
         </div>
       </Flex>

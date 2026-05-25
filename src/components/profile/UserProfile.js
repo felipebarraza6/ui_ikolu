@@ -41,7 +41,7 @@ const UserProfile = () => {
   const [passwordLoading, setPasswordLoading] = useState(false);
 
   const user = state.user || {};
-  const catchmentPoints = state.profile_client || [];
+  const catchmentPoints = state.points_list || [];
 
   useEffect(() => {
     form.setFieldsValue({

@@ -48,13 +48,6 @@ export const appReducer = (state, action) => {
 
     case "UPDATE":
       localStorage.setItem("user", JSON.stringify(action.payload.user));
-      // 🆕 Solo guardar profile_client si viene en el payload
-      if (action.payload.user.catchment_points) {
-        localStorage.setItem(
-          "profile_client",
-          JSON.stringify(action.payload.user.catchment_points)
-        );
-      }
 
       // 🚫 NO auto-seleccionar perfil — el usuario debe elegir explícitamente
       const validSelectedProfile = action.payload.selected_profile || state.selected_profile;
@@ -69,7 +62,6 @@ export const appReducer = (state, action) => {
         ...state,
         isAuth: true,
         user: action.payload.user,
-        profile_client: action.payload.user.catchment_points || state.profile_client,
         selected_profile: validSelectedProfile,
       };
 
@@ -82,10 +74,7 @@ export const appReducer = (state, action) => {
       };
 
     case "SET_PROFILE_CLIENT":
-      localStorage.setItem(
-        "profile_client",
-        JSON.stringify(action.payload.profile_client)
-      );
+      // 🚀 DEPRECATED: profile_client ya no se almacena en localStorage
       if (action.payload.selected_profile) {
         localStorage.setItem(
           "selected_profile",
@@ -94,7 +83,6 @@ export const appReducer = (state, action) => {
       }
       return {
         ...state,
-        profile_client: action.payload.profile_client,
         selected_profile: action.payload.selected_profile || state.selected_profile,
       };
 
@@ -119,21 +107,9 @@ export const appReducer = (state, action) => {
         return state;
       }
       localStorage.setItem("selected_profile", JSON.stringify(detail));
-      // Actualizar también en profile_client si existe
-      const updatedClient = state.profile_client
-        ? state.profile_client.map((p) =>
-            p.id === detail.id ? { ...p, ...detail } : p
-          )
-        : [detail];
-      localStorage.setItem("profile_client", JSON.stringify(updatedClient));
       return {
         ...state,
         selected_profile: detail,
-        profile_client: state.profile_client
-          ? state.profile_client.map((p) =>
-              p.id === detail.id ? { ...p, ...detail } : p
-            )
-          : [detail],
       };
 
     case "SET_ADMIN_VIEW":

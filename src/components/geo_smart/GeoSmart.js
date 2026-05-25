@@ -56,7 +56,7 @@ const { useBreakpoint } = Grid;
 const { useToken } = theme;
 
 const GeoSmart = () => {
-  const { profile_client } = useData();
+  const { points_list } = useData();
   const validators = useDataValidation();
   const screens = useBreakpoint();
   const { token } = useToken();
@@ -72,7 +72,7 @@ const GeoSmart = () => {
   });
 
   useEffect(() => {
-    const profiles = profile_client || [];
+    const profiles = points_list || [];
     const processedData = profiles.map((profile) => {
       const hasGPS =
         profile.lat &&
@@ -127,7 +127,7 @@ const GeoSmart = () => {
             processedData.length
           : 0,
     });
-  }, [profile_client]);
+  }, [points_list]);
 
   const handlePointClick = useCallback((point) => {
     setSelectedPoint(point);

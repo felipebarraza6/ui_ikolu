@@ -34,7 +34,7 @@ const ConsumptionChart = () => {
 
   // Solo datos de hoy
   const processTodayData = () => {
-    if (!state.profile_client || state.profile_client.length === 0) {
+    if (!state.points_list || state.points_list.length === 0) {
       setLoading(false);
       return;
     }
@@ -46,7 +46,7 @@ const ConsumptionChart = () => {
       let pointsData = {};
       let activePoints = 0;
 
-      state.profile_client.forEach((profile) => {
+      state.points_list.forEach((profile) => {
         if (
           profile.modules &&
           profile.modules.today &&
@@ -85,7 +85,7 @@ const ConsumptionChart = () => {
 
   useEffect(() => {
     processTodayData();
-  }, [state.profile_client]);
+  }, [state.points_list]);
 
   if (loading) {
     return (

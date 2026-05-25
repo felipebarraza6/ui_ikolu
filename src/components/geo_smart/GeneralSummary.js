@@ -52,7 +52,7 @@ const GeneralSummary = ({ profiles: initialProfiles }) => {
 
   // 🛡️ Usuarios normales: SIEMPRE usan sus puntos asignados
   const userProfiles = !isAdmin
-    ? (initialProfiles?.length > 0 ? initialProfiles : (state.profile_client || state.points_list)) || []
+    ? (initialProfiles?.length > 0 ? initialProfiles : state.points_list) || []
     : (initialProfiles || []);
 
   // Hook optimizado de dashboard (usa batch nativo)

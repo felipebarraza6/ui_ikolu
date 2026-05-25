@@ -53,40 +53,8 @@ export const useLazyProfile = (options = {}) => {
       return points;
     } catch (err) {
       console.warn('Error cargando lista de puntos:', err.message);
-
-      // 🔄 FALLBACK: Usar get_profile() que ya existe en el backend
-      try {
-        const profileResponse = await sh.get_profile();
-        const fullPoints = profileResponse?.user?.catchment_points || [];
-
-        const minimalPoints = fullPoints.map(p => ({
-          id: p.id,
-          title: p.title,
-          dga: p.dga ? { code_dga: p.dga.code_dga } : null,
-          config_data: p.config_data ? { is_telemetry: p.config_data.is_telemetry } : null,
-          profile_ikolu: p.profile_ikolu ? { entry_by_form: p.profile_ikolu.entry_by_form } : null,
-          ...p,
-        }));
-
-        dispatch({
-          type: 'SET_POINTS_LIST',
-          payload: { points_list: minimalPoints }
-        });
-
-        dispatch({
-          type: 'SET_PROFILE_CLIENT',
-          payload: {
-            profile_client: fullPoints,
-            selected_profile: state.selected_profile || null,
-          }
-        });
-
-        return minimalPoints;
-      } catch (fallbackErr) {
-        console.error('Fallback también falló:', fallbackErr);
-        setError(fallbackErr);
-        return null;
-      }
+      setError(err);
+      return null;
     } finally {
       setLoadingList(false);
     }

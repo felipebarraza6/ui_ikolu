@@ -124,12 +124,23 @@ const Login = () => {
     setLoading(true);
     try {
       const response = await sh.authenticated(values);
+      // 🚀 Solo guardar datos esenciales del usuario (login optimizado)
+      const minimalUser = {
+        id: response.user?.id,
+        email: response.user?.email,
+        username: response.user?.username,
+        first_name: response.user?.first_name,
+        last_name: response.user?.last_name,
+        is_staff: response.user?.is_staff,
+        is_superuser: response.user?.is_superuser,
+        is_client_admin: response.user?.is_client_admin,
+      };
       localStorage.setItem("token", JSON.stringify(response.access_token));
-      localStorage.setItem("user", JSON.stringify(response.user));
+      localStorage.setItem("user", JSON.stringify(minimalUser));
       if (response.points_summary) {
         localStorage.setItem("points_summary", JSON.stringify(response.points_summary));
       }
-      dispatch({ type: "LOGIN", payload: response });
+      dispatch({ type: "LOGIN", payload: { ...response, user: minimalUser } });
       notification.success({
         message: "¡Bienvenido a Ikolu!",
         description: "Has iniciado sesión correctamente",

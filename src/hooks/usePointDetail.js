@@ -31,7 +31,8 @@ export const usePointDetail = () => {
 
     setLoading(true);
     try {
-      const detail = await sh.getPointDetail(selectedProfile.id);
+      // 🚀 Intentar endpoint optimizado primero
+      const detail = await sh.getPointSummary(selectedProfile.id);
       if (detail) {
         dispatch({
           type: 'SET_SELECTED_PROFILE_DETAIL',
@@ -39,21 +40,18 @@ export const usePointDetail = () => {
         });
       }
     } catch (err) {
-      console.warn('Endpoint detail no disponible, usando fallback a get_profile:', err.message);
-
+      console.warn('getPointSummary falló, intentando getPointDetail:', err.message);
+      // Fallback seguro: endpoint viejo de un solo punto (nunca get_profile masivo)
       try {
-        const profileResponse = await sh.get_profile();
-        const fullPoints = profileResponse?.user?.catchment_points || [];
-        const foundPoint = fullPoints.find(p => p.id === selectedProfile.id);
-
-        if (foundPoint) {
+        const detail = await sh.getPointDetail(selectedProfile.id);
+        if (detail) {
           dispatch({
             type: 'SET_SELECTED_PROFILE_DETAIL',
-            payload: { selected_profile: foundPoint }
+            payload: { selected_profile: detail }
           });
         }
       } catch (fallbackErr) {
-        console.error('Fallback también falló:', fallbackErr);
+        console.error('getPointDetail también falló:', fallbackErr);
       }
     } finally {
       setLoading(false);

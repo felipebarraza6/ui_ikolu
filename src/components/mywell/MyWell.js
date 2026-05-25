@@ -818,7 +818,7 @@ const MetricCard = ({
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 5,
-                    padding: "3px 10px",
+                    padding: "2px 6px",
                     borderRadius: "20px",
                     backgroundColor: `${syncStatus.color}15`,
                     border: `1px solid ${syncStatus.color}40`,
@@ -1119,7 +1119,7 @@ const MyWell = () => {
         const timeText = (minutesText + secondsText).trim() || "0s";
         return {
           color: "#52c41a",
-          status: `Sincronizado: ${timeText}`,
+          status: `Sinc: ${timeText}`,
           diffHours: 0,
           diffMinutes: diffMinutes,
           diffSeconds: diffSeconds,
@@ -1128,11 +1128,11 @@ const MyWell = () => {
         // Mostrar horas, minutos y segundos de desincronización
         const hoursText = diffHours >= 1 ? `${Math.floor(diffHours)}h` : "";
         const minutesText = diffMinutes > 0 ? ` ${diffMinutes}m` : "";
-        const secondsText = diffSeconds > 0 ? ` ${diffSeconds}s` : "";
+        const secondsText = "";
         return {
           color: "#fa8c16",
           status:
-            `Desincronización leve: ${hoursText}${minutesText}${secondsText}`.trim(),
+            `Leve: ${hoursText}${minutesText}${secondsText}`.trim(),
           diffHours: Math.floor(diffHours),
           diffMinutes: diffMinutes,
           diffSeconds: diffSeconds,
@@ -1141,11 +1141,11 @@ const MyWell = () => {
         // Mostrar horas, minutos y segundos de desincronización
         const hoursText = diffHours >= 1 ? `${Math.floor(diffHours)}h` : "";
         const minutesText = diffMinutes > 0 ? ` ${diffMinutes}m` : "";
-        const secondsText = diffSeconds > 0 ? ` ${diffSeconds}s` : "";
+        const secondsText = "";
         return {
           color: "#ff4d4f",
           status:
-            `Problemas de sincronización: ${hoursText}${minutesText}${secondsText}`.trim(),
+            `Grave: ${hoursText}${minutesText}${secondsText}`.trim(),
           diffHours: Math.floor(diffHours),
           diffMinutes: diffMinutes,
           diffSeconds: diffSeconds,

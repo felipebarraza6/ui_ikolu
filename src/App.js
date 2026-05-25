@@ -19,14 +19,6 @@ import { TourProvider } from "./contexts/TourContext";
 export const AppContext = createContext();
 
 function getInitialState() {
-  // 🧹 Limpiar datos masivos viejos de sesiones anteriores
-  try {
-    const oldProfileClient = localStorage.getItem("profile_client");
-    if (oldProfileClient && oldProfileClient.length > 50000) {
-      localStorage.removeItem("profile_client");
-    }
-  } catch (e) { /* ignore */ }
-
   const safeParseJSON = (key, defaultValue) => {
     try {
       const item = localStorage.getItem(key);
@@ -51,7 +43,6 @@ function getInitialState() {
     token: token,
     user: user || {},
     points_summary: points_summary,
-    profile_client: null,
     selected_profile: null,
     points_list: points_list,
     adminView: adminView,
@@ -74,13 +65,11 @@ const App = () => {
 
   const dataValue = useMemo(() => ({
     points_summary: state.points_summary,
-    profile_client: state.profile_client,
     selected_profile: state.selected_profile,
     points_list: state.points_list,
     dispatch,
   }), [
     state.points_summary,
-    state.profile_client,
     state.selected_profile,
     state.points_list,
     dispatch,

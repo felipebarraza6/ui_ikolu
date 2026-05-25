@@ -10,10 +10,10 @@ const ListWells = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 🆕 Usar points_list como fuente principal, fallback a profile_client
+  // 🆕 Usar points_list como fuente principal
   const pointsSource = useMemo(() => {
-    return state.points_list || state.profile_client || [];
-  }, [state.points_list, state.profile_client]);
+    return state.points_list || [];
+  }, [state.points_list]);
 
   // Validar que tengamos los datos necesarios
   const hasValidData = useMemo(() => {

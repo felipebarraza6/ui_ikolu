@@ -27,11 +27,11 @@ export const useDashboardData = (options = {}) => {
   } = options;
 
   const { user } = useAuth();
-  const { points_list, profile_client, dispatch } = useData();
+  const { points_list, dispatch } = useData();
 
   const isAdmin = user?.is_staff || user?.is_superuser;
 
-  const [profiles, setProfiles] = useState(profile_client || points_list || []);
+  const [profiles, setProfiles] = useState(points_list || []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
@@ -92,11 +92,7 @@ export const useDashboardData = (options = {}) => {
           }
         }
 
-        // Fallback: get_profile tradicional
-        if (freshProfiles.length === 0) {
-          const profileData = await orchestrator.getProfile();
-          freshProfiles = profileData?.user?.catchment_points || [];
-        }
+        // 🚀 Fallback eliminado: no se usa get_profile() masivo
       }
 
       // Solo actualizar estado si el componente sigue montado
@@ -104,10 +100,10 @@ export const useDashboardData = (options = {}) => {
         setProfiles(freshProfiles);
         setLastRefresh(new Date());
 
-        // Actualizar contexto global para otros componentes
+        // Actualizar lista de puntos en contexto global
         dispatch({
-          type: 'SET_PROFILE_CLIENT',
-          payload: { profile_client: freshProfiles },
+          type: 'SET_POINTS_LIST',
+          payload: { points_list: freshProfiles },
         });
       }
     } catch (err) {

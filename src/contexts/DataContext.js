@@ -8,7 +8,7 @@ import React, { createContext, useContext, useMemo } from 'react';
  * - Componentes de autenticación cuando cambian datos
  * - Componentes de UI (spinners) cuando cambian datos
  *
- * Uso: const { points_summary, profile_client, selected_profile, points_list, dispatch } = useData();
+ * Uso: const { points_summary, selected_profile, points_list, dispatch } = useData();
  */
 
 export const DataContext = createContext(null);
@@ -16,7 +16,6 @@ export const DataContext = createContext(null);
 export const DataProvider = ({ value, children }) => {
   const {
     points_summary,
-    profile_client,
     selected_profile,
     points_list,
     dispatch,
@@ -25,13 +24,11 @@ export const DataProvider = ({ value, children }) => {
   // Memoizar profundamente para evitar re-renders por cambios en otros campos del state
   const contextValue = useMemo(() => ({
     points_summary,
-    profile_client,
     selected_profile,
     points_list,
     dispatch,
   }), [
     points_summary,
-    profile_client,
     selected_profile,
     points_list,
     dispatch,
