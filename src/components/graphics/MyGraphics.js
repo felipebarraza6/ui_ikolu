@@ -7,6 +7,7 @@ import dayjs from "dayjs";
 import QueueAnim from "rc-queue-anim";
 import es_ES from "antd/lib/locale/es_ES";
 import { Line } from "@ant-design/plots";
+import { CHART_COLORS, CHART_CONFIG } from "../../theme";
 
 const { Title } = Typography;
 
@@ -34,36 +35,52 @@ const MyGraphics = () => {
     );
   }
 
-  // Configuración del gráfico
+  // Configuración del gráfico con estilo minimalista
   const config = {
     data: processedData,
     xField: "hora",
     yField: "caudal",
     smooth: true,
-    lineStyle: { lineWidth: 3 },
+    color: CHART_COLORS.primary,
+    lineStyle: { lineWidth: 2 },
     point: {
-      size: 5,
+      size: 2,
       shape: "circle",
-      style: { fill: "#1677ff", stroke: "#fff", lineWidth: 2 },
+      style: { fill: CHART_COLORS.primary, stroke: "#fff", lineWidth: 1 },
+      state: { active: { size: 5 } },
     },
-    color: "#1677ff",
+    area: {
+      style: { fill: CHART_COLORS.primary, fillOpacity: 0.08 },
+    },
     tooltip: {
+      domStyles: {
+        "g2-tooltip": {
+          borderRadius: "10px",
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+          padding: "12px",
+          background: "rgba(255, 255, 255, 0.98)",
+        },
+      },
       formatter: (d) => ({
         name: "Caudal",
         value: `${parseFloat(d.caudal).toFixed(1)} L/s a las ${d.hora}`,
       }),
     },
     xAxis: {
-      title: { text: "Hora", style: { fontSize: 15, fontWeight: "bold" } },
+      title: { text: "Hora", style: { fontSize: 13, fontWeight: 500 } },
       label: { formatter: (v) => v },
+      grid: {
+        line: { style: { stroke: "rgba(0, 0, 0, 0.06)", lineDash: [4, 4] } },
+      },
     },
     yAxis: {
-      title: {
-        text: "Caudal (L/s)",
-        style: { fontSize: 15, fontWeight: "bold" },
+      title: { text: "Caudal (L/s)", style: { fontSize: 13, fontWeight: 500 } },
+      grid: {
+        line: { style: { stroke: "rgba(0, 0, 0, 0.06)", lineDash: [4, 4] } },
       },
     },
     height: 320,
+    animation: { appear: { animation: "fade-in", duration: 400 } },
   };
 
   return (

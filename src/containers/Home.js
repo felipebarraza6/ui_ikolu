@@ -1015,7 +1015,7 @@ const AppLayout = ({ children }) => {
       {!isMobile && (
         <Sider
           id="app-sider"
-          width={240}
+          width={320}
           style={{
             background: token.colorPrimary,
             position: "fixed",
@@ -1030,7 +1030,7 @@ const AppLayout = ({ children }) => {
           <SideMenu />
         </Sider>
       )}
-      <Layout style={{ marginLeft: isMobile ? 0 : 240 }}>
+      <Layout style={{ marginLeft: isMobile ? 0 : 320 }}>
         <Header
           id="app-header"
           style={{
@@ -1070,7 +1070,7 @@ const AppLayout = ({ children }) => {
             closable={false}
             onClose={() => setDrawerVisible(false)}
             open={drawerVisible}
-            width={240}
+            width={320}
             bodyStyle={{ padding: 0, background: token.colorPrimary }}
           >
             <SideMenu inDrawer onLinkClick={() => setDrawerVisible(false)} />

@@ -18,6 +18,7 @@ import {
 } from "@ant-design/icons";
 import QueueAnim from "rc-queue-anim";
 import { useResponsive } from "../../hooks/useResponsive";
+import { CHART_COLORS } from "../../theme";
 
 const { Title } = Typography;
 
@@ -57,7 +58,7 @@ const processNivel = (nivel_response, position_sensor_nivel = 10.0) => {
   if (nivel > 0.0 && nivel < position_sensor_nivel) {
     return parseFloat(position_sensor_nivel - nivel);
   }
-  return 0.0; // Valor por defecto si está fuera de rango
+  return 0.0;
 };
 
 const processCaudal = (caudal) => {
@@ -70,16 +71,6 @@ const processAcum = (acum) => {
   return acumulado > 0 ? acumulado : 0;
 };
 
-const generateMockData = (date) => {
-  return Array.from({ length: 24 }, (_, i) => ({
-    date_time_medition: dayjs(date).hour(i).format("YYYY-MM-DD HH:mm"),
-    flow: (Math.random() * 10).toFixed(2),
-    total: (Math.random() * 1000).toFixed(0),
-    nivel: (Math.random() * 10).toFixed(2),
-    total_hora: (Math.random() * 100).toFixed(0),
-  }));
-};
-
 const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
   const { state } = useContext(AppContext);
   const { isMobile } = useResponsive();
@@ -87,9 +78,14 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    const mockData = generateMockData(initialDate);
-    setData(mockData);
-  }, [initialDate]);
+    // Usar datos reales del contexto en lugar de mock data
+    const profileData = state.selected_profile?.modules?.today || [];
+    if (profileData.length > 0) {
+      setData(profileData);
+    } else {
+      setData([]);
+    }
+  }, [initialDate, state.selected_profile]);
 
   const processedData = useMemo(() => {
     return data
@@ -133,7 +129,31 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
       xAxis: {
         title: {
           text: parsedText,
-          style: { fontSize: isMobile ? 13 : 16, fontWeight: "bold" },
+          style: { fontSize: isMobile ? 12 : 14, fontWeight: 500 },
+        },
+        grid: {
+          line: { style: { stroke: "rgba(0, 0, 0, 0.06)", lineDash: [4, 4] } },
+        },
+      },
+      yAxis: {
+        grid: {
+          line: { style: { stroke: "rgba(0, 0, 0, 0.06)", lineDash: [4, 4] } },
+        },
+      },
+      point: {
+        size: 2,
+        state: { active: { size: 5 } },
+      },
+      lineStyle: { lineWidth: 2 },
+      animation: { appear: { animation: "fade-in", duration: 400 } },
+      tooltip: {
+        domStyles: {
+          "g2-tooltip": {
+            borderRadius: "10px",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+            padding: "12px",
+            background: "rgba(255, 255, 255, 0.98)",
+          },
         },
       },
     };
@@ -142,9 +162,12 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
       configCaudal: {
         ...baseConfig,
         yField: "caudal",
-        color: "#1677ff",
-        lineStyle: { lineWidth: 2, lineDash: [2, 2] },
+        color: CHART_COLORS.primary,
+        area: {
+          style: { fill: CHART_COLORS.primary, fillOpacity: 0.08 },
+        },
         tooltip: {
+          ...baseConfig.tooltip,
           title: parsedTitle,
           formatter: (d) => ({
             name: "Caudal",
@@ -156,9 +179,10 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
         ...baseConfig,
         yField: "acumulado",
         yAxis: {
+          ...baseConfig.yAxis,
           title: {
             text: "Acumulado (m³)",
-            style: { fontSize: isMobile ? 15 : 20, fontWeight: "bold" },
+            style: { fontSize: isMobile ? 13 : 15, fontWeight: 500 },
           },
           min: Math.min(
             ...processedData.map((item) =>
@@ -167,6 +191,7 @@ const GraphicLine = ({ option, initialDate, endDate, id_profile }) => {
           ),
         },
         tooltip: {
+          ...baseConfig.tooltip,
           title: parsedTitle,
           formatter: (d) => ({
             name: "Acumulado",

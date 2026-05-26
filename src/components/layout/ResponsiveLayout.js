@@ -247,7 +247,7 @@ const ResponsiveLayout = ({ children }) => {
   const renderSidebar = () =>
     !isMobile && (
       <Layout.Sider
-        width={240}
+        width={320}
         style={{
           background: "#1F3461",
           height: "100vh",
@@ -304,7 +304,7 @@ const ResponsiveLayout = ({ children }) => {
       onClose={() => setDrawerVisible(false)}
       open={drawerVisible}
       bodyStyle={{ padding: 0 }}
-      width={280}
+      width={320}
     >
       {/* Información del usuario */}
       <div

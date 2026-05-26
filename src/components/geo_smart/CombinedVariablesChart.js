@@ -25,6 +25,7 @@ import {
   InfoCircleOutlined,
   AreaChartOutlined,
 } from "@ant-design/icons";
+import { CHART_COLORS } from "../../theme";
 
 const { Text } = Typography;
 
@@ -608,15 +609,17 @@ const CombinedVariablesChart = ({ profiles }) => {
                     height={400}
                     smooth={true}
                     color={({ type }) => {
-                      if (type === "Caudal (L/s)") return "#1976d2";
-                      if (type === "Consumo (m³)") return "#722ed1";
-                      if (type === "Nivel Freático (m)") return "#fa8c16";
-                      if (type === "Nivel Sensor (m)") return "#13c2c2";
+                      if (type === "Caudal (L/s)") return CHART_COLORS.primary;
+                      if (type === "Consumo (m³)") return CHART_COLORS.purple;
+                      if (type === "Nivel Freático (m)") return CHART_COLORS.warning;
+                      if (type === "Nivel Sensor (m)") return CHART_COLORS.cyan;
                       return "#666";
                     }}
+                    lineStyle={{ lineWidth: 2 }}
                     point={{
                       size: 2,
                       shape: "circle",
+                      state: { active: { size: 5 } },
                     }}
                     legend={{
                       position: "top-right",
@@ -626,17 +629,31 @@ const CombinedVariablesChart = ({ profiles }) => {
                         autoRotate: true,
                         autoHide: true,
                       },
+                      grid: {
+                        line: { style: { stroke: "rgba(0, 0, 0, 0.06)", lineDash: [4, 4] } },
+                      },
                     }}
                     yAxis={{
                       label: {
                         formatter: (v) => Number(v).toFixed(1),
                       },
+                      grid: {
+                        line: { style: { stroke: "rgba(0, 0, 0, 0.06)", lineDash: [4, 4] } },
+                      },
                     }}
                     tooltip={{
                       shared: true,
                       showCrosshairs: true,
+                      domStyles: {
+                        "g2-tooltip": {
+                          borderRadius: "10px",
+                          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                          padding: "12px",
+                          background: "rgba(255, 255, 255, 0.98)",
+                        },
+                      },
                     }}
-                    animation={false}
+                    animation={{ appear: { animation: "fade-in", duration: 400 } }}
                   />
                 </Card>
               ),

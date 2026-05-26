@@ -23,7 +23,7 @@ import KPICard from "./KPICard";
 import ControlCenterChat from "./ControlCenterChat";
 import CCWeekConsumption from "./CCWeekConsumption";
 import CCWarningsSection from "./CCWarningsSection";
-import CCComplianceTable from "./CCComplianceTable";
+import CCDataTabs from "./CCDataTabs";
 import ModuleTour from "../common/ModuleTour";
 import { centroControlTour } from "../../config/tours";
 import { ikoluTokens, kpiGradients } from "../../theme";
@@ -222,7 +222,7 @@ const MeasurementsChart = ({ data, metric, token, color, title }) => {
 };
 
 /* ── Componente: contenido del Drawer de mediciones ── */
-const MeasurementsDrawerContent = ({ data, token }) => {
+const MeasurementsDrawerContent = ({ data, token, pointName, date }) => {
   const [viewMode, setViewMode] = useState("chart");
 
   const measurements = extractMeasurements(data);
@@ -451,30 +451,32 @@ const MeasurementsDrawerContent = ({ data, token }) => {
   };
 
   const chartMetrics = [
-    { key: "consumo", label: "Consumo (m³)", color: token.colorPrimary },
-    { key: "caudal", label: "Caudal (L/s)", color: token.colorSuccess },
-    { key: "nivel", label: "Nivel (m)", color: "#fa8c16" },
-    { key: "water_table", label: "Nivel freático (m)", color: "#1890ff" },
+    { key: "consumo", label: "Consumo (m³)", color: token.colorPrimary, icon: "💧" },
+    { key: "caudal", label: "Caudal (L/s)", color: token.colorSuccess, icon: "" },
+    { key: "nivel", label: "Nivel (m)", color: "#fa8c16", icon: "" },
+    { key: "water_table", label: "Nivel freático (m)", color: "#1890ff", icon: "" },
   ];
 
   const StatPill = ({ label, value, sub, color }) => (
     <div style={{
       textAlign: "center",
-      padding: "8px 12px",
-      borderRadius: 10,
-      background: `${color}08`,
-      border: `1px solid ${color}20`,
-      minWidth: 90,
+      padding: "10px 14px",
+      borderRadius: 12,
+      background: `${color}06`,
+      border: `1px solid ${color}15`,
+      minWidth: 100,
+      flex: "1 1 auto",
+      transition: "all 0.2s ease",
     }}>
-      <Text style={{ fontSize: 10, color: token.colorTextSecondary, display: "block", lineHeight: 1.2, textTransform: "uppercase", letterSpacing: 0.3 }}>{label}</Text>
-      <Text strong style={{ fontSize: 14, color: color, display: "block", lineHeight: 1.3 }}>{value}</Text>
-      {sub && <Text style={{ fontSize: 9, color: token.colorTextSecondary, lineHeight: 1.2 }}>{sub}</Text>}
+      <Text style={{ fontSize: 9, color: token.colorTextSecondary, display: "block", lineHeight: 1.2, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>{label}</Text>
+      <Text strong style={{ fontSize: 16, color: color, display: "block", lineHeight: 1.2 }}>{value}</Text>
+      {sub && <Text style={{ fontSize: 10, color: token.colorTextSecondary, lineHeight: 1.2, marginTop: 2 }}>{sub}</Text>}
     </div>
   );
 
   return (
-    <Flex vertical gap={16}>
-      {/* ── Toggle arriba a la derecha ── */}
+    <Flex vertical gap={20}>
+      {/* ── Toggle arriba a la derecha ─ */}
       <Flex justify="flex-end" align="center">
         <Segmented
           value={viewMode}
@@ -484,13 +486,14 @@ const MeasurementsDrawerContent = ({ data, token }) => {
             { label: <Flex align="center" gap={4}><FaTable size={12} />Datos</Flex>, value: "table" },
           ]}
           size="small"
+          style={{ background: token.colorBgLayout }}
         />
       </Flex>
 
       {viewMode === "chart" && (
-        <Flex vertical gap={16}>
+        <Flex vertical gap={20}>
           {/* ── Stats horizontales compactas ── */}
-          <Flex gap={8} wrap="wrap" justify="space-between">
+          <Flex gap={10} wrap="wrap" justify="flex-start">
             <StatPill label="Máx. Consumo" value={formatKPI(kpis.maxConsumo, 0, " m³")} sub={kpis.maxConsumo ? `a las ${kpis.maxConsumo.time} hrs` : null} color="#1F3461" />
             <StatPill label="Mín. Consumo" value={formatKPI(kpis.minConsumo, 0, " m³")} sub={kpis.minConsumo ? `a las ${kpis.minConsumo.time} hrs` : null} color="#3B6CA8" />
             <StatPill label="Prom. Consumo" value={kpis.avgConsumo != null ? `${Number(kpis.avgConsumo).toLocaleString("es-CL", { maximumFractionDigits: 0 })} m³` : "—"} sub="promedio" color="#1976d2" />
@@ -511,10 +514,14 @@ const MeasurementsDrawerContent = ({ data, token }) => {
                 <Col xs={24} md={12} key={cm.key}>
                   <Card
                     size="small"
-                    title={<Text strong style={{ fontSize: 13 }}>{cm.label}</Text>}
-                    bodyStyle={{ padding: 12 }}
-                    headStyle={{ padding: "8px 16px", minHeight: 40 }}
-                    style={{ borderRadius: 12, border: `1px solid ${token.colorBorderSecondary}` }}
+                    title={
+                      <Flex align="center" gap={8}>
+                        <Text strong style={{ fontSize: 13 }}>{cm.label}</Text>
+                      </Flex>
+                    }
+                    bodyStyle={{ padding: 16 }}
+                    headStyle={{ padding: "12px 16px", minHeight: 48, borderBottom: `1px solid ${token.colorBorderSecondary}` }}
+                    style={{ borderRadius: 12, border: `1px solid ${token.colorBorderSecondary}`, boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}
                   >
                     <MeasurementsChart data={data} metric={cm.key} token={token} color={cm.color} title={cm.label} />
                   </Card>
@@ -530,15 +537,16 @@ const MeasurementsDrawerContent = ({ data, token }) => {
           dataSource={allMeasurements.map((m, i) => ({ ...m, key: i, _prev: allMeasurements[i - 1] || null }))}
           columns={measurementColumns}
           size="small"
-          pagination={false}
-          bordered
+          pagination={{ pageSize: 15, showSizeChanger: false }}
+          bordered={false}
           showHeader={true}
           locale={{ emptyText: "Sin mediciones para este día" }}
-          scroll={{ x: "max-content" }}
+          scroll={{ x: "max-content", y: 500 }}
+          style={{ borderRadius: 12, overflow: "hidden" }}
           components={{
             header: {
               cell: (props) => (
-                <th {...props} style={{ ...props.style, fontSize: 9, padding: "6px 8px", fontWeight: 600, color: token.colorTextSecondary, textTransform: "uppercase", letterSpacing: 0.5 }} />
+                <th {...props} style={{ ...props.style, fontSize: 10, padding: "10px 8px", fontWeight: 600, color: token.colorTextSecondary, textTransform: "uppercase", letterSpacing: 0.5, background: token.colorBgLayout }} />
               ),
             },
           }}
@@ -809,19 +817,21 @@ const ControlCenter = () => {
         </Col>
       </Row>
 
-      {/* ════════════════════════════════════════
+      {/* ═══════════════════════════════════════
           Chat IA (componente aislado)
       ════════════════════════════════════════ */}
       <ControlCenterChat points={points} chatQuota={chatQuota} />
 
       {/* ════════════════════════════════════════
-          Tabla de compliance
+          Datos: Telemetría + Cumplimiento (Tabs)
       ════════════════════════════════════════ */}
-      <CCComplianceTable
+      <CCDataTabs
         points={points}
         onViewVoucher={handleViewVoucher}
         onOpenStopCompliance={handleOpenStopCompliance}
         onSelectPoint={handleSelectPoint}
+        onViewMeasurements={handleViewMeasurements}
+        onOpenStopTelemetry={handleOpenStopTelemetry}
       />
 
       {/* ════════════════════════════════════════
@@ -902,20 +912,21 @@ const ControlCenter = () => {
       ════════════════════════════════════════ */}
       <Drawer
         title={
-          <Flex align="center" gap={8} justify="space-between" style={{ width: "100%" }}>
-            <Flex align="center" gap={8}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: `${token.colorPrimary}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <FaBroadcastTower style={{ color: token.colorPrimary, fontSize: 16 }} />
+          <Flex align="center" gap={12} style={{ width: "100%" }}>
+            <Flex align="center" gap={10}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: `${token.colorPrimary}12`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <FaBroadcastTower style={{ color: token.colorPrimary, fontSize: 18 }} />
               </div>
               <div>
-                <Text strong style={{ fontSize: 14, display: "block" }}>{selectedMeasurementPoint?.pointName}</Text>
-                <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>
+                <Text strong style={{ fontSize: 16, display: "block", lineHeight: 1.2 }}>{selectedMeasurementPoint?.pointName}</Text>
+                <Text style={{ fontSize: 12, color: token.colorTextSecondary }}>
                   {selectedMeasurementPoint?.date ? moment(selectedMeasurementPoint.date).format("dddd D [de] MMMM, YYYY") : ""}
                 </Text>
               </div>
             </Flex>
+            <div style={{ flex: 1 }} />
             {measurementsData?.count != null && (
-              <Tag style={{ fontSize: 11, margin: 0, background: `${token.colorPrimary}10`, border: `1px solid ${token.colorPrimary}25`, color: token.colorPrimary, fontWeight: 600 }}>
+              <Tag style={{ fontSize: 12, margin: 0, padding: "4px 12px", background: `${token.colorPrimary}08`, border: `1px solid ${token.colorPrimary}20`, color: token.colorPrimary, fontWeight: 600, borderRadius: 20 }}>
                 {measurementsData.count} mediciones
               </Tag>
             )}
@@ -927,15 +938,27 @@ const ControlCenter = () => {
           setSelectedMeasurementPoint(null);
           setMeasurementsData(null);
         }}
-        width={1100}
-        bodyStyle={{ padding: 16, overflow: "auto" }}
+        width={1200}
+        bodyStyle={{ padding: 24, overflow: "auto" }}
+        styles={{
+          header: {
+            borderBottom: `1px solid ${token.colorBorderSecondary}`,
+            paddingBottom: 16,
+            marginBottom: 8,
+          },
+        }}
       >
         {measurementsLoading ? (
-          <Flex justify="center" align="center" style={{ height: 200 }}>
-            <Spin size="small" />
+          <Flex justify="center" align="center" style={{ height: 300 }}>
+            <Spin size="large" tip="Cargando mediciones..." />
           </Flex>
         ) : (
-          <MeasurementsDrawerContent data={measurementsData} token={token} />
+          <MeasurementsDrawerContent
+            data={measurementsData}
+            token={token}
+            pointName={selectedMeasurementPoint?.pointName}
+            date={selectedMeasurementPoint?.date}
+          />
         )}
       </Drawer>
 

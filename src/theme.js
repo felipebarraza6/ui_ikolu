@@ -177,3 +177,74 @@ export const styles = {
   spaceBetweenFlex: { display: "flex", alignItems: "center", justifyContent: "space-between" },
   absoluteBottomSvg: { position: "absolute", left: 0, bottom: 0, zIndex: 1 },
 };
+
+// ── Paleta unificada para gráficos (@ant-design/plots) ─────────────────────
+export const CHART_COLORS = {
+  primary: CORPORATE_BLUE,
+  primaryLight: CORPORATE_BLUE_LIGHT,
+  primaryMid: CORPORATE_BLUE_MID,
+  success: "#52c41a",
+  warning: "#faad14",
+  error: "#f5222d",
+  info: "#1890ff",
+  orange: "#fa8c16",
+  purple: "#722ed1",
+  cyan: "#13c2c2",
+  pink: "#eb2f96",
+  lime: "#a0d911",
+  volcano: "#fa541c",
+  geekblue: "#2f54eb",
+  magenta: "#eb2f96",
+  gold: "#faad14",
+};
+
+// ── Configuración base para gráficos minimalistas ──────────────────────────
+export const CHART_CONFIG = {
+  line: {
+    lineWidth: 2,
+    point: {
+      size: 2,
+      state: {
+        active: { size: 5 },
+      },
+    },
+    area: {
+      style: {
+        fillOpacity: 0.1,
+      },
+    },
+    animation: {
+      appear: {
+        animation: "fade-in",
+        duration: 400,
+      },
+    },
+  },
+  grid: {
+    line: {
+      style: {
+        stroke: "rgba(0, 0, 0, 0.08)",
+        lineDash: [4, 4],
+      },
+    },
+  },
+  tooltip: {
+    domStyles: {
+      "g2-tooltip": {
+        borderRadius: "10px",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+        padding: "12px",
+        background: "rgba(255, 255, 255, 0.98)",
+        backdropFilter: "blur(8px)",
+      },
+    },
+  },
+  axis: {
+    gridLine: {
+      style: {
+        stroke: "rgba(0, 0, 0, 0.06)",
+        lineDash: [4, 4],
+      },
+    },
+  },
+};

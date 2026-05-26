@@ -125,7 +125,7 @@ const MobileSafeLayout = ({
           onClose={() => setDrawerVisible(false)}
           open={drawerVisible}
           bodyStyle={{ padding: 0 }}
-          width={280}
+          width={320}
         >
           {siderContent}
         </Drawer>

@@ -22,6 +22,7 @@ import { parseSafeDate, formatSafeDate } from "../../utils/dateFormatter";
 import { formatVolume } from "../../utils/numberFormatter";
 import sh from "../../api/sh/endpoints";
 import { FaCalendarAlt, FaChartLine } from "react-icons/fa";
+import { CHART_COLORS } from "../../theme";
 
 const { RangePicker } = DatePicker;
 const { Title, Text } = Typography;
@@ -117,54 +118,70 @@ const ConsumptionChart = () => {
     );
   }
 
-  // Configuración base para los gráficos
+  // Configuración base para los gráficos con estilo minimalista
   const getChartConfig = (pointData, pointName, chartType = "line") => {
     const baseConfig = {
       data: pointData,
       xField: "time",
       yField: "value",
       smooth: true,
+      color: CHART_COLORS.primary,
       lineStyle: { lineWidth: 2 },
       point: {
-        size: 4,
+        size: 2,
         shape: "circle",
-        style: { fill: "#1677ff", stroke: "#fff", lineWidth: 1 },
+        style: { fill: CHART_COLORS.primary, stroke: "#fff", lineWidth: 1 },
+        state: { active: { size: 5 } },
       },
       xAxis: {
         title: {
           text: "Hora de Hoy",
-          style: { fontSize: 12, fontWeight: "bold" },
+          style: { fontSize: 12, fontWeight: 500 },
         },
         label: {
           formatter: (v) => v,
           style: { fontSize: 10 },
         },
+        grid: {
+          line: { style: { stroke: "rgba(0, 0, 0, 0.06)", lineDash: [4, 4] } },
+        },
       },
       yAxis: {
         title: {
           text: "Consumo (m³)",
-          style: { fontSize: 12, fontWeight: "bold" },
+          style: { fontSize: 12, fontWeight: 500 },
         },
         label: {
           formatter: (v) => formatVolume(v),
           style: { fontSize: 10 },
         },
+        grid: {
+          line: { style: { stroke: "rgba(0, 0, 0, 0.06)", lineDash: [4, 4] } },
+        },
       },
       tooltip: {
+        domStyles: {
+          "g2-tooltip": {
+            borderRadius: "10px",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+            padding: "12px",
+            background: "rgba(255, 255, 255, 0.98)",
+          },
+        },
         formatter: (datum) => ({
           name: pointName,
           value: `${formatVolume(datum.value)} m³ a las ${datum.time}`,
         }),
       },
       height: 300,
-      color: ["#1677ff"],
+      animation: { appear: { animation: "fade-in", duration: 400 } },
     };
 
     if (chartType === "area") {
       return {
         ...baseConfig,
-        areaStyle: {
-          fill: "l(270) 0:#ffffff 0.5:#7ec2f3 1:#1890ff",
+        area: {
+          style: { fill: CHART_COLORS.primary, fillOpacity: 0.1 },
         },
       };
     }

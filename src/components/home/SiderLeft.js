@@ -1,6 +1,6 @@
-import { Button, Flex, Affix, Modal, Row, Col, Typography } from "antd";
+import { Button, Flex, Divider } from "antd";
 import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useData } from "../../contexts/DataContext";
 import {
@@ -13,19 +13,59 @@ import {
   AreaChartOutlined,
 } from "@ant-design/icons";
 import logo from "../../assets/images/logozivo.png";
-import logo_dga from "../../assets/images/channels4_profile.jpg";
 import minLogo from "../../assets/images/logo-blanco.png";
 import QueueAnim from "rc-queue-anim";
 import { BiSupport } from "react-icons/bi";
 import { VscRadioTower } from "react-icons/vsc";
-
-const { Title } = Typography;
 
 const SiderLeft = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { selected_profile } = useData();
+
+  const isActive = (path) => {
+    if (path === "/") return location.pathname === "/" || location.pathname === "/control_center";
+    return location.pathname === path;
+  };
+
+  const buttonStyle = (path) => ({
+    backgroundColor: isActive(path) ? "white" : "transparent",
+    color: isActive(path) ? "#1f3461" : "white",
+    border: "none",
+    borderRadius: "8px",
+    padding: "8px 12px",
+    height: "auto",
+    transition: "all 0.2s ease",
+  });
+
+  const renderNavItem = (path, icon, label, extra = null) => (
+    <Button
+      block
+      style={buttonStyle(path)}
+      onClick={() => navigate(path)}
+      onMouseEnter={(e) => {
+        if (!isActive(path)) {
+          e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isActive(path)) {
+          e.currentTarget.style.backgroundColor = "transparent";
+        }
+      }}
+    >
+      <Flex justify="space-between" align="center" style={{ width: "100%" }}>
+        <Flex align="center" gap="small">
+          {icon}
+          <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {label}
+          </span>
+        </Flex>
+        {extra}
+      </Flex>
+    </Button>
+  );
 
   return (
     <QueueAnim delay={200} duration={900} type="left">
@@ -34,303 +74,83 @@ const SiderLeft = () => {
           vertical
           style={{
             minHeight: "100vh",
+            maxHeight: "100vh",
+            overflowY: "auto",
+            padding: "16px 12px",
           }}
-          justify="space-between"
-          align="center"
         >
-          <Flex
-            vertical
-            gap="large"
-            style={{ marginTop: "10px" }}
-            justify="center"
-            align="center"
-          >
-            <Flex vertical style={{ marginBottom: "10px" }}>
-              <img
-                src={logo}
-                width="50px"
-                alt="logo"
-                style={{ marginLeft: "10px" }}
-              />{" "}
-              <span style={{ color: "white", fontSize: "20px" }}>
+          {/* Logo */}
+          <Flex vertical style={{ marginBottom: "20px", paddingLeft: "8px" }}>
+            <Flex align="center" gap="small">
+              <img src={logo} width="40px" alt="logo" />
+              <span style={{ color: "white", fontSize: "18px", fontWeight: 600 }}>
                 Ikolu App
               </span>
             </Flex>
-            <Flex vertical justify="center" align="center" gap="small">
-              <Button
-                style={{
-                  backgroundColor:
-                    (location.pathname === "/" || location.pathname === "/control_center") ? "white" : "transparent",
-                  color: (location.pathname === "/" || location.pathname === "/control_center") ? "#1f3461" : "white",
-                  border: "none",
-                }}
-                block
-                onClick={() => {
-                  const isAdmin = user?.is_staff || user?.is_superuser;
-                  navigate(isAdmin ? "/" : "/control_center");
-                }}
-                children={
-                  <Flex
-                    justify="space-between"
-                    align="center"
-                    style={{ width: "100%" }}
-                  >
-                    {selected_profile.profile_ikolu.entry_by_form ? (
-                      <>
-                        <OneToOneOutlined style={{ fontSize: "18px" }} />
-                        Formulario
-                      </>
-                    ) : (
-                      <>
-                        <VscRadioTower style={{ fontSize: "18px" }} />
-                        Telemetría
-                      </>
-                    )}
-                  </Flex>
-                }
-              />
-
-              {user.username === "arrocerospti" && (
-                <Button
-                  style={{
-                    backgroundColor:
-                      location.pathname === "/registers-pti"
-                        ? "white"
-                        : "transparent",
-                    color:
-                      location.pathname === "/registers-pti"
-                        ? "#1f3461"
-                        : "white",
-                    border: "none",
-                  }}
-                  onClick={() => navigate("/registers-pti")}
-                  icon={<DatabaseOutlined />}
-                >
-                  Registros
-                </Button>
-              )}
-
-              {user.username !== "arrocerospti" &&
-              user.username !== "lecheriavalleverde" ? (
-                <>
-                  <Button
-                    block
-                    style={{
-                      backgroundColor:
-                        location.pathname === "/sys-data"
-                          ? "white"
-                          : "transparent",
-                      color:
-                        location.pathname === "/sys-data" ? "#1f3461" : "white",
-                      border: "none",
-                    }}
-                    onClick={() => navigate("/sys-data")}
-                  >
-                    <Flex
-                      justify="space-between"
-                      align="center"
-                      gap={"small"}
-                      style={{ width: "100%" }}
-                    >
-                      {" "}
-                      <BarChartOutlined style={{ fontSize: "18px" }} />
-                      Smart Análisis
-                    </Flex>
-                  </Button>
-                  {selected_profile.dga.code_dga &&
-                  selected_profile.dga.code_dga !== "1" ? (
-                    <>
-                      <Button
-                        block
-                        style={{
-                          backgroundColor:
-                            location.pathname === "/dga"
-                              ? "white"
-                              : "transparent",
-                          color:
-                            location.pathname === "/dga" ? "#1f3461" : "white",
-                          border: "none",
-                        }}
-                        onClick={() => navigate("/dga")}
-                      >
-                        <Flex
-                          justify="space-between"
-                          align="center"
-                          gap="small"
-                          style={{ width: "100%" }}
-                        >
-                          {" "}
-                          <Flex>
-                            <div
-                              style={{
-                                backgroundColor: "#006FB3",
-                                width: "15px",
-                                height: "10px",
-                                borderRadius: "3px 0px 0px 3px",
-                              }}
-                            ></div>
-                            <div
-                              style={{
-                                backgroundColor: "#FE6565",
-                                width: "15px",
-                                height: "10px",
-                                borderRadius: "0px 3px 3px 0px",
-                              }}
-                            ></div>
-                          </Flex>
-                          DGA - MEE
-                        </Flex>
-                      </Button>
-                      <Button
-                        block
-                        style={{
-                          backgroundColor:
-                            location.pathname === "/sys-data-dga"
-                              ? "white"
-                              : "transparent",
-                          color:
-                            location.pathname === "/sys-data-dga"
-                              ? "#1f3461"
-                              : "white",
-                          border: "none",
-                        }}
-                        onClick={() => navigate("/sys-data-dga")}
-                      >
-                        <Flex
-                          justify="space-between"
-                          align="center"
-                          gap={"small"}
-                          style={{ width: "100%" }}
-                        >
-                          {" "}
-                          <AreaChartOutlined
-                            style={{
-                              fontSize: "18px",
-                            }}
-                          />
-                          DGA Análisis
-                        </Flex>
-                      </Button>
-                    </>
-                  ) : (
-                    ""
-                  )}
-                  <Button
-                    block
-                    style={{
-                      height: "50px",
-                      backgroundColor:
-                        location.pathname === "/extraction-data"
-                          ? "white"
-                          : "transparent",
-                      color:
-                        location.pathname === "/extraction-data"
-                          ? "#1f3461"
-                          : "white",
-                      border: "none",
-                    }}
-                    onClick={() => navigate("/extraction-data")}
-                  >
-                    <Flex
-                      justify="space-between"
-                      align="center"
-                      style={{ width: "100%" }}
-                    >
-                      <CloudDownloadOutlined style={{ fontSize: "18px" }} />
-                      Descarga
-                    </Flex>
-                  </Button>
-
-                  <Button
-                    block
-                    style={{
-                      backgroundColor:
-                        location.pathname === "/sys-docs"
-                          ? "white"
-                          : "transparent",
-                      color:
-                        location.pathname === "/sys-docs" ? "#1f3461" : "white",
-                      border: "none",
-                    }}
-                    onClick={() => navigate("/sys-docs")}
-                  >
-                    <Flex
-                      justify="space-between"
-                      align="center"
-                      gap={"small"}
-                      style={{ width: "100%" }}
-                    >
-                      {" "}
-                      <FileDoneOutlined style={{ fontSize: "18px" }} />
-                      Documentos
-                    </Flex>
-                  </Button>
-                  <Button
-                    block
-                    style={{
-                      backgroundColor:
-                        location.pathname === "/sys-alerts"
-                          ? "white"
-                          : "transparent",
-                      color:
-                        location.pathname === "/sys-alerts"
-                          ? "#1f3461"
-                          : "white",
-                      border: "none",
-                    }}
-                    onClick={() => navigate("/sys-alerts")}
-                  >
-                    <Flex
-                      justify="space-between"
-                      align="center"
-                      gap={"small"}
-                      style={{ width: "100%" }}
-                    >
-                      {" "}
-                      <AlertOutlined style={{ fontSize: "18px" }} />
-                      Alertas
-                    </Flex>
-                  </Button>
-                  <Button
-                    block
-                    style={{
-                      backgroundColor:
-                        location.pathname === "/sys-support"
-                          ? "white"
-                          : "transparent",
-                      color:
-                        location.pathname === "/sys-support"
-                          ? "#1f3461"
-                          : "white",
-                      border: "none",
-                    }}
-                    onClick={() => navigate("/sys-support")}
-                  >
-                    <Flex
-                      justify="space-between"
-                      align="center"
-                      gap={"small"}
-                      style={{ width: "100%" }}
-                    >
-                      {" "}
-                      <BiSupport style={{ fontSize: "18px" }} />
-                      Soporte
-                    </Flex>
-                  </Button>
-                </>
-              ) : (
-                ""
-              )}
-            </Flex>
           </Flex>
-          <Flex
-            vertical
-            justify="center"
-            align="center"
-            style={{
-              marginTop: "210px",
-            }}
-          ></Flex>
+
+          {/* Main Navigation */}
+          <Flex vertical gap="small">
+            {selected_profile.profile_ikolu.entry_by_form ? (
+              renderNavItem("/", <OneToOneOutlined style={{ fontSize: "16px" }} />, "Formulario")
+            ) : (
+              renderNavItem("/", <VscRadioTower style={{ fontSize: "16px" }} />, "Telemetría")
+            )}
+
+            {user.username === "arrocerospti" && (
+              renderNavItem("/registers-pti", <DatabaseOutlined style={{ fontSize: "16px" }} />, "Registros")
+            )}
+          </Flex>
+
+          <Divider style={{ borderColor: "rgba(255,255,255,0.15)", margin: "16px 0" }} />
+
+          {/* Analysis Section */}
+          {user.username !== "arrocerospti" && user.username !== "lecheriavalleverde" && (
+            <>
+              <Flex vertical gap="small">
+                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "11px", textTransform: "uppercase", paddingLeft: "12px", marginBottom: "4px" }}>
+                  Análisis
+                </div>
+                {renderNavItem("/sys-data", <BarChartOutlined style={{ fontSize: "16px" }} />, "Smart Análisis")}
+
+                {selected_profile.dga.code_dga && selected_profile.dga.code_dga !== "1" && (
+                  <>
+                    {renderNavItem(
+                      "/dga",
+                      <Flex>
+                        <div style={{ backgroundColor: "#006FB3", width: "12px", height: "8px", borderRadius: "2px 0 0 2px" }}></div>
+                        <div style={{ backgroundColor: "#FE6565", width: "12px", height: "8px", borderRadius: "0 2px 2px 0" }}></div>
+                      </Flex>,
+                      "DGA - MEE"
+                    )}
+                    {renderNavItem("/sys-data-dga", <AreaChartOutlined style={{ fontSize: "16px" }} />, "DGA Análisis")}
+                  </>
+                )}
+
+                {renderNavItem("/extraction-data", <CloudDownloadOutlined style={{ fontSize: "16px" }} />, "Descarga")}
+              </Flex>
+
+              <Divider style={{ borderColor: "rgba(255,255,255,0.15)", margin: "16px 0" }} />
+
+              {/* Management Section */}
+              <Flex vertical gap="small">
+                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "11px", textTransform: "uppercase", paddingLeft: "12px", marginBottom: "4px" }}>
+                  Gestión
+                </div>
+                {renderNavItem("/sys-docs", <FileDoneOutlined style={{ fontSize: "16px" }} />, "Documentos")}
+                {renderNavItem("/sys-alerts", <AlertOutlined style={{ fontSize: "16px" }} />, "Alertas")}
+                {renderNavItem("/sys-support", <BiSupport style={{ fontSize: "16px" }} />, "Soporte")}
+              </Flex>
+            </>
+          )}
+
+          {/* Bottom spacer */}
+          <div style={{ flex: 1 }} />
+
+          {/* Footer logo */}
+          <Flex justify="center" style={{ marginTop: "16px", opacity: 0.6 }}>
+            <img src={minLogo} width="60px" alt="logo" />
+          </Flex>
         </Flex>
       </div>
     </QueueAnim>
