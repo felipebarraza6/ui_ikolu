@@ -44,7 +44,7 @@ const { Text } = Typography;
 const { useToken } = theme;
 
 /* ── Columnas de la tabla ── */
-const pointsColumns = (onViewVoucher, token) => [
+const pointsColumns = (onViewVoucher, onStopCompliance, token) => [
   {
     title: "Punto",
     dataIndex: "title",
@@ -288,6 +288,40 @@ const pointsColumns = (onViewVoucher, token) => [
       ) : (
         <span style={{ color: ikoluTokens.colorGreyTextLight }}>—</span>
       ),
+  },
+  {
+    title: "",
+    key: "stop_compliance",
+    width: 36,
+    align: "center",
+    fixed: "right",
+    render: (_, record) => (
+      <Tooltip title="Solicitar detención de cumplimiento">
+        <div
+          style={{
+            width: 24,
+            height: 24,
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            transition: "all 0.2s",
+            border: `1px solid ${token.colorPrimary}40`,
+            background: `${token.colorPrimary}08`,
+            margin: "0 auto",
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onStopCompliance(record);
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = `${token.colorPrimary}15`; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = `${token.colorPrimary}08`; }}
+        >
+          <FaPauseCircle style={{ fontSize: 11, color: token.colorPrimary }} />
+        </div>
+      </Tooltip>
+    ),
   },
 ];
 
@@ -880,6 +914,7 @@ const MeasurementsDrawerContent = ({ data, token }) => {
 
 const ControlCenter = () => {
   const { dispatch } = useData();
+  const { state } = useContext(AppContext);
   const { data, loading, error, refresh, isReady, chatQuota } = useControlCenter({
     autoRefresh: true,
     refreshInterval: 60000,
@@ -898,6 +933,18 @@ const ControlCenter = () => {
   const [selectedMeasurementPoint, setSelectedMeasurementPoint] = useState(null);
   const [measurementsData, setMeasurementsData] = useState(null);
   const [measurementsLoading, setMeasurementsLoading] = useState(false);
+
+  // ── Drawer Detener Telemetría ──
+  const [stopTelemetryOpen, setStopTelemetryOpen] = useState(false);
+  const [stopTelemetryLoading, setStopTelemetryLoading] = useState(false);
+  const [stopTelemetryPoint, setStopTelemetryPoint] = useState(null);
+  const [stopTelemetryForm] = Form.useForm();
+
+  // ── Drawer Detener Cumplimiento ──
+  const [stopComplianceOpen, setStopComplianceOpen] = useState(false);
+  const [stopComplianceLoading, setStopComplianceLoading] = useState(false);
+  const [stopCompliancePoint, setStopCompliancePoint] = useState(null);
+  const [stopComplianceForm] = Form.useForm();
 
   // ── Chat IA ──
   const [chatMessages, setChatMessages] = useState([
@@ -974,6 +1021,94 @@ const ControlCenter = () => {
     },
     [dispatch]
   );
+
+  /* ── Detener Telemetría ── */
+  const handleOpenStopTelemetry = useCallback((pointName) => {
+    const point = data?.points?.find((p) => p.title === pointName);
+    if (!point) return;
+    setStopTelemetryPoint({ id: point.id, name: pointName, client: point.client_name || point.client || "—" });
+    stopTelemetryForm.resetFields();
+    setStopTelemetryOpen(true);
+  }, [data?.points, stopTelemetryForm]);
+
+  const handleSubmitStopTelemetry = useCallback(async (values) => {
+    if (!stopTelemetryPoint) return;
+    setStopTelemetryLoading(true);
+    try {
+      const payload = {
+        title: `Solicitud detener telemetría - ${stopTelemetryPoint.name}`,
+        message: values.reason.trim(),
+        point_catchment: stopTelemetryPoint.id,
+        type_notification: "SUPPORT",
+        type_alert: "SOPORTE",
+        type_variable: "TODOS",
+        priority: "medium",
+        assigned_to: null,
+        is_periodic: false,
+        is_active: true,
+        is_read: false,
+        is_response: false,
+        is_finish: false,
+        is_wait: false,
+        status_dga: "PENDING",
+        status_sma: "PENDING",
+        emails: state.user?.email ? [state.user.email] : [],
+      };
+      const res = await sh.notifications.create(payload);
+      message.success(`Ticket #${res.id} creado exitosamente`);
+      stopTelemetryForm.resetFields();
+      setStopTelemetryOpen(false);
+      setStopTelemetryPoint(null);
+    } catch (err) {
+      console.error("[StopTelemetry] Error:", err);
+      message.error("Error al crear el ticket");
+    } finally {
+      setStopTelemetryLoading(false);
+    }
+  }, [stopTelemetryPoint, stopTelemetryForm, state.user?.email]);
+
+  /* ── Detener Cumplimiento ── */
+  const handleOpenStopCompliance = useCallback((record) => {
+    setStopCompliancePoint({ id: record.id, name: record.title || record.name || "—", code: record.code || "—", client: record.client_name || record.client || "—" });
+    stopComplianceForm.resetFields();
+    setStopComplianceOpen(true);
+  }, [stopComplianceForm]);
+
+  const handleSubmitStopCompliance = useCallback(async (values) => {
+    if (!stopCompliancePoint) return;
+    setStopComplianceLoading(true);
+    try {
+      const payload = {
+        title: `Solicitud detener cumplimiento - ${stopCompliancePoint.name}`,
+        message: values.reason.trim(),
+        point_catchment: stopCompliancePoint.id,
+        type_notification: "SUPPORT",
+        type_alert: "SOPORTE",
+        type_variable: "TODOS",
+        priority: "medium",
+        assigned_to: null,
+        is_periodic: false,
+        is_active: true,
+        is_read: false,
+        is_response: false,
+        is_finish: false,
+        is_wait: false,
+        status_dga: "PENDING",
+        status_sma: "PENDING",
+        emails: state.user?.email ? [state.user.email] : [],
+      };
+      const res = await sh.notifications.create(payload);
+      message.success(`Ticket #${res.id} creado exitosamente`);
+      stopComplianceForm.resetFields();
+      setStopComplianceOpen(false);
+      setStopCompliancePoint(null);
+    } catch (err) {
+      console.error("[StopCompliance] Error:", err);
+      message.error("Error al crear el ticket");
+    } finally {
+      setStopComplianceLoading(false);
+    }
+  }, [stopCompliancePoint, stopComplianceForm, state.user?.email]);
 
   const overview = data?.overview || {};
   const points = data?.points || [];
@@ -1235,30 +1370,58 @@ const ControlCenter = () => {
                         { title: "Consumo (m³)", dataIndex: "consumption", key: "consumption", width: 130, align: "right", render: (v) => <Text strong style={{ fontSize: 12, color: token.colorPrimary }}>{formatInteger(v || 0)}</Text> },
                         { title: "Caudal prom. (L/s)", dataIndex: "avg_flow", key: "avg_flow", width: 120, align: "right", render: (v) => <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{v != null ? Number(v).toFixed(1) : "—"}</Text> },
                         { title: "Nivel prom. (m)", dataIndex: "avg_level", key: "avg_level", width: 100, align: "right", render: (v) => <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{v != null ? Number(v).toFixed(2) : "—"}</Text> },
-                        { title: "Med.", dataIndex: "measurements_count", key: "measurements_count", width: 70, align: "center", render: (v, record) => (
-                          <div
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 4,
-                              padding: "2px 8px",
-                              borderRadius: 10,
-                              background: `${token.colorPrimary}10`,
-                              border: `1px solid ${token.colorPrimary}25`,
-                              cursor: "pointer",
-                              transition: "all 0.2s",
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleViewMeasurements(record.pointName, activeDate);
-                            }}
-                            onMouseEnter={(e) => { e.currentTarget.style.background = `${token.colorPrimary}20`; e.currentTarget.style.borderColor = `${token.colorPrimary}40`; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.background = `${token.colorPrimary}10`; e.currentTarget.style.borderColor = `${token.colorPrimary}25`; }}
-                            title={`Ver ${v || 0} mediciones`}
-                          >
-                            <FaEye style={{ fontSize: 10, color: token.colorPrimary }} />
-                            <Text strong style={{ fontSize: 11, color: token.colorPrimary, lineHeight: 1 }}>{v || 0}</Text>
-                          </div>
+                        { title: "Med.", dataIndex: "measurements_count", key: "measurements_count", width: 90, align: "center", render: (v, record) => (
+                          <Flex align="center" justify="center" gap={6} onClick={(e) => e.stopPropagation()}>
+                            {/* Ver mediciones — sutil */}
+                            <Tooltip title={`Ver ${v || 0} mediciones`}>
+                              <div
+                                style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 4,
+                                  padding: "2px 6px",
+                                  borderRadius: 10,
+                                  cursor: "pointer",
+                                  transition: "all 0.2s",
+                                  border: `1px solid ${token.colorBorderSecondary}`,
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleViewMeasurements(record.pointName, activeDate);
+                                }}
+                                onMouseEnter={(e) => { e.currentTarget.style.borderColor = token.colorPrimary; e.currentTarget.style.background = `${token.colorPrimary}08`; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.borderColor = token.colorBorderSecondary; e.currentTarget.style.background = "transparent"; }}
+                              >
+                                <FaEye style={{ fontSize: 10, color: token.colorTextSecondary }} />
+                                <Text style={{ fontSize: 10, color: token.colorTextSecondary, lineHeight: 1 }}>{v || 0}</Text>
+                              </div>
+                            </Tooltip>
+                            {/* Detener telemetría */}
+                            <Tooltip title="Solicitar detención de telemetría">
+                              <div
+                                style={{
+                                  width: 22,
+                                  height: 22,
+                                  borderRadius: "50%",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  cursor: "pointer",
+                                  transition: "all 0.2s",
+                                  border: `1px solid ${token.colorPrimary}40`,
+                                  background: `${token.colorPrimary}08`,
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenStopTelemetry(record.pointName);
+                                }}
+                                onMouseEnter={(e) => { e.currentTarget.style.background = `${token.colorPrimary}15`; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.background = `${token.colorPrimary}08`; }}
+                              >
+                                <FaHandPaper style={{ fontSize: 9, color: token.colorPrimary }} />
+                              </div>
+                            </Tooltip>
+                          </Flex>
                         ) },
                       ]}
                       onRow={(record) => ({
@@ -1518,7 +1681,7 @@ const ControlCenter = () => {
         >
           <Table
             dataSource={points}
-            columns={pointsColumns(handleViewVoucher, token)}
+            columns={pointsColumns(handleViewVoucher, handleOpenStopCompliance, token)}
             rowKey="id"
             size="small"
             scroll={{ x: "max-content" }}
@@ -1704,6 +1867,120 @@ const ControlCenter = () => {
           </Text>
         </Flex>
       </Modal>
+
+      {/* ════════════════════════════════════════
+          Drawer Detener Telemetría
+      ════════════════════════════════════════ */}
+      <Drawer
+        title={
+          <Flex align="center" gap={8}>
+            <FaHandPaper style={{ color: token.colorPrimary, fontSize: 16 }} />
+            <Text strong style={{ fontSize: 16 }}>Solicitud para detener telemetría</Text>
+          </Flex>
+        }
+        open={stopTelemetryOpen}
+        onClose={() => {
+          setStopTelemetryOpen(false);
+          setStopTelemetryPoint(null);
+          stopTelemetryForm.resetFields();
+        }}
+        width={420}
+        bodyStyle={{ padding: 20 }}
+        footer={
+          <Flex justify="flex-end" gap={8}>
+            <Button onClick={() => { setStopTelemetryOpen(false); setStopTelemetryPoint(null); stopTelemetryForm.resetFields(); }}>
+              Cancelar
+            </Button>
+            <Button type="primary" loading={stopTelemetryLoading} onClick={() => stopTelemetryForm.submit()}>
+              Enviar solicitud
+            </Button>
+          </Flex>
+        }
+      >
+        {stopTelemetryPoint && (
+          <Flex vertical gap={12} style={{ marginBottom: 16 }}>
+            <Card size="small" bodyStyle={{ padding: 10 }} style={{ background: `${token.colorPrimary}06`, border: `1px solid ${token.colorPrimary}15` }}>
+              <Text strong style={{ fontSize: 13, display: "block" }}>{stopTelemetryPoint.name}</Text>
+              <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>Cliente: {stopTelemetryPoint.client}</Text>
+            </Card>
+          </Flex>
+        )}
+        <Form form={stopTelemetryForm} layout="vertical" onFinish={handleSubmitStopTelemetry}>
+          <Form.Item
+            name="reason"
+            label="Razón de la solicitud"
+            rules={[{ required: true, message: "Ingresa la razón" }]}
+          >
+            <Input.TextArea
+              rows={4}
+              placeholder="Ej: Mantenimiento programado del sensor..."
+              maxLength={500}
+              showCount
+              style={{ borderRadius: 8, fontSize: 13 }}
+            />
+          </Form.Item>
+          <Form.Item hidden name="pointId" initialValue={stopTelemetryPoint?.id}>
+            <Input />
+          </Form.Item>
+        </Form>
+      </Drawer>
+
+      {/* ════════════════════════════════════════
+          Drawer Detener Cumplimiento
+      ════════════════════════════════════════ */}
+      <Drawer
+        title={
+          <Flex align="center" gap={8}>
+            <FaPauseCircle style={{ color: token.colorPrimary, fontSize: 16 }} />
+            <Text strong style={{ fontSize: 16 }}>Solicitud para detener cumplimiento</Text>
+          </Flex>
+        }
+        open={stopComplianceOpen}
+        onClose={() => {
+          setStopComplianceOpen(false);
+          setStopCompliancePoint(null);
+          stopComplianceForm.resetFields();
+        }}
+        width={420}
+        bodyStyle={{ padding: 20 }}
+        footer={
+          <Flex justify="flex-end" gap={8}>
+            <Button onClick={() => { setStopComplianceOpen(false); setStopCompliancePoint(null); stopComplianceForm.resetFields(); }}>
+              Cancelar
+            </Button>
+            <Button type="primary" loading={stopComplianceLoading} onClick={() => stopComplianceForm.submit()}>
+              Enviar solicitud
+            </Button>
+          </Flex>
+        }
+      >
+        {stopCompliancePoint && (
+          <Flex vertical gap={12} style={{ marginBottom: 16 }}>
+            <Card size="small" bodyStyle={{ padding: 10 }} style={{ background: `${token.colorPrimary}06`, border: `1px solid ${token.colorPrimary}15` }}>
+              <Text strong style={{ fontSize: 13, display: "block" }}>{stopCompliancePoint.name}</Text>
+              <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>Código: {stopCompliancePoint.code} · Cliente: {stopCompliancePoint.client}</Text>
+            </Card>
+          </Flex>
+        )}
+        <Form form={stopComplianceForm} layout="vertical" onFinish={handleSubmitStopCompliance}>
+          <Form.Item
+            name="reason"
+            label="Razón de la solicitud"
+            rules={[{ required: true, message: "Ingresa la razón" }]}
+          >
+            <Input.TextArea
+              rows={4}
+              placeholder="Ej: Pausa temporal por reconfiguración normativa..."
+              maxLength={500}
+              showCount
+              style={{ borderRadius: 8, fontSize: 13 }}
+            />
+          </Form.Item>
+          <Form.Item hidden name="pointId" initialValue={stopCompliancePoint?.id}>
+            <Input />
+          </Form.Item>
+        </Form>
+      </Drawer>
 
       <ModuleTour
         tourKey={centroControlTour.key}
