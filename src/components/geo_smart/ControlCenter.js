@@ -442,9 +442,8 @@ const MeasurementsChart = ({ data, metric, token, color, title }) => {
     smooth: true,
     animation: {
       appear: {
-        animation: "path-in",
-        duration: 1200,
-        easing: "ease-in-out",
+        animation: "fade-in",
+        duration: 800,
       },
     },
     lineStyle: {
