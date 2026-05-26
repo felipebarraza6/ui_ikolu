@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from "react";
-import { Card, Tabs, Select, DatePicker, Flex, Typography, Table, Tag, Spin, theme, Row, Col } from "antd";
-import { Line } from "@ant-design/plots";
+import { Card, Tabs, Select, Flex, Typography, Table, Tag, Spin, theme, Row, Col } from "antd";
+import { Line, Area, Column } from "@ant-design/plots";
 import { FaChartLine, FaClipboardCheck, FaBroadcastTower } from "react-icons/fa";
 import moment from "moment";
 import sh from "../../api/sh/endpoints";
@@ -34,18 +34,14 @@ const extractRecordNum = (val) => {
 const CCTelemetryTab = ({ points, onViewMeasurements, onOpenStopTelemetry, last7, selectedDate, onDateSelect, onSelectPoint }) => {
   const { token } = useToken();
   const [selectedPoint, setSelectedPoint] = useState(points[0]?.id || null);
-  const [localSelectedDate, setLocalSelectedDate] = useState(moment());
   const [telemetryData, setTelemetryData] = useState(null);
   const [telemetryLoading, setTelemetryLoading] = useState(false);
 
-  const activeDate = selectedDate || localSelectedDate;
-  const setActiveDate = onDateSelect || setLocalSelectedDate;
-
   const loadTelemetryData = useCallback(async () => {
-    if (!selectedPoint) return;
+    if (!selectedPoint || !selectedDate) return;
     setTelemetryLoading(true);
     try {
-      const dateStr = activeDate.format("YYYY-MM-DD");
+      const dateStr = moment(selectedDate).format("YYYY-MM-DD");
       const res = await sh.pointRecords(selectedPoint, dateStr, dateStr, 100);
       setTelemetryData(res);
     } catch (err) {
@@ -53,7 +49,7 @@ const CCTelemetryTab = ({ points, onViewMeasurements, onOpenStopTelemetry, last7
     } finally {
       setTelemetryLoading(false);
     }
-  }, [selectedPoint, activeDate]);
+  }, [selectedPoint, selectedDate]);
 
   const chartData = useMemo(() => {
     if (!telemetryData) return [];
@@ -179,19 +175,19 @@ const CCTelemetryTab = ({ points, onViewMeasurements, onOpenStopTelemetry, last7
 
   return (
     <Flex vertical gap={16}>
-      {/* Consumo Semanal */}
+      {/* Consumo Semanal - Navegación de calendario */}
       {last7 && (
         <CCWeekConsumption
           last7={last7}
-          selectedDate={activeDate}
-          onDateSelect={setActiveDate}
+          selectedDate={selectedDate}
+          onDateSelect={onDateSelect}
           onViewMeasurements={onViewMeasurements}
           onOpenStopTelemetry={onOpenStopTelemetry}
           onSelectPoint={onSelectPoint}
         />
       )}
 
-      {/* Selectores */}
+      {/* Selector de punto + Cargar datos */}
       <Flex gap={12} wrap="wrap" align="center">
         <Select
           value={selectedPoint}
@@ -200,17 +196,9 @@ const CCTelemetryTab = ({ points, onViewMeasurements, onOpenStopTelemetry, last7
           placeholder="Seleccionar punto"
           options={points.map((p) => ({ value: p.id, label: p.title }))}
         />
-        <DatePicker
-          value={activeDate}
-          onChange={setActiveDate}
-          format="DD/MM/YYYY"
-          style={{ borderRadius: 8 }}
-        />
-        <Flex gap={8}>
-          <Tag color="processing" style={{ cursor: "pointer" }} onClick={loadTelemetryData}>
-            <FaChartLine style={{ marginRight: 4 }} /> Cargar datos
-          </Tag>
-        </Flex>
+        <Tag color="processing" style={{ cursor: "pointer", fontSize: 13, padding: "4px 12px" }} onClick={loadTelemetryData}>
+          <FaChartLine style={{ marginRight: 6 }} /> Cargar telemetría
+        </Tag>
       </Flex>
 
       {telemetryLoading ? (
@@ -219,7 +207,7 @@ const CCTelemetryTab = ({ points, onViewMeasurements, onOpenStopTelemetry, last7
         </Flex>
       ) : chartData.length > 0 ? (
         <>
-          {/* Gráfico */}
+          {/* Gráfico combinado */}
           <Card size="small" style={{ background: "#fafafa" }}>
             <Line
               data={multiChartData}
@@ -269,7 +257,7 @@ const CCTelemetryTab = ({ points, onViewMeasurements, onOpenStopTelemetry, last7
         </>
       ) : (
         <Flex justify="center" align="center" style={{ height: 200 }} vertical gap={8}>
-          <Text type="secondary">Selecciona un punto y fecha, luego haz clic en "Cargar datos"</Text>
+          <Text type="secondary">Selecciona un punto y haz clic en "Cargar telemetría"</Text>
         </Flex>
       )}
     </Flex>
@@ -284,8 +272,8 @@ const CCDataTabs = ({ points, onViewVoucher, onOpenStopCompliance, onSelectPoint
       key: "telemetria",
       label: (
         <Flex align="center" gap={6}>
-          <FaBroadcastTower style={{ color: token.colorPrimary }} />
-          <Text strong>Telemetría</Text>
+          <FaBroadcastTower style={{ color: "white" }} />
+          <Text strong style={{ color: "white" }}>Telemetría</Text>
         </Flex>
       ),
       children: (
@@ -304,8 +292,8 @@ const CCDataTabs = ({ points, onViewVoucher, onOpenStopCompliance, onSelectPoint
       key: "cumplimiento",
       label: (
         <Flex align="center" gap={6}>
-          <FaClipboardCheck style={{ color: token.colorSuccess }} />
-          <Text strong>Cumplimiento Normativo</Text>
+          <FaClipboardCheck style={{ color: "white" }} />
+          <Text strong style={{ color: "white" }}>Cumplimiento Normativo</Text>
         </Flex>
       ),
       children: (
@@ -320,18 +308,49 @@ const CCDataTabs = ({ points, onViewVoucher, onOpenStopCompliance, onSelectPoint
   ];
 
   return (
-    <Card
-      size="small"
-      style={{ borderRadius: token.borderRadiusLG, overflow: "hidden" }}
-      bodyStyle={{ padding: 0 }}
-    >
-      <Tabs
-        defaultActiveKey="telemetria"
-        type="card"
-        items={tabItems}
-        style={{ padding: "0 16px" }}
-      />
-    </Card>
+    <>
+      <style>{`
+        .cc-data-tabs .ant-tabs-card .ant-tabs-tab-active {
+          background: ${token.colorPrimary} !important;
+          border-color: ${token.colorPrimary} !important;
+        }
+        .cc-data-tabs .ant-tabs-card .ant-tabs-tab-active .ant-tabs-tab-btn {
+          color: white !important;
+        }
+        .cc-data-tabs .ant-tabs-card .ant-tabs-tab {
+          background: transparent !important;
+          border-color: transparent !important;
+        }
+        .cc-data-tabs .ant-tabs-card .ant-tabs-tab .ant-tabs-tab-btn {
+          color: rgba(255,255,255,0.7) !important;
+        }
+        .cc-data-tabs .ant-tabs-card .ant-tabs-tab:hover .ant-tabs-tab-btn {
+          color: white !important;
+        }
+        .cc-data-tabs .ant-tabs-nav {
+          background: ${token.colorPrimary};
+          border-radius: 8px 8px 0 0;
+          padding: 4px 4px 0;
+          margin-bottom: 0 !important;
+        }
+        .cc-data-tabs .ant-tabs-nav::before {
+          display: none;
+        }
+      `}</style>
+      <Card
+        size="small"
+        className="cc-data-tabs"
+        style={{ borderRadius: token.borderRadiusLG, overflow: "hidden" }}
+        bodyStyle={{ padding: 0 }}
+      >
+        <Tabs
+          defaultActiveKey="telemetria"
+          type="card"
+          items={tabItems}
+          style={{ padding: "0 16px" }}
+        />
+      </Card>
+    </>
   );
 };
 
