@@ -4,7 +4,7 @@ import "./ControlCenter.css";
 import { useData } from "../../contexts/DataContext";
 import { useControlCenter } from "../../hooks/useControlCenter";
 import sh from "../../api/sh/endpoints";
-import { Row, Col, Card, Flex, Typography, Spin, Table, Badge, Tag, theme, Drawer, Modal, Button, Input, Space, Progress, Segmented, Form, message, Tooltip, DatePicker } from "antd";
+import { Row, Col, Card, Flex, Typography, Spin, Table, Badge, Tag, theme, Drawer, Modal, Button, Input, Space, Progress, Segmented, Form, message, Tooltip, DatePicker, Alert } from "antd";
 import {
   FaMapMarkerAlt,
   FaBroadcastTower,
@@ -945,6 +945,11 @@ const ControlCenter = () => {
   const [stopCompliancePoint, setStopCompliancePoint] = useState(null);
   const [stopComplianceForm] = Form.useForm();
 
+  // ── Watch fechas para alerta DGA (hooks siempre antes de returns condicionales) ──
+  const compStart = Form.useWatch("start_date", stopComplianceForm);
+  const compEnd = Form.useWatch("end_date", stopComplianceForm);
+  const compDiffDays = compStart && compEnd ? compEnd.diff(compStart, "days") : 0;
+
   // ── Chat IA ──
   const [chatMessages, setChatMessages] = useState([
     { role: "bot", text: "¡Hola! Soy tu asistente de telemetría. ¿En qué puedo ayudarte?", time: Date.now() },
@@ -1139,6 +1144,8 @@ const ControlCenter = () => {
       </Flex>
     );
   }
+
+  const showDgaAlert = stopCompliancePoint?.code && stopCompliancePoint?.code !== "—" && compDiffDays > 5;
 
   return (
     <div style={{ marginBottom: 24 }}>
@@ -2024,6 +2031,19 @@ const ControlCenter = () => {
               </Form.Item>
             </Col>
           </Row>
+          {showDgaAlert && (
+            <Alert
+              type="warning"
+              showIcon
+              style={{ marginBottom: 12, fontSize: 12 }}
+              message="Informe Técnico requerido"
+              description={
+                <Text style={{ fontSize: 12 }}>
+                  La detención supera los 5 días. El cliente deberá enviar el <strong>Informe Técnico</strong> (formato libre) que cumpla con los fundamentos principales y cuyo objetivo sea evidenciar las actividades realizadas en terreno.
+                </Text>
+              }
+            />
+          )}
           <Form.Item
             name="reason"
             label="Razón de la solicitud"
