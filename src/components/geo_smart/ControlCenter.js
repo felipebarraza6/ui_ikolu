@@ -749,182 +749,92 @@ const MeasurementsDrawerContent = ({ data, token }) => {
     { key: "water_table", label: "Nivel freático (m)", color: "#1890ff" },
   ];
 
+  const StatPill = ({ label, value, sub, color }) => (
+    <div style={{
+      textAlign: "center",
+      padding: "8px 12px",
+      borderRadius: 10,
+      background: `${color}08`,
+      border: `1px solid ${color}20`,
+      minWidth: 90,
+    }}>
+      <Text style={{ fontSize: 10, color: token.colorTextSecondary, display: "block", lineHeight: 1.2, textTransform: "uppercase", letterSpacing: 0.3 }}>{label}</Text>
+      <Text strong style={{ fontSize: 14, color: color, display: "block", lineHeight: 1.3 }}>{value}</Text>
+      {sub && <Text style={{ fontSize: 9, color: token.colorTextSecondary, lineHeight: 1.2 }}>{sub}</Text>}
+    </div>
+  );
+
   return (
     <Flex vertical gap={16}>
-      {viewMode === "chart" ? (
-        <Row gutter={[16, 16]}>
-          {/* ── Columna izquierda: KPIs ── */}
-          <Col xs={24} md={10}>
-            <Flex vertical gap={8}>
-              <Row gutter={[8, 8]}>
-                <Col span={12}>
-                  <TinyKPI
-                    icon={<FaArrowUp size={14} color="#1F3461" />}
-                    label="Máx. Consumo"
-                    value={formatKPI(kpis.maxConsumo, 0, " m³")}
-                    sub={kpis.maxConsumo ? `a las ${kpis.maxConsumo.time} hrs` : "—"}
-                    color="#1F3461"
-                    token={token}
-                  />
-                </Col>
-                <Col span={12}>
-                  <TinyKPI
-                    icon={<FaArrowDown size={14} color="#3B6CA8" />}
-                    label="Mín. Consumo"
-                    value={formatKPI(kpis.minConsumo, 0, " m³")}
-                    sub={kpis.minConsumo ? `a las ${kpis.minConsumo.time} hrs` : "—"}
-                    color="#3B6CA8"
-                    token={token}
-                  />
-                </Col>
-                <Col span={12}>
-                  <TinyKPI
-                    icon={<FaEquals size={14} color="#1976d2" />}
-                    label="Prom. Consumo"
-                    value={kpis.avgConsumo != null ? `${Number(kpis.avgConsumo).toLocaleString("es-CL", { maximumFractionDigits: 0 })} m³` : "—"}
-                    sub="promedio diario"
-                    color="#1976d2"
-                    token={token}
-                  />
-                </Col>
-                <Col span={12}>
-                  <TinyKPI
-                    icon={<FaArrowUp size={14} color="#FF6B35" />}
-                    label="Máx. Caudal"
-                    value={formatKPI(kpis.maxCaudal, 1, " L/s")}
-                    sub={kpis.maxCaudal ? `a las ${kpis.maxCaudal.time} hrs` : "—"}
-                    color="#FF6B35"
-                    token={token}
-                  />
-                </Col>
-                <Col span={12}>
-                  <TinyKPI
-                    icon={<FaArrowDown size={14} color="#2A4A8A" />}
-                    label="Mín. Caudal"
-                    value={formatKPI(kpis.minCaudal, 1, " L/s")}
-                    sub={kpis.minCaudal ? `a las ${kpis.minCaudal.time} hrs` : "—"}
-                    color="#2A4A8A"
-                    token={token}
-                  />
-                </Col>
-                <Col span={12}>
-                  <TinyKPI
-                    icon={<FaEquals size={14} color="#3B6CA8" />}
-                    label="Prom. Caudal"
-                    value={kpis.avgCaudal != null ? `${Number(kpis.avgCaudal).toFixed(1)} L/s` : "—"}
-                    sub="promedio diario"
-                    color="#3B6CA8"
-                    token={token}
-                  />
-                </Col>
-                <Col span={12}>
-                  <TinyKPI
-                    icon={<FaArrowUp size={14} color="#1F3461" />}
-                    label="Máx. Nivel"
-                    value={formatKPI(kpis.maxNivel, 2, " m")}
-                    sub={kpis.maxNivel ? `a las ${kpis.maxNivel.time} hrs` : "—"}
-                    color="#1F3461"
-                    token={token}
-                  />
-                </Col>
-                <Col span={12}>
-                  <TinyKPI
-                    icon={<FaArrowDown size={14} color="#1976d2" />}
-                    label="Mín. Nivel"
-                    value={formatKPI(kpis.minNivel, 2, " m")}
-                    sub={kpis.minNivel ? `a las ${kpis.minNivel.time} hrs` : "—"}
-                    color="#1976d2"
-                    token={token}
-                  />
-                </Col>
-                <Col span={12}>
-                  <TinyKPI
-                    icon={<FaWater size={14} color="#2A4A8A" />}
-                    label="Máx. Freático"
-                    value={formatKPI(kpis.maxWaterTable, 2, " m")}
-                    sub={kpis.maxWaterTable ? `a las ${kpis.maxWaterTable.time} hrs` : "—"}
-                    color="#2A4A8A"
-                    token={token}
-                  />
-                </Col>
-                <Col span={12}>
-                  <TinyKPI
-                    icon={<FaWater size={14} color="#3B6CA8" />}
-                    label="Mín. Freático"
-                    value={formatKPI(kpis.minWaterTable, 2, " m")}
-                    sub={kpis.minWaterTable ? `a las ${kpis.minWaterTable.time} hrs` : "—"}
-                    color="#3B6CA8"
-                    token={token}
-                  />
-                </Col>
-              </Row>
-            </Flex>
-          </Col>
+      {/* ── Toggle arriba a la derecha ── */}
+      <Flex justify="flex-end" align="center">
+        <Segmented
+          value={viewMode}
+          onChange={setViewMode}
+          options={[
+            { label: <Flex align="center" gap={4}><FaChartLine size={12} />Gráfico</Flex>, value: "chart" },
+            { label: <Flex align="center" gap={4}><FaTable size={12} />Datos</Flex>, value: "table" },
+          ]}
+          size="small"
+        />
+      </Flex>
 
-          {/* ── Columna derecha: Gráficos ── */}
-          <Col xs={24} md={14}>
-            <Flex justify="flex-end" align="center" style={{ marginBottom: 8 }}>
-              <Segmented
-                value={viewMode}
-                onChange={setViewMode}
-                options={[
-                  { label: <Flex align="center" gap={4}><FaChartLine size={12} />Gráfico</Flex>, value: "chart" },
-                  { label: <Flex align="center" gap={4}><FaTable size={12} />Datos</Flex>, value: "table" },
-                ]}
-                size="small"
-              />
-            </Flex>
-            <Row gutter={[12, 12]}>
-              {chartMetrics.map((cm) => {
-                const data = chartDataAll.filter((d) => d[cm.key] != null);
-                return (
-                  <Col xs={24} md={12} key={cm.key}>
-                    <Card
-                      size="small"
-                      title={<Text strong style={{ fontSize: 12 }}>{cm.label}</Text>}
-                      bodyStyle={{ padding: 8 }}
-                      headStyle={{ padding: "4px 12px", minHeight: 32 }}
-                      style={{ borderRadius: 12, border: `1px solid ${token.colorBorderSecondary}` }}
-                    >
-                      <MeasurementsChart data={data} metric={cm.key} token={token} color={cm.color} title={cm.label} />
-                    </Card>
-                  </Col>
-                );
-              })}
-            </Row>
-          </Col>
-        </Row>
-      ) : (
-        <Flex vertical gap={12}>
-          <Flex justify="flex-end" align="center">
-            <Segmented
-              value={viewMode}
-              onChange={setViewMode}
-              options={[
-                { label: <Flex align="center" gap={4}><FaChartLine size={12} />Gráfico</Flex>, value: "chart" },
-                { label: <Flex align="center" gap={4}><FaTable size={12} />Datos</Flex>, value: "table" },
-              ]}
-              size="small"
-            />
+      {viewMode === "chart" && (
+        <Flex vertical gap={16}>
+          {/* ── Stats horizontales compactas ── */}
+          <Flex gap={8} wrap="wrap" justify="space-between">
+            <StatPill label="Máx. Consumo" value={formatKPI(kpis.maxConsumo, 0, " m³")} sub={kpis.maxConsumo ? `a las ${kpis.maxConsumo.time} hrs` : null} color="#1F3461" />
+            <StatPill label="Mín. Consumo" value={formatKPI(kpis.minConsumo, 0, " m³")} sub={kpis.minConsumo ? `a las ${kpis.minConsumo.time} hrs` : null} color="#3B6CA8" />
+            <StatPill label="Prom. Consumo" value={kpis.avgConsumo != null ? `${Number(kpis.avgConsumo).toLocaleString("es-CL", { maximumFractionDigits: 0 })} m³` : "—"} sub="promedio" color="#1976d2" />
+            <StatPill label="Máx. Caudal" value={formatKPI(kpis.maxCaudal, 1, " L/s")} sub={kpis.maxCaudal ? `a las ${kpis.maxCaudal.time} hrs` : null} color="#FF6B35" />
+            <StatPill label="Mín. Caudal" value={formatKPI(kpis.minCaudal, 1, " L/s")} sub={kpis.minCaudal ? `a las ${kpis.minCaudal.time} hrs` : null} color="#2A4A8A" />
+            <StatPill label="Prom. Caudal" value={kpis.avgCaudal != null ? `${Number(kpis.avgCaudal).toFixed(1)} L/s` : "—"} sub="promedio" color="#3B6CA8" />
+            <StatPill label="Máx. Nivel" value={formatKPI(kpis.maxNivel, 2, " m")} sub={kpis.maxNivel ? `a las ${kpis.maxNivel.time} hrs` : null} color="#1F3461" />
+            <StatPill label="Mín. Nivel" value={formatKPI(kpis.minNivel, 2, " m")} sub={kpis.minNivel ? `a las ${kpis.minNivel.time} hrs` : null} color="#1976d2" />
+            <StatPill label="Máx. Freático" value={formatKPI(kpis.maxWaterTable, 2, " m")} sub={kpis.maxWaterTable ? `a las ${kpis.maxWaterTable.time} hrs` : null} color="#2A4A8A" />
+            <StatPill label="Mín. Freático" value={formatKPI(kpis.minWaterTable, 2, " m")} sub={kpis.minWaterTable ? `a las ${kpis.minWaterTable.time} hrs` : null} color="#3B6CA8" />
           </Flex>
-          <Table
-            dataSource={allMeasurements.map((m, i) => ({ ...m, key: i, _prev: allMeasurements[i - 1] || null }))}
-            columns={measurementColumns}
-            size="small"
-            pagination={false}
-            bordered
-            showHeader={true}
-            locale={{ emptyText: "Sin mediciones para este día" }}
-            scroll={{ x: "max-content" }}
-            components={{
-              header: {
-                cell: (props) => (
-                  <th {...props} style={{ ...props.style, fontSize: 9, padding: "6px 8px", fontWeight: 600, color: token.colorTextSecondary, textTransform: "uppercase", letterSpacing: 0.5 }} />
-                ),
-              },
-            }}
-          />
+
+          {/* ── Gráficos 2x2 ── */}
+          <Row gutter={[16, 16]}>
+            {chartMetrics.map((cm) => {
+              const data = chartDataAll.filter((d) => d[cm.key] != null);
+              return (
+                <Col xs={24} md={12} key={cm.key}>
+                  <Card
+                    size="small"
+                    title={<Text strong style={{ fontSize: 13 }}>{cm.label}</Text>}
+                    bodyStyle={{ padding: 12 }}
+                    headStyle={{ padding: "8px 16px", minHeight: 40 }}
+                    style={{ borderRadius: 12, border: `1px solid ${token.colorBorderSecondary}` }}
+                  >
+                    <MeasurementsChart data={data} metric={cm.key} token={token} color={cm.color} title={cm.label} />
+                  </Card>
+                </Col>
+              );
+            })}
+          </Row>
         </Flex>
+      )}
+
+      {viewMode === "table" && (
+        <Table
+          dataSource={allMeasurements.map((m, i) => ({ ...m, key: i, _prev: allMeasurements[i - 1] || null }))}
+          columns={measurementColumns}
+          size="small"
+          pagination={false}
+          bordered
+          showHeader={true}
+          locale={{ emptyText: "Sin mediciones para este día" }}
+          scroll={{ x: "max-content" }}
+          components={{
+            header: {
+              cell: (props) => (
+                <th {...props} style={{ ...props.style, fontSize: 9, padding: "6px 8px", fontWeight: 600, color: token.colorTextSecondary, textTransform: "uppercase", letterSpacing: 0.5 }} />
+              ),
+            },
+          }}
+        />
       )}
     </Flex>
   );
