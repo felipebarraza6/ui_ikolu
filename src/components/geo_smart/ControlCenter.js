@@ -722,7 +722,7 @@ const MeasurementsDrawerContent = ({ data, token }) => {
   const formatKPI = (obj, decimals = 2, suffix = "") => {
     if (!obj) return "—";
     const val = Number(obj.value).toLocaleString("es-CL", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-    return `${val}${suffix} @ ${obj.time}`;
+    return `${val}${suffix}`;
   };
 
   return (
