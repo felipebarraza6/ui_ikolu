@@ -1,9 +1,10 @@
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect, useMemo } from "react";
+import { Line } from "@ant-design/plots";
 import "./ControlCenter.css";
 import { useData } from "../../contexts/DataContext";
 import { useControlCenter } from "../../hooks/useControlCenter";
 import sh from "../../api/sh/endpoints";
-import { Row, Col, Card, Flex, Typography, Spin, Table, Badge, Tag, theme, Drawer, Modal, Button, Input, Space, Progress } from "antd";
+import { Row, Col, Card, Flex, Typography, Spin, Table, Badge, Tag, theme, Drawer, Modal, Button, Input, Space, Progress, Segmented } from "antd";
 import {
   FaMapMarkerAlt,
   FaBroadcastTower,
@@ -20,6 +21,13 @@ import {
   FaQuestionCircle,
   FaSun,
   FaMoon,
+  FaChartLine,
+  FaTable,
+  FaTachometerAlt,
+  FaWater,
+  FaArrowUp,
+  FaArrowDown,
+  FaEquals,
 } from "react-icons/fa";
 
 import KPICard from "./KPICard";
@@ -344,10 +352,187 @@ const classifyByTimeOfDay = (measurements) => {
   };
 };
 
+/* ── Componente: KPI pequeño para indicadores ── */
+const TinyKPI = ({ icon, label, value, sub, color, token }) => (
+  <Card
+    size="small"
+    bodyStyle={{ padding: "10px 12px" }}
+    style={{
+      borderRadius: 10,
+      border: `1px solid ${color}25`,
+      background: `${color}08`,
+      transition: "transform 0.2s ease",
+    }}
+  >
+    <Flex align="center" gap={8}>
+      <div style={{
+        width: 32,
+        height: 32,
+        borderRadius: 8,
+        background: `${color}15`,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+      }}>
+        {icon}
+      </div>
+      <Flex vertical gap={0}>
+        <Text style={{ fontSize: 10, color: token.colorTextSecondary, lineHeight: 1.2, textTransform: "uppercase", letterSpacing: 0.4 }}>{label}</Text>
+        <Text strong style={{ fontSize: 13, color: token.colorText, lineHeight: 1.3 }}>{value}</Text>
+        {sub && <Text style={{ fontSize: 9, color: color, lineHeight: 1.2 }}>{sub}</Text>}
+      </Flex>
+    </Flex>
+  </Card>
+);
+
+/* ── Componente: Gráfico de mediciones del día ── */
+const MeasurementsChart = ({ data, metric, token }) => {
+  const config = {
+    data,
+    xField: "time",
+    yField: metric,
+    smooth: true,
+    animation: {
+      appear: {
+        animation: "path-in",
+        duration: 1200,
+        easing: "ease-in-out",
+      },
+    },
+    lineStyle: {
+      lineWidth: 3,
+      stroke: token.colorPrimary,
+      shadowColor: `${token.colorPrimary}50`,
+      shadowBlur: 10,
+    },
+    point: {
+      size: 5,
+      shape: "circle",
+      style: {
+        fill: token.colorPrimary,
+        stroke: "#fff",
+        lineWidth: 2,
+        shadowColor: token.colorPrimary,
+        shadowBlur: 8,
+      },
+    },
+    areaStyle: {
+      fill: `l(270) 0:#ffffff00 0.5:${token.colorPrimary}30 1:${token.colorPrimary}60`,
+    },
+    xAxis: {
+      label: { style: { fontSize: 11, fill: token.colorTextSecondary } },
+      grid: { line: { style: { stroke: `${token.colorBorderSecondary}40` } } },
+      line: { style: { stroke: token.colorBorder } },
+    },
+    yAxis: {
+      label: {
+        style: { fontSize: 11, fill: token.colorTextSecondary },
+        formatter: (v) => Number(v).toFixed(2),
+      },
+      grid: { line: { style: { stroke: `${token.colorBorderSecondary}40`, lineDash: [4, 4] } } },
+      line: { style: { stroke: token.colorBorder } },
+    },
+    tooltip: {
+      showMarkers: true,
+      domStyles: {
+        "g2-tooltip": {
+          background: "#fff",
+          borderRadius: 10,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+          padding: "12px 16px",
+          fontSize: 12,
+        },
+        "g2-tooltip-title": { fontWeight: 700, marginBottom: 4, color: token.colorText },
+        "g2-tooltip-list-item": { fontSize: 12 },
+      },
+      formatter: (datum) => {
+        const names = {
+          consumo: "Consumo (m³)",
+          caudal: "Caudal (L/s)",
+          nivel: "Nivel (m)",
+          water_table: "Nivel freático (m)",
+        };
+        const v = datum[metric];
+        const formatted = metric === "consumo"
+          ? `${Number(v).toLocaleString("es-CL", { maximumFractionDigits: 0 })} m³`
+          : `${Number(v).toFixed(2)}`;
+        return { name: names[metric] || metric, value: formatted, title: `${datum.time} hrs` };
+      },
+    },
+    height: 280,
+    color: [token.colorPrimary],
+  };
+
+  return <Line {...config} />;
+};
+
 /* ── Componente: contenido del Drawer de mediciones ── */
 const MeasurementsDrawerContent = ({ data, token }) => {
+  const [viewMode, setViewMode] = useState("both");
+  const [chartMetric, setChartMetric] = useState("consumo");
+
   const measurements = extractMeasurements(data);
+
+  const sortedMeasurements = useMemo(() => {
+    return [...measurements].sort((a, b) => {
+      const ta = moment(a.date_time || a.date_time_medition || a.timestamp || a.time || a.created_at).valueOf();
+      const tb = moment(b.date_time || b.date_time_medition || b.timestamp || b.time || b.created_at).valueOf();
+      return ta - tb;
+    });
+  }, [measurements]);
+
   const groups = classifyByTimeOfDay(measurements);
+
+  /* ── Helpers para KPIs ── */
+  const findExtreme = useCallback((arr, key, fallbackKey, mode) => {
+    if (!arr.length) return null;
+    let target = mode === "max" ? -Infinity : Infinity;
+    let targetItem = null;
+    arr.forEach((m) => {
+      const v = extractRecordNum(m[key]) ?? extractRecordNum(m[fallbackKey]);
+      if (v == null) return;
+      const better = mode === "max" ? v > target : v < target;
+      if (better) { target = v; targetItem = m; }
+    });
+    if (!targetItem) return null;
+    const t = moment(targetItem.date_time || targetItem.date_time_medition || targetItem.timestamp || targetItem.time || targetItem.created_at).format("HH:mm");
+    return { value: target, time: t };
+  }, []);
+
+  const calcAvg = useCallback((arr, key, fallbackKey) => {
+    const vals = arr.map((m) => extractRecordNum(m[key]) ?? extractRecordNum(m[fallbackKey])).filter((v) => v != null);
+    if (!vals.length) return null;
+    return vals.reduce((a, b) => a + b, 0) / vals.length;
+  }, []);
+
+  const kpis = useMemo(() => ({
+    maxConsumo: findExtreme(sortedMeasurements, "total_diff", null, "max"),
+    minConsumo: findExtreme(sortedMeasurements, "total_diff", null, "min"),
+    avgConsumo: calcAvg(sortedMeasurements, "total_diff", null),
+    maxCaudal: findExtreme(sortedMeasurements, "flow", "caudal", "max"),
+    minCaudal: findExtreme(sortedMeasurements, "flow", "caudal", "min"),
+    avgCaudal: calcAvg(sortedMeasurements, "flow", "caudal"),
+    maxNivel: findExtreme(sortedMeasurements, "nivel", "level", "max"),
+    minNivel: findExtreme(sortedMeasurements, "nivel", "level", "min"),
+    maxWaterTable: findExtreme(sortedMeasurements, "water_table", null, "max"),
+    minWaterTable: findExtreme(sortedMeasurements, "water_table", null, "min"),
+  }), [sortedMeasurements, findExtreme, calcAvg]);
+
+  const chartData = useMemo(() => {
+    return sortedMeasurements
+      .map((m) => {
+        const t = moment(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at).format("HH:mm");
+        return {
+          time: t,
+          consumo: extractRecordNum(m.total_diff),
+          caudal: extractRecordNum(m.flow) ?? extractRecordNum(m.caudal),
+          nivel: extractRecordNum(m.nivel) ?? extractRecordNum(m.level),
+          water_table: extractRecordNum(m.water_table),
+        };
+      })
+      .filter((d) => d[chartMetric] != null);
+  }, [sortedMeasurements, chartMetric]);
 
   if (measurements.length === 0) {
     return (
@@ -357,6 +542,7 @@ const MeasurementsDrawerContent = ({ data, token }) => {
     );
   }
 
+  /* ── Columnas tabla (idénticas a antes) ── */
   const getPeriod = (hour) => {
     if (hour >= 0 && hour <= 5) return { label: "Madrugada", icon: FaMoon };
     if (hour >= 6 && hour <= 12) return { label: "Mañana", icon: FaSun };
@@ -506,23 +692,183 @@ const MeasurementsDrawerContent = ({ data, token }) => {
 
   const allMeasurements = [...groups.dawn, ...groups.morning, ...groups.afternoon, ...groups.night];
 
+  const metricOptions = [
+    { label: "Consumo", value: "consumo" },
+    { label: "Caudal", value: "caudal" },
+    { label: "Nivel", value: "nivel" },
+    { label: "Freático", value: "water_table" },
+  ];
+
+  const formatKPI = (obj, decimals = 2, suffix = "") => {
+    if (!obj) return "—";
+    const val = Number(obj.value).toLocaleString("es-CL", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    return `${val}${suffix} @ ${obj.time}`;
+  };
+
   return (
-    <Table
-      dataSource={allMeasurements.map((m, i) => ({ ...m, key: i, _prev: allMeasurements[i - 1] || null }))}
-      columns={measurementColumns}
-      size="small"
-      pagination={false}
-      bordered
-      showHeader={true}
-      locale={{ emptyText: "Sin mediciones para este día" }}
-      components={{
-        header: {
-          cell: (props) => (
-            <th {...props} style={{ ...props.style, fontSize: 9, padding: "6px 8px", fontWeight: 600, color: token.colorTextSecondary, textTransform: "uppercase", letterSpacing: 0.5 }} />
-          ),
-        },
-      }}
-    />
+    <Flex vertical gap={16}>
+      {/* ── Barra de controles ── */}
+      <Flex justify="space-between" align="center" wrap="wrap" gap={8}>
+        <Segmented
+          value={viewMode}
+          onChange={setViewMode}
+          options={[
+            { label: <Flex align="center" gap={4}><FaChartLine size={12} />Gráfico</Flex>, value: "chart" },
+            { label: <Flex align="center" gap={4}><FaTable size={12} />Tabla</Flex>, value: "table" },
+            { label: <Flex align="center" gap={4}><FaTachometerAlt size={12} />Ambos</Flex>, value: "both" },
+          ]}
+          size="small"
+        />
+        {(viewMode === "chart" || viewMode === "both") && (
+          <Segmented
+            value={chartMetric}
+            onChange={setChartMetric}
+            options={metricOptions}
+            size="small"
+          />
+        )}
+      </Flex>
+
+      {/* ── KPIs / Indicadores del día ── */}
+      <Row gutter={[8, 8]}>
+        <Col xs={12} sm={8} md={6}>
+          <TinyKPI
+            icon={<FaArrowUp size={14} color={token.colorPrimary} />}
+            label="Máx. Consumo"
+            value={formatKPI(kpis.maxConsumo, 0, " m³")}
+            sub={kpis.maxConsumo ? `a las ${kpis.maxConsumo.time} hrs` : null}
+            color={token.colorPrimary}
+            token={token}
+          />
+        </Col>
+        <Col xs={12} sm={8} md={6}>
+          <TinyKPI
+            icon={<FaArrowDown size={14} color={token.colorSuccess} />}
+            label="Mín. Consumo"
+            value={formatKPI(kpis.minConsumo, 0, " m³")}
+            sub={kpis.minConsumo ? `a las ${kpis.minConsumo.time} hrs` : null}
+            color={token.colorSuccess}
+            token={token}
+          />
+        </Col>
+        <Col xs={12} sm={8} md={6}>
+          <TinyKPI
+            icon={<FaEquals size={14} color={token.colorInfo} />}
+            label="Prom. Consumo"
+            value={kpis.avgConsumo != null ? `${Number(kpis.avgConsumo).toLocaleString("es-CL", { maximumFractionDigits: 0 })} m³` : "—"}
+            color={token.colorInfo}
+            token={token}
+          />
+        </Col>
+        <Col xs={12} sm={8} md={6}>
+          <TinyKPI
+            icon={<FaArrowUp size={14} color="#fa8c16" />}
+            label="Máx. Caudal"
+            value={formatKPI(kpis.maxCaudal, 1, " L/s")}
+            sub={kpis.maxCaudal ? `a las ${kpis.maxCaudal.time} hrs` : null}
+            color="#fa8c16"
+            token={token}
+          />
+        </Col>
+        <Col xs={12} sm={8} md={6}>
+          <TinyKPI
+            icon={<FaArrowDown size={14} color="#13c2c2" />}
+            label="Mín. Caudal"
+            value={formatKPI(kpis.minCaudal, 1, " L/s")}
+            sub={kpis.minCaudal ? `a las ${kpis.minCaudal.time} hrs` : null}
+            color="#13c2c2"
+            token={token}
+          />
+        </Col>
+        <Col xs={12} sm={8} md={6}>
+          <TinyKPI
+            icon={<FaEquals size={14} color="#722ed1" />}
+            label="Prom. Caudal"
+            value={kpis.avgCaudal != null ? `${Number(kpis.avgCaudal).toFixed(1)} L/s` : "—"}
+            color="#722ed1"
+            token={token}
+          />
+        </Col>
+        <Col xs={12} sm={8} md={6}>
+          <TinyKPI
+            icon={<FaArrowUp size={14} color="#eb2f96" />}
+            label="Máx. Nivel"
+            value={formatKPI(kpis.maxNivel, 2, " m")}
+            sub={kpis.maxNivel ? `a las ${kpis.maxNivel.time} hrs` : null}
+            color="#eb2f96"
+            token={token}
+          />
+        </Col>
+        <Col xs={12} sm={8} md={6}>
+          <TinyKPI
+            icon={<FaArrowDown size={14} color="#52c41a" />}
+            label="Mín. Nivel"
+            value={formatKPI(kpis.minNivel, 2, " m")}
+            sub={kpis.minNivel ? `a las ${kpis.minNivel.time} hrs` : null}
+            color="#52c41a"
+            token={token}
+          />
+        </Col>
+        <Col xs={12} sm={8} md={6}>
+          <TinyKPI
+            icon={<FaWater size={14} color="#1890ff" />}
+            label="Máx. Freático"
+            value={formatKPI(kpis.maxWaterTable, 2, " m")}
+            sub={kpis.maxWaterTable ? `a las ${kpis.maxWaterTable.time} hrs` : null}
+            color="#1890ff"
+            token={token}
+          />
+        </Col>
+        <Col xs={12} sm={8} md={6}>
+          <TinyKPI
+            icon={<FaWater size={14} color="#2f4554" />}
+            label="Mín. Freático"
+            value={formatKPI(kpis.minWaterTable, 2, " m")}
+            sub={kpis.minWaterTable ? `a las ${kpis.minWaterTable.time} hrs` : null}
+            color="#2f4554"
+            token={token}
+          />
+        </Col>
+      </Row>
+
+      {/* ── Gráfico ── */}
+      {(viewMode === "chart" || viewMode === "both") && (
+        <Card
+          size="small"
+          bodyStyle={{ padding: 12 }}
+          style={{ borderRadius: 12, border: `1px solid ${token.colorBorderSecondary}` }}
+        >
+          {chartData.length > 1 ? (
+            <MeasurementsChart data={chartData} metric={chartMetric} token={token} />
+          ) : (
+            <Flex justify="center" align="center" style={{ height: 200 }}>
+              <Text type="secondary" style={{ fontSize: 13 }}>No hay suficientes datos para el gráfico</Text>
+            </Flex>
+          )}
+        </Card>
+      )}
+
+      {/* ── Tabla ── */}
+      {(viewMode === "table" || viewMode === "both") && (
+        <Table
+          dataSource={allMeasurements.map((m, i) => ({ ...m, key: i, _prev: allMeasurements[i - 1] || null }))}
+          columns={measurementColumns}
+          size="small"
+          pagination={false}
+          bordered
+          showHeader={true}
+          locale={{ emptyText: "Sin mediciones para este día" }}
+          scroll={{ x: "max-content" }}
+          components={{
+            header: {
+              cell: (props) => (
+                <th {...props} style={{ ...props.style, fontSize: 9, padding: "6px 8px", fontWeight: 600, color: token.colorTextSecondary, textTransform: "uppercase", letterSpacing: 0.5 }} />
+              ),
+            },
+          }}
+        />
+      )}
+    </Flex>
   );
 };
 
