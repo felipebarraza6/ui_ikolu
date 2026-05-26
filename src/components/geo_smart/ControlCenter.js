@@ -4,7 +4,7 @@ import "./ControlCenter.css";
 import { useData } from "../../contexts/DataContext";
 import { useControlCenter } from "../../hooks/useControlCenter";
 import sh from "../../api/sh/endpoints";
-import { Row, Col, Card, Flex, Typography, Spin, Table, Badge, Tag, theme, Drawer, Modal, Button, Input, Space, Progress, Segmented, Form, message, Tooltip } from "antd";
+import { Row, Col, Card, Flex, Typography, Spin, Table, Badge, Tag, theme, Drawer, Modal, Button, Input, Space, Progress, Segmented, Form, message, Tooltip, DatePicker } from "antd";
 import {
   FaMapMarkerAlt,
   FaBroadcastTower,
@@ -1051,6 +1051,8 @@ const ControlCenter = () => {
         is_wait: false,
         status_dga: "PENDING",
         status_sma: "PENDING",
+        start_date: values.start_date ? values.start_date.format("YYYY-MM-DD") : null,
+        end_date: values.end_date ? values.end_date.format("YYYY-MM-DD") : null,
         emails: state.user?.email ? [state.user.email] : [],
       };
       const res = await sh.notifications.create(payload);
@@ -1094,6 +1096,8 @@ const ControlCenter = () => {
         is_wait: false,
         status_dga: "PENDING",
         status_sma: "PENDING",
+        start_date: values.start_date ? values.start_date.format("YYYY-MM-DD") : null,
+        end_date: values.end_date ? values.end_date.format("YYYY-MM-DD") : null,
         emails: state.user?.email ? [state.user.email] : [],
       };
       const res = await sh.notifications.create(payload);
@@ -1905,6 +1909,35 @@ const ControlCenter = () => {
           </Flex>
         )}
         <Form form={stopTelemetryForm} layout="vertical" onFinish={handleSubmitStopTelemetry}>
+          {/* Quién crea */}
+          <Form.Item label="Solicitado por">
+            <Input
+              value={state.user ? `${state.user.first_name || state.user.username} (${state.user.email})` : "—"}
+              readOnly
+              style={{ borderRadius: 8, fontSize: 13, background: token.colorBgContainerDisabled }}
+            />
+          </Form.Item>
+          {/* Fechas */}
+          <Row gutter={12}>
+            <Col span={12}>
+              <Form.Item
+                name="start_date"
+                label="Fecha inicio"
+                rules={[{ required: true, message: "Selecciona fecha" }]}
+              >
+                <DatePicker style={{ width: "100%", borderRadius: 8 }} format="DD/MM/YYYY" placeholder="Inicio" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="end_date"
+                label="Fecha fin"
+                rules={[{ required: true, message: "Selecciona fecha" }]}
+              >
+                <DatePicker style={{ width: "100%", borderRadius: 8 }} format="DD/MM/YYYY" placeholder="Fin" />
+              </Form.Item>
+            </Col>
+          </Row>
           <Form.Item
             name="reason"
             label="Razón de la solicitud"
@@ -1962,6 +1995,35 @@ const ControlCenter = () => {
           </Flex>
         )}
         <Form form={stopComplianceForm} layout="vertical" onFinish={handleSubmitStopCompliance}>
+          {/* Quién crea */}
+          <Form.Item label="Solicitado por">
+            <Input
+              value={state.user ? `${state.user.first_name || state.user.username} (${state.user.email})` : "—"}
+              readOnly
+              style={{ borderRadius: 8, fontSize: 13, background: token.colorBgContainerDisabled }}
+            />
+          </Form.Item>
+          {/* Fechas */}
+          <Row gutter={12}>
+            <Col span={12}>
+              <Form.Item
+                name="start_date"
+                label="Fecha inicio"
+                rules={[{ required: true, message: "Selecciona fecha" }]}
+              >
+                <DatePicker style={{ width: "100%", borderRadius: 8 }} format="DD/MM/YYYY" placeholder="Inicio" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="end_date"
+                label="Fecha fin"
+                rules={[{ required: true, message: "Selecciona fecha" }]}
+              >
+                <DatePicker style={{ width: "100%", borderRadius: 8 }} format="DD/MM/YYYY" placeholder="Fin" />
+              </Form.Item>
+            </Col>
+          </Row>
           <Form.Item
             name="reason"
             label="Razón de la solicitud"
