@@ -13,16 +13,17 @@ const pointsColumns = (onViewVoucher, onStopCompliance, token) => [
     title: "Punto / Código",
     key: "point_code",
     fixed: "left",
-    width: 200,
+    width: 220,
     sorter: (a, b) => (a.title || "").localeCompare(b.title || ""),
     defaultSortOrder: "ascend",
     render: (_, record) => (
-      <Flex vertical gap={4}>
+      <Flex align="center" gap={8} wrap="wrap">
         <Text strong style={{ fontSize: 13, color: ikoluTokens.colorCorporateBlue }}>
           {record.title || "—"}
         </Text>
-        {record.code ? (
-          <Flex vertical gap={2}>
+        {record.code && (
+          <Flex align="center" gap={4}>
+            <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>—</Text>
             {record.compliance_type?.includes("DGA") ? (
               <a
                 href={`https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${encodeURIComponent(record.code)}`}
@@ -49,8 +50,6 @@ const pointsColumns = (onViewVoucher, onStopCompliance, token) => [
               </Flex>
             )}
           </Flex>
-        ) : (
-          <Text style={{ fontSize: 10, color: ikoluTokens.colorGreyTextLight }}>Sin código</Text>
         )}
       </Flex>
     ),

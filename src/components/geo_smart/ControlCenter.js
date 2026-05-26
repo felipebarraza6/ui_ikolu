@@ -898,17 +898,19 @@ const ControlCenter = () => {
       {/* ════════════════════════════════════════
           Datos: Telemetría + Cumplimiento (Tabs)
       ════════════════════════════════════════ */}
-      <CCDataTabs
-        points={points}
-        onViewVoucher={handleViewVoucher}
-        onOpenStopCompliance={handleOpenStopCompliance}
-        onSelectPoint={handleSelectPoint}
-        onViewMeasurements={handleViewMeasurements}
-        onOpenStopTelemetry={handleOpenStopTelemetry}
-        last7={data?.last_7}
-        selectedDate={selectedDate}
-        onDateSelect={setSelectedDate}
-      />
+      <div style={{ marginTop: 10 }}>
+        <CCDataTabs
+          points={points}
+          onViewVoucher={handleViewVoucher}
+          onOpenStopCompliance={handleOpenStopCompliance}
+          onSelectPoint={handleSelectPoint}
+          onViewMeasurements={handleViewMeasurements}
+          onOpenStopTelemetry={handleOpenStopTelemetry}
+          last7={data?.last_7}
+          selectedDate={selectedDate}
+          onDateSelect={setSelectedDate}
+        />
+      </div>
 
       {/* ════════════════════════════════════════
           Drawer de Warnings por punto
