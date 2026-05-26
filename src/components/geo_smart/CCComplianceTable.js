@@ -287,14 +287,7 @@ const CCComplianceTable = ({ points, onViewVoucher, onOpenStopCompliance, onSele
   return (
     <Card
       size="small"
-      title={(
-        <Flex align="center" gap={8} wrap="wrap">
-          <FaClipboardCheck style={{ color: token.colorPrimary, fontSize: 16, flexShrink: 0 }} />
-          <Text strong style={{ fontSize: 14, whiteSpace: "normal" }}>Cumplimiento normativo</Text>
-        </Flex>
-      )}
-      headStyle={{ whiteSpace: "normal", height: "auto", minHeight: 40 }}
-      style={{ borderRadius: token.borderRadiusLG, overflow: "hidden", marginTop: 32 }}
+      style={{ borderRadius: token.borderRadiusLG, overflow: "hidden" }}
       bodyStyle={{ padding: 0 }}
     >
       <Table

@@ -125,8 +125,8 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
 
   return (
     <div style={{ padding: "0 0 16px" }}>
-      <Flex vertical gap={14}>
-        <Flex gap={8}>
+      <Flex vertical gap={16}>
+        <Flex gap={12}>
           {sortedDays.map(([date, { points }]) => {
             const total = points.reduce((a, p) => a + (p.consumption || 0), 0);
             const isActive = activeDate === date;
