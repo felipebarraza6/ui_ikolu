@@ -1112,6 +1112,7 @@ const ControlCenter = () => {
   }
 
   const showDgaAlert = stopCompliancePoint?.code && stopCompliancePoint?.code !== "—" && compDiffDays > 5;
+  const showDgaCriticalAlert = stopCompliancePoint?.code && stopCompliancePoint?.code !== "—" && compDiffDays > 10;
 
   return (
     <div style={{ marginBottom: 24 }}>
@@ -1996,7 +1997,7 @@ const ControlCenter = () => {
               </Form.Item>
             </Col>
           </Row>
-          {showDgaAlert && (
+          {showDgaAlert && !showDgaCriticalAlert && (
             <Alert
               type="warning"
               showIcon
@@ -2004,7 +2005,20 @@ const ControlCenter = () => {
               message="Informe Técnico requerido"
               description={
                 <Text style={{ fontSize: 12 }}>
-                  La detención supera los 5 días. El cliente deberá enviar el <strong>Informe Técnico</strong> (formato libre) que cumpla con los fundamentos principales y cuyo objetivo sea evidenciar las actividades realizadas en terreno.
+                  La detención supera los 5 días. Se debe enviar el <strong>Informe Técnico</strong> (formato libre) que cumpla con los fundamentos principales y cuyo objetivo sea evidenciar las actividades realizadas en terreno.
+                </Text>
+              }
+            />
+          )}
+          {showDgaCriticalAlert && (
+            <Alert
+              type="error"
+              showIcon
+              style={{ marginBottom: 12, fontSize: 12 }}
+              message="Informe Detallado Obligatorio"
+              description={
+                <Text style={{ fontSize: 12 }}>
+                  La detención supera los 10 días. Se debe confeccionar un <strong>informe detallado de las actividades realizadas en terreno</strong>, evidenciando cada una de las labores ejecutadas.
                 </Text>
               }
             />
