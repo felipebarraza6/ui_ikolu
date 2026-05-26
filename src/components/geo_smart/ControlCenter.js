@@ -1911,7 +1911,7 @@ const ControlCenter = () => {
           <Flex vertical gap={12} style={{ marginBottom: 16 }}>
             <Card size="small" bodyStyle={{ padding: 10 }} style={{ background: `${token.colorPrimary}06`, border: `1px solid ${token.colorPrimary}15` }}>
               <Text strong style={{ fontSize: 13, display: "block" }}>{stopTelemetryPoint.name}</Text>
-              <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>Cliente: {stopTelemetryPoint.client}</Text>
+              <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{stopTelemetryPoint.client}</Text>
             </Card>
           </Flex>
         )}
@@ -1997,7 +1997,7 @@ const ControlCenter = () => {
           <Flex vertical gap={12} style={{ marginBottom: 16 }}>
             <Card size="small" bodyStyle={{ padding: 10 }} style={{ background: `${token.colorPrimary}06`, border: `1px solid ${token.colorPrimary}15` }}>
               <Text strong style={{ fontSize: 13, display: "block" }}>{stopCompliancePoint.name}</Text>
-              <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>Código: {stopCompliancePoint.code} · Cliente: {stopCompliancePoint.client}</Text>
+              <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>Código: {stopCompliancePoint.code}</Text>
             </Card>
           </Flex>
         )}
