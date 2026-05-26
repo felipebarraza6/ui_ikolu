@@ -744,99 +744,101 @@ const MeasurementsDrawerContent = ({ data, token }) => {
       <Row gutter={[8, 8]}>
         <Col xs={12} sm={8} md={6}>
           <TinyKPI
-            icon={<FaArrowUp size={14} color={token.colorPrimary} />}
+            icon={<FaArrowUp size={14} color="#1F3461" />}
             label="Máx. Consumo"
             value={formatKPI(kpis.maxConsumo, 0, " m³")}
-            sub={kpis.maxConsumo ? `a las ${kpis.maxConsumo.time} hrs` : null}
-            color={token.colorPrimary}
+            sub={kpis.maxConsumo ? `@ ${kpis.maxConsumo.time} hrs` : "—"}
+            color="#1F3461"
             token={token}
           />
         </Col>
         <Col xs={12} sm={8} md={6}>
           <TinyKPI
-            icon={<FaArrowDown size={14} color={token.colorSuccess} />}
+            icon={<FaArrowDown size={14} color="#3B6CA8" />}
             label="Mín. Consumo"
             value={formatKPI(kpis.minConsumo, 0, " m³")}
-            sub={kpis.minConsumo ? `a las ${kpis.minConsumo.time} hrs` : null}
-            color={token.colorSuccess}
+            sub={kpis.minConsumo ? `@ ${kpis.minConsumo.time} hrs` : "—"}
+            color="#3B6CA8"
             token={token}
           />
         </Col>
         <Col xs={12} sm={8} md={6}>
           <TinyKPI
-            icon={<FaEquals size={14} color={token.colorInfo} />}
+            icon={<FaEquals size={14} color="#1976d2" />}
             label="Prom. Consumo"
             value={kpis.avgConsumo != null ? `${Number(kpis.avgConsumo).toLocaleString("es-CL", { maximumFractionDigits: 0 })} m³` : "—"}
-            color={token.colorInfo}
+            sub="@ promedio diario"
+            color="#1976d2"
             token={token}
           />
         </Col>
         <Col xs={12} sm={8} md={6}>
           <TinyKPI
-            icon={<FaArrowUp size={14} color="#fa8c16" />}
+            icon={<FaArrowUp size={14} color="#FF6B35" />}
             label="Máx. Caudal"
             value={formatKPI(kpis.maxCaudal, 1, " L/s")}
-            sub={kpis.maxCaudal ? `a las ${kpis.maxCaudal.time} hrs` : null}
-            color="#fa8c16"
+            sub={kpis.maxCaudal ? `@ ${kpis.maxCaudal.time} hrs` : "—"}
+            color="#FF6B35"
             token={token}
           />
         </Col>
         <Col xs={12} sm={8} md={6}>
           <TinyKPI
-            icon={<FaArrowDown size={14} color="#13c2c2" />}
+            icon={<FaArrowDown size={14} color="#2A4A8A" />}
             label="Mín. Caudal"
             value={formatKPI(kpis.minCaudal, 1, " L/s")}
-            sub={kpis.minCaudal ? `a las ${kpis.minCaudal.time} hrs` : null}
-            color="#13c2c2"
+            sub={kpis.minCaudal ? `@ ${kpis.minCaudal.time} hrs` : "—"}
+            color="#2A4A8A"
             token={token}
           />
         </Col>
         <Col xs={12} sm={8} md={6}>
           <TinyKPI
-            icon={<FaEquals size={14} color="#722ed1" />}
+            icon={<FaEquals size={14} color="#3B6CA8" />}
             label="Prom. Caudal"
             value={kpis.avgCaudal != null ? `${Number(kpis.avgCaudal).toFixed(1)} L/s` : "—"}
-            color="#722ed1"
+            sub="@ promedio diario"
+            color="#3B6CA8"
             token={token}
           />
         </Col>
         <Col xs={12} sm={8} md={6}>
           <TinyKPI
-            icon={<FaArrowUp size={14} color="#eb2f96" />}
+            icon={<FaArrowUp size={14} color="#1F3461" />}
             label="Máx. Nivel"
             value={formatKPI(kpis.maxNivel, 2, " m")}
-            sub={kpis.maxNivel ? `a las ${kpis.maxNivel.time} hrs` : null}
-            color="#eb2f96"
+            sub={kpis.maxNivel ? `@ ${kpis.maxNivel.time} hrs` : "—"}
+            color="#1F3461"
             token={token}
           />
         </Col>
         <Col xs={12} sm={8} md={6}>
           <TinyKPI
-            icon={<FaArrowDown size={14} color="#52c41a" />}
+            icon={<FaArrowDown size={14} color="#1976d2" />}
             label="Mín. Nivel"
             value={formatKPI(kpis.minNivel, 2, " m")}
-            sub={kpis.minNivel ? `a las ${kpis.minNivel.time} hrs` : null}
-            color="#52c41a"
+            sub={kpis.minNivel ? `@ ${kpis.minNivel.time} hrs` : "—"}
+            color="#1976d2"
             token={token}
           />
         </Col>
         <Col xs={12} sm={8} md={6}>
           <TinyKPI
-            icon={<FaWater size={14} color="#1890ff" />}
+            icon={<FaWater size={14} color="#2A4A8A" />}
             label="Máx. Freático"
             value={formatKPI(kpis.maxWaterTable, 2, " m")}
-            sub={kpis.maxWaterTable ? `a las ${kpis.maxWaterTable.time} hrs` : null}
-            color="#1890ff"
+            sub={kpis.maxWaterTable ? `@ ${kpis.maxWaterTable.time} hrs` : "—"}
+            color="#2A4A8A"
             token={token}
           />
         </Col>
         <Col xs={12} sm={8} md={6}>
           <TinyKPI
-            icon={<FaWater size={14} color="#2f4554" />}
+            icon={<FaWater size={14} color="#3B6CA8" />}
             label="Mín. Freático"
             value={formatKPI(kpis.minWaterTable, 2, " m")}
-            sub={kpis.minWaterTable ? `a las ${kpis.minWaterTable.time} hrs` : null}
-            color="#2f4554"
+            sub={kpis.minWaterTable ? `@ ${kpis.minWaterTable.time} hrs` : "—"}
+            color="#3B6CA8"
             token={token}
           />
         </Col>
