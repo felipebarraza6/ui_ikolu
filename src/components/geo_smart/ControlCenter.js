@@ -747,7 +747,7 @@ const MeasurementsDrawerContent = ({ data, token }) => {
             icon={<FaArrowUp size={14} color="#1F3461" />}
             label="Máx. Consumo"
             value={formatKPI(kpis.maxConsumo, 0, " m³")}
-            sub={kpis.maxConsumo ? `@ ${kpis.maxConsumo.time} hrs` : "—"}
+            sub={kpis.maxConsumo ? `a las ${kpis.maxConsumo.time} hrs` : "—"}
             color="#1F3461"
             token={token}
           />
@@ -757,7 +757,7 @@ const MeasurementsDrawerContent = ({ data, token }) => {
             icon={<FaArrowDown size={14} color="#3B6CA8" />}
             label="Mín. Consumo"
             value={formatKPI(kpis.minConsumo, 0, " m³")}
-            sub={kpis.minConsumo ? `@ ${kpis.minConsumo.time} hrs` : "—"}
+            sub={kpis.minConsumo ? `a las ${kpis.minConsumo.time} hrs` : "—"}
             color="#3B6CA8"
             token={token}
           />
@@ -777,7 +777,7 @@ const MeasurementsDrawerContent = ({ data, token }) => {
             icon={<FaArrowUp size={14} color="#FF6B35" />}
             label="Máx. Caudal"
             value={formatKPI(kpis.maxCaudal, 1, " L/s")}
-            sub={kpis.maxCaudal ? `@ ${kpis.maxCaudal.time} hrs` : "—"}
+            sub={kpis.maxCaudal ? `a las ${kpis.maxCaudal.time} hrs` : "—"}
             color="#FF6B35"
             token={token}
           />
@@ -787,7 +787,7 @@ const MeasurementsDrawerContent = ({ data, token }) => {
             icon={<FaArrowDown size={14} color="#2A4A8A" />}
             label="Mín. Caudal"
             value={formatKPI(kpis.minCaudal, 1, " L/s")}
-            sub={kpis.minCaudal ? `@ ${kpis.minCaudal.time} hrs` : "—"}
+            sub={kpis.minCaudal ? `a las ${kpis.minCaudal.time} hrs` : "—"}
             color="#2A4A8A"
             token={token}
           />
@@ -807,7 +807,7 @@ const MeasurementsDrawerContent = ({ data, token }) => {
             icon={<FaArrowUp size={14} color="#1F3461" />}
             label="Máx. Nivel"
             value={formatKPI(kpis.maxNivel, 2, " m")}
-            sub={kpis.maxNivel ? `@ ${kpis.maxNivel.time} hrs` : "—"}
+            sub={kpis.maxNivel ? `a las ${kpis.maxNivel.time} hrs` : "—"}
             color="#1F3461"
             token={token}
           />
@@ -817,7 +817,7 @@ const MeasurementsDrawerContent = ({ data, token }) => {
             icon={<FaArrowDown size={14} color="#1976d2" />}
             label="Mín. Nivel"
             value={formatKPI(kpis.minNivel, 2, " m")}
-            sub={kpis.minNivel ? `@ ${kpis.minNivel.time} hrs` : "—"}
+            sub={kpis.minNivel ? `a las ${kpis.minNivel.time} hrs` : "—"}
             color="#1976d2"
             token={token}
           />
@@ -827,7 +827,7 @@ const MeasurementsDrawerContent = ({ data, token }) => {
             icon={<FaWater size={14} color="#2A4A8A" />}
             label="Máx. Freático"
             value={formatKPI(kpis.maxWaterTable, 2, " m")}
-            sub={kpis.maxWaterTable ? `@ ${kpis.maxWaterTable.time} hrs` : "—"}
+            sub={kpis.maxWaterTable ? `a las ${kpis.maxWaterTable.time} hrs` : "—"}
             color="#2A4A8A"
             token={token}
           />
@@ -837,7 +837,7 @@ const MeasurementsDrawerContent = ({ data, token }) => {
             icon={<FaWater size={14} color="#3B6CA8" />}
             label="Mín. Freático"
             value={formatKPI(kpis.minWaterTable, 2, " m")}
-            sub={kpis.minWaterTable ? `@ ${kpis.minWaterTable.time} hrs` : "—"}
+            sub={kpis.minWaterTable ? `a las ${kpis.minWaterTable.time} hrs` : "—"}
             color="#3B6CA8"
             token={token}
           />
