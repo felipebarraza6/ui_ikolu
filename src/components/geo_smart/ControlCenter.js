@@ -1,10 +1,10 @@
-import React, { useCallback, useState, useEffect, useMemo } from "react";
+import React, { useCallback, useState, useEffect, useMemo, useContext } from "react";
 import { Line } from "@ant-design/plots";
 import "./ControlCenter.css";
 import { useData } from "../../contexts/DataContext";
 import { useControlCenter } from "../../hooks/useControlCenter";
 import sh from "../../api/sh/endpoints";
-import { Row, Col, Card, Flex, Typography, Spin, Table, Badge, Tag, theme, Drawer, Modal, Button, Input, Space, Progress, Segmented } from "antd";
+import { Row, Col, Card, Flex, Typography, Spin, Table, Badge, Tag, theme, Drawer, Modal, Button, Input, Space, Progress, Segmented, Form, message, Tooltip } from "antd";
 import {
   FaMapMarkerAlt,
   FaBroadcastTower,
@@ -28,6 +28,8 @@ import {
   FaArrowUp,
   FaArrowDown,
   FaEquals,
+  FaHandPaper,
+  FaPauseCircle,
 } from "react-icons/fa";
 
 import KPICard from "./KPICard";
@@ -36,6 +38,7 @@ import ModuleTour from "../common/ModuleTour";
 import { centroControlTour } from "../../config/tours";
 import { ikoluTokens, kpiGradients } from "../../theme";
 import moment from "moment";
+import { AppContext } from "../../App";
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -387,7 +390,17 @@ const TinyKPI = ({ icon, label, value, sub, color, token }) => (
 );
 
 /* ── Componente: Gráfico de mediciones del día ── */
-const MeasurementsChart = ({ data, metric, token }) => {
+const MeasurementsChart = ({ data, metric, token, color, title }) => {
+  const chartColor = color || token.colorPrimary;
+
+  if (!data || data.length === 0) {
+    return (
+      <Flex justify="center" align="center" style={{ height: 220 }} vertical gap={8}>
+        <Text type="secondary" style={{ fontSize: 12 }}>Sin datos de {title || metric}</Text>
+      </Flex>
+    );
+  }
+
   const config = {
     data,
     xField: "time",
@@ -402,23 +415,23 @@ const MeasurementsChart = ({ data, metric, token }) => {
     },
     lineStyle: {
       lineWidth: 3,
-      stroke: token.colorPrimary,
-      shadowColor: `${token.colorPrimary}50`,
+      stroke: chartColor,
+      shadowColor: `${chartColor}50`,
       shadowBlur: 10,
     },
     point: {
       size: 5,
       shape: "circle",
       style: {
-        fill: token.colorPrimary,
+        fill: chartColor,
         stroke: "#fff",
         lineWidth: 2,
-        shadowColor: token.colorPrimary,
+        shadowColor: chartColor,
         shadowBlur: 8,
       },
     },
     areaStyle: {
-      fill: `l(270) 0:#ffffff00 0.5:${token.colorPrimary}30 1:${token.colorPrimary}60`,
+      fill: `l(270) 0:#ffffff00 0.5:${chartColor}30 1:${chartColor}60`,
     },
     xAxis: {
       label: { style: { fontSize: 11, fill: token.colorTextSecondary } },
@@ -460,8 +473,8 @@ const MeasurementsChart = ({ data, metric, token }) => {
         return { name: names[metric] || metric, value: formatted, title: `${datum.time} hrs` };
       },
     },
-    height: 280,
-    color: [token.colorPrimary],
+    height: 220,
+    color: [chartColor],
   };
 
   return <Line {...config} />;
@@ -470,7 +483,10 @@ const MeasurementsChart = ({ data, metric, token }) => {
 /* ── Componente: contenido del Drawer de mediciones ── */
 const MeasurementsDrawerContent = ({ data, token }) => {
   const [viewMode, setViewMode] = useState("both");
-  const [chartMetric, setChartMetric] = useState("consumo");
+  const chartMetrics = [
+    { key: "consumo", label: "Consumo (m³)", color: token.colorPrimary },
+    { key: "caudal", label: "Caudal (L/s)", color: token.colorSuccess },
+  ];
 
   const measurements = extractMeasurements(data);
 
@@ -519,7 +535,7 @@ const MeasurementsDrawerContent = ({ data, token }) => {
     minWaterTable: findExtreme(sortedMeasurements, "water_table", null, "min"),
   }), [sortedMeasurements, findExtreme, calcAvg]);
 
-  const chartData = useMemo(() => {
+  const chartDataAll = useMemo(() => {
     return sortedMeasurements
       .map((m) => {
         const t = moment(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at).format("HH:mm");
@@ -530,9 +546,8 @@ const MeasurementsDrawerContent = ({ data, token }) => {
           nivel: extractRecordNum(m.nivel) ?? extractRecordNum(m.level),
           water_table: extractRecordNum(m.water_table),
         };
-      })
-      .filter((d) => d[chartMetric] != null);
-  }, [sortedMeasurements, chartMetric]);
+      });
+  }, [sortedMeasurements]);
 
   if (measurements.length === 0) {
     return (
@@ -692,13 +707,6 @@ const MeasurementsDrawerContent = ({ data, token }) => {
 
   const allMeasurements = [...groups.dawn, ...groups.morning, ...groups.afternoon, ...groups.night];
 
-  const metricOptions = [
-    { label: "Consumo", value: "consumo" },
-    { label: "Caudal", value: "caudal" },
-    { label: "Nivel", value: "nivel" },
-    { label: "Freático", value: "water_table" },
-  ];
-
   const formatKPI = (obj, decimals = 2, suffix = "") => {
     if (!obj) return "—";
     const val = Number(obj.value).toLocaleString("es-CL", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
@@ -719,14 +727,7 @@ const MeasurementsDrawerContent = ({ data, token }) => {
           ]}
           size="small"
         />
-        {(viewMode === "chart" || viewMode === "both") && (
-          <Segmented
-            value={chartMetric}
-            onChange={setChartMetric}
-            options={metricOptions}
-            size="small"
-          />
-        )}
+
       </Flex>
 
       {/* ── KPIs / Indicadores del día ── */}
@@ -831,21 +832,26 @@ const MeasurementsDrawerContent = ({ data, token }) => {
         </Col>
       </Row>
 
-      {/* ── Gráfico ── */}
+      {/* ── Gráficos 2x2 ── */}
       {(viewMode === "chart" || viewMode === "both") && (
-        <Card
-          size="small"
-          bodyStyle={{ padding: 12 }}
-          style={{ borderRadius: 12, border: `1px solid ${token.colorBorderSecondary}` }}
-        >
-          {chartData.length > 1 ? (
-            <MeasurementsChart data={chartData} metric={chartMetric} token={token} />
-          ) : (
-            <Flex justify="center" align="center" style={{ height: 200 }}>
-              <Text type="secondary" style={{ fontSize: 13 }}>No hay suficientes datos para el gráfico</Text>
-            </Flex>
-          )}
-        </Card>
+        <Row gutter={[12, 12]}>
+          {chartMetrics.map((cm) => {
+            const data = chartDataAll.filter((d) => d[cm.key] != null);
+            return (
+              <Col xs={24} md={12} key={cm.key}>
+                <Card
+                  size="small"
+                  title={<Text strong style={{ fontSize: 12 }}>{cm.label}</Text>}
+                  bodyStyle={{ padding: 8 }}
+                  headStyle={{ padding: "4px 12px", minHeight: 32 }}
+                  style={{ borderRadius: 12, border: `1px solid ${token.colorBorderSecondary}` }}
+                >
+                  <MeasurementsChart data={data} metric={cm.key} token={token} color={cm.color} title={cm.label} />
+                </Card>
+              </Col>
+            );
+          })}
+        </Row>
       )}
 
       {/* ── Tabla ── */}
