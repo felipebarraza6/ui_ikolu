@@ -1,7 +1,8 @@
 import { Button, Flex, Affix, Modal, Row, Col, Typography } from "antd";
-import React, { useContext } from "react";
+import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { AppContext } from "../../App";
+import { useAuth } from "../../contexts/AuthContext";
+import { useData } from "../../contexts/DataContext";
 import {
   OneToOneOutlined,
   DatabaseOutlined,
@@ -23,8 +24,8 @@ const { Title } = Typography;
 const SiderLeft = () => {
   const location = useLocation();
   const navigate = useNavigate();
-
-  const { state } = useContext(AppContext);
+  const { user } = useAuth();
+  const { selected_profile } = useData();
 
   return (
     <QueueAnim delay={200} duration={900} type="left">
@@ -65,7 +66,7 @@ const SiderLeft = () => {
                 }}
                 block
                 onClick={() => {
-                  const isAdmin = state.user?.is_staff || state.user?.is_superuser;
+                  const isAdmin = user?.is_staff || user?.is_superuser;
                   navigate(isAdmin ? "/" : "/control_center");
                 }}
                 children={
@@ -74,7 +75,7 @@ const SiderLeft = () => {
                     align="center"
                     style={{ width: "100%" }}
                   >
-                    {state.selected_profile.profile_ikolu.entry_by_form ? (
+                    {selected_profile.profile_ikolu.entry_by_form ? (
                       <>
                         <OneToOneOutlined style={{ fontSize: "18px" }} />
                         Formulario
@@ -89,7 +90,7 @@ const SiderLeft = () => {
                 }
               />
 
-              {state.user.username === "arrocerospti" && (
+              {user.username === "arrocerospti" && (
                 <Button
                   style={{
                     backgroundColor:
@@ -109,8 +110,8 @@ const SiderLeft = () => {
                 </Button>
               )}
 
-              {state.user.username !== "arrocerospti" &&
-              state.user.username !== "lecheriavalleverde" ? (
+              {user.username !== "arrocerospti" &&
+              user.username !== "lecheriavalleverde" ? (
                 <>
                   <Button
                     block
@@ -136,8 +137,8 @@ const SiderLeft = () => {
                       Smart Análisis
                     </Flex>
                   </Button>
-                  {state.selected_profile.dga.code_dga &&
-                  state.selected_profile.dga.code_dga !== "1" ? (
+                  {selected_profile.dga.code_dga &&
+                  selected_profile.dga.code_dga !== "1" ? (
                     <>
                       <Button
                         block

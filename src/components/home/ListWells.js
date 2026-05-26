@@ -1,21 +1,23 @@
-import React, { useContext, useCallback, useMemo, useEffect } from "react";
-import { AppContext } from "../../App";
+import React, { useCallback, useMemo, useEffect } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { useData } from "../../contexts/DataContext";
+import { useUI } from "../../contexts/UIContext";
 import { Badge, Select, Flex, Button, Tooltip, Tag } from "antd";
 import { useNavigate, useLocation } from "react-router";
 import { FaEye } from "react-icons/fa";
 import { MdSensorOccupied } from "react-icons/md";
 
 const ListWells = () => {
-  const { state, dispatch } = useContext(AppContext);
+  const { dispatch, user } = useAuth();
+  const { selected_profile, points_list } = useData();
+  const { isLoading } = useUI();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 🆕 Usar points_list como fuente principal
   const pointsSource = useMemo(() => {
-    return state.points_list || [];
-  }, [state.points_list]);
+    return points_list || [];
+  }, [points_list]);
 
-  // Validar que tengamos los datos necesarios
   const hasValidData = useMemo(() => {
     return (
       pointsSource &&
@@ -24,9 +26,8 @@ const ListWells = () => {
     );
   }, [pointsSource]);
 
-  // Función para sincronizar el perfil seleccionado si está desincronizado
   useEffect(() => {
-    if (hasValidData && state.selected_profile && !state.selected_profile.id) {
+    if (hasValidData && selected_profile && !selected_profile.id) {
       const firstProfile = pointsSource[0];
       if (firstProfile) {
         dispatch({
@@ -37,7 +38,7 @@ const ListWells = () => {
         });
       }
     }
-  }, [hasValidData, state.selected_profile, pointsSource, dispatch]);
+  }, [hasValidData, selected_profile, pointsSource, dispatch]);
 
   const disabledWell = useCallback((well) => {
     if (!well) return true;
@@ -54,7 +55,7 @@ const ListWells = () => {
   const onSelectWell = useCallback(
     async (key) => {
       // Bloquear cambio si está cargando datos
-      if (state.isLoading) {
+      if (isLoading) {
         console.warn("No se puede cambiar de pozo mientras se cargan datos");
         return;
       }
@@ -98,7 +99,7 @@ const ListWells = () => {
         }
       }
     },
-    [navigate, pointsSource, dispatch, hasValidData, state.isLoading]
+    [navigate, pointsSource, dispatch, hasValidData, isLoading]
   );
 
   const selectStyle = useMemo(
@@ -251,7 +252,7 @@ const ListWells = () => {
       ));
 
     // Opción admin (solo si aplica)
-    if (state.user?.is_admin_view) {
+    if (user?.is_admin_view) {
       const firstProfile = pointsSource[0];
       if (firstProfile?.code_dga_site) {
         groups.push(
@@ -277,13 +278,13 @@ const ListWells = () => {
     }
 
     return [clearOption, ...groups];
-  }, [pointsSource, state.user, hasValidData]);
+  }, [pointsSource, user, hasValidData]);
 
   // Obtener el valor actual del select de forma segura
   const currentValue = useMemo(() => {
-    if (!hasValidData || !state.selected_profile) return undefined;
-    return state.selected_profile.id || undefined;
-  }, [state.selected_profile, hasValidData]);
+    if (!hasValidData || !selected_profile) return undefined;
+    return selected_profile.id || undefined;
+  }, [selected_profile, hasValidData]);
 
   return (
     <Flex align="bottom" justify="end" gap="small" wrap="wrap">
@@ -330,11 +331,11 @@ const ListWells = () => {
         className="yellow-select"
         style={{
           ...selectStyle,
-          opacity: state.isLoading ? 0.6 : 1,
-          pointerEvents: state.isLoading ? "none" : "auto",
+          opacity: isLoading ? 0.6 : 1,
+          pointerEvents: isLoading ? "none" : "auto",
         }}
         placeholder={
-          state.isLoading
+          isLoading
             ? "Cargando datos..."
             : "Seleccione punto de captación"
         }
@@ -344,7 +345,7 @@ const ListWells = () => {
         dropdownStyle={{ zIndex: 1001, background: "#fff" }}
         listHeight={280}
         getPopupContainer={() => document.body}
-        loading={!hasValidData || state.isLoading}
+        loading={!hasValidData || isLoading}
         showSearch
         optionFilterProp="label"
         filterOption={(input, option) => {
@@ -352,11 +353,11 @@ const ListWells = () => {
           const label = option.label || "";
           return label.toLowerCase().includes(input.toLowerCase());
         }}
-        disabled={state.isLoading}
+        disabled={isLoading}
       >
         {options}
       </Select>
-      {state.isLoading && (
+      {isLoading && (
         <Tooltip title="Cargando datos del pozo actual...">
           <Button
             type="text"

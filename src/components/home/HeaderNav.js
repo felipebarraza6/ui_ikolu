@@ -1,6 +1,8 @@
-import React, { useContext, useMemo, useState, useEffect } from "react";
-import { AppContext } from "../../App";
+import React, { useMemo, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { useData } from "../../contexts/DataContext";
+import { useUI } from "../../contexts/UIContext";
 import {
   LogoutOutlined,
   UserOutlined,
@@ -70,7 +72,7 @@ const flattenMenu = (items) => {
   return result;
 };
 
-const UserInfo = React.memo(({ state, onlyIcons, onClick }) => (
+const UserInfo = React.memo(({ user, onlyIcons, onClick }) => (
   <Flex
     align="center"
     gap="small"
@@ -88,14 +90,16 @@ const UserInfo = React.memo(({ state, onlyIcons, onClick }) => (
     />
     {!onlyIcons && (
       <span style={{ color: "#1F3461", fontSize: "14px", fontWeight: "500" }}>
-        @{state.user?.username || "Usuario"}
+        @{user?.username || "Usuario"}
       </span>
     )}
   </Flex>
 ));
 
 const HeaderNav = ({ onMenuClick }) => {
-  const { state, dispatch } = useContext(AppContext);
+  const { dispatch, user } = useAuth();
+  const { selected_profile } = useData();
+  const { adminView } = useUI();
   const location = useLocation();
   const navigate = useNavigate();
   const { isMobile } = useResponsive();
@@ -106,9 +110,9 @@ const HeaderNav = ({ onMenuClick }) => {
 
   useEffect(() => {
     const fetchAlerts = async () => {
-      if (!state.selected_profile?.id) return;
+      if (!selected_profile?.id) return;
       try {
-        const res = await sh.notifications.actives(state.selected_profile.id, 1, "ALERT");
+        const res = await sh.notifications.actives(selected_profile.id, 1, "ALERT");
         setAlertCount(res.count || res.results?.length || 0);
       } catch (e) {
         // silent
@@ -117,7 +121,7 @@ const HeaderNav = ({ onMenuClick }) => {
     fetchAlerts();
     const interval = setInterval(fetchAlerts, 60000);
     return () => clearInterval(interval);
-  }, [state.selected_profile?.id]);
+  }, [selected_profile?.id]);
 
   const moduleName = useMemo(() => {
     const currentPath = location.pathname;
@@ -169,7 +173,7 @@ const HeaderNav = ({ onMenuClick }) => {
           display: "inline-block",
         }}
       >
-        {state.selected_profile?.title || "Punto"}
+        {selected_profile?.title || "Punto"}
       </span>
       <RightOutlined style={{ color: "#bfbfbf", fontSize: 10 }} />
       <span style={{ fontWeight: 700, color: "#1F3461", fontSize: 15, letterSpacing: 0.3 }}>
@@ -249,7 +253,7 @@ const HeaderNav = ({ onMenuClick }) => {
     <Flex align="center" justify="space-between" style={{ height: "100%" }}>
       <Flex align="center" gap={10}>
         {/* ── Toggle Operacional / Técnico para admin/staff ── */}
-        {(state.user?.is_staff || state.user?.is_superuser) && (location.pathname === "/" || location.pathname === "/admin") && (
+        {(user?.is_staff || user?.is_superuser) && (location.pathname === "/" || location.pathname === "/admin") && (
           <Flex
             align="center"
             gap={2}
@@ -261,31 +265,31 @@ const HeaderNav = ({ onMenuClick }) => {
             }}
           >
             <Button
-              type={state.adminView === "operacional" ? "primary" : "text"}
+              type={adminView === "operacional" ? "primary" : "text"}
               size="small"
               icon={<BarChartOutlined />}
               onClick={() => dispatch({ type: "SET_ADMIN_VIEW", payload: { view: "operacional" } })}
               style={{
                 borderRadius: 16,
                 fontSize: 12,
-                background: state.adminView === "operacional" ? "#1F3461" : "transparent",
-                borderColor: state.adminView === "operacional" ? "#1F3461" : "transparent",
-                color: state.adminView === "operacional" ? "#fff" : "#595959",
+                background: adminView === "operacional" ? "#1F3461" : "transparent",
+                borderColor: adminView === "operacional" ? "#1F3461" : "transparent",
+                color: adminView === "operacional" ? "#fff" : "#595959",
               }}
             >
               Operacional
             </Button>
             <Button
-              type={state.adminView === "tecnico" ? "primary" : "text"}
+              type={adminView === "tecnico" ? "primary" : "text"}
               size="small"
               icon={<DesktopOutlined />}
               onClick={() => dispatch({ type: "SET_ADMIN_VIEW", payload: { view: "tecnico" } })}
               style={{
                 borderRadius: 16,
                 fontSize: 12,
-                background: state.adminView === "tecnico" ? "#1F3461" : "transparent",
-                borderColor: state.adminView === "tecnico" ? "#1F3461" : "transparent",
-                color: state.adminView === "tecnico" ? "#fff" : "#595959",
+                background: adminView === "tecnico" ? "#1F3461" : "transparent",
+                borderColor: adminView === "tecnico" ? "#1F3461" : "transparent",
+                color: adminView === "tecnico" ? "#fff" : "#595959",
               }}
             >
               Técnico
@@ -356,7 +360,7 @@ const HeaderNav = ({ onMenuClick }) => {
                   label: "Mi Perfil",
                   onClick: () => navigate("/profile"),
                 },
-                ...(state.user?.is_staff
+                ...(user?.is_staff
                   ? [
                       {
                         key: "admin",
@@ -408,7 +412,7 @@ const HeaderNav = ({ onMenuClick }) => {
                 <UserOutlined style={{ color: "#fff", fontSize: 14 }} />
               </div>
               <span style={{ color: "#1F3461", fontSize: 13, fontWeight: 600 }}>
-                {state.user?.username || "Usuario"}
+                {user?.username || "Usuario"}
               </span>
             </div>
           </Dropdown>

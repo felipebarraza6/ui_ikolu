@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState, useEffect } from "react";
+import React, { useContext, useMemo, useState, useEffect, Suspense, lazy } from "react";
 import {
   Layout,
   Menu,
@@ -36,7 +36,6 @@ import {
   PushpinOutlined,
 } from "@ant-design/icons";
 import {
-  Outlet,
   Link,
   Routes,
   Route,
@@ -45,47 +44,57 @@ import {
   Navigate,
 } from "react-router-dom";
 import logo from "../assets/images/logozivo.png";
+import minLogo from "../assets/images/logo-blanco.png";
 import HeaderNav from "../components/home/HeaderNav";
 import ModuleTour from "../components/common/ModuleTour";
 import { generalTour } from "../config/tours";
-import MyWell from "../components/mywell/MyWell";
-import GraphisNav from "../components/smart_data/GraphisNav";
-import ResponsiveSmartAnalysis from "../components/smart_data/ResponsiveSmartAnalysis";
-import ResponsiveDga from "../components/dga/ResponsiveDga";
-import Sma from "../components/Sma";
-import PrototypeUmi from "../components/prototype_umi/PrototypeUmi";
-import DataTable from "../components/prototype_umi/DataTable";
-import Reports from "../components/reports/Reports";
-import Dash from "../components/support/Dash";
-import Well from "../components/mywell/Well";
-import GraphisNavDga from "../components/smart_data/GraphisNavDga";
-import DocRes from "../components/docres/DocRes";
-import ResponsiveAlerts from "../components/alerts/ResponsiveAlerts";
-import FormMultiData from "../containers/FormMultiData";
-import TableStandarVerySmallResponsive from "../components/mywell/TableStandarVerySmallResponsive";
-import { AppContext } from "../App";
-import MyGraphics from "../components/graphics/MyGraphics";
-import Supp from "../components/home/Supp";
-import minLogo from "../assets/images/logo-blanco.png";
-import { useResponsive } from "../hooks/useResponsive";
-import Documentation from "../components/documentation/Documentation";
-import UserDocumentation from "../components/documentation/UserDocumentation";
-import UserProfile from "../components/profile/UserProfile";
-import AdminRoot from "../components/admin/AdminRoot";
-import GeoSmart from "../components/geo_smart/GeoSmart";
-import PointDetailGuard from "../components/common/PointDetailGuard";
-import GeneralSummary from "../components/geo_smart/GeneralSummary";
-import GeneralSummaryUser34 from "../components/geo_smart/GeneralSummaryUser34";
-import ControlCenter from "../components/geo_smart/ControlCenter";
 import ListWells from "../components/home/ListWells";
 import sh from "../api/sh/endpoints";
 import { FcDoughnutChart } from "react-icons/fc";
 import { useLazyProfile } from "../hooks/useLazyProfile";
+import { useResponsive } from "../hooks/useResponsive";
 import { ikoluTokens, ikoluTheme } from "../theme";
+import { AppContext } from "../App";
+import PointDetailGuard from "../components/common/PointDetailGuard";
+
+// Lazy loaded route components
+const MyWell = lazy(() => import("../components/mywell/MyWell"));
+const GraphisNav = lazy(() => import("../components/smart_data/GraphisNav"));
+const ResponsiveSmartAnalysis = lazy(() => import("../components/smart_data/ResponsiveSmartAnalysis"));
+const ResponsiveDga = lazy(() => import("../components/dga/ResponsiveDga"));
+const Sma = lazy(() => import("../components/Sma"));
+const DataTable = lazy(() => import("../components/prototype_umi/DataTable"));
+const Reports = lazy(() => import("../components/reports/Reports"));
+const Dash = lazy(() => import("../components/support/Dash"));
+const Well = lazy(() => import("../components/mywell/Well"));
+const GraphisNavDga = lazy(() => import("../components/smart_data/GraphisNavDga"));
+const DocRes = lazy(() => import("../components/docres/DocRes"));
+const ResponsiveAlerts = lazy(() => import("../components/alerts/ResponsiveAlerts"));
+const FormMultiData = lazy(() => import("../containers/FormMultiData"));
+const TableStandarVerySmallResponsive = lazy(() => import("../components/mywell/TableStandarVerySmallResponsive"));
+const MyGraphics = lazy(() => import("../components/graphics/MyGraphics"));
+const Supp = lazy(() => import("../components/home/Supp"));
+const Documentation = lazy(() => import("../components/documentation/Documentation"));
+const UserDocumentation = lazy(() => import("../components/documentation/UserDocumentation"));
+const UserProfile = lazy(() => import("../components/profile/UserProfile"));
+const AdminRoot = lazy(() => import("../components/admin/AdminRoot"));
+const GeoSmart = lazy(() => import("../components/geo_smart/GeoSmart"));
+const GeneralSummaryUser34 = lazy(() => import("../components/geo_smart/GeneralSummaryUser34"));
+const ControlCenter = lazy(() => import("../components/geo_smart/ControlCenter"));
 
 const { Header, Sider, Content } = Layout;
 const { useToken } = theme;
 const { Title, Text } = Typography;
+
+const RouteLoader = ({ children }) => (
+  <Suspense fallback={
+    <Flex align="center" justify="center" style={{ minHeight: "60vh" }}>
+      <Spin size="large" tip="Cargando modulo..." />
+    </Flex>
+  }>
+    {children}
+  </Suspense>
+);
 
 // ──────────────────────────────────────────
 // Menú agrupado con submenús
@@ -214,19 +223,18 @@ const AppRoutes = React.memo(() => {
     if (!state.selected_profile || !state.selected_profile.id) {
       return (
         <Flex align="center" justify="center" style={{ height: "50vh" }}>
-          <p>Selecciona un punto de captación para ver la telemetría</p>
+          <p>Selecciona un punto de captacion para ver la telemetria</p>
         </Flex>
       );
     }
 
     const hasValidDga =
       state.selected_profile.dga && typeof state.selected_profile.dga === "object";
-    const hasValidUser = state.user && typeof state.user === "object";
 
     if (!hasValidDga) {
       return (
         <Flex align="center" justify="center" style={{ height: "50vh" }}>
-          <p>Error: Información DGA no disponible</p>
+          <p>Error: Informacion DGA no disponible</p>
         </Flex>
       );
     }
@@ -247,18 +255,6 @@ const AppRoutes = React.memo(() => {
         </Flex>
       );
     }
-  };
-
-  const renderControlCenter = () => {
-    // Caso especial hardcodeado: usuario 34
-    if (state.user && state.user.id === 34) {
-      const userProfiles = state.selected_profile?.id
-        ? [state.selected_profile]
-        : (state.points_list || []);
-      return <GeneralSummaryUser34 profiles={userProfiles} />;
-    }
-    // Nuevo Centro de Control optimizado (daily_summary nativo o fallback legacy)
-    return <ControlCenter />;
   };
 
   const renderHome = () => {
@@ -283,38 +279,46 @@ const AppRoutes = React.memo(() => {
     <Routes>
       {/* Rutas SIEMPRE visibles */}
       <Route path="/" element={renderHome()} />
-      <Route path="/control_center" element={renderControlCenter()} />
-      <Route path="/documentation" element={<Documentation />} />
-      <Route path="/user-documentation" element={<UserDocumentation />} />
-      <Route path="/profile" element={<UserProfile />} />
-      <Route path="/admin" element={isAdmin ? <AdminRoot /> : <Navigate to="/" />} />
+      <Route path="/control_center" element={
+        <RouteLoader>
+          {state.user?.id === 34 ? (
+            <GeneralSummaryUser34 profiles={state.selected_profile?.id ? [state.selected_profile] : (state.points_list || [])} />
+          ) : (
+            <ControlCenter />
+          )}
+        </RouteLoader>
+      } />
+      <Route path="/documentation" element={<RouteLoader><Documentation /></RouteLoader>} />
+      <Route path="/user-documentation" element={<RouteLoader><UserDocumentation /></RouteLoader>} />
+      <Route path="/profile" element={<RouteLoader><UserProfile /></RouteLoader>} />
+      <Route path="/admin" element={isAdmin ? <RouteLoader><AdminRoot /></RouteLoader> : <Navigate to="/" />} />
 
       {/* Rutas disponibles SIN punto: Centro de Control + Geo Smart + Admin + Documentación */}
-      <Route path="/geo" element={<GeoSmart />} />
+      <Route path="/geo" element={<RouteLoader><GeoSmart /></RouteLoader>} />
 
       {/* Rutas que REQUIEREN punto seleccionado */}
       {hasPoint && (
         <>
-          <Route path="/support" element={<Dash />} />
-          <Route path="/supp" element={<Supp />} />
-          <Route path="/form-multi-data" element={<FormMultiData />} />
-          <Route path="/telemetry" element={<WithDetail>{renderMainRoute()}</WithDetail>} />
-          <Route path="/analysis" element={<WithDetail><ResponsiveSmartAnalysis /></WithDetail>} />
-          <Route path="/dga" element={<WithDetail><ResponsiveDga /></WithDetail>} />
-          <Route path="/dga-analysis" element={<WithDetail><GraphisNavDga /></WithDetail>} />
-          <Route path="/download" element={<WithDetail><Reports /></WithDetail>} />
-          <Route path="/documents" element={<WithDetail><DocRes /></WithDetail>} />
-          <Route path="/alerts" element={<WithDetail><ResponsiveAlerts /></WithDetail>} />
-          <Route path="/extraction-data" element={<WithDetail><Reports /></WithDetail>} />
-          <Route path="/registers-pti" element={<WithDetail><DataTable /></WithDetail>} />
-          <Route path="/well" element={<WithDetail><Well /></WithDetail>} />
-          <Route path="/sys-data" element={<WithDetail><GraphisNav /></WithDetail>} />
-          <Route path="/sys-data-dga" element={<WithDetail><GraphisNavDga /></WithDetail>} />
-          <Route path="/sys-docs" element={<WithDetail><DocRes /></WithDetail>} />
-          <Route path="/sys-support" element={<Dash />} />
-          <Route path="/sys-alerts" element={<WithDetail><ResponsiveAlerts /></WithDetail>} />
-          <Route path="/charts" element={<WithDetail><MyGraphics /></WithDetail>} />
-          <Route path="/reports" element={<WithDetail><Reports /></WithDetail>} />
+          <Route path="/support" element={<RouteLoader><Dash /></RouteLoader>} />
+          <Route path="/supp" element={<RouteLoader><Supp /></RouteLoader>} />
+          <Route path="/form-multi-data" element={<RouteLoader><FormMultiData /></RouteLoader>} />
+          <Route path="/telemetry" element={<WithDetail><RouteLoader>{renderMainRoute()}</RouteLoader></WithDetail>} />
+          <Route path="/analysis" element={<WithDetail><RouteLoader><ResponsiveSmartAnalysis /></RouteLoader></WithDetail>} />
+          <Route path="/dga" element={<WithDetail><RouteLoader><ResponsiveDga /></RouteLoader></WithDetail>} />
+          <Route path="/dga-analysis" element={<WithDetail><RouteLoader><GraphisNavDga /></RouteLoader></WithDetail>} />
+          <Route path="/download" element={<WithDetail><RouteLoader><Reports /></RouteLoader></WithDetail>} />
+          <Route path="/documents" element={<WithDetail><RouteLoader><DocRes /></RouteLoader></WithDetail>} />
+          <Route path="/alerts" element={<WithDetail><RouteLoader><ResponsiveAlerts /></RouteLoader></WithDetail>} />
+          <Route path="/extraction-data" element={<WithDetail><RouteLoader><Reports /></RouteLoader></WithDetail>} />
+          <Route path="/registers-pti" element={<WithDetail><RouteLoader><DataTable /></RouteLoader></WithDetail>} />
+          <Route path="/well" element={<WithDetail><RouteLoader><Well /></RouteLoader></WithDetail>} />
+          <Route path="/sys-data" element={<WithDetail><RouteLoader><GraphisNav /></RouteLoader></WithDetail>} />
+          <Route path="/sys-data-dga" element={<WithDetail><RouteLoader><GraphisNavDga /></RouteLoader></WithDetail>} />
+          <Route path="/sys-docs" element={<WithDetail><RouteLoader><DocRes /></RouteLoader></WithDetail>} />
+          <Route path="/sys-support" element={<RouteLoader><Dash /></RouteLoader>} />
+          <Route path="/sys-alerts" element={<WithDetail><RouteLoader><ResponsiveAlerts /></RouteLoader></WithDetail>} />
+          <Route path="/charts" element={<WithDetail><RouteLoader><MyGraphics /></RouteLoader></WithDetail>} />
+          <Route path="/reports" element={<WithDetail><RouteLoader><Reports /></RouteLoader></WithDetail>} />
         </>
       )}
 

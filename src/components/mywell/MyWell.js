@@ -3,7 +3,6 @@ import {
   Row,
   Col,
   Typography,
-  Statistic,
   Card,
   Flex,
   Table,
@@ -11,8 +10,8 @@ import {
   Button,
   Tooltip,
   Alert,
-  Skeleton,
   Tag,
+  Statistic,
 } from "antd";
 import {
   ClockCircleOutlined,
@@ -42,7 +41,8 @@ import {
   PlusOutlined,
   SwapOutlined,
 } from "@ant-design/icons";
-import { AppContext } from "../../App";
+import { useAuth } from "../../contexts/AuthContext";
+import { useData } from "../../contexts/DataContext";
 import { useTours } from "../../contexts/TourContext";
 import ModuleTour from "../common/ModuleTour";
 import { getTelemetryTour } from "../../config/tours";
@@ -57,15 +57,16 @@ import { useResponsive } from "../../hooks/useResponsive";
 import { ikoluTokens } from "../../theme";
 import moment from "moment";
 import "moment/locale/es";
-const { Countdown } = Statistic;
+
+import MetricCard from "./MyWellMetricCard";
+import TechnicalSheetWithTabs from "./MyWellTechSheet";
+import ConfiguredVariables from "./MyWellVariables";
+import ConsumptionStats from "./MyWellStats";
+
 const { Text } = Typography;
-
-moment.locale("es");
-
+const { Countdown } = Statistic;
 const numberForMiles = new Intl.NumberFormat("de-DE");
 
-// --- Utilidades de validación ---
-// Valida que un valor numérico sea válido y esté en un rango razonable
 const validateNumericValue = (value, min = 0, max = Infinity) => {
   const num = parseFloat(value);
   if (isNaN(num) || num < min || num > max) {
@@ -74,795 +75,12 @@ const validateNumericValue = (value, min = 0, max = Infinity) => {
   return num;
 };
 
-// Calcula el porcentaje de cambio entre dos valores
-const calculateChangePercent = (current, previous) => {
-  if (!previous || previous === 0) return null;
-  const change = ((current - previous) / previous) * 100;
-  return change;
-};
-
-// --- Fila de información para la Ficha Técnica ---
-const TechInfoRow = ({ icon, label, value, loading = false }) => (
-  <Flex
-    justify="space-between"
-    align="center"
-    style={{ padding: "4px 2px", borderBottom: `1px solid ${ikoluTokens.colorBorderLight}` }}
-  >
-    <Flex align="center" gap="small">
-      {icon}
-      <Text type="secondary" style={{ fontSize: ikoluTokens.fontSizeMid }}>
-        {label}
-      </Text>
-    </Flex>
-    <div style={{ minWidth: 50, height: 14, display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
-      {loading ? (
-        <Skeleton.Input active size="small" style={{ width: 50, height: 14 }} />
-      ) : (
-        <Text strong style={{ fontSize: ikoluTokens.fontSizeBase, lineHeight: "16px" }}>
-          {value}
-        </Text>
-      )}
-    </div>
-  </Flex>
-);
-
-// Fila minimal sin icono, con tooltip
-const TechItem = ({ label, value, tooltip, loading = false }) => (
-  <Tooltip title={tooltip}>
-    <Flex
-      justify="space-between"
-      align="center"
-      style={{ padding: "4px 2px", borderBottom: `1px solid ${ikoluTokens.colorBorderLight}`, minHeight: 26 }}
-    >
-      <Text type="secondary" style={{ fontSize: ikoluTokens.fontSizeSmall }}>
-        {label}
-      </Text>
-      <div style={{ minWidth: 45, height: 16, display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
-        {loading ? (
-          <Skeleton.Input active size="small" style={{ width: 45, height: 14 }} />
-        ) : (
-          <Text strong style={{ fontSize: ikoluTokens.fontSizeBase, lineHeight: "16px" }}>
-            {value}
-          </Text>
-        )}
-      </div>
-    </Flex>
-  </Tooltip>
-);
-
-// Badge de estado activo/inactivo
-const StatusBadge = ({ active }) => (
-  <Flex align="center" gap={4}>
-    <div
-      style={{
-        width: 8,
-        height: 8,
-        borderRadius: "50%",
-        backgroundColor: active ? "#52c41a" : "#ff4d4f",
-        boxShadow: `0 0 4px ${active ? "#52c41a" : "#ff4d4f"}`,
-      }}
-    />
-    <Text strong style={{ fontSize: ikoluTokens.fontSizeBase, color: active ? "#52c41a" : "#ff4d4f" }}>
-      {active ? "Activo" : "Inactivo"}
-    </Text>
-  </Flex>
-);
-
-const SectionTitle = ({ children, tooltip }) => (
-  <Flex align="center" gap={4} style={{ marginTop: "4px", marginBottom: "2px", paddingLeft: "2px" }}>
-    <Text
-      style={{
-        display: "block",
-        color: "rgb(31, 52, 97)",
-        fontWeight: 500,
-        fontSize: ikoluTokens.fontSizeSmall,
-      }}
-      strong
-    >
-      <u>{children}</u>
-    </Text>
-    {tooltip && (
-      <Tooltip title={tooltip}>
-        <InfoCircleOutlined style={{ fontSize: 10, color: "#999" }} />
-      </Tooltip>
-    )}
-  </Flex>
-);
-
-// --- Componente para Stats de Consumos y Timer en una fila ---
-const ConsumptionStats = ({
-  acumDia,
-  acumAyer,
-  loading,
-  deadline,
-  onRefresh,
-  vars = [],
-}) => {
-  // Logic: Show volume if Totalizado is configured (Same as Card)
-  const showVolume = vars.some((v) => v.type_variable?.includes("TOTALIZADO"));
-
-  // Validar y formatear valores
-  const validHoy = validateNumericValue(acumDia, 0);
-  const validAyer = validateNumericValue(acumAyer, 0);
-  const changePercent = calculateChangePercent(validHoy, validAyer);
-  const isIncrease = changePercent !== null && changePercent > 0;
-  const isDecrease = changePercent !== null && changePercent < 0;
-
-  return (
-    <div
-      style={{
-      width: "100%", 
-      padding: "12px 16px", 
-      background: "rgba(255, 255, 255, 0.4)", 
-      backdropFilter: "blur(5px)", 
-      borderRadius: ikoluTokens.borderRadiusLG, 
-      border: "1px solid rgba(255, 255, 255, 0.5)",
-      marginTop: "16px",
-        boxShadow: "0 2px 10px rgba(0,0,0,0.02)",
-      }}
-    >
-      <Flex gap="middle" wrap="wrap" justify="space-between" align="center">
-        {showVolume && (
-          <>
-        {/* Consumo Hoy */}
-        <Tooltip title="Consumo acumulado del día de hoy">
-          <Flex
-            vertical
-            align="center"
-            gap={2}
-            style={{ flex: 1, minWidth: "70px" }}
-          >
-            <Flex align="center" gap={4}>
-                  <Text
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: ikoluTokens.colorGreyText,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                Hoy
-              </Text>
-              {changePercent !== null && (
-                <Flex align="center" gap={2}>
-                  {isIncrease ? (
-                        <ArrowUpOutlined
-                          style={{ fontSize: 10, color: ikoluTokens.colorWarning }}
-                        />
-                  ) : (
-                        <ArrowDownOutlined
-                          style={{ fontSize: 10, color: ikoluTokens.colorSuccess }}
-                        />
-                  )}
-                      <Text
-                        style={{
-                          fontSize: 10,
-                          color: isIncrease ? "#faad14" : "#52c41a",
-                          fontWeight: 800,
-                        }}
-                      >
-                    {Math.abs(changePercent).toFixed(1)}%
-                  </Text>
-                </Flex>
-              )}
-            </Flex>
-            <Text
-              style={{
-                fontSize: ikoluTokens.fontSize2XL,
-                fontWeight: 900,
-                lineHeight: 1,
-                color: loading ? "#bfbfbf" : "#52c41a",
-                transition: "color 0.25s ease",
-              }}
-            >
-              {loading ? "—" : <>{validHoy !== null ? `${validHoy}` : "0"}{" "}<span style={{ fontSize: 10, fontWeight: 600 }}>m³</span></>}
-            </Text>
-          </Flex>
-        </Tooltip>
-
-            <div
-              style={{
-                width: "1px",
-                height: "30px",
-                background: "rgba(0,0,0,0.05)",
-              }}
-            ></div>
-
-        {/* Consumo Ayer */}
-        <Tooltip title="Consumo acumulado del día anterior">
-          <Flex
-            vertical
-            align="center"
-            gap={2}
-            style={{ flex: 1, minWidth: "70px" }}
-          >
-                <Text
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: ikoluTokens.colorGreyText,
-                    textTransform: "uppercase",
-                  }}
-                >
-              Ayer
-            </Text>
-            <Text
-              style={{
-                fontSize: ikoluTokens.fontSize2XL,
-                fontWeight: 900,
-                lineHeight: 1,
-                color: loading ? "#bfbfbf" : "#faad14",
-                transition: "color 0.25s ease",
-              }}
-            >
-              {loading ? "—" : <>{validAyer !== null ? `${validAyer}` : "0"}{" "}<span style={{ fontSize: 10, fontWeight: 600 }}>m³</span></>}
-            </Text>
-          </Flex>
-        </Tooltip>
-
-            <div
-              style={{
-                width: "1px",
-                height: "30px",
-                background: "rgba(0,0,0,0.05)",
-              }}
-            ></div>
-          </>
-        )}
-
-        {/* Timer */}
-        <Tooltip
-          title={
-            deadline ? "Tiempo hasta la próxima medición" : "No configurado"
-          }
-        >
-          <Flex
-            vertical
-            align="center"
-            gap={2}
-            style={{ flex: 1, minWidth: "90px" }}
-          >
-            <Text
-              style={{
-                fontSize: 10,
-                fontWeight: 700,
-                color: ikoluTokens.colorGreyText,
-                textTransform: "uppercase",
-              }}
-            >
-              Refresco
-            </Text>
-            {loading ? (
-              <Text style={{ fontSize: ikoluTokens.fontSize2XL, fontWeight: 900, lineHeight: 1, color: ikoluTokens.colorGreyTextLight }}>—</Text>
-            ) : deadline ? (
-              <Countdown
-                value={deadline}
-                format="mm:ss"
-                valueStyle={{
-                  color: "#1F3461",
-                  fontSize: 18,
-                  fontWeight: 900,
-                  lineHeight: 1,
-                }}
-                onFinish={onRefresh}
-              />
-            ) : (
-              <Text style={{ fontSize: ikoluTokens.fontSizeLarge, color: ikoluTokens.colorGreyTextLight, fontWeight: 700 }}>
-                N/A
-              </Text>
-            )}
-          </Flex>
-        </Tooltip>
-      </Flex>
-    </div>
-  );
-};
-
-// --- Componente compartido para mostrar Variables Configuradas ---
-const ConfiguredVariables = ({ variables, loading = false }) => {
-  const typeLabels = {
-    CAUDAL_PROMEDIO: "Caudal Promedio",
-    CAUDAL: "Caudal",
-    NIVEL: "Nivel",
-    TOTALIZADO: "Totalizado",
-  };
-
-  // Un solo tono para todos los tags — más armónico
-  const tagStyle = {
-    fontSize: 9,
-    margin: 0,
-    padding: "0 8px",
-    lineHeight: "18px",
-    borderRadius: 4,
-    background: "#f0f5ff",
-    color: "#1F3461",
-    border: "1px solid #d6e4ff",
-    fontWeight: 600,
-  };
-
-  const renderTypeIcon = (type) => {
-    const style = { fontSize: 14, color: "#1F3461" };
-    if (type?.includes("CAUDAL")) return <DashboardOutlined style={style} />;
-    if (type?.includes("NIVEL")) return <ColumnHeightOutlined style={style} />;
-    if (type?.includes("TOTALIZADO")) return <DatabaseOutlined style={style} />;
-    return <SettingOutlined style={style} />;
-  };
-
-  if (!loading && (!variables || variables.length === 0)) return null;
-
-  return (
-    <div>
-      <Flex align="center" gap="small" style={{ marginBottom: 12 }}>
-        <div
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: ikoluTokens.borderRadius,
-            background: "linear-gradient(135deg, #1F3461 0%, #1890ff 100%)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <SettingOutlined style={{ color: ikoluTokens.colorWhite, fontSize: ikoluTokens.fontSizeLarge }} />
-        </div>
-        <Text strong style={{ fontSize: ikoluTokens.fontSizeMid, color: ikoluTokens.colorCorporateBlue }}>
-          Variables Configuradas
-        </Text>
-      </Flex>
-
-      {loading ? (
-        <Flex vertical gap={8}>
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              style={{
-                padding: "10px 12px",
-                borderRadius: ikoluTokens.borderRadius,
-                background: "#f8fafc",
-                border: `1px solid ${ikoluTokens.colorBorderLight}`,
-              }}
-            >
-              <Skeleton active paragraph={false} title={{ width: "80%" }} />
-            </div>
-          ))}
-        </Flex>
-      ) : (
-        <Flex vertical gap={8}>
-          {variables.map((variable, index) => (
-            <div
-              key={variable.id || index}
-              style={{
-                padding: "10px 12px",
-                borderRadius: ikoluTokens.borderRadius,
-                background: ikoluTokens.colorWhite,
-                border: `1px solid ${ikoluTokens.colorBorderLight}`,
-                transition: "all 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)";
-                e.currentTarget.style.borderColor = "#e6e6e6";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = "none";
-                e.currentTarget.style.borderColor = "#f0f0f0";
-              }}
-            >
-              <Flex justify="space-between" align="center" style={{ marginBottom: 4 }}>
-                <Flex align="center" gap={8}>
-                  {renderTypeIcon(variable.type_variable)}
-                  <Text strong style={{ fontSize: ikoluTokens.fontSizeBase, color: ikoluTokens.colorCorporateBlue }}>
-                    {variable.label || "Sin Etiqueta"}
-                  </Text>
-                </Flex>
-                <span style={tagStyle}>
-                  {typeLabels[variable.type_variable] || variable.type_variable}
-                </span>
-              </Flex>
-              <Flex justify="space-between" align="center">
-                <Text style={{ fontSize: 10, color: ikoluTokens.colorGreyText, fontWeight: 500 }}>
-                  {variable.str_variable || `Var ${variable.id}`}
-                </Text>
-                <Flex gap="small" wrap="wrap">
-                  {variable.type_variable === "TOTALIZADO" && (
-                    <Text style={{ fontSize: 10, color: ikoluTokens.colorGreyTextMid }}>
-                      {variable.pulses_factor ? `${numberForMiles.format(variable.pulses_factor)} Lt/p · ` : ""}
-                      Adic: {numberForMiles.format(variable.addition || 0)}
-                    </Text>
-                  )}
-                  {variable.type_variable === "NIVEL" && variable.calculate_nivel !== null && variable.calculate_nivel !== undefined && (
-                    <Text style={{ fontSize: 10, color: ikoluTokens.colorGreyTextMid }}>
-                      Base: {variable.calculate_nivel}
-                    </Text>
-                  )}
-                  {variable.type_variable === "CAUDAL" && (
-                    <Text style={{ fontSize: 10, color: ikoluTokens.colorGreyTextMid }}>
-                      Conv: {variable.convert_to_lt ? "Sí" : "No"}
-                    </Text>
-                  )}
-                </Flex>
-              </Flex>
-            </div>
-          ))}
-        </Flex>
-      )}
-    </div>
-  );
-};
-
-// --- Componente para contenido de Ficha Técnica (sin Card wrapper) ---
-const TechnicalSheetContent = ({ profile, loading = false }) => {
-  const config_data = profile?.config_data ?? {};
-  const dga = profile?.dga ?? {};
-  const title = profile?.title ?? "N/A";
-
-  if (!profile) return null;
-
-  return (
-    <div style={{ padding: "0 4px" }}>
-      {/* Posicionamientos + Diámetros combinados */}
-      <SectionTitle tooltip="Posicionamientos y diámetros del pozo">Posicionamientos / Diámetros</SectionTitle>
-      <Row gutter={[8, 0]}>
-        <Col span={12}>
-          <TechItem
-            label="Bomba"
-            value={`${parseFloat(config_data.d2 || 0).toFixed(2)} m`}
-            tooltip="Posicionamiento de bomba"
-            loading={loading}
-          />
-        </Col>
-        <Col span={12}>
-          <TechItem
-            label="Nivel"
-            value={`${parseFloat(config_data.d3 || 0).toFixed(2)} m`}
-            tooltip="Posicionamiento de sensor de nivel"
-            loading={loading}
-          />
-        </Col>
-        <Col span={12}>
-          <TechItem
-            label="Ducto"
-            value={`${parseFloat(config_data.d4 || 0).toFixed(2)} pulg`}
-            tooltip="Diámetro ducto de salida bomba"
-            loading={loading}
-          />
-        </Col>
-        <Col span={12}>
-          <TechItem
-            label="Flujómetro"
-            value={`${parseFloat(config_data.d5 || 0).toFixed(2)} pulg`}
-            tooltip="Diámetro flujómetro"
-            loading={loading}
-          />
-        </Col>
-      </Row>
-
-      <div style={{ marginTop: 10 }} />
-
-      {/* Totalizador + Datalogger combinados */}
-      <SectionTitle tooltip="Totalizador y estado del datalogger">Totalizador / Datalogger</SectionTitle>
-      <Row gutter={[8, 0]}>
-        <Col span={12}>
-          <TechItem
-            label="m³ Inic."
-            value={`${numberForMiles.format(config_data.d6 || 0)}`}
-            tooltip="Metros cúbicos iniciales del totalizador"
-            loading={loading}
-          />
-        </Col>
-        <Col span={12}>
-          <TechItem
-            label="Estado"
-            value={<StatusBadge active={config_data.is_telemetry} />}
-            tooltip="Estado de telemetría del datalogger"
-            loading={loading}
-          />
-        </Col>
-        <Col span={12}>
-          <TechItem
-            label="Frec."
-            value={profile?.frecuency ? `${profile.frecuency} min` : "N/D"}
-            tooltip="Frecuencia de medición"
-            loading={loading}
-          />
-        </Col>
-        <Col span={12}>
-          <TechItem
-            label="Inicio"
-            value={config_data.date_start_telemetry || "N/A"}
-            tooltip="Fecha de inicio del monitoreo"
-            loading={loading}
-          />
-        </Col>
-      </Row>
-    </div>
-  );
-};
-
-// --- Componente de Ficha Técnica (sin tabs) ---
-const TechnicalSheetWithTabs = ({ profile, loading = false }) => {
-  if (!profile && !loading) return null;
-
-  return (
-    <Card
-      style={{
-        borderRadius: ikoluTokens.borderRadiusLG,
-        boxShadow: ikoluTokens.shadowCard,
-        height: "100%",
-        border: `1px solid ${ikoluTokens.colorBorderLight}`,
-      }}
-      bodyStyle={{ padding: 0 }}
-    >
-      {/* Header moderno de la ficha */}
-      <div
-        style={{
-          padding: "14px 16px",
-          borderBottom: `1px solid ${ikoluTokens.colorBorderLight}`,
-          background: "linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)",
-        }}
-      >
-        <Flex align="center" justify="space-between" wrap="wrap" gap={8}>
-          <Flex align="center" gap={10}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: ikoluTokens.borderRadius,
-                background: "linear-gradient(135deg, #1F3461 0%, #1890ff 100%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: ikoluTokens.shadowPrimary,
-              }}
-            >
-              <IdcardOutlined style={{ color: ikoluTokens.colorWhite, fontSize: ikoluTokens.fontSizeXL }} />
-            </div>
-            <Flex vertical gap={2}>
-              <Text strong style={{ fontSize: 15, color: ikoluTokens.colorCorporateBlue, lineHeight: 1.2 }}>
-                {loading ? <Skeleton.Input active size="small" style={{ width: 120, height: 16 }} /> : (profile?.title || "Punto de captación")}
-              </Text>
-              <Flex align="center" gap={4}>
-                <ArrowDownOutlined style={{ fontSize: 10, color: ikoluTokens.colorCorporateBlue }} />
-                <Text style={{ fontSize: ikoluTokens.fontSizeSmall, color: ikoluTokens.colorCorporateBlue, fontWeight: 600 }}>
-                  {loading ? <Skeleton.Input active size="small" style={{ width: 80, height: 12 }} /> : `${parseFloat(profile?.config_data?.d1 || 0).toFixed(2)} m de profundidad`}
-                </Text>
-              </Flex>
-            </Flex>
-          </Flex>
-
-          {/* DGA al lado del nombre */}
-          {profile?.dga?.code_dga && (
-            <Tooltip title="Código único de registro en DGA">
-              <Flex align="center" gap={6} style={{ background: "#f0f2f5", padding: "4px 10px", borderRadius: ikoluTokens.radiusSmall }}>
-                <div
-                  style={{
-                    width: 14,
-                    height: 14,
-                    borderRadius: 2,
-                    display: "flex",
-                    overflow: "hidden",
-                    flexShrink: 0,
-                  }}
-                >
-                  <div style={{ flex: 1, background: "#D52B1E" }} />
-                  <div style={{ flex: 1, background: "#0039A6" }} />
-                </div>
-                <Text copyable style={{ fontSize: ikoluTokens.fontSizeBase, color: ikoluTokens.colorCorporateBlue, fontWeight: 700 }}>
-                  {profile.dga.code_dga}
-                </Text>
-              </Flex>
-            </Tooltip>
-          )}
-        </Flex>
-      </div>
-
-      <div style={{ padding: "12px 16px 16px" }}>
-        <TechnicalSheetContent profile={profile} loading={loading} />
-      </div>
-    </Card>
-  );
-};
-
-// --- Componente para Tarjetas de Métricas ---
-const MetricCard = ({
-  title,
-  value,
-  unit,
-  icon,
-  loading = false,
-  extraInfo,
-  helpText,
-  syncStatus,
-  variation,
-  variationUnit,
-  variationDecimals = 1,
-  footer,
-}) => {
-  return (
-    <Card
-      hoverable
-      className="metric-card-hover"
-      style={{
-        marginBottom: "6px",
-        borderRadius: ikoluTokens.radiusXL,
-        boxShadow: "0 4px 20px rgba(0, 50, 150, 0.08)",
-        border: "1px solid rgba(255, 255, 255, 0.6)",
-        overflow: "hidden",
-        position: "relative",
-        background: "rgba(255, 255, 255, 0.8)",
-        backdropFilter: "blur(10px)",
-      }}
-      bodyStyle={{ padding: "10px 14px", zIndex: 1, position: "relative" }}
-      aria-label={`Métrica ${title}: ${value} ${unit}`}
-    >
-      {/* Header with left-aligned icon */}
-      <Flex align="center" gap="small" style={{ marginBottom: 8 }}>
-        <div
-          style={{
-            position: "relative",
-            zIndex: 2,
-          background: "linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)", 
-          padding: 6, 
-          borderRadius: ikoluTokens.borderRadius, 
-          display: "flex", 
-          alignItems: "center", 
-          justifyContent: "center",
-          boxShadow: "0 2px 6px rgba(24, 144, 255, 0.2)",
-            flexShrink: 0,
-          }}
-        >
-          {React.cloneElement(icon, {
-            style: { fontSize: 15, color: "#1890ff" },
-          })}
-        </div>
-        <Flex
-          vertical
-          gap={2}
-          style={{ flex: 1, position: "relative", zIndex: 2 }}
-        >
-          <Flex align="center" gap={4}>
-            <Text
-              strong
-              style={{
-                fontSize: 10,
-                color: ikoluTokens.colorCorporateBlue,
-                textTransform: "uppercase",
-                letterSpacing: 0.5,
-              }}
-            >
-              {title}
-            </Text>
-            {helpText && (
-              <Tooltip title={helpText}>
-                <InfoCircleOutlined
-                  style={{ fontSize: 10, color: "#999", cursor: "help" }}
-                />
-              </Tooltip>
-            )}
-          </Flex>
-          {variation !== undefined &&
-            variation !== null &&
-            Math.abs(variation) > 0.1 && (
-            <Flex align="center" gap={3}>
-                {variation > 0 ? (
-                  <RiseOutlined style={{ color: ikoluTokens.colorSuccess, fontSize: 10 }} />
-                ) : (
-                <FallOutlined style={{ color: ikoluTokens.colorError, fontSize: 10 }} />
-                )}
-              <Text 
-                style={{ 
-                  fontWeight: 700, 
-                  fontSize: 9,
-                  color: variation > 0 ? "#52c41a" : "#ff4d4f",
-                }}
-              >
-                  {variation > 0 ? "+" : ""}
-                  {variationUnit
-                    ? `${Math.abs(variation).toFixed(variationDecimals)} ${variationUnit}`
-                    : `${variation.toFixed(variationDecimals)}%`}
-              </Text>
-            </Flex>
-          )}
-        </Flex>
-      </Flex>
-      
-      {/* Value section */}
-      {loading ? (
-        <div style={{ padding: "4px 0" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-            <div className="ikolu-shimmer-circle" style={{ width: 28, height: 28, flexShrink: 0 }} />
-            <div style={{ flex: 1 }}>
-              <div className="ikolu-shimmer" style={{ width: "45%", height: 10, marginBottom: 6 }} />
-              <div className="ikolu-shimmer" style={{ width: "65%", height: 18 }} />
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div style={{ position: "relative", zIndex: 2 }}>
-          <Flex align="baseline" gap={4} style={{ marginBottom: 6 }} justify="space-between">
-            <div
-              style={{
-                fontSize: ikoluTokens.fontSizeXL,
-                fontWeight: 900,
-                color: ikoluTokens.colorCorporateBlue,
-                lineHeight: 1,
-                textShadow: "0 2px 4px rgba(0,0,0,0.05)",
-              }}
-            >
-              {value}
-            </div>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "#597ef7" }}>
-              {unit}
-            </div>
-          </Flex>
-
-          {extraInfo && (
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 500,
-                color: ikoluTokens.colorGreyText,
-                marginTop: 8,
-                fontStyle: "italic",
-                opacity: 0.8,
-              }}
-            >
-              {extraInfo}
-            </div>
-          )}
-          {syncStatus && (
-            <div style={{ marginTop: 8 }}>
-              <Tooltip title={syncStatus.status}>
-                <div
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 5,
-                    padding: "2px 6px",
-                    borderRadius: "20px",
-                    backgroundColor: `${syncStatus.color}15`,
-                    border: `1px solid ${syncStatus.color}40`,
-                    boxShadow: `0 2px 4px ${syncStatus.color}10`,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 7,
-                      height: 7,
-                      borderRadius: "50%",
-                      backgroundColor: syncStatus.color,
-                      boxShadow: `0 0 5px ${syncStatus.color}`,
-                    }}
-                  />
-                  <Text
-                    style={{
-                      fontSize: 10,
-                      color: syncStatus.color,
-                      fontWeight: 800,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    {syncStatus.status}
-                  </Text>
-                </div>
-              </Tooltip>
-            </div>
-          )}
-          {footer && (
-            <div style={{ marginTop: 8, paddingTop: 8, borderTop: `1px solid ${ikoluTokens.colorBorderLight}` }}>
-              {footer}
-            </div>
-          )}
-        </div>
-      )}
-    </Card>
-  );
-};
-
+moment.locale("es");
 const MyWell = () => {
-  const { state, dispatch } = useContext(AppContext);
+  const { user } = useAuth();
+  const { selected_profile, dispatch } = useData();
   const { isMobile } = useResponsive();
-  const vars = state.selected_profile?.config_data?.variables || [];
+  const vars = selected_profile?.config_data?.variables || [];
   const [loading, setLoading] = useState(true);
   const [nivel, setNivel] = useState(0);
   const [waterTable, setWaterTable] = useState(0);
@@ -879,7 +97,7 @@ const MyWell = () => {
   // Variaciones calculadas directamente desde los datos (más robusto que useEffect)
   // Busca hacia atrás el primer registro anterior con dato válido para cada variable
   const { varCaudal, varNivel, varWaterTable, varAcumAbs } = useMemo(() => {
-    const today = state.selected_profile?.modules?.today || [];
+    const today = selected_profile?.modules?.today || [];
     if (today.length < 2) {
       return { varCaudal: null, varNivel: null, varWaterTable: null, varAcumAbs: null };
     }
@@ -948,7 +166,7 @@ const MyWell = () => {
     const va = currentTotal - previousTotal;
 
     return { varCaudal: vc, varNivel: vn, varWaterTable: vw, varAcumAbs: va };
-  }, [state.selected_profile?.modules?.today]);
+  }, [selected_profile?.modules?.today]);
   const [lastRegisters, setLastRegisters] = useState([]);
   const { startTour } = useTours();
   const intervalRef = useRef(null);
@@ -979,21 +197,21 @@ const MyWell = () => {
   // (PointDetailGuard ya se encarga de cargar el perfil)
   useEffect(() => {
     const fetchTelemetryData = async () => {
-      if (!state.selected_profile?.id) return;
+      if (!selected_profile?.id) return;
 
       setLoading(true);
 
       try {
-        const profileId = state.selected_profile.id;
+        const profileId = selected_profile.id;
         await sh.get_data_sh(profileId);
 
-        const modules = state.selected_profile?.modules ?? {};
+        const modules = selected_profile?.modules ?? {};
         const m1 = modules.m1;
-        const frecuency = state.selected_profile?.frecuency ?? 0;
+        const frecuency = selected_profile?.frecuency ?? 0;
         const total_consumed_yesterday =
-          state.selected_profile?.modules?.total_consumed_yesterday ?? 0;
+          selected_profile?.modules?.total_consumed_yesterday ?? 0;
 
-        const latestRecord = getLatest(state.selected_profile) || m1;
+        const latestRecord = getLatest(selected_profile) || m1;
 
         if (m1) {
           setLastCaption(
@@ -1005,13 +223,13 @@ const MyWell = () => {
               null
           );
           setAcumDia(
-            state.selected_profile?.modules?.total_consumed_today || 0
+            selected_profile?.modules?.total_consumed_today || 0
           );
           setNivel(parseFloat(m1.nivel) || 0);
           setWaterTable(parseFloat(m1.water_table) || 0);
           setCaudal(m1.flow || 0);
           setAcumulado(m1.total || 0);
-          const today = state.selected_profile?.modules?.today || [];
+          const today = selected_profile?.modules?.today || [];
           // ⚠️ today viene ordenado del MÁS RECIENTE al MÁS ANTIGUO
           if (today.length >= 2) {
             const current = today[0];   // más reciente
@@ -1052,12 +270,12 @@ const MyWell = () => {
       }
     };
 
-    if (state.selected_profile?.id) {
+    if (selected_profile?.id) {
       fetchTelemetryData();
 
       clearExistingInterval();
       intervalRef.current = setInterval(() => {
-        if (state.selected_profile?.id) {
+        if (selected_profile?.id) {
           fetchTelemetryData();
         }
       }, 5 * 60 * 1000);
@@ -1067,7 +285,7 @@ const MyWell = () => {
       clearExistingInterval();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.selected_profile?.id]);
+  }, [selected_profile?.id]);
 
   const formatDate = (date) => {
     if (!date) return { date: "N/A", time: "" };
@@ -1161,7 +379,7 @@ const MyWell = () => {
     setIsRefreshing(true);
     setError(null);
     try {
-      const profileId = state.selected_profile?.id;
+      const profileId = selected_profile?.id;
       if (!profileId) return;
 
       // Obtener el perfil completo actualizado para sincronizar todo el estado global
@@ -1174,7 +392,7 @@ const MyWell = () => {
       }
 
       // Usar los datos actualizados del perfil (o del estado global ya actualizado)
-      const profile = updatedProfile || state.selected_profile;
+      const profile = updatedProfile || selected_profile;
       const modules = profile?.modules ?? {};
       const m1 = modules.m1;
       const frecuency = profile?.frecuency ?? 0;
@@ -1514,7 +732,7 @@ const MyWell = () => {
 
                   const link = document.createElement("a");
                   link.download = `pozo-${
-                    state.selected_profile?.title || "visualizacion"
+                    selected_profile?.title || "visualizacion"
                   }-${new Date().toISOString().split("T")[0]}.png`;
                   link.href = canvas.toDataURL("image/png");
                   link.click();
@@ -1528,7 +746,7 @@ const MyWell = () => {
               total={acumulado}
               nivel={nivel}
               caudal={caudal}
-              profW={state.selected_profile?.config_data?.d1}
+              profW={selected_profile?.config_data?.d1}
               waterTable={waterTable}
               loading={loading}
               showCaudal={vars.some((v) => v.type_variable?.includes("CAUDAL"))}
@@ -1546,7 +764,7 @@ const MyWell = () => {
         <Flex vertical={true} gap="small">
           {/* Ficha Técnica y Datalogger con Tabs - Vista Móvil */}
           <TechnicalSheetWithTabs
-            profile={state.selected_profile}
+            profile={selected_profile}
             loading={loading}
           />
 
@@ -2017,7 +1235,7 @@ const MyWell = () => {
                     total={acumulado}
                     nivel={nivel}
                     caudal={caudal}
-                    profW={state.selected_profile?.config_data?.d1}
+                    profW={selected_profile?.config_data?.d1}
                     waterTable={waterTable}
                     loading={loading}
                     showCaudal={vars.some((v) =>
@@ -2049,7 +1267,7 @@ const MyWell = () => {
           >
               <div id="well-techsheet">
                 <TechnicalSheetWithTabs
-                  profile={state.selected_profile}
+                  profile={selected_profile}
                   loading={loading}
                 />
               </div>
@@ -2140,14 +1358,14 @@ const MyWell = () => {
       </style>
 
       {(() => {
-        const vars = state.selected_profile?.config_data?.variables || [];
+        const vars = selected_profile?.config_data?.variables || [];
         const tour = getTelemetryTour(vars);
         return (
           <ModuleTour
             tourKey={tour.key}
             steps={tour.steps}
             requiresPoint={tour.requiresPoint}
-            hasPoint={!!state.selected_profile?.id}
+            hasPoint={!!selected_profile?.id}
             autoStart={true}
             delay={1200}
           />

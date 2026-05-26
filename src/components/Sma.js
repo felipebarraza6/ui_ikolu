@@ -1,11 +1,10 @@
 import React, {
-  useContext,
   useState,
   useEffect,
   useCallback,
   useMemo,
 } from "react";
-import { AppContext } from "../App";
+import { useData } from "../contexts/DataContext";
 import {
   Table,
   Flex,
@@ -66,12 +65,12 @@ dayjs.tz.setDefault("America/Santiago");
 const { Title, Text } = Typography;
 
 const Sma = () => {
-  const { state } = useContext(AppContext);
+  const { selected_profile } = useData();
   const { isMobile, getSpacing, getColSpan, getTableScroll } = useResponsive();
   const { token } = theme.useToken();
   const [loading, setLoading] = useState(false);
   const [loadingExcel, setLoadingExcel] = useState(false);
-  const [dataSelected, setDataSelected] = useState(state.selected_profile);
+  const [dataSelected, setDataSelected] = useState(selected_profile);
   const [page, setPage] = useState(1);
   const [initialDate, setInitialDate] = useState(dayjs().subtract(3, 'day').startOf('day'));
   const [finishDate, setFinishDate] = useState(dayjs().endOf('day'));
@@ -83,11 +82,11 @@ const Sma = () => {
   const [dataReady, setDataReady] = useState(false);
   const [editForm] = Form.useForm();
 
-  const activate = state.selected_profile?.profile_ikolu?.m3;
+  const activate = selected_profile?.profile_ikolu?.m3;
   
   // Lógica de visibilidad corregida:
   // Se determina si es DGA revisando el prefijo "OB" en cualquier campo de código disponible
-  const rawWorkCode = state.selected_profile?.dga?.code_dga || state.selected_profile?.code_dga_site || "";
+  const rawWorkCode = selected_profile?.dga?.code_dga || selected_profile?.code_dga_site || "";
   const isDga = rawWorkCode.toUpperCase().startsWith("OB");
   const showSmaFeatures = !isDga;
   const workCode = rawWorkCode || null;
@@ -118,7 +117,7 @@ const Sma = () => {
 
       try {
         const rq = await sh.get_data_sh_range(
-          state.selected_profile.id,
+          selected_profile.id,
           format(initialDate),
           format(finishDate),
           currentPage
@@ -133,7 +132,7 @@ const Sma = () => {
         setLoading(false);
       }
     },
-    [initialDate, finishDate, state.selected_profile?.id]
+    [initialDate, finishDate, selected_profile?.id]
   );
 
   useEffect(() => {
@@ -156,10 +155,10 @@ const Sma = () => {
     try {
       const format = (date) => new Date(date).toISOString().split("T")[0];
       await sh.get_data_sh_range_to_excel(
-        state.selected_profile.id,
+        selected_profile.id,
         format(initialDate),
         format(finishDate),
-        state.selected_profile.title
+        selected_profile.title
       );
     } catch (error) {
       console.error("Failed to download Excel file:", error);
@@ -169,21 +168,21 @@ const Sma = () => {
   }, [
     initialDate,
     finishDate,
-    state.selected_profile?.id,
-    state.selected_profile?.title,
+    selected_profile?.id,
+    selected_profile?.title,
     isDga,
   ]);
 
   useEffect(() => {
-    if (state.selected_profile) {
-      setDataSelected(state.selected_profile);
+    if (selected_profile) {
+      setDataSelected(selected_profile);
       setInitialDate(dayjs().subtract(3, 'day').startOf('day'));
       setFinishDate(dayjs().endOf('day'));
       setData([]);
       setCountApi(0);
       setPage(1);
     }
-  }, [state.selected_profile?.id]);
+  }, [selected_profile?.id]);
 
   const primaryColor = "#002766";
   const accentColor = token.colorInfo;
@@ -203,7 +202,7 @@ const Sma = () => {
   };
 
   const columns = useMemo(() => {
-    const vars = state.selected_profile?.config_data?.variables || [];
+    const vars = selected_profile?.config_data?.variables || [];
     
     // Slotted columns to ensure specific order
     const slots = {
@@ -438,7 +437,7 @@ const Sma = () => {
     // Orden específico de columnas
     const orderedKeys = ["date", "flow", "nivel", "water_table", "total", "total_diff", "voucher", "actions"];
     return orderedKeys.map(key => slots[key]).filter(col => col !== null);
-  }, [isMobile, primaryColor, accentColor, successColor, waterColor, showSmaFeatures, state.selected_profile, data, token, editForm]);
+  }, [isMobile, primaryColor, accentColor, successColor, waterColor, showSmaFeatures, selected_profile, data, token, editForm]);
 
   const handlePageChange = (newPage) => {
     fetchData(newPage);
@@ -516,7 +515,7 @@ const Sma = () => {
                       Cód: <span style={{ color: ikoluTokens.colorWhite, fontWeight: 700 }}>{workCode}</span>
                     </Text>
                   )}
-                  {state.selected_profile?.config_data?.variables?.map(v => (
+                  {selected_profile?.config_data?.variables?.map(v => (
                     <Tag 
                       key={v.id} 
                       color="blue" 

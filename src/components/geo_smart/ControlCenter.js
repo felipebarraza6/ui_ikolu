@@ -1,329 +1,37 @@
-import React, { useCallback, useState, useEffect, useMemo, useContext } from "react";
+import React, { useCallback, useState, useMemo } from "react";
 import { Line } from "@ant-design/plots";
 import "./ControlCenter.css";
 import { useData } from "../../contexts/DataContext";
 import { useControlCenter } from "../../hooks/useControlCenter";
 import sh from "../../api/sh/endpoints";
-import { Row, Col, Card, Flex, Typography, Spin, Table, Badge, Tag, theme, Drawer, Modal, Button, Input, Space, Progress, Segmented, Form, message, Tooltip, DatePicker, Alert } from "antd";
+import { Row, Col, Card, Flex, Typography, Spin, Table, Tag, theme, Drawer, Modal, Button, Input, Space, Segmented, Form, message, DatePicker, Alert } from "antd";
 import {
   FaMapMarkerAlt,
   FaBroadcastTower,
-  FaWifi,
   FaClipboardCheck,
   FaExclamationTriangle,
-  FaChartBar,
-  FaEye,
   FaCopy,
-  FaPaperPlane,
-  FaRobot,
-  FaLightbulb,
-  FaTrash,
-  FaQuestionCircle,
   FaSun,
   FaMoon,
   FaChartLine,
   FaTable,
-  FaTachometerAlt,
-  FaWater,
-  FaArrowUp,
-  FaArrowDown,
-  FaEquals,
   FaHandPaper,
   FaPauseCircle,
 } from "react-icons/fa";
 
 import KPICard from "./KPICard";
-import { formatInteger } from "../../utils/numberFormatter";
+import ControlCenterChat from "./ControlCenterChat";
+import CCWeekConsumption from "./CCWeekConsumption";
+import CCWarningsSection from "./CCWarningsSection";
+import CCComplianceTable from "./CCComplianceTable";
 import ModuleTour from "../common/ModuleTour";
 import { centroControlTour } from "../../config/tours";
 import { ikoluTokens, kpiGradients } from "../../theme";
 import moment from "moment";
-import { AppContext } from "../../App";
+import { useAuth } from "../../contexts/AuthContext";
 
 const { Text } = Typography;
 const { useToken } = theme;
-
-/* ── Columnas de la tabla ── */
-const pointsColumns = (onViewVoucher, onStopCompliance, token) => [
-  {
-    title: "Punto",
-    dataIndex: "title",
-    key: "title",
-    fixed: "left",
-    width: 90,
-    sorter: (a, b) => (a.title || "").localeCompare(b.title || ""),
-    defaultSortOrder: "ascend",
-    render: (text) => (
-      <Text strong style={{ fontSize: 13, color: ikoluTokens.colorCorporateBlue }}>
-        {text || "—"}
-      </Text>
-    ),
-  },
-  {
-    title: "Código de Obra",
-    dataIndex: "code",
-    key: "code",
-    responsive: ["md"],
-    width: 220,
-    render: (code, record) =>
-      code ? (
-        <Flex vertical gap={4}>
-          {/* Arriba: código de obra */}
-          {record.compliance_type?.includes("DGA") ? (
-            <a
-              href={`https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${encodeURIComponent(code)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: token.colorPrimary, fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {code}
-            </a>
-          ) : (
-            <Text strong style={{ fontSize: 12, color: token.colorText, whiteSpace: "nowrap" }}>
-              {code}
-            </Text>
-          )}
-          {/* Abajo: estándar + tipo (solo si es DGA) */}
-          {record.compliance_type?.includes("DGA") && (
-            <Flex gap={6} align="center" wrap="nowrap">
-              <Tag style={{ fontSize: 11, margin: 0, padding: "2px 8px", lineHeight: "18px", background: token.colorPrimaryBg, border: "none", color: token.colorPrimary, fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0 }}>
-                {record.standard}
-              </Tag>
-              <Tag style={{ fontSize: 11, margin: 0, padding: "2px 8px", lineHeight: "18px", background: token.colorBgLayout, border: "none", color: token.colorTextSecondary, whiteSpace: "nowrap", flexShrink: 0 }}>
-                {record.type_dga}
-              </Tag>
-            </Flex>
-          )}
-        </Flex>
-      ) : (
-        <span style={{ color: ikoluTokens.colorGreyTextLight }}>—</span>
-      ),
-  },
-  {
-    title: "Límites / Estado",
-    key: "limits",
-    width: 220,
-    responsive: ["md"],
-    render: (_, record) => (
-      <Flex vertical gap={8}>
-        {/* Caudal autorizado vs actual */}
-        <Flex vertical gap={3}>
-          <Flex justify="space-between" align="center">
-            <Text strong style={{ fontSize: 11, color: token.colorText }}>Caudal</Text>
-            {record.authorized_flow > 0 && record.flow_lps != null ? (
-              <Text strong style={{ fontSize: 11, color: token.colorText }}>
-                {Number(record.flow_lps).toFixed(1)} / {Number(record.authorized_flow).toFixed(1)} <span style={{ fontSize: 10, fontWeight: 400 }}>L/s</span>
-              </Text>
-            ) : (
-              <Text strong style={{ fontSize: 11, color: token.colorError }}>?</Text>
-            )}
-          </Flex>
-          {record.authorized_flow > 0 && record.flow_lps != null ? (
-            <div style={{ position: "relative", height: 6, borderRadius: 3, background: token.colorBgLayout, overflow: "hidden" }}>
-              <div
-                style={{
-                  position: "absolute",
-                  left: 0,
-                  top: 0,
-                  height: "100%",
-                  width: `${Math.min((record.flow_lps / record.authorized_flow) * 100, 100)}%`,
-                  borderRadius: 3,
-                  background: record.flow_lps > record.authorized_flow ? token.colorError : token.colorSuccess,
-                  transition: "width 0.3s ease",
-                }}
-              />
-            </div>
-          ) : (
-            <div style={{ height: 6, borderRadius: 3, background: token.colorBgLayout }} />
-          )}
-        </Flex>
-
-        {/* Progreso anual */}
-        <Flex vertical gap={3}>
-          <Flex justify="space-between" align="center">
-            <Text strong style={{ fontSize: 11, color: token.colorText }}>Anual</Text>
-            {record.pct_consumed != null ? (
-              <Text
-                strong
-                style={{
-                  fontSize: 12,
-                  color:
-                    record.pct_consumed > 100
-                      ? token.colorError
-                      : record.pct_consumed > 80
-                      ? token.colorWarning
-                      : token.colorSuccess,
-                }}
-              >
-                {Number(record.pct_consumed).toFixed(1)}%
-              </Text>
-            ) : (
-              <Text strong style={{ fontSize: 11, color: token.colorError }}>?</Text>
-            )}
-          </Flex>
-          {record.pct_consumed != null ? (
-            <Progress
-              percent={Math.min(Number(record.pct_consumed), 100)}
-              size="small"
-              showInfo={false}
-              strokeColor={
-                record.pct_consumed > 100
-                  ? token.colorError
-                  : record.pct_consumed > 80
-                  ? token.colorWarning
-                  : token.colorSuccess
-              }
-              trailColor={token.colorBgLayout}
-            />
-          ) : (
-            <div style={{ height: 6, borderRadius: 3, background: token.colorBgLayout }} />
-          )}
-          {record.authorized_total > 0 && record.annual_consumption != null ? (
-            <Text style={{ fontSize: 10, color: token.colorTextSecondary }}>
-              {formatInteger(record.annual_consumption)} / {formatInteger(record.authorized_total)} m³
-            </Text>
-          ) : (
-            <Text style={{ fontSize: 10, color: token.colorTextSecondary }}>
-              Sin datos de consumo anual
-            </Text>
-          )}
-        </Flex>
-      </Flex>
-    ),
-  },
-  {
-    title: "Último envío",
-    dataIndex: "last_sent_at",
-    key: "last_sent_at",
-    width: 100,
-    align: "center",
-    render: (date) =>
-      date ? (
-        <Text style={{ fontSize: 12, color: token.colorText, whiteSpace: "nowrap" }}>
-          {moment(date).format("DD/MM HH:mm")}
-        </Text>
-      ) : (
-        <span style={{ color: ikoluTokens.colorGreyTextLight }}>—</span>
-      ),
-  },
-  {
-    title: "Caudal",
-    dataIndex: "flow_lps",
-    key: "flow_lps",
-    width: 90,
-    align: "right",
-    render: (v) =>
-      v != null ? (
-        <Text strong style={{ fontSize: 13, color: v > 0 ? token.colorSuccess : token.colorTextSecondary }}>
-          {Number(v).toFixed(2)}
-          <span style={{ fontSize: 10, fontWeight: 400, marginLeft: 2 }}>L/s</span>
-        </Text>
-      ) : (
-        "—"
-      ),
-  },
-  {
-    title: "Nivel",
-    dataIndex: "water_table_m",
-    key: "water_table_m",
-    width: 85,
-    align: "right",
-    render: (v) =>
-      v != null ? (
-        <Text style={{ fontSize: 13, color: token.colorInfo }}>
-          {Number(v).toFixed(2)}
-          <span style={{ fontSize: 10, marginLeft: 2 }}>m</span>
-        </Text>
-      ) : (
-        "—"
-      ),
-  },
-  {
-    title: "Totalizado",
-    dataIndex: "total_m3",
-    key: "total_m3",
-    width: 110,
-    align: "right",
-    render: (v) =>
-      v != null ? (
-        <Text strong style={{ fontSize: 14, color: token.colorPrimary }}>
-          {formatInteger(v)}
-          <span style={{ fontSize: 10, fontWeight: 400, marginLeft: 2 }}>m³</span>
-        </Text>
-      ) : (
-        "—"
-      ),
-  },
-  {
-    title: "",
-    dataIndex: "voucher",
-    key: "voucher",
-    width: 50,
-    align: "center",
-    fixed: "right",
-    render: (v, record) =>
-      v ? (
-        <div
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: "50%",
-            background: `${token.colorPrimary}10`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            transition: "background 0.2s",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = `${token.colorPrimary}20`)}
-          onMouseLeave={(e) => (e.currentTarget.style.background = `${token.colorPrimary}10`)}
-          onClick={(e) => {
-            e.stopPropagation();
-            onViewVoucher(record);
-          }}
-        >
-          <FaEye style={{ fontSize: 12, color: token.colorPrimary }} />
-        </div>
-      ) : (
-        <span style={{ color: ikoluTokens.colorGreyTextLight }}>—</span>
-      ),
-  },
-  {
-    title: "",
-    key: "stop_compliance",
-    width: 36,
-    align: "center",
-    fixed: "right",
-    render: (_, record) => (
-      <Tooltip title="Solicitar detención de cumplimiento">
-        <div
-          style={{
-            width: 24,
-            height: 24,
-            borderRadius: "50%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            transition: "all 0.2s",
-            border: `1px solid ${token.colorPrimary}40`,
-            background: `${token.colorPrimary}08`,
-            margin: "0 auto",
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            onStopCompliance(record);
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = `${token.colorPrimary}15`; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = `${token.colorPrimary}08`; }}
-        >
-          <FaPauseCircle style={{ fontSize: 11, color: token.colorPrimary }} />
-        </div>
-      </Tooltip>
-    ),
-  },
-];
 
 /* ── Helper: normalizar número que puede venir como objeto {source, parsedValue} ── */
 const extractRecordNum = (val) => {
@@ -842,7 +550,7 @@ const MeasurementsDrawerContent = ({ data, token }) => {
 
 const ControlCenter = () => {
   const { dispatch } = useData();
-  const { state } = useContext(AppContext);
+  const { user } = useAuth();
   const { data, loading, error, refresh, isReady, chatQuota } = useControlCenter({
     autoRefresh: true,
     refreshInterval: 60000,
@@ -851,7 +559,6 @@ const ControlCenter = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [warningsDrawerOpen, setWarningsDrawerOpen] = useState(false);
   const [selectedWarningPoint, setSelectedWarningPoint] = useState(null);
-  const [warningsExpanded, setWarningsExpanded] = useState(false);
   const [voucherModalOpen, setVoucherModalOpen] = useState(false);
   const [selectedVoucher, setSelectedVoucher] = useState(null);
   const [voucherCopied, setVoucherCopied] = useState(false);
@@ -878,50 +585,6 @@ const ControlCenter = () => {
   const compStart = Form.useWatch("start_date", stopComplianceForm);
   const compEnd = Form.useWatch("end_date", stopComplianceForm);
   const compDiffDays = compStart && compEnd ? compEnd.diff(compStart, "days") : 0;
-
-  // ── Chat IA ──
-  const [chatMessages, setChatMessages] = useState([
-    { role: "bot", text: "¡Hola! Soy tu asistente de telemetría. ¿En qué puedo ayudarte?", time: Date.now() },
-  ]);
-  const [chatInput, setChatInput] = useState("");
-  const [chatLoading, setChatLoading] = useState(false);
-  const [chatDrawerOpen, setChatDrawerOpen] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [chatMeta, setChatMeta] = useState({ dailyLimit: null, usedToday: null, remainingToday: null });
-
-  // Sincronizar cuota del chat desde dashboard_stats al cargar
-  useEffect(() => {
-    if (chatQuota && chatQuota.limit != null) {
-      setChatMeta({
-        dailyLimit: chatQuota.limit,
-        usedToday: chatQuota.used,
-        remainingToday: chatQuota.remaining,
-      });
-    }
-  }, [chatQuota]);
-
-  const sendChatMessage = useCallback(async () => {
-    const text = chatInput.trim();
-    if (!text || chatLoading) return;
-    setChatInput("");
-    setChatMessages((prev) => [...prev, { role: "user", text, time: Date.now() }]);
-    setChatLoading(true);
-    try {
-      const res = await sh.chat(text);
-      const reply = res?.response || res?.message || res?.answer || "No tengo una respuesta en este momento.";
-      setChatMessages((prev) => [...prev, { role: "bot", text: reply, time: Date.now() }]);
-      setChatMeta({
-        dailyLimit: res?.daily_limit ?? null,
-        usedToday: res?.used_today ?? null,
-        remainingToday: res?.remaining_today ?? null,
-      });
-    } catch (err) {
-      console.error("[Chat] Error:", err);
-      setChatMessages((prev) => [...prev, { role: "bot", text: "Ups, hubo un error. Intenta de nuevo.", time: Date.now() }]);
-    } finally {
-      setChatLoading(false);
-    }
-  }, [chatInput, chatLoading]);
 
   const handleViewVoucher = useCallback((record) => {
     setSelectedVoucher(record);
@@ -987,7 +650,7 @@ const ControlCenter = () => {
         status_sma: "PENDING",
         start_date: values.start_date ? values.start_date.format("YYYY-MM-DD") : null,
         end_date: values.end_date ? values.end_date.format("YYYY-MM-DD") : null,
-        emails: state.user?.email ? [state.user.email] : [],
+        emails: user?.email ? [user.email] : [],
       };
       const res = await sh.notifications.create(payload);
       message.success(`Ticket #${res.id} creado exitosamente`);
@@ -1000,7 +663,7 @@ const ControlCenter = () => {
     } finally {
       setStopTelemetryLoading(false);
     }
-  }, [stopTelemetryPoint, stopTelemetryForm, state.user?.email]);
+  }, [stopTelemetryPoint, stopTelemetryForm, user?.email]);
 
   /* ── Detener Cumplimiento ── */
   const handleOpenStopCompliance = useCallback((record) => {
@@ -1032,7 +695,7 @@ const ControlCenter = () => {
         status_sma: "PENDING",
         start_date: values.start_date ? values.start_date.format("YYYY-MM-DD") : null,
         end_date: values.end_date ? values.end_date.format("YYYY-MM-DD") : null,
-        emails: state.user?.email ? [state.user.email] : [],
+        emails: user?.email ? [user.email] : [],
       };
       const res = await sh.notifications.create(payload);
       message.success(`Ticket #${res.id} creado exitosamente`);
@@ -1045,7 +708,7 @@ const ControlCenter = () => {
     } finally {
       setStopComplianceLoading(false);
     }
-  }, [stopCompliancePoint, stopComplianceForm, state.user?.email]);
+  }, [stopCompliancePoint, stopComplianceForm, user?.email]);
 
   const overview = data?.overview || {};
   const points = data?.points || [];
@@ -1121,529 +784,45 @@ const ControlCenter = () => {
       {/* ════════════════════════════════════════
           Warnings por punto — Grid 3 cols, Drawer por punto
       ════════════════════════════════════════ */}
-      {warningsList.length > 0 && (
-        <Card
-          size="small"
-          style={{ borderRadius: token.borderRadiusLG, marginBottom: 24, background: token.colorBgContainer }}
-          bodyStyle={{ padding: 0 }}
-        >
-          {/* Header clickeable para expandir/colapsar */}
-          <div
-            onClick={() => setWarningsExpanded(!warningsExpanded)}
-            style={{
-              padding: "12px 16px",
-              cursor: "pointer",
-              borderBottom: warningsExpanded ? `1px solid ${token.colorBorderSecondary}` : "none",
-            }}
-          >
-            <Flex justify="space-between" align="flex-start">
-              <Flex vertical gap={2}>
-                <Flex align="center" gap={8}>
-                  <FaExclamationTriangle style={{ color: token.colorWarning, fontSize: 14 }} />
-                  <Text strong style={{ fontSize: 14 }}>Warnings Detectados</Text>
-                  <Tag color="warning" style={{ fontSize: 10, margin: 0 }}>{warningsList.length}</Tag>
-                </Flex>
-                <Text style={{ fontSize: 11, color: token.colorTextSecondary, paddingLeft: 22 }}>
-                  Warnings detectados activamente por nuestro sistema
-                </Text>
-              </Flex>
-              <div style={{
-                fontSize: 10,
-                color: token.colorTextSecondary,
-                transform: warningsExpanded ? "rotate(180deg)" : "rotate(0deg)",
-                transition: "transform 0.2s ease",
-                marginTop: 4,
-              }}>
-                ▼
-              </div>
-            </Flex>
-          </div>
+      <CCWarningsSection
+        warningsList={warningsList}
+        warningsRaw={warningsRaw}
+        onWarningPointClick={(pointName) => {
+          setSelectedWarningPoint(pointName);
+          setWarningsDrawerOpen(true);
+        }}
+      />
 
-          {/* Grid de puntos con warnings — solo visible si expandido */}
-          {warningsExpanded && (
-            <div style={{ padding: 12 }}>
-              <Row gutter={[12, 12]}>
-                {Object.entries(warningsRaw).map(([pointName, warnings]) => {
-                  const arr = Array.isArray(warnings) ? warnings : [];
-                  if (arr.length === 0) return null;
-                  return (
-                    <Col key={pointName} xs={24} sm={12} md={8}>
-                      <div
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedWarningPoint(pointName);
-                          setWarningsDrawerOpen(true);
-                        }}
-                        style={{
-                          borderRadius: token.borderRadius,
-                          background: token.colorBgLayout,
-                          border: `1px solid ${token.colorBorderSecondary}`,
-                          cursor: "pointer",
-                          transition: "all 0.2s ease",
-                          padding: "10px 12px",
-                        }}
-                      >
-                        <Flex justify="space-between" align="center">
-                          <Flex align="center" gap={8}>
-                            <div style={{
-                              width: 28,
-                              height: 28,
-                              borderRadius: 8,
-                              background: `${token.colorWarning}15`,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}>
-                              <FaExclamationTriangle style={{ color: token.colorWarning, fontSize: 12 }} />
-                            </div>
-                            <div>
-                              <Text strong style={{ fontSize: 13, display: "block" }}>{pointName}</Text>
-                              <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>
-                                {arr.length} warning{arr.length > 1 ? "s" : ""}
-                              </Text>
-                            </div>
-                          </Flex>
-                          <FaEye style={{ fontSize: 12, color: token.colorTextSecondary }} />
-                        </Flex>
-                      </div>
-                    </Col>
-                  );
-                })}
-              </Row>
-            </div>
-          )}
-        </Card>
-      )}
-
-      {/* ════════════════════════════════════════
-          Fila del medio: Estado + Cumplimiento | Consumo Semanal
-      ════════════════════════════════════════ */}
       {/* ════════════════════════════════════════
           Consumo Semanal
       ════════════════════════════════════════ */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} md={24}>
-            <div style={{ padding: "0 0 16px" }}>
-              {(() => {
-              const dayMap = {};
-              Object.entries(data?.last_7 || {}).forEach(([pointName, pointWeek]) => {
-                (pointWeek?.days || []).forEach((d) => {
-                  if (!d.date) return;
-                  if (!dayMap[d.date]) dayMap[d.date] = { points: [] };
-                  dayMap[d.date].points.push({ pointName, ...d });
-                });
-              });
-
-              const sortedDays = Object.entries(dayMap).sort(([a], [b]) => a.localeCompare(b)).slice(-7);
-              if (sortedDays.length === 0) return <Text type="secondary">Sin datos</Text>;
-
-              const defaultDate = sortedDays[sortedDays.length - 1][0];
-              const activeDate = selectedDate || defaultDate;
-              const activePoints = activeDate && dayMap[activeDate] ? dayMap[activeDate].points : [];
-
-              return (
-                <Flex vertical gap={14}>
-                  {/* Grid de cuadritos calendario */}
-                  <Flex gap={8}>
-                    {sortedDays.map(([date, { points }]) => {
-                      const total = points.reduce((a, p) => a + (p.consumption || 0), 0);
-                      const isActive = activeDate === date;
-                      const isToday = moment(date).isSame(moment(), "day");
-                      return (
-                        <div
-                          key={date}
-                          onClick={() => setSelectedDate(isActive ? null : date)}
-                          style={{
-                            flex: 1,
-                            minHeight: 90,
-                            padding: "10px 8px",
-                            borderRadius: token.borderRadius,
-                            border: `1.5px solid ${isActive ? token.colorPrimary : isToday ? token.colorPrimary + "40" : token.colorBorder}`,
-                            background: isActive ? token.colorPrimary : isToday ? `${token.colorPrimary}08` : token.colorBgContainer,
-                            cursor: "pointer",
-                            transition: "all 0.2s ease",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: 4,
-                          }}
-                        >
-                          <Text style={{ fontSize: 10, color: isActive ? "#fff" : token.colorTextSecondary, textTransform: "capitalize", letterSpacing: 0.5, whiteSpace: "nowrap" }}>
-                            {moment(date).format("dddd")}
-                          </Text>
-                          <Text strong style={{ fontSize: 22, color: isActive ? "#fff" : token.colorText, lineHeight: 1 }}>
-                            {moment(date).format("DD")}
-                          </Text>
-                          <Text style={{ fontSize: 10, color: isActive ? "#fff" : token.colorTextSecondary }}>
-                            {formatInteger(total)} m³
-                          </Text>
-                        </div>
-                      );
-                    })}
-                  </Flex>
-
-                  {/* Detalle del día activo */}
-                  {activeDate && dayMap[activeDate] && (
-                    <Table
-                      dataSource={[...dayMap[activeDate].points]
-                        .sort((a, b) => (b.consumption || 0) - (a.consumption || 0))
-                        .map((p, idx) => ({ ...p, key: idx, rank: idx + 1 }))}
-                      size="small"
-                      bordered
-                      pagination={false}
-                      showHeader={true}
-                      columns={[
-                        {
-                          title: "#",
-                          dataIndex: "rank",
-                          key: "rank",
-                          width: 40,
-                          align: "center",
-                          render: (rank) => (
-                            <div style={{ width: 20, height: 20, borderRadius: "50%", background: `${token.colorPrimary}15`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: token.colorPrimary, fontWeight: 700, margin: "0 auto" }}>
-                              {rank}
-                            </div>
-                          ),
-                        },
-                        { title: "Punto", dataIndex: "pointName", key: "pointName", width: 70, render: (text) => <Text strong style={{ fontSize: 12 }}>{text}</Text> },
-                        { title: "Consumo (m³)", dataIndex: "consumption", key: "consumption", width: 130, align: "right", render: (v) => <Text strong style={{ fontSize: 12, color: token.colorPrimary }}>{formatInteger(v || 0)}</Text> },
-                        { title: "Caudal prom. (L/s)", dataIndex: "avg_flow", key: "avg_flow", width: 120, align: "right", render: (v) => <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{v != null ? Number(v).toFixed(1) : "—"}</Text> },
-                        { title: "Nivel prom. (m)", dataIndex: "avg_level", key: "avg_level", width: 100, align: "right", render: (v) => <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{v != null ? Number(v).toFixed(2) : "—"}</Text> },
-                        { title: "Med.", dataIndex: "measurements_count", key: "measurements_count", width: 90, align: "center", render: (v, record) => (
-                          <Flex align="center" justify="center" gap={6} onClick={(e) => e.stopPropagation()}>
-                            {/* Ver mediciones — sutil */}
-                            <Tooltip title={`Ver ${v || 0} mediciones`}>
-                              <div
-                                style={{
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  gap: 4,
-                                  padding: "2px 6px",
-                                  borderRadius: 10,
-                                  cursor: "pointer",
-                                  transition: "all 0.2s",
-                                  border: `1px solid ${token.colorBorderSecondary}`,
-                                }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleViewMeasurements(record.pointName, activeDate);
-                                }}
-                                onMouseEnter={(e) => { e.currentTarget.style.borderColor = token.colorPrimary; e.currentTarget.style.background = `${token.colorPrimary}08`; }}
-                                onMouseLeave={(e) => { e.currentTarget.style.borderColor = token.colorBorderSecondary; e.currentTarget.style.background = "transparent"; }}
-                              >
-                                <FaEye style={{ fontSize: 10, color: token.colorTextSecondary }} />
-                                <Text style={{ fontSize: 10, color: token.colorTextSecondary, lineHeight: 1 }}>{v || 0}</Text>
-                              </div>
-                            </Tooltip>
-                            {/* Detener telemetría */}
-                            <Tooltip title="Solicitar detención de telemetría">
-                              <div
-                                style={{
-                                  width: 22,
-                                  height: 22,
-                                  borderRadius: "50%",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  cursor: "pointer",
-                                  transition: "all 0.2s",
-                                  border: `1px solid ${token.colorPrimary}40`,
-                                  background: `${token.colorPrimary}08`,
-                                }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleOpenStopTelemetry(record.pointName);
-                                }}
-                                onMouseEnter={(e) => { e.currentTarget.style.background = `${token.colorPrimary}15`; }}
-                                onMouseLeave={(e) => { e.currentTarget.style.background = `${token.colorPrimary}08`; }}
-                              >
-                                <FaHandPaper style={{ fontSize: 9, color: token.colorPrimary }} />
-                              </div>
-                            </Tooltip>
-                          </Flex>
-                        ) },
-                      ]}
-                      onRow={(record) => ({
-                        onClick: () => handleSelectPoint({ id: record.pointName, title: record.pointName }),
-                        style: { cursor: "pointer" },
-                      })}
-                      locale={{ emptyText: "Sin datos" }}
-                    />
-                  )}
-                </Flex>
-              );
-            })()}
-            </div>
+          <CCWeekConsumption
+            last7={data?.last_7}
+            selectedDate={selectedDate}
+            onDateSelect={setSelectedDate}
+            onViewMeasurements={handleViewMeasurements}
+            onOpenStopTelemetry={handleOpenStopTelemetry}
+            onSelectPoint={handleSelectPoint}
+          />
         </Col>
       </Row>
 
       {/* ════════════════════════════════════════
-          Botón flotante del Chat IA
+          Chat IA (componente aislado)
       ════════════════════════════════════════ */}
-      {/* Chat flotante */}
-      {chatDrawerOpen && (
-        <Card
-          size="small"
-          style={{
-            position: "fixed",
-            bottom: 90,
-            right: 24,
-            width: 380,
-            height: 520,
-            borderRadius: token.borderRadiusLG,
-            zIndex: 1000,
-            boxShadow: `0 8px 32px rgba(0,0,0,0.25)`,
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-            animation: "fade-in-up 0.25s ease",
-          }}
-          bodyStyle={{ padding: 0, height: "100%", display: "flex", flexDirection: "column" }}
-        >
-          {/* Header */}
-          <Flex align="center" gap={10} style={{ padding: "12px 16px", borderBottom: `1px solid ${token.colorBorderSecondary}`, flexShrink: 0 }}>
-            <div style={{ width: 32, height: 32, borderRadius: "50%", background: `${token.colorPrimary}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <FaRobot style={{ color: token.colorPrimary, fontSize: 14 }} />
-            </div>
-            <div>
-              <Text strong style={{ fontSize: 13, display: "block" }}>Experto en Telemetría</Text>
-              <Text style={{ fontSize: 10, color: token.colorTextSecondary }}>Smart Hydro — Consultas en tiempo real</Text>
-            </div>
-            <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
-              <Button
-                type="text"
-                size="small"
-                icon={<FaTrash style={{ fontSize: 11, color: token.colorTextSecondary }} />}
-                onClick={() => setChatMessages([{ role: "bot", text: "¡Hola! Soy tu asistente de telemetría. ¿En qué puedo ayudarte?", time: Date.now() }])}
-                style={{ padding: "0 4px" }}
-                title="Limpiar chat"
-              />
-              <Button
-                type="text"
-                size="small"
-                onClick={() => setChatDrawerOpen(false)}
-                style={{ padding: "0 4px", color: token.colorTextSecondary, fontSize: 16 }}
-              >
-                ✕
-              </Button>
-            </div>
-          </Flex>
-
-          {/* Capacidades */}
-          <div style={{ padding: "8px 12px", background: `${token.colorPrimary}08`, borderBottom: `1px solid ${token.colorBorderSecondary}`, flexShrink: 0 }}>
-            <Text style={{ fontSize: 10, color: token.colorTextSecondary, lineHeight: 1.4, display: "block" }}>
-              <FaLightbulb style={{ color: token.colorPrimary, fontSize: 10, marginRight: 4 }} /> <span style={{ color: token.colorPrimary, fontWeight: 600 }}>Objetivo:</span> Ayudarte a interpretar tus datos de telemetría, consumo, caudal y cumplimiento normativo en tiempo real.
-            </Text>
-          </div>
-
-          {/* Mensajes */}
-          <div
-            style={{
-              flex: 1,
-              minHeight: 0,
-              overflowY: "auto",
-              padding: "12px 16px",
-              display: "flex",
-              flexDirection: "column",
-              gap: 10,
-            }}
-          >
-            {chatMessages.map((msg, i) => (
-              <Flex
-                key={i}
-                justify={msg.role === "user" ? "flex-end" : "flex-start"}
-                align="flex-start"
-                gap={8}
-                style={{ animation: "fade-in-up 0.3s ease" }}
-              >
-                {msg.role === "bot" && (
-                  <div style={{ width: 24, height: 24, borderRadius: "50%", background: `${token.colorPrimary}15`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
-                    <FaRobot style={{ color: token.colorPrimary, fontSize: 10 }} />
-                  </div>
-                )}
-                <div
-                  style={{
-                    maxWidth: "85%",
-                    padding: "10px 14px",
-                    borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
-                    background: msg.role === "user" ? token.colorPrimary : token.colorBgLayout,
-                    color: msg.role === "user" ? "#fff" : token.colorText,
-                    fontSize: 13,
-                    lineHeight: 1.5,
-                    wordBreak: "break-word",
-                    boxShadow: `0 1px 4px ${token.colorBorder}`,
-                  }}
-                >
-                  {msg.text}
-                </div>
-              </Flex>
-            ))}
-            {chatLoading && (
-              <Flex align="center" gap={8} style={{ animation: "fade-in-up 0.3s ease" }}>
-                <div style={{ width: 24, height: 24, borderRadius: "50%", background: `${token.colorPrimary}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <FaRobot style={{ color: token.colorPrimary, fontSize: 10 }} />
-                </div>
-                <div style={{ padding: "8px 12px", borderRadius: 12, background: token.colorBgLayout, border: `1px solid ${token.colorBorderSecondary}` }}>
-                  <Flex gap={3} align="center" style={{ height: 16 }}>
-                    <span className="chat-dot" style={{ width: 6, height: 6, borderRadius: "50%", background: token.colorPrimary, animation: "chat-bounce 1.4s infinite ease-in-out both", animationDelay: "0s" }} />
-                    <span className="chat-dot" style={{ width: 6, height: 6, borderRadius: "50%", background: token.colorPrimary, animation: "chat-bounce 1.4s infinite ease-in-out both", animationDelay: "0.2s" }} />
-                    <span className="chat-dot" style={{ width: 6, height: 6, borderRadius: "50%", background: token.colorPrimary, animation: "chat-bounce 1.4s infinite ease-in-out both", animationDelay: "0.4s" }} />
-                  </Flex>
-                </div>
-              </Flex>
-            )}
-          </div>
-
-          {/* Sugerencias toggle */}
-          {showSuggestions && (
-            <div style={{ padding: "8px 12px", borderTop: `1px solid ${token.colorBorderSecondary}`, background: token.colorBgLayout, flexShrink: 0 }}>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {(() => {
-                  const base = ["¿Cómo va mi consumo?", "¿Qué punto consumió más hoy?"];
-                  const pointQs = points.slice(0, 4).map((p) => `¿Cómo ha funcionado ${p.title || p.id}?`);
-                  return [...base, ...pointQs];
-                })().map((q) => (
-                  <Tag
-                    key={q}
-                    color="primary"
-                    style={{ fontSize: 10, margin: 0, cursor: "pointer", lineHeight: "20px" }}
-                    onClick={() => { setChatInput(q); }}
-                  >
-                    {q}
-                  </Tag>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Input */}
-          <div style={{ padding: "8px 12px", borderTop: `1px solid ${token.colorBorderSecondary}`, background: token.colorBgContainer, flexShrink: 0 }}>
-            <Flex gap={8} align="flex-end">
-              <Input.TextArea
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                onPressEnter={(e) => {
-                  if (!e.shiftKey) {
-                    e.preventDefault();
-                    sendChatMessage();
-                  }
-                }}
-                placeholder="Pregúntame sobre tus puntos..."
-                maxLength={50}
-                autoSize={{ minRows: 1, maxRows: 3 }}
-                style={{
-                  flex: 1,
-                  borderRadius: 12,
-                  border: `1.5px solid ${token.colorBorder}`,
-                  background: token.colorBgElevated,
-                  fontSize: 13,
-                  padding: "8px 12px",
-                }}
-              />
-              <Button
-                type="default"
-                shape="circle"
-                icon={<FaQuestionCircle style={{ fontSize: 14, color: token.colorTextSecondary }} />}
-                onClick={() => setShowSuggestions(!showSuggestions)}
-                style={{
-                  width: 32,
-                  height: 32,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              />
-              <Button
-                type="primary"
-                shape="circle"
-                icon={<FaPaperPlane style={{ fontSize: 12, color: "#fff" }} />}
-                onClick={sendChatMessage}
-                loading={chatLoading}
-                style={{
-                  width: 32,
-                  height: 32,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              />
-            </Flex>
-            <Flex justify="space-between" align="center" style={{ marginTop: 6 }}>
-              <Text style={{ fontSize: 11, color: chatMeta.remainingToday === 0 ? token.colorError : token.colorTextSecondary, fontWeight: 500 }}>
-                {chatMeta.dailyLimit != null ? `Preguntas usadas: ${chatMeta.usedToday} de ${chatMeta.dailyLimit} disponibles` : ""}
-              </Text>
-              <Text strong style={{ fontSize: 11, color: chatInput.length >= 50 ? token.colorError : token.colorTextSecondary }}>
-                {chatInput.length}/50
-              </Text>
-            </Flex>
-          </div>
-        </Card>
-      )}
-
-      {/* Botón flotante */}
-      <div
-        onClick={() => setChatDrawerOpen(!chatDrawerOpen)}
-        style={{
-          position: "fixed",
-          bottom: 24,
-          right: 24,
-          width: 56,
-          height: 56,
-          borderRadius: "50%",
-          background: "linear-gradient(135deg, #1F3461 0%, #2A4A8A 100%)",
-          border: "2px solid #1F346150",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer",
-          zIndex: 1000,
-          boxShadow: `0 4px 16px rgba(31,52,97,0.35)`,
-        }}
-      >
-        <FaRobot style={{ color: "#fff", fontSize: 22 }} />
-      </div>
+      <ControlCenterChat points={points} chatQuota={chatQuota} />
 
       {/* ════════════════════════════════════════
           Tabla de compliance
       ════════════════════════════════════════ */}
-        <Card
-          size="small"
-          title={(
-            <Flex align="center" gap={8} wrap="wrap">
-              <FaClipboardCheck style={{ color: token.colorPrimary, fontSize: 16, flexShrink: 0 }} />
-              <Text strong style={{ fontSize: 14, whiteSpace: "normal" }}>Cumplimiento normativo</Text>
-            </Flex>
-          )}
-          headStyle={{ whiteSpace: "normal", height: "auto", minHeight: 40 }}
-          style={{ borderRadius: token.borderRadiusLG, overflow: "hidden", marginTop: 32 }}
-          bodyStyle={{ padding: 0 }}
-        >
-          <Table
-            dataSource={points}
-            columns={pointsColumns(handleViewVoucher, handleOpenStopCompliance, token)}
-            rowKey="id"
-            size="small"
-            scroll={{ x: "max-content" }}
-            pagination={{ pageSize: 10, hideOnSinglePage: true }}
-            locale={{ emptyText: "No hay puntos disponibles" }}
-            onRow={(record) => ({
-              onClick: () => handleSelectPoint(record),
-              style: {
-                cursor: "pointer",
-                background: "transparent",
-                borderBottom: `1px solid ${token.colorBorderSecondary}`,
-              },
-              onMouseEnter: (e) => {
-                e.currentTarget.style.background = token.colorBgTextHover || "#f5f5f5";
-                e.currentTarget.style.transition = "background 0.15s ease";
-              },
-              onMouseLeave: (e) => {
-                e.currentTarget.style.background = "transparent";
-              },
-            })}
-          />
-        </Card>
+      <CCComplianceTable
+        points={points}
+        onViewVoucher={handleViewVoucher}
+        onOpenStopCompliance={handleOpenStopCompliance}
+        onSelectPoint={handleSelectPoint}
+      />
 
       {/* ════════════════════════════════════════
           Drawer de Warnings por punto
@@ -1846,7 +1025,7 @@ const ControlCenter = () => {
           {/* Quién crea */}
           <Form.Item label="Solicitado por">
             <Input
-              value={state.user ? `${state.user.first_name || state.user.username} (${state.user.email})` : "—"}
+              value={user ? `${user.first_name || user.username} (${user.email})` : "—"}
               readOnly
               style={{ borderRadius: 8, fontSize: 13, background: token.colorBgContainerDisabled }}
             />
@@ -1932,7 +1111,7 @@ const ControlCenter = () => {
           {/* Quién crea */}
           <Form.Item label="Solicitado por">
             <Input
-              value={state.user ? `${state.user.first_name || state.user.username} (${state.user.email})` : "—"}
+              value={user ? `${user.first_name || user.username} (${user.email})` : "—"}
               readOnly
               style={{ borderRadius: 8, fontSize: 13, background: token.colorBgContainerDisabled }}
             />

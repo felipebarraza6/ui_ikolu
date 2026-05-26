@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Layout,
   Menu,
@@ -25,7 +25,9 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import { useLocation, useNavigate } from "react-router-dom";
-import { AppContext } from "../../App";
+import { useAuth } from "../../contexts/AuthContext";
+import { useData } from "../../contexts/DataContext";
+import { useUI } from "../../contexts/UIContext";
 import logo from "../../assets/images/logozivo.png";
 import logoSmall from "../../assets/images/logo-blanco.png";
 import ListWells from "../home/ListWells";
@@ -37,7 +39,9 @@ const { Title, Text } = Typography;
 const ResponsiveLayout = ({ children }) => {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const { state, dispatch } = useContext(AppContext);
+  const { user, dispatch } = useAuth();
+  const { selected_profile } = useData();
+  const { adminView } = useUI();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -167,7 +171,7 @@ const ResponsiveLayout = ({ children }) => {
                   cursor: "pointer",
                 }}
                 onClick={() => {
-                  const isAdmin = state.user?.is_staff || state.user?.is_superuser;
+                  const isAdmin = user?.is_staff || user?.is_superuser;
                   navigate(isAdmin ? "/" : "/control_center");
                 }}
               />
@@ -175,7 +179,7 @@ const ResponsiveLayout = ({ children }) => {
             {!isMobile && (
               <Col>
                 <Title level={4} style={{ color: "#1F3461", margin: 0 }}>
-                  {state.user?.first_name?.toUpperCase() || "IKOLU"}
+                  {user?.first_name?.toUpperCase() || "IKOLU"}
                 </Title>
               </Col>
             )}
@@ -330,13 +334,13 @@ const ResponsiveLayout = ({ children }) => {
           <Col flex="auto">
             <div>
               <Text strong style={{ color: "white", fontSize: "16px" }}>
-                {state.user?.first_name || "Usuario"}
+                {user?.first_name || "Usuario"}
               </Text>
               <br />
               <Text
                 style={{ color: "rgba(255,255,255,0.8)", fontSize: "12px" }}
               >
-                {state.user?.email || "usuario@smarthydro.cl"}
+                {user?.email || "usuario@smarthydro.cl"}
               </Text>
             </div>
           </Col>
