@@ -10,57 +10,50 @@ const { useToken } = theme;
 
 const pointsColumns = (onViewVoucher, onStopCompliance, token) => [
   {
-    title: "Punto",
-    dataIndex: "title",
-    key: "title",
+    title: "Punto / Código",
+    key: "point_code",
     fixed: "left",
-    width: 90,
+    width: 200,
     sorter: (a, b) => (a.title || "").localeCompare(b.title || ""),
     defaultSortOrder: "ascend",
-    render: (text) => (
-      <Text strong style={{ fontSize: 13, color: ikoluTokens.colorCorporateBlue }}>
-        {text || "—"}
-      </Text>
+    render: (_, record) => (
+      <Flex vertical gap={4}>
+        <Text strong style={{ fontSize: 13, color: ikoluTokens.colorCorporateBlue }}>
+          {record.title || "—"}
+        </Text>
+        {record.code ? (
+          <Flex vertical gap={2}>
+            {record.compliance_type?.includes("DGA") ? (
+              <a
+                href={`https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${encodeURIComponent(record.code)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: token.colorPrimary, fontSize: 11, fontWeight: 600, whiteSpace: "nowrap" }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {record.code}
+              </a>
+            ) : (
+              <Text style={{ fontSize: 11, color: token.colorTextSecondary, whiteSpace: "nowrap" }}>
+                {record.code}
+              </Text>
+            )}
+            {record.compliance_type?.includes("DGA") && (
+              <Flex gap={4} align="center" wrap="nowrap">
+                <Tag style={{ fontSize: 10, margin: 0, padding: "1px 6px", lineHeight: "16px", background: token.colorPrimaryBg, border: "none", color: token.colorPrimary, fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0 }}>
+                  {record.standard}
+                </Tag>
+                <Tag style={{ fontSize: 10, margin: 0, padding: "1px 6px", lineHeight: "16px", background: token.colorBgLayout, border: "none", color: token.colorTextSecondary, whiteSpace: "nowrap", flexShrink: 0 }}>
+                  {record.type_dga}
+                </Tag>
+              </Flex>
+            )}
+          </Flex>
+        ) : (
+          <Text style={{ fontSize: 10, color: ikoluTokens.colorGreyTextLight }}>Sin código</Text>
+        )}
+      </Flex>
     ),
-  },
-  {
-    title: "Codigo de Obra",
-    dataIndex: "code",
-    key: "code",
-    responsive: ["md"],
-    width: 220,
-    render: (code, record) =>
-      code ? (
-        <Flex vertical gap={4}>
-          {record.compliance_type?.includes("DGA") ? (
-            <a
-              href={`https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${encodeURIComponent(code)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: token.colorPrimary, fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {code}
-            </a>
-          ) : (
-            <Text strong style={{ fontSize: 12, color: token.colorText, whiteSpace: "nowrap" }}>
-              {code}
-            </Text>
-          )}
-          {record.compliance_type?.includes("DGA") && (
-            <Flex gap={6} align="center" wrap="nowrap">
-              <Tag style={{ fontSize: 11, margin: 0, padding: "2px 8px", lineHeight: "18px", background: token.colorPrimaryBg, border: "none", color: token.colorPrimary, fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0 }}>
-                {record.standard}
-              </Tag>
-              <Tag style={{ fontSize: 11, margin: 0, padding: "2px 8px", lineHeight: "18px", background: token.colorBgLayout, border: "none", color: token.colorTextSecondary, whiteSpace: "nowrap", flexShrink: 0 }}>
-                {record.type_dga}
-              </Tag>
-            </Flex>
-          )}
-        </Flex>
-      ) : (
-        <span style={{ color: ikoluTokens.colorGreyTextLight }}>—</span>
-      ),
   },
   {
     title: "Limites / Estado",

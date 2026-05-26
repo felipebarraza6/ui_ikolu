@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useMemo } from "react";
-import { Line } from "@ant-design/plots";
+import { Line, Area, Column } from "@ant-design/plots";
 import "./ControlCenter.css";
 import { useData } from "../../contexts/DataContext";
 import { useControlCenter } from "../../hooks/useControlCenter";
@@ -151,32 +151,37 @@ const MeasurementsChart = ({ data, metric, token, color, title }) => {
     animation: {
       appear: {
         animation: "fade-in",
-        duration: 800,
+        duration: 600,
       },
     },
     lineStyle: {
-      lineWidth: 3,
+      lineWidth: 2.5,
       stroke: chartColor,
-      shadowColor: `${chartColor}50`,
-      shadowBlur: 10,
     },
     point: {
-      size: 5,
+      size: 4,
       shape: "circle",
       style: {
-        fill: chartColor,
-        stroke: "#fff",
-        lineWidth: 2,
-        shadowColor: chartColor,
-        shadowBlur: 8,
+        fill: "#fff",
+        stroke: chartColor,
+        lineWidth: 2.5,
+      },
+      state: {
+        active: { size: 6, lineWidth: 3 },
       },
     },
-    areaStyle: {
-      fill: `l(270) 0:#ffffff00 0.5:${chartColor}30 1:${chartColor}60`,
+    area: {
+      style: {
+        fill: `l(270) 0:${chartColor}00 0.5:${chartColor}15 1:${chartColor}35`,
+      },
     },
     xAxis: {
       label: { style: { fontSize: 11, fill: token.colorTextSecondary } },
-      grid: { line: { style: { stroke: `${token.colorBorderSecondary}40` } } },
+      grid: {
+        line: {
+          style: { stroke: `${token.colorBorderSecondary}30`, lineDash: [3, 3] },
+        },
+      },
       line: { style: { stroke: token.colorBorder } },
     },
     yAxis: {
@@ -184,7 +189,11 @@ const MeasurementsChart = ({ data, metric, token, color, title }) => {
         style: { fontSize: 11, fill: token.colorTextSecondary },
         formatter: (v) => Number(v).toFixed(2),
       },
-      grid: { line: { style: { stroke: `${token.colorBorderSecondary}40`, lineDash: [4, 4] } } },
+      grid: {
+        line: {
+          style: { stroke: `${token.colorBorderSecondary}30`, lineDash: [3, 3] },
+        },
+      },
       line: { style: { stroke: token.colorBorder } },
     },
     tooltip: {
@@ -214,16 +223,104 @@ const MeasurementsChart = ({ data, metric, token, color, title }) => {
         return { name: names[metric] || metric, value: formatted, title: `${datum.time} hrs` };
       },
     },
-    height: 260,
+    height: 280,
     color: [chartColor],
   };
 
   return <Line {...config} />;
 };
 
+/* ─ Area Chart (Consumo) ─ */
+const MeasurementsAreaChart = ({ data, metric, token, color, title }) => {
+  const chartColor = color || token.colorPrimary;
+  if (!data || data.length === 0) return <Flex justify="center" align="center" style={{ height: 220 }} vertical><Text type="secondary" style={{ fontSize: 12 }}>Sin datos</Text></Flex>;
+
+  return (
+    <Area
+      data={data}
+      xField="time"
+      yField={metric}
+      smooth
+      area={{ style: { fill: `l(270) 0:${chartColor}05 0.5:${chartColor}20 1:${chartColor}40` } }}
+      line={{ style: { stroke: chartColor, lineWidth: 2.5 } }}
+      point={{ size: 3, style: { fill: "#fff", stroke: chartColor, lineWidth: 2 } }}
+      xAxis={{ grid: { line: { style: { stroke: `${token.colorBorderSecondary}30`, lineDash: [3, 3] } } } }}
+      yAxis={{ grid: { line: { style: { stroke: `${token.colorBorderSecondary}30`, lineDash: [3, 3] } } }, label: { formatter: (v) => Number(v).toFixed(0) } }}
+      tooltip={{ domStyles: { "g2-tooltip": { borderRadius: 10, boxShadow: "0 8px 24px rgba(0,0,0,0.12)", padding: "12px 16px" } } }}
+      height={280}
+      color={chartColor}
+      animation={{ appear: { animation: "fade-in", duration: 500 } }}
+    />
+  );
+};
+
+/* ── Line Chart (Caudal) ── */
+const MeasurementsLineChart = ({ data, metric, token, color, title }) => {
+  const chartColor = color || token.colorPrimary;
+  if (!data || data.length === 0) return <Flex justify="center" align="center" style={{ height: 220 }} vertical><Text type="secondary" style={{ fontSize: 12 }}>Sin datos</Text></Flex>;
+
+  return (
+    <Line
+      data={data}
+      xField="time"
+      yField={metric}
+      smooth
+      line={{ style: { stroke: chartColor, lineWidth: 2.5 } }}
+      point={{ size: 4, style: { fill: "#fff", stroke: chartColor, lineWidth: 2.5 }, state: { active: { size: 6 } } }}
+      xAxis={{ grid: { line: { style: { stroke: `${token.colorBorderSecondary}30`, lineDash: [3, 3] } } } }}
+      yAxis={{ grid: { line: { style: { stroke: `${token.colorBorderSecondary}30`, lineDash: [3, 3] } } }, label: { formatter: (v) => Number(v).toFixed(1) } }}
+      tooltip={{ domStyles: { "g2-tooltip": { borderRadius: 10, boxShadow: "0 8px 24px rgba(0,0,0,0.12)", padding: "12px 16px" } } }}
+      height={280}
+      color={chartColor}
+      animation={{ appear: { animation: "fade-in", duration: 500 } }}
+    />
+  );
+};
+
+/* ─ Column Chart (Nivel) ── */
+const MeasurementsColumnChart = ({ data, metric, token, color, title }) => {
+  const chartColor = color || token.colorPrimary;
+  if (!data || data.length === 0) return <Flex justify="center" align="center" style={{ height: 220 }} vertical><Text type="secondary" style={{ fontSize: 12 }}>Sin datos</Text></Flex>;
+
+  return (
+    <Column
+      data={data}
+      xField="time"
+      yField={metric}
+      columnStyle={{ fill: chartColor, radius: [4, 4, 0, 0] }}
+      xAxis={{ grid: { line: { style: { stroke: `${token.colorBorderSecondary}30`, lineDash: [3, 3] } } } }}
+      yAxis={{ grid: { line: { style: { stroke: `${token.colorBorderSecondary}30`, lineDash: [3, 3] } } }, label: { formatter: (v) => Number(v).toFixed(2) } }}
+      tooltip={{ domStyles: { "g2-tooltip": { borderRadius: 10, boxShadow: "0 8px 24px rgba(0,0,0,0.12)", padding: "12px 16px" } } }}
+      height={280}
+      color={chartColor}
+      animation={{ appear: { animation: "fade-in", duration: 500 } }}
+    />
+  );
+};
+
+/* ── Inverted Column Chart (Nivel Freático) ── */
+const MeasurementsColumnInvertedChart = ({ data, metric, token, color, title }) => {
+  const chartColor = color || token.colorPrimary;
+  if (!data || data.length === 0) return <Flex justify="center" align="center" style={{ height: 220 }} vertical><Text type="secondary" style={{ fontSize: 12 }}>Sin datos</Text></Flex>;
+
+  return (
+    <Column
+      data={data}
+      xField="time"
+      yField={metric}
+      columnStyle={{ fill: chartColor, radius: [0, 0, 4, 4] }}
+      xAxis={{ grid: { line: { style: { stroke: `${token.colorBorderSecondary}30`, lineDash: [3, 3] } } } }}
+      yAxis={{ grid: { line: { style: { stroke: `${token.colorBorderSecondary}30`, lineDash: [3, 3] } } }, label: { formatter: (v) => Number(v).toFixed(2) }, min: 0 }}
+      tooltip={{ domStyles: { "g2-tooltip": { borderRadius: 10, boxShadow: "0 8px 24px rgba(0,0,0,0.12)", padding: "12px 16px" } } }}
+      height={280}
+      color={chartColor}
+      animation={{ appear: { animation: "fade-in", duration: 500 } }}
+    />
+  );
+};
+
 /* ── Componente: contenido del Drawer de mediciones ── */
-const MeasurementsDrawerContent = ({ data, token, pointName, date }) => {
-  const [viewMode, setViewMode] = useState("chart");
+const MeasurementsDrawerContent = ({ data, token, pointName, date, viewMode, setViewMode }) => {
 
   const measurements = extractMeasurements(data);
 
@@ -476,20 +573,6 @@ const MeasurementsDrawerContent = ({ data, token, pointName, date }) => {
 
   return (
     <Flex vertical gap={20}>
-      {/* ── Toggle arriba a la derecha ─ */}
-      <Flex justify="flex-end" align="center">
-        <Segmented
-          value={viewMode}
-          onChange={setViewMode}
-          options={[
-            { label: <Flex align="center" gap={4}><FaChartLine size={12} />Gráfico</Flex>, value: "chart" },
-            { label: <Flex align="center" gap={4}><FaTable size={12} />Datos</Flex>, value: "table" },
-          ]}
-          size="small"
-          style={{ background: token.colorBgLayout }}
-        />
-      </Flex>
-
       {viewMode === "chart" && (
         <Flex vertical gap={20}>
           {/* ── Stats horizontales compactas ── */}
@@ -510,6 +593,8 @@ const MeasurementsDrawerContent = ({ data, token, pointName, date }) => {
           <Row gutter={[16, 16]}>
             {chartMetrics.map((cm) => {
               const data = chartDataAll.filter((d) => d[cm.key] != null);
+              const chartType = cm.key === "consumo" ? "area" : cm.key === "caudal" ? "line" : cm.key === "nivel" ? "column" : "column-inverted";
+
               return (
                 <Col xs={24} md={12} key={cm.key}>
                   <Card
@@ -523,7 +608,10 @@ const MeasurementsDrawerContent = ({ data, token, pointName, date }) => {
                     headStyle={{ padding: "12px 16px", minHeight: 48, borderBottom: `1px solid ${token.colorBorderSecondary}` }}
                     style={{ borderRadius: 12, border: `1px solid ${token.colorBorderSecondary}`, boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}
                   >
-                    <MeasurementsChart data={data} metric={cm.key} token={token} color={cm.color} title={cm.label} />
+                    {chartType === "area" && <MeasurementsAreaChart data={data} metric={cm.key} token={token} color={cm.color} title={cm.label} />}
+                    {chartType === "line" && <MeasurementsLineChart data={data} metric={cm.key} token={token} color={cm.color} title={cm.label} />}
+                    {chartType === "column" && <MeasurementsColumnChart data={data} metric={cm.key} token={token} color={cm.color} title={cm.label} />}
+                    {chartType === "column-inverted" && <MeasurementsColumnInvertedChart data={data} metric={cm.key} token={token} color={cm.color} title={cm.label} />}
                   </Card>
                 </Col>
               );
@@ -576,6 +664,7 @@ const ControlCenter = () => {
   const [selectedMeasurementPoint, setSelectedMeasurementPoint] = useState(null);
   const [measurementsData, setMeasurementsData] = useState(null);
   const [measurementsLoading, setMeasurementsLoading] = useState(false);
+  const [measurementsViewMode, setMeasurementsViewMode] = useState("chart");
 
   // ── Drawer Detener Telemetría ──
   const [stopTelemetryOpen, setStopTelemetryOpen] = useState(false);
@@ -801,22 +890,6 @@ const ControlCenter = () => {
         }}
       />
 
-      {/* ════════════════════════════════════════
-          Consumo Semanal
-      ════════════════════════════════════════ */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} md={24}>
-          <CCWeekConsumption
-            last7={data?.last_7}
-            selectedDate={selectedDate}
-            onDateSelect={setSelectedDate}
-            onViewMeasurements={handleViewMeasurements}
-            onOpenStopTelemetry={handleOpenStopTelemetry}
-            onSelectPoint={handleSelectPoint}
-          />
-        </Col>
-      </Row>
-
       {/* ═══════════════════════════════════════
           Chat IA (componente aislado)
       ════════════════════════════════════════ */}
@@ -832,6 +905,9 @@ const ControlCenter = () => {
         onSelectPoint={handleSelectPoint}
         onViewMeasurements={handleViewMeasurements}
         onOpenStopTelemetry={handleOpenStopTelemetry}
+        last7={data?.last_7}
+        selectedDate={selectedDate}
+        onDateSelect={setSelectedDate}
       />
 
       {/* ════════════════════════════════════════
@@ -925,6 +1001,15 @@ const ControlCenter = () => {
               </div>
             </Flex>
             <div style={{ flex: 1 }} />
+            <Segmented
+              value={measurementsViewMode}
+              onChange={setMeasurementsViewMode}
+              options={[
+                { label: <Flex align="center" gap={4}><FaChartLine size={12} />Gráfico</Flex>, value: "chart" },
+                { label: <Flex align="center" gap={4}><FaTable size={12} />Datos</Flex>, value: "table" },
+              ]}
+              size="small"
+            />
             {measurementsData?.count != null && (
               <Tag style={{ fontSize: 12, margin: 0, padding: "4px 12px", background: `${token.colorPrimary}08`, border: `1px solid ${token.colorPrimary}20`, color: token.colorPrimary, fontWeight: 600, borderRadius: 20 }}>
                 {measurementsData.count} mediciones
@@ -937,6 +1022,7 @@ const ControlCenter = () => {
           setMeasurementsDrawerOpen(false);
           setSelectedMeasurementPoint(null);
           setMeasurementsData(null);
+          setMeasurementsViewMode("chart");
         }}
         width={1200}
         bodyStyle={{ padding: 24, overflow: "auto" }}
@@ -958,6 +1044,8 @@ const ControlCenter = () => {
             token={token}
             pointName={selectedMeasurementPoint?.pointName}
             date={selectedMeasurementPoint?.date}
+            viewMode={measurementsViewMode}
+            setViewMode={setMeasurementsViewMode}
           />
         )}
       </Drawer>

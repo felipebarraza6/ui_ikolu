@@ -1,11 +1,12 @@
 import React, { useState, useCallback, useMemo } from "react";
-import { Card, Tabs, Select, DatePicker, Flex, Typography, Table, Tag, Spin, theme } from "antd";
+import { Card, Tabs, Select, DatePicker, Flex, Typography, Table, Tag, Spin, theme, Row, Col } from "antd";
 import { Line } from "@ant-design/plots";
 import { FaChartLine, FaClipboardCheck, FaBroadcastTower } from "react-icons/fa";
 import moment from "moment";
 import sh from "../../api/sh/endpoints";
 import { CHART_COLORS } from "../../theme";
 import CCComplianceTable from "./CCComplianceTable";
+import CCWeekConsumption from "./CCWeekConsumption";
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -30,18 +31,21 @@ const extractRecordNum = (val) => {
   return null;
 };
 
-const CCTelemetryTab = ({ points, onViewMeasurements, onOpenStopTelemetry }) => {
+const CCTelemetryTab = ({ points, onViewMeasurements, onOpenStopTelemetry, last7, selectedDate, onDateSelect, onSelectPoint }) => {
   const { token } = useToken();
   const [selectedPoint, setSelectedPoint] = useState(points[0]?.id || null);
-  const [selectedDate, setSelectedDate] = useState(moment());
+  const [localSelectedDate, setLocalSelectedDate] = useState(moment());
   const [telemetryData, setTelemetryData] = useState(null);
   const [telemetryLoading, setTelemetryLoading] = useState(false);
+
+  const activeDate = selectedDate || localSelectedDate;
+  const setActiveDate = onDateSelect || setLocalSelectedDate;
 
   const loadTelemetryData = useCallback(async () => {
     if (!selectedPoint) return;
     setTelemetryLoading(true);
     try {
-      const dateStr = selectedDate.format("YYYY-MM-DD");
+      const dateStr = activeDate.format("YYYY-MM-DD");
       const res = await sh.pointRecords(selectedPoint, dateStr, dateStr, 100);
       setTelemetryData(res);
     } catch (err) {
@@ -49,7 +53,7 @@ const CCTelemetryTab = ({ points, onViewMeasurements, onOpenStopTelemetry }) => 
     } finally {
       setTelemetryLoading(false);
     }
-  }, [selectedPoint, selectedDate]);
+  }, [selectedPoint, activeDate]);
 
   const chartData = useMemo(() => {
     if (!telemetryData) return [];
@@ -175,6 +179,18 @@ const CCTelemetryTab = ({ points, onViewMeasurements, onOpenStopTelemetry }) => 
 
   return (
     <Flex vertical gap={16}>
+      {/* Consumo Semanal */}
+      {last7 && (
+        <CCWeekConsumption
+          last7={last7}
+          selectedDate={activeDate}
+          onDateSelect={setActiveDate}
+          onViewMeasurements={onViewMeasurements}
+          onOpenStopTelemetry={onOpenStopTelemetry}
+          onSelectPoint={onSelectPoint}
+        />
+      )}
+
       {/* Selectores */}
       <Flex gap={12} wrap="wrap" align="center">
         <Select
@@ -185,8 +201,8 @@ const CCTelemetryTab = ({ points, onViewMeasurements, onOpenStopTelemetry }) => 
           options={points.map((p) => ({ value: p.id, label: p.title }))}
         />
         <DatePicker
-          value={selectedDate}
-          onChange={setSelectedDate}
+          value={activeDate}
+          onChange={setActiveDate}
           format="DD/MM/YYYY"
           style={{ borderRadius: 8 }}
         />
@@ -260,7 +276,7 @@ const CCTelemetryTab = ({ points, onViewMeasurements, onOpenStopTelemetry }) => 
   );
 };
 
-const CCDataTabs = ({ points, onViewVoucher, onOpenStopCompliance, onSelectPoint, onViewMeasurements, onOpenStopTelemetry }) => {
+const CCDataTabs = ({ points, onViewVoucher, onOpenStopCompliance, onSelectPoint, onViewMeasurements, onOpenStopTelemetry, last7, selectedDate, onDateSelect }) => {
   const { token } = useToken();
 
   const tabItems = [
@@ -277,6 +293,10 @@ const CCDataTabs = ({ points, onViewVoucher, onOpenStopCompliance, onSelectPoint
           points={points}
           onViewMeasurements={onViewMeasurements}
           onOpenStopTelemetry={onOpenStopTelemetry}
+          last7={last7}
+          selectedDate={selectedDate}
+          onDateSelect={onDateSelect}
+          onSelectPoint={onSelectPoint}
         />
       ),
     },
