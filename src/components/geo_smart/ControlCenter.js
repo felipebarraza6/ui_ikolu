@@ -423,14 +423,12 @@ const TinyKPI = ({ icon, label, value, sub, color, token }) => (
   </Card>
 );
 
-/* ── Componente: Gráfico de mediciones del día ── */
-const MeasurementsChart = ({ data, metric, token, color, title }) => {
-  const chartColor = color || token.colorPrimary;
-
+/* ── Componente: Gráfico de mediciones del día (múltiples variables) ── */
+const MeasurementsChart = ({ data, token }) => {
   if (!data || data.length === 0) {
     return (
-      <Flex justify="center" align="center" style={{ height: 220 }} vertical gap={8}>
-        <Text type="secondary" style={{ fontSize: 12 }}>Sin datos de {title || metric}</Text>
+      <Flex justify="center" align="center" style={{ height: 260 }} vertical gap={8}>
+        <Text type="secondary" style={{ fontSize: 12 }}>Sin datos suficientes para el gráfico</Text>
       </Flex>
     );
   }
@@ -438,7 +436,8 @@ const MeasurementsChart = ({ data, metric, token, color, title }) => {
   const config = {
     data,
     xField: "time",
-    yField: metric,
+    yField: "value",
+    seriesField: "variable",
     smooth: true,
     animation: {
       appear: {
@@ -447,37 +446,27 @@ const MeasurementsChart = ({ data, metric, token, color, title }) => {
       },
     },
     lineStyle: {
-      lineWidth: 3,
-      stroke: chartColor,
-      shadowColor: `${chartColor}50`,
-      shadowBlur: 10,
+      lineWidth: 2.5,
     },
     point: {
-      size: 5,
+      size: 4,
       shape: "circle",
       style: {
-        fill: chartColor,
         stroke: "#fff",
-        lineWidth: 2,
-        shadowColor: chartColor,
-        shadowBlur: 8,
+        lineWidth: 1.5,
       },
-    },
-    areaStyle: {
-      fill: `l(270) 0:#ffffff00 0.5:${chartColor}30 1:${chartColor}60`,
     },
     xAxis: {
       label: { style: { fontSize: 11, fill: token.colorTextSecondary } },
       grid: { line: { style: { stroke: `${token.colorBorderSecondary}40` } } },
       line: { style: { stroke: token.colorBorder } },
     },
-    yAxis: {
-      label: {
-        style: { fontSize: 11, fill: token.colorTextSecondary },
-        formatter: (v) => Number(v).toFixed(2),
-      },
-      grid: { line: { style: { stroke: `${token.colorBorderSecondary}40`, lineDash: [4, 4] } } },
-      line: { style: { stroke: token.colorBorder } },
+    yAxis: false,
+    legend: {
+      position: "top",
+      layout: "horizontal",
+      itemSpacing: 16,
+      itemName: { style: { fontSize: 11 } },
     },
     tooltip: {
       showMarkers: true,
@@ -492,22 +481,14 @@ const MeasurementsChart = ({ data, metric, token, color, title }) => {
         "g2-tooltip-title": { fontWeight: 700, marginBottom: 4, color: token.colorText },
         "g2-tooltip-list-item": { fontSize: 12 },
       },
-      formatter: (datum) => {
-        const names = {
-          consumo: "Consumo (m³)",
-          caudal: "Caudal (L/s)",
-          nivel: "Nivel (m)",
-          water_table: "Nivel freático (m)",
-        };
-        const v = datum[metric];
-        const formatted = metric === "consumo"
-          ? `${Number(v).toLocaleString("es-CL", { maximumFractionDigits: 0 })} m³`
-          : `${Number(v).toFixed(2)}`;
-        return { name: names[metric] || metric, value: formatted, title: `${datum.time} hrs` };
-      },
+      formatter: (datum) => ({
+        name: datum.variable,
+        value: `${Number(datum.value).toFixed(2)}`,
+        title: `${datum.time} hrs`,
+      }),
     },
-    height: 220,
-    color: [chartColor],
+    height: 280,
+    color: [token.colorPrimary, token.colorSuccess, "#fa8c16", "#1890ff"],
   };
 
   return <Line {...config} />;
@@ -515,11 +496,7 @@ const MeasurementsChart = ({ data, metric, token, color, title }) => {
 
 /* ── Componente: contenido del Drawer de mediciones ── */
 const MeasurementsDrawerContent = ({ data, token }) => {
-  const [viewMode, setViewMode] = useState("both");
-  const chartMetrics = [
-    { key: "consumo", label: "Consumo (m³)", color: token.colorPrimary },
-    { key: "caudal", label: "Caudal (L/s)", color: token.colorSuccess },
-  ];
+  const [viewMode, setViewMode] = useState("chart");
 
   const measurements = extractMeasurements(data);
 
@@ -568,18 +545,20 @@ const MeasurementsDrawerContent = ({ data, token }) => {
     minWaterTable: findExtreme(sortedMeasurements, "water_table", null, "min"),
   }), [sortedMeasurements, findExtreme, calcAvg]);
 
-  const chartDataAll = useMemo(() => {
-    return sortedMeasurements
-      .map((m) => {
-        const t = moment(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at).format("HH:mm");
-        return {
-          time: t,
-          consumo: extractRecordNum(m.total_diff),
-          caudal: extractRecordNum(m.flow) ?? extractRecordNum(m.caudal),
-          nivel: extractRecordNum(m.nivel) ?? extractRecordNum(m.level),
-          water_table: extractRecordNum(m.water_table),
-        };
-      });
+  const chartDataLong = useMemo(() => {
+    const result = [];
+    sortedMeasurements.forEach((m) => {
+      const t = moment(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at).format("HH:mm");
+      const consumo = extractRecordNum(m.total_diff);
+      const caudal = extractRecordNum(m.flow) ?? extractRecordNum(m.caudal);
+      const nivel = extractRecordNum(m.nivel) ?? extractRecordNum(m.level);
+      const water_table = extractRecordNum(m.water_table);
+      if (consumo != null) result.push({ time: t, value: consumo, variable: "Consumo (m³)" });
+      if (caudal != null) result.push({ time: t, value: caudal, variable: "Caudal (L/s)" });
+      if (nivel != null) result.push({ time: t, value: nivel, variable: "Nivel (m)" });
+      if (water_table != null) result.push({ time: t, value: water_table, variable: "Freático (m)" });
+    });
+    return result;
   }, [sortedMeasurements]);
 
   if (measurements.length === 0) {
@@ -749,18 +728,16 @@ const MeasurementsDrawerContent = ({ data, token }) => {
   return (
     <Flex vertical gap={16}>
       {/* ── Barra de controles ── */}
-      <Flex justify="space-between" align="center" wrap="wrap" gap={8}>
+      <Flex justify="center" align="center" style={{ marginBottom: 8 }}>
         <Segmented
           value={viewMode}
           onChange={setViewMode}
           options={[
             { label: <Flex align="center" gap={4}><FaChartLine size={12} />Gráfico</Flex>, value: "chart" },
-            { label: <Flex align="center" gap={4}><FaTable size={12} />Tabla</Flex>, value: "table" },
-            { label: <Flex align="center" gap={4}><FaTachometerAlt size={12} />Ambos</Flex>, value: "both" },
+            { label: <Flex align="center" gap={4}><FaTable size={12} />Datos</Flex>, value: "table" },
           ]}
           size="small"
         />
-
       </Flex>
 
       {/* ── KPIs / Indicadores del día ── */}
@@ -865,30 +842,19 @@ const MeasurementsDrawerContent = ({ data, token }) => {
         </Col>
       </Row>
 
-      {/* ── Gráficos 2x2 ── */}
-      {(viewMode === "chart" || viewMode === "both") && (
-        <Row gutter={[12, 12]}>
-          {chartMetrics.map((cm) => {
-            const data = chartDataAll.filter((d) => d[cm.key] != null);
-            return (
-              <Col xs={24} md={12} key={cm.key}>
-                <Card
-                  size="small"
-                  title={<Text strong style={{ fontSize: 12 }}>{cm.label}</Text>}
-                  bodyStyle={{ padding: 8 }}
-                  headStyle={{ padding: "4px 12px", minHeight: 32 }}
-                  style={{ borderRadius: 12, border: `1px solid ${token.colorBorderSecondary}` }}
-                >
-                  <MeasurementsChart data={data} metric={cm.key} token={token} color={cm.color} title={cm.label} />
-                </Card>
-              </Col>
-            );
-          })}
-        </Row>
+      {/* ── Gráfico multivariable ── */}
+      {viewMode === "chart" && (
+        <Card
+          size="small"
+          bodyStyle={{ padding: 12 }}
+          style={{ borderRadius: 12, border: `1px solid ${token.colorBorderSecondary}` }}
+        >
+          <MeasurementsChart data={chartDataLong} token={token} />
+        </Card>
       )}
 
       {/* ── Tabla ── */}
-      {(viewMode === "table" || viewMode === "both") && (
+      {viewMode === "table" && (
         <Table
           dataSource={allMeasurements.map((m, i) => ({ ...m, key: i, _prev: allMeasurements[i - 1] || null }))}
           columns={measurementColumns}
