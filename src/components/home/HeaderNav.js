@@ -3,16 +3,13 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useData } from "../../contexts/DataContext";
 import { useUI } from "../../contexts/UIContext";
+import { useAppTheme } from "../../contexts/ThemeContext";
 import {
   LogoutOutlined,
   UserOutlined,
   BarChartOutlined,
   FileTextOutlined,
-  AlertOutlined,
-  CustomerServiceOutlined,
-  DownloadOutlined,
-  EnvironmentOutlined,
-  GlobalOutlined,
+  BulbOutlined,
   MenuOutlined,
   BellOutlined,
   WifiOutlined,
@@ -20,7 +17,7 @@ import {
   SettingOutlined,
   DesktopOutlined,
 } from "@ant-design/icons";
-import { Typography, Button, Popconfirm, Flex, Breadcrumb, Dropdown, Badge } from "antd";
+import { Typography, Button, Popconfirm, Flex, Breadcrumb, Dropdown, Badge, Tooltip } from "antd";
 import AlertPreview from "./AlertPreview";
 import WellConfigDrawer from "../well/WellConfigDrawer";
 import DgaConfigDrawer from "../well/DgaConfigDrawer";
@@ -100,6 +97,7 @@ const HeaderNav = ({ onMenuClick }) => {
   const { dispatch, user } = useAuth();
   const { selected_profile } = useData();
   const { adminView } = useUI();
+  const { isDark, toggleTheme } = useAppTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const { isMobile } = useResponsive();
@@ -350,6 +348,32 @@ const HeaderNav = ({ onMenuClick }) => {
           <AlertPreview />
 
           <TourHelpButton />
+
+          <Tooltip title={isDark ? "Modo claro" : "Modo oscuro"}>
+            <div
+              onClick={toggleTheme}
+              style={{
+                cursor: "pointer",
+                width: 28,
+                height: 28,
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "all 0.2s",
+                color: "#1F3461",
+                fontSize: 14,
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(31,52,97,0.06)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+            >
+              {isDark ? (
+                <BulbOutlined style={{ fontSize: 16, color: "#ffd666" }} />
+              ) : (
+                <BulbOutlined style={{ fontSize: 16 }} />
+              )}
+            </div>
+          </Tooltip>
 
           <Dropdown
             menu={{

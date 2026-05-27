@@ -1,24 +1,3 @@
-/**
- * ============================================================================
- * TEMA CENTRALIZADO IKOLU — Ant Design 5
- * ============================================================================
- *
- * Objetivo: eliminar colores/shadows/radii hardcodeados dispersos en 100+
- * archivos. Todo componente nuevo o refactorizado debe consumir estos tokens.
- *
- * Uso dentro de componentes React:
- *   import { theme } from "antd";
- *   const { token } = theme.useToken();
- *
- * Uso fuera de React (ej: columnas de tabla definidas globalmente):
- *   import { ikoluTokens } from "../theme";
- *
- * Uso en ConfigProvider (src/index.js):
- *   import { ikoluTheme } from "./theme";
- *   <ConfigProvider theme={ikoluTheme}>...</ConfigProvider>
- */
-
-// ── Paleta corporativa ─────────────────────────────────────────────────────
 const CORPORATE_BLUE = "#1F3461";
 const CORPORATE_BLUE_LIGHT = "#2A4A8A";
 const CORPORATE_BLUE_MID = "#3B6CA8";
@@ -40,8 +19,8 @@ const RED_BG = "#FFF2F0";
 const GREEN_TEXT = "#43a047";
 const GREEN_DARK_TEXT = "#388e3c";
 
-// ── Tema oficial para ConfigProvider (Ant Design 5) ────────────────────────
-export const ikoluTheme = {
+export const createIkoluTheme = (algorithm = null) => ({
+  algorithm,
   token: {
     colorPrimary: CORPORATE_BLUE,
     colorLink: CORPORATE_BLUE,
@@ -51,40 +30,17 @@ export const ikoluTheme = {
     colorWarning: "#faad14",
     colorError: "#f5222d",
     colorInfo: "#1890ff",
-    colorPrimaryBorder: "#ffffff",
-    colorBgContainer: "#ffffff",
-    colorBgLayout: "#f5f5f5",
-    colorText: "rgba(0, 0, 0, 0.88)",
-    colorTextSecondary: GREY_TEXT,
-    colorBorder: BORDER_LIGHT,
-    colorBorderSecondary: BORDER_LIGHT,
     borderRadius: 8,
     borderRadiusLG: 12,
     borderRadiusSM: 6,
     borderRadiusXS: 4,
-    boxShadow:
-      "0 4px 12px rgba(0, 0, 0, 0.08)",
-    boxShadowSecondary:
-      "0 2px 8px rgba(0, 0, 0, 0.06)",
-    boxShadowTertiary:
-      "0 6px 16px rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12)",
     fontSize: 14,
     fontSizeSM: 12,
     fontSizeLG: 16,
   },
   components: {
-    Tabs: {
-      colorBgContainer: CORPORATE_BLUE,
-      itemSelectedColor: "#ffffff",
-      itemHoverColor: CORPORATE_BLUE,
-      itemColor: CORPORATE_BLUE,
-    },
-    Badge: {
-      colorInfo: CORPORATE_BLUE,
-    },
     Button: {
       colorPrimary: CORPORATE_BLUE,
-      borderColor: "#ffffff",
     },
     Card: {
       borderRadiusLG: 16,
@@ -92,12 +48,6 @@ export const ikoluTheme = {
     },
     Layout: {
       colorBgHeader: CORPORATE_BLUE,
-      colorBgBody: "#f5f5f5",
-    },
-    Menu: {
-      darkItemBg: CORPORATE_BLUE,
-      darkSubMenuItemBg: "#16264a",
-      darkItemSelectedBg: "rgba(255,255,255,0.15)",
     },
     Table: {
       borderRadius: 8,
@@ -108,12 +58,17 @@ export const ikoluTheme = {
     Progress: {
       defaultColor: CORPORATE_BLUE,
     },
+    Menu: {
+      darkItemBg: CORPORATE_BLUE,
+      darkSubMenuItemBg: "#16264a",
+      darkItemSelectedBg: "rgba(255,255,255,0.15)",
+    },
   },
-};
+});
 
-// ── Tokens custom para import directo (fuera de hooks) ─────────────────────
+export const ikoluTheme = createIkoluTheme();
+
 export const ikoluTokens = {
-  // Colores
   colorCorporateBlue: CORPORATE_BLUE,
   colorSuccess: "#52c41a",
   colorWarning: "#faad14",
@@ -140,21 +95,15 @@ export const ikoluTokens = {
   colorGreenDarkText: GREEN_DARK_TEXT,
   colorWhite: "#ffffff",
   colorBlack: "#000000",
-
-  // Sombras
   shadowCard: "0 4px 12px rgba(0, 0, 0, 0.08)",
   shadowCardHover: "0 8px 24px rgba(0, 0, 0, 0.12)",
   shadowNav: "0 -2px 8px rgba(0, 0, 0, 0.06)",
   shadowPrimary: "0 2px 6px rgba(24, 144, 255, 0.25)",
-
-  // Radios
   radiusXS: 4,
   radiusSmall: 6,
   radiusDefault: 8,
   radiusLarge: 12,
   radiusXL: 16,
-
-  // Tamaños de fuente
   fontSizeSmall: 11,
   fontSizeBase: 12,
   fontSizeMid: 13,
@@ -165,14 +114,12 @@ export const ikoluTokens = {
   fontSize4XL: 24,
 };
 
-// ── Gradientes reutilizables (KPICard, hero banners, etc.) ─────────────────
 export const kpiGradients = {
   primary: `linear-gradient(135deg, ${CORPORATE_BLUE} 0%, ${CORPORATE_BLUE_LIGHT} 100%)`,
   secondary: `linear-gradient(135deg, ${CORPORATE_BLUE_LIGHT} 0%, ${CORPORATE_BLUE_MID} 100%)`,
   info: `linear-gradient(135deg, ${CORPORATE_BLUE_BRIGHT} 0%, #42a5f5 100%)`,
 };
 
-// ── Utilidades de estilo para reemplazar objetos inline repetidos ──────────
 export const styles = {
   cardHeaderFlex: { display: "flex", alignItems: "center", gap: 8 },
   textCenterBlock: { textAlign: "center", display: "block" },
@@ -181,7 +128,6 @@ export const styles = {
   absoluteBottomSvg: { position: "absolute", left: 0, bottom: 0, zIndex: 1 },
 };
 
-// ── Paleta unificada para gráficos (@ant-design/plots) ─────────────────────
 export const CHART_COLORS = {
   primary: CORPORATE_BLUE,
   primaryLight: CORPORATE_BLUE_LIGHT,
@@ -201,35 +147,15 @@ export const CHART_COLORS = {
   gold: "#faad14",
 };
 
-// ── Configuración base para gráficos minimalistas ──────────────────────────
 export const CHART_CONFIG = {
   line: {
     lineWidth: 2,
-    point: {
-      size: 2,
-      state: {
-        active: { size: 5 },
-      },
-    },
-    area: {
-      style: {
-        fillOpacity: 0.1,
-      },
-    },
-    animation: {
-      appear: {
-        animation: "fade-in",
-        duration: 400,
-      },
-    },
+    point: { size: 2, state: { active: { size: 5 } } },
+    area: { style: { fillOpacity: 0.1 } },
+    animation: { appear: { animation: "fade-in", duration: 400 } },
   },
   grid: {
-    line: {
-      style: {
-        stroke: "rgba(0, 0, 0, 0.08)",
-        lineDash: [4, 4],
-      },
-    },
+    line: { style: { stroke: "rgba(0, 0, 0, 0.08)", lineDash: [4, 4] } },
   },
   tooltip: {
     domStyles: {
@@ -244,10 +170,7 @@ export const CHART_CONFIG = {
   },
   axis: {
     gridLine: {
-      style: {
-        stroke: "rgba(0, 0, 0, 0.06)",
-        lineDash: [4, 4],
-      },
+      line: { style: { stroke: "rgba(0, 0, 0, 0.06)", lineDash: [4, 4] } },
     },
   },
 };
