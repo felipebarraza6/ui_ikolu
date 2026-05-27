@@ -8,19 +8,6 @@ export const WaterIKPageContainer = styled.div`
   overflow: hidden;
 `;
 
-export const WaterIKSidebarContainer = styled.div`
-  width: 280px;
-  background: ${({ theme }) => theme.token.colorBgContainer};
-  border-right: 1px solid ${({ theme }) => theme.token.colorBorderSecondary};
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-
-  @media (max-width: 768px) {
-    display: none;
-  }
-`;
-
 export const WaterIKMainArea = styled.div`
   flex: 1;
   display: flex;
@@ -31,39 +18,40 @@ export const WaterIKMainArea = styled.div`
 export const WaterIKHeader = styled.div`
   ${animations.fadeInUp}
   animation: fadeInUp 0.3s ease-out;
-  padding: 16px 24px;
+  padding: 10px 20px;
   background: ${({ theme }) => theme.token.colorBgContainer};
   border-bottom: 1px solid ${({ theme }) => theme.token.colorBorderSecondary};
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-height: 44px;
 `;
 
 export const WaterIKTitle = styled.h1`
   margin: 0;
-  font-size: ${({ theme }) => theme.fontSizes["2xl"]};
+  font-size: ${({ theme }) => theme.fontSizes.large};
   font-weight: 600;
   color: ${({ theme }) => theme.colors.corporateBlue};
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 `;
 
 export const WaterIKBetaBadge = styled.span`
-  background: ${({ theme }) => theme.colors.accentOrange};
-  color: white;
-  font-size: ${({ theme }) => theme.fontSizes.small};
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 12px;
-  text-transform: uppercase;
+  font-size: 8px;
+  font-weight: 700;
+  color: #FF6B35;
+  background: rgba(255,107,53,0.1);
+  padding: 1px 5px;
+  border-radius: 4px;
   letter-spacing: 0.5px;
+  text-transform: uppercase;
 `;
 
 export const WaterIKChatArea = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 24px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
 `;
@@ -72,42 +60,43 @@ export const WaterIKWelcomeMessage = styled.div`
   ${animations.scaleIn}
   animation: scaleIn 0.4s ease-out;
   text-align: center;
-  padding: 40px 20px;
-  max-width: 600px;
+  padding: 32px 20px;
+  max-width: 560px;
   margin: auto;
 `;
 
 export const WaterIKWelcomeIcon = styled.div`
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
   background: ${({ theme }) => theme.gradients.primary};
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 20px;
-  font-size: 36px;
+  margin: 0 auto 16px;
+  font-size: 24px;
   color: white;
 `;
 
 export const WaterIKWelcomeTitle = styled.h2`
-  font-size: ${({ theme }) => theme.fontSizes["3xl"]};
+  font-size: ${({ theme }) => theme.fontSizes["2xl"]};
   color: ${({ theme }) => theme.colors.corporateBlue};
-  margin-bottom: 12px;
+  margin: 0 0 8px;
+  font-weight: 600;
 `;
 
 export const WaterIKWelcomeText = styled.p`
-  font-size: ${({ theme }) => theme.fontSizes.large};
+  font-size: ${({ theme }) => theme.fontSizes.base};
   color: ${({ theme }) => theme.colors.greyText};
-  line-height: 1.6;
-  margin-bottom: 24px;
+  line-height: 1.5;
+  margin: 0 0 20px;
 `;
 
 export const WaterIKQuickActions = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
-  margin-top: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-top: 20px;
 `;
 
 export const WaterIKQuickAction = styled.button`
@@ -117,45 +106,45 @@ export const WaterIKQuickAction = styled.button`
   animation-fill-mode: both;
   background: ${({ theme }) => theme.token.colorBgContainer};
   border: 1px solid ${({ theme }) => theme.token.colorBorderSecondary};
-  border-radius: ${({ theme }) => theme.token.borderRadiusLG};
-  padding: 16px;
+  border-radius: ${({ theme }) => theme.token.borderRadius};
+  padding: 12px;
   text-align: left;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
     border-color: ${({ theme }) => theme.colors.corporateBlue};
-    box-shadow: 0 4px 12px rgba(31, 52, 97, 0.1);
-    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(31, 52, 97, 0.08);
+    transform: translateY(-1px);
   }
 
   .icon {
-    font-size: 24px;
-    margin-bottom: 8px;
+    font-size: 20px;
+    margin-bottom: 6px;
   }
 
   .title {
-    font-size: ${({ theme }) => theme.fontSizes.large};
+    font-size: ${({ theme }) => theme.fontSizes.base};
     font-weight: 500;
     color: ${({ theme }) => theme.colors.corporateBlue};
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
 
   .description {
-    font-size: ${({ theme }) => theme.fontSizes.base};
+    font-size: ${({ theme }) => theme.fontSizes.small};
     color: ${({ theme }) => theme.colors.greyText};
   }
 `;
 
 export const WaterIKInputContainer = styled.div`
-  padding: 16px 24px;
+  padding: 12px 20px;
   background: ${({ theme }) => theme.token.colorBgContainer};
   border-top: 1px solid ${({ theme }) => theme.token.colorBorderSecondary};
 `;
 
 export const WaterIKQuotaBar = styled.div`
-  font-size: ${({ theme }) => theme.fontSizes.small};
+  font-size: 10px;
   color: ${({ theme }) => theme.colors.greyText};
   text-align: center;
-  padding: 8px 0;
+  padding: 6px 0;
 `;

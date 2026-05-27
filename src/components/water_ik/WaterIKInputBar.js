@@ -3,7 +3,7 @@ import styled from "@emotion/styled";
 import { animations } from "../../styles/animations";
 
 const InputContainer = styled.div`
-  padding: 16px 24px;
+  padding: 10px 20px;
   background: ${({ theme }) => theme.token.colorBgContainer};
   border-top: 1px solid ${({ theme }) => theme.token.colorBorderSecondary};
 `;
@@ -13,18 +13,18 @@ const SuggestionsContainer = styled.div`
   animation: fadeInUp 0.3s ease-out;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-bottom: 8px;
   justify-content: center;
 `;
 
 const SuggestionChip = styled.button`
-  padding: 6px 14px;
-  border-radius: 16px;
+  padding: 4px 10px;
+  border-radius: 14px;
   border: 1px solid ${({ theme }) => theme.token.colorBorderSecondary};
   background: ${({ theme }) => theme.token.colorBgContainer};
   color: ${({ theme }) => theme.colors.corporateBlue};
-  font-size: ${({ theme }) => theme.fontSizes.base};
+  font-size: 11px;
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -36,24 +36,24 @@ const SuggestionChip = styled.button`
 
 const InputWrapper = styled.div`
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: flex-end;
-  max-width: 800px;
+  max-width: 720px;
   margin: 0 auto;
 `;
 
 const TextArea = styled.textarea`
   flex: 1;
-  padding: 12px 16px;
+  padding: 10px 14px;
   border: 1px solid ${({ theme }) => theme.token.colorBorderSecondary};
-  border-radius: 24px;
-  font-size: ${({ theme }) => theme.fontSizes.large};
+  border-radius: 20px;
+  font-size: ${({ theme }) => theme.fontSizes.base};
   font-family: inherit;
   resize: none;
   outline: none;
   transition: border-color 0.2s;
-  min-height: 48px;
-  max-height: 120px;
+  min-height: 40px;
+  max-height: 100px;
 
   &:focus {
     border-color: ${({ theme }) => theme.colors.corporateBlue};
@@ -66,8 +66,8 @@ const TextArea = styled.textarea`
 
 const SendButton = styled.button`
   ${animations.pulseGlow}
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: ${({ theme, disabled }) =>
     disabled ? theme.colors.greyTextDisabled : theme.gradients.primary};
@@ -77,7 +77,7 @@ const SendButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 16px;
   transition: all 0.2s ease;
   flex-shrink: 0;
 
@@ -87,10 +87,10 @@ const SendButton = styled.button`
 `;
 
 const QuotaText = styled.div`
-  font-size: ${({ theme }) => theme.fontSizes.small};
+  font-size: 10px;
   color: ${({ theme }) => theme.colors.greyText};
   text-align: center;
-  margin-top: 8px;
+  margin-top: 6px;
 `;
 
 const WaterIKInputBar = ({
@@ -141,7 +141,7 @@ const WaterIKInputBar = ({
       </InputWrapper>
       {chatQuota?.dailyLimit && (
         <QuotaText>
-          Preguntas usadas: {chatQuota.usedToday || 0} de {chatQuota.dailyLimit} disponibles
+          {chatQuota.usedToday || 0}/{chatQuota.dailyLimit} preguntas hoy
         </QuotaText>
       )}
     </InputContainer>

@@ -7,24 +7,25 @@ import { BarChartOutlined, FileTextOutlined, FileProtectOutlined, FileOutlined }
 const PanelContainer = styled.div`
   ${animations.fadeInUp}
   animation: fadeInUp 0.3s ease-out;
-  padding: 24px;
+  padding: 16px 20px;
   overflow-y: auto;
   flex: 1;
 `;
 
 const PanelTitle = styled.h2`
-  font-size: ${({ theme }) => theme.fontSizes["2xl"]};
+  font-size: ${({ theme }) => theme.fontSizes.large};
   color: ${({ theme }) => theme.colors.corporateBlue};
-  margin: 0 0 20px;
+  margin: 0 0 16px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  font-weight: 600;
 `;
 
 const DocumentGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
 `;
 
 const DocumentCard = styled.div`
@@ -32,20 +33,20 @@ const DocumentCard = styled.div`
   animation: scaleIn 0.2s ease-out;
   background: ${({ theme }) => theme.token.colorBgContainer};
   border: 1px solid ${({ theme }) => theme.token.colorBorderSecondary};
-  border-radius: ${({ theme }) => theme.token.borderRadiusLG};
-  padding: 16px;
+  border-radius: ${({ theme }) => theme.token.borderRadius};
+  padding: 14px;
   transition: all 0.2s ease;
 
   &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
   }
 `;
 
 const DocumentIcon = styled.div`
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   background: ${({ type, theme }) => {
     if (type === "report") return theme.colors.blueTint;
     if (type === "certificate") return "#e8f5e9";
@@ -54,27 +55,33 @@ const DocumentIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  margin-bottom: 12px;
+  font-size: 18px;
+  color: ${({ type, theme }) => {
+    if (type === "report") return theme.colors.corporateBlue;
+    if (type === "certificate") return theme.colors.greenText;
+    return theme.colors.greyText;
+  }};
+  margin-bottom: 10px;
 `;
 
 const DocumentTitle = styled.h3`
-  font-size: ${({ theme }) => theme.fontSizes.large};
+  font-size: ${({ theme }) => theme.fontSizes.base};
   color: ${({ theme }) => theme.token.colorText};
-  margin: 0 0 8px;
+  margin: 0 0 6px;
+  font-weight: 500;
 `;
 
 const DocumentMeta = styled.div`
-  font-size: ${({ theme }) => theme.fontSizes.base};
+  font-size: 11px;
   color: ${({ theme }) => theme.colors.greyText};
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 `;
 
 const DocumentStatus = styled.span`
   display: inline-block;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: ${({ theme }) => theme.fontSizes.small};
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
   font-weight: 500;
   background: ${({ status, theme }) => {
     if (status === "ready") return "#e8f5e9";
@@ -89,31 +96,32 @@ const DocumentStatus = styled.span`
 `;
 
 const DownloadButton = styled.button`
-  margin-top: 12px;
-  padding: 8px 16px;
+  margin-top: 10px;
+  padding: 6px 12px;
   background: ${({ theme }) => theme.gradients.primary};
   color: white;
   border: none;
-  border-radius: ${({ theme }) => theme.radii.default};
-  font-size: ${({ theme }) => theme.fontSizes.base};
+  border-radius: ${({ theme }) => theme.radii.small};
+  font-size: 11px;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(31, 52, 97, 0.3);
+    box-shadow: 0 2px 8px rgba(31, 52, 97, 0.25);
   }
 `;
 
 const EmptyState = styled.div`
   text-align: center;
-  padding: 60px 20px;
+  padding: 48px 20px;
   color: ${({ theme }) => theme.colors.greyText};
 `;
 
 const EmptyIcon = styled.div`
-  font-size: 48px;
-  margin-bottom: 16px;
+  font-size: 36px;
+  margin-bottom: 12px;
+  color: ${({ theme }) => theme.colors.greyTextLight};
 `;
 
 const WaterIKDocumentPanel = ({ documents, isLoading, onGenerateDocument }) => {
@@ -135,8 +143,8 @@ const WaterIKDocumentPanel = ({ documents, isLoading, onGenerateDocument }) => {
   return (
     <PanelContainer>
       <PanelTitle>
-        <span><FileTextOutlined /></span>
-        <span>Documentos Generados</span>
+        <FileTextOutlined />
+        <span>Documentos</span>
       </PanelTitle>
 
       {isLoading ? (
@@ -148,8 +156,8 @@ const WaterIKDocumentPanel = ({ documents, isLoading, onGenerateDocument }) => {
       ) : documents.length === 0 ? (
         <EmptyState>
           <EmptyIcon><FileOutlined /></EmptyIcon>
-          <h3>Sin documentos aún</h3>
-          <p>Pide un informe o certificado desde el chat para generarlo.</p>
+          <h3 style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 500 }}>Sin documentos</h3>
+          <p style={{ margin: 0, fontSize: 12 }}>Pide un informe o certificado desde el chat.</p>
         </EmptyState>
       ) : (
         <DocumentGrid>

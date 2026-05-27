@@ -7,18 +7,19 @@ import { CheckCircleOutlined } from "@ant-design/icons";
 const PanelContainer = styled.div`
   ${animations.fadeInUp}
   animation: fadeInUp 0.3s ease-out;
-  padding: 24px;
+  padding: 16px 20px;
   overflow-y: auto;
   flex: 1;
 `;
 
 const PanelTitle = styled.h2`
-  font-size: ${({ theme }) => theme.fontSizes["2xl"]};
+  font-size: ${({ theme }) => theme.fontSizes.large};
   color: ${({ theme }) => theme.colors.corporateBlue};
-  margin: 0 0 20px;
+  margin: 0 0 16px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  font-weight: 600;
 `;
 
 const ScoreContainer = styled.div`
@@ -26,15 +27,15 @@ const ScoreContainer = styled.div`
   animation: scaleIn 0.3s ease-out;
   background: ${({ theme }) => theme.token.colorBgContainer};
   border: 1px solid ${({ theme }) => theme.token.colorBorderSecondary};
-  border-radius: ${({ theme }) => theme.token.borderRadiusLG};
-  padding: 32px;
+  border-radius: ${({ theme }) => theme.token.borderRadius};
+  padding: 20px;
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 `;
 
 const ScoreCircle = styled.div`
-  width: 120px;
-  height: 120px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   background: conic-gradient(
     ${({ score, theme }) => {
@@ -48,19 +49,18 @@ const ScoreCircle = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 16px;
-  position: relative;
+  margin: 0 auto 12px;
 `;
 
 const ScoreInner = styled.div`
-  width: 100px;
-  height: 100px;
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
   background: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
+  font-size: 22px;
   font-weight: 700;
   color: ${({ score, theme }) => {
     if (score >= 0.8) return theme.colors.success;
@@ -70,16 +70,16 @@ const ScoreInner = styled.div`
 `;
 
 const ScoreLabel = styled.div`
-  font-size: ${({ theme }) => theme.fontSizes.large};
+  font-size: ${({ theme }) => theme.fontSizes.base};
   color: ${({ theme }) => theme.colors.greyText};
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 `;
 
 const ModuleGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
 `;
 
 const ModuleCard = styled.div`
@@ -89,27 +89,28 @@ const ModuleCard = styled.div`
   animation-fill-mode: both;
   background: ${({ theme }) => theme.token.colorBgContainer};
   border: 1px solid ${({ theme }) => theme.token.colorBorderSecondary};
-  border-radius: ${({ theme }) => theme.token.borderRadiusLG};
-  padding: 20px;
+  border-radius: ${({ theme }) => theme.token.borderRadius};
+  padding: 14px;
 `;
 
 const ModuleHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 `;
 
 const ModuleName = styled.h3`
-  font-size: ${({ theme }) => theme.fontSizes.large};
+  font-size: ${({ theme }) => theme.fontSizes.base};
   color: ${({ theme }) => theme.token.colorText};
   margin: 0;
+  font-weight: 500;
 `;
 
 const ModuleStatus = styled.span`
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: ${({ theme }) => theme.fontSizes.small};
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
   font-weight: 500;
   background: ${({ status, theme }) => {
     if (status === "ok") return "#e8f5e9";
@@ -124,20 +125,20 @@ const ModuleStatus = styled.span`
 `;
 
 const ModuleScore = styled.div`
-  font-size: ${({ theme }) => theme.fontSizes["2xl"]};
+  font-size: ${({ theme }) => theme.fontSizes.xl};
   font-weight: 600;
   color: ${({ score, theme }) => {
     if (score >= 0.8) return theme.colors.success;
     if (score >= 0.6) return theme.colors.warning;
     return theme.colors.error;
   }};
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 `;
 
 const ModuleIssues = styled.ul`
   margin: 0;
-  padding-left: 20px;
-  font-size: ${({ theme }) => theme.fontSizes.base};
+  padding-left: 16px;
+  font-size: 11px;
   color: ${({ theme }) => theme.colors.greyText};
 `;
 
@@ -146,32 +147,33 @@ const RecommendationsContainer = styled.div`
   animation: fadeInUp 0.3s ease-out;
   background: ${({ theme }) => theme.colors.blueBg};
   border: 1px solid ${({ theme }) => theme.colors.blueTint};
-  border-radius: ${({ theme }) => theme.token.borderRadiusLG};
-  padding: 20px;
+  border-radius: ${({ theme }) => theme.token.borderRadius};
+  padding: 14px;
 `;
 
 const RecommendationsTitle = styled.h3`
-  font-size: ${({ theme }) => theme.fontSizes.large};
+  font-size: ${({ theme }) => theme.fontSizes.base};
   color: ${({ theme }) => theme.colors.corporateBlue};
-  margin: 0 0 12px;
+  margin: 0 0 8px;
+  font-weight: 500;
 `;
 
 const RecommendationItem = styled.li`
-  font-size: ${({ theme }) => theme.fontSizes.base};
+  font-size: 12px;
   color: ${({ theme }) => theme.token.colorText};
-  margin-bottom: 8px;
-  line-height: 1.5;
+  margin-bottom: 6px;
+  line-height: 1.4;
 `;
 
 const WaterIKValidationPanel = ({ validation, isLoading }) => {
   if (isLoading) {
     return (
       <PanelContainer>
-      <PanelTitle>
-        <span><CheckCircleOutlined /></span>
-        <span>Validación de Módulos</span>
-      </PanelTitle>
-      <SkeletonValidation />
+        <PanelTitle>
+          <CheckCircleOutlined />
+          <span>Validación</span>
+        </PanelTitle>
+        <SkeletonValidation />
       </PanelContainer>
     );
   }
@@ -179,14 +181,14 @@ const WaterIKValidationPanel = ({ validation, isLoading }) => {
   if (!validation) {
     return (
       <PanelContainer>
-      <PanelTitle>
-        <span><CheckCircleOutlined /></span>
-        <span>Validación de Módulos</span>
-      </PanelTitle>
-      <div style={{ textAlign: "center", padding: 60, color: "#8c8c8c" }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}><CheckCircleOutlined /></div>
-          <h3>Sin validación disponible</h3>
-          <p>La validación se ejecuta automáticamente una vez al día.</p>
+        <PanelTitle>
+          <CheckCircleOutlined />
+          <span>Validación</span>
+        </PanelTitle>
+        <div style={{ textAlign: "center", padding: 40, color: "#8c8c8c" }}>
+          <div style={{ fontSize: 36, marginBottom: 12, color: "#d9d9d9" }}><CheckCircleOutlined /></div>
+          <h3 style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 500 }}>Sin validación</h3>
+          <p style={{ margin: 0, fontSize: 12 }}>Se ejecuta automáticamente una vez al día.</p>
         </div>
       </PanelContainer>
     );
@@ -197,8 +199,8 @@ const WaterIKValidationPanel = ({ validation, isLoading }) => {
   return (
     <PanelContainer>
       <PanelTitle>
-        <span><CheckCircleOutlined /></span>
-        <span>Validación de Módulos</span>
+        <CheckCircleOutlined />
+        <span>Validación</span>
       </PanelTitle>
 
       <ScoreContainer>
@@ -207,9 +209,9 @@ const WaterIKValidationPanel = ({ validation, isLoading }) => {
             {Math.round(validation.score * 100)}%
           </ScoreInner>
         </ScoreCircle>
-        <ScoreLabel>Score General de Validación</ScoreLabel>
-        <div style={{ fontSize: 12, color: "#8c8c8c" }}>
-          Última validación: {new Date(validation.date).toLocaleDateString("es-CL")}
+        <ScoreLabel>Score General</ScoreLabel>
+        <div style={{ fontSize: 10, color: "#8c8c8c" }}>
+          {new Date(validation.date).toLocaleDateString("es-CL")}
         </div>
       </ScoreContainer>
 
@@ -236,8 +238,8 @@ const WaterIKValidationPanel = ({ validation, isLoading }) => {
 
       {validation.recommendations && validation.recommendations.length > 0 && (
         <RecommendationsContainer>
-          <RecommendationsTitle>💡 Recomendaciones</RecommendationsTitle>
-          <ul style={{ margin: 0, paddingLeft: 20 }}>
+          <RecommendationsTitle>Recomendaciones</RecommendationsTitle>
+          <ul style={{ margin: 0, paddingLeft: 16 }}>
             {validation.recommendations.map((rec, i) => (
               <RecommendationItem key={i}>{rec}</RecommendationItem>
             ))}

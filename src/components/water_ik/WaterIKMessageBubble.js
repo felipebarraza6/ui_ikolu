@@ -7,8 +7,8 @@ const MessageContainer = styled.div`
   ${animations.fadeInUp}
   animation: fadeInUp 0.3s ease-out;
   display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 10px;
+  margin-bottom: 16px;
   align-items: flex-start;
 
   &.user {
@@ -17,9 +17,9 @@ const MessageContainer = styled.div`
 `;
 
 const Avatar = styled.div`
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -29,13 +29,13 @@ const Avatar = styled.div`
       ? "linear-gradient(135deg, #1F3461 0%, #2A4A8A 100%)"
       : "linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)"};
   color: white;
-  font-size: 14px;
+  font-size: 13px;
 `;
 
 const Bubble = styled.div`
-  max-width: 75%;
-  padding: 12px 16px;
-  border-radius: 14px;
+  max-width: 70%;
+  padding: 10px 14px;
+  border-radius: 12px;
   line-height: 1.5;
   word-wrap: break-word;
   background: ${({ variant, theme }) => {
@@ -54,28 +54,28 @@ const Bubble = styled.div`
 `;
 
 const MessageText = styled.div`
-  font-size: ${({ theme }) => theme.fontSizes.large};
+  font-size: ${({ theme }) => theme.fontSizes.base};
   white-space: pre-wrap;
 `;
 
 const MessageTime = styled.span`
-  font-size: ${({ theme }) => theme.fontSizes.small};
+  font-size: 10px;
   color: ${({ theme }) => theme.colors.greyText};
-  margin-top: 4px;
+  margin-top: 3px;
   display: block;
   text-align: ${({ align }) => align || "left"};
 `;
 
 const TypingIndicator = styled.div`
   display: flex;
-  gap: 4px;
-  padding: 8px 12px;
+  gap: 3px;
+  padding: 6px 10px;
 `;
 
 const TypingDot = styled.span`
   ${animations.typingDots}
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: ${({ theme }) => theme.colors.corporateBlue};
   animation: typingDots 1.4s infinite ease-in-out both;
@@ -93,7 +93,7 @@ const WaterIKMessageBubble = ({ message, isTyping = false }) => {
   if (isTyping) {
     return (
       <MessageContainer className="ai">
-        <Avatar variant="ai"><ThunderboltOutlined /></Avatar>
+        <Avatar variant="ai"><ThunderboltOutlined style={{ fontSize: 12 }} /></Avatar>
         <Bubble variant="ai">
           <TypingIndicator>
             <TypingDot delay="0s" />
@@ -107,7 +107,7 @@ const WaterIKMessageBubble = ({ message, isTyping = false }) => {
 
   return (
     <MessageContainer className={variant}>
-      <Avatar variant={variant}>{variant === "user" ? <UserOutlined /> : <ThunderboltOutlined />}</Avatar>
+      <Avatar variant={variant}>{variant === "user" ? <UserOutlined style={{ fontSize: 13 }} /> : <ThunderboltOutlined style={{ fontSize: 12 }} />}</Avatar>
       <div>
         <Bubble variant={variant}>
           <MessageText>{message.text}</MessageText>

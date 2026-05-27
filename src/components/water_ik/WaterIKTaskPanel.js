@@ -6,24 +6,25 @@ import { UnorderedListOutlined } from "@ant-design/icons";
 const PanelContainer = styled.div`
   ${animations.fadeInUp}
   animation: fadeInUp 0.3s ease-out;
-  padding: 24px;
+  padding: 16px 20px;
   overflow-y: auto;
   flex: 1;
 `;
 
 const PanelTitle = styled.h2`
-  font-size: ${({ theme }) => theme.fontSizes["2xl"]};
+  font-size: ${({ theme }) => theme.fontSizes.large};
   color: ${({ theme }) => theme.colors.corporateBlue};
-  margin: 0 0 20px;
+  margin: 0 0 16px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  font-weight: 600;
 `;
 
 const TaskColumns = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: 12px;
 
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
@@ -32,25 +33,26 @@ const TaskColumns = styled.div`
 
 const TaskColumn = styled.div`
   background: ${({ theme }) => theme.token.colorBgLayout};
-  border-radius: ${({ theme }) => theme.token.borderRadiusLG};
-  padding: 16px;
-  min-height: 300px;
+  border-radius: ${({ theme }) => theme.token.borderRadius};
+  padding: 12px;
+  min-height: 200px;
 `;
 
 const ColumnHeader = styled.h3`
-  font-size: ${({ theme }) => theme.fontSizes.large};
+  font-size: ${({ theme }) => theme.fontSizes.base};
   color: ${({ theme }) => theme.token.colorText};
-  margin: 0 0 16px;
+  margin: 0 0 12px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  font-weight: 500;
 
   .count {
     background: ${({ theme }) => theme.token.colorBorderSecondary};
     color: ${({ theme }) => theme.colors.greyText};
-    font-size: ${({ theme }) => theme.fontSizes.small};
-    padding: 2px 8px;
-    border-radius: 10px;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 8px;
   }
 `;
 
@@ -59,29 +61,30 @@ const TaskCard = styled.div`
   animation: scaleIn 0.2s ease-out;
   background: ${({ theme }) => theme.token.colorBgContainer};
   border: 1px solid ${({ theme }) => theme.token.colorBorderSecondary};
-  border-radius: ${({ theme }) => theme.token.borderRadius};
-  padding: 12px;
-  margin-bottom: 8px;
+  border-radius: ${({ theme }) => theme.token.borderRadiusSmall || 6};
+  padding: 10px;
+  margin-bottom: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
     transform: translateY(-1px);
   }
 `;
 
 const TaskTitle = styled.h4`
-  font-size: ${({ theme }) => theme.fontSizes.large};
+  font-size: ${({ theme }) => theme.fontSizes.base};
   color: ${({ theme }) => theme.token.colorText};
-  margin: 0 0 8px;
+  margin: 0 0 6px;
+  font-weight: 500;
 `;
 
 const TaskDescription = styled.p`
-  font-size: ${({ theme }) => theme.fontSizes.base};
+  font-size: 11px;
   color: ${({ theme }) => theme.colors.greyText};
-  margin: 0 0 8px;
-  line-height: 1.4;
+  margin: 0 0 6px;
+  line-height: 1.3;
 `;
 
 const TaskMeta = styled.div`
@@ -91,9 +94,9 @@ const TaskMeta = styled.div`
 `;
 
 const TaskPriority = styled.span`
-  padding: 2px 8px;
-  border-radius: 8px;
-  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;
   background: ${({ priority, theme }) => {
@@ -109,15 +112,15 @@ const TaskPriority = styled.span`
 `;
 
 const TaskDate = styled.span`
-  font-size: ${({ theme }) => theme.fontSizes.small};
+  font-size: 10px;
   color: ${({ theme }) => theme.colors.greyText};
 `;
 
 const EmptyColumn = styled.div`
   text-align: center;
-  padding: 40px 20px;
+  padding: 32px 16px;
   color: ${({ theme }) => theme.colors.greyText};
-  font-size: ${({ theme }) => theme.fontSizes.base};
+  font-size: 11px;
 `;
 
 const WaterIKTaskPanel = ({ tasks, onUpdateTask, onDeleteTask }) => {
@@ -154,8 +157,8 @@ const WaterIKTaskPanel = ({ tasks, onUpdateTask, onDeleteTask }) => {
   return (
     <PanelContainer>
       <PanelTitle>
-        <span><UnorderedListOutlined /></span>
-        <span>Tareas del Copiloto</span>
+        <UnorderedListOutlined />
+        <span>Tareas</span>
       </PanelTitle>
 
       <TaskColumns>

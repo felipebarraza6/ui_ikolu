@@ -43,7 +43,7 @@ const WaterIKPage = () => {
     getSuggestions,
   } = useWaterIK();
 
-  const hasPoint = false; // TODO: obtener del contexto global
+  const hasPoint = false;
   const suggestions = getSuggestions(hasPoint);
 
   const handleSuggestionClick = (suggestion) => {
@@ -116,18 +116,18 @@ const WaterIKPage = () => {
       <WaterIKMainArea>
         <WaterIKHeader>
           <WaterIKTitle>
-            <span><ThunderboltOutlined /></span>
+            <ThunderboltOutlined style={{ fontSize: 16 }} />
             <span>WaterIK</span>
-            <WaterIKBetaBadge>Beta</WaterIKBetaBadge>
+            <WaterIKBetaBadge>beta</WaterIKBetaBadge>
           </WaterIKTitle>
           {chatQuota?.dailyLimit && (
             <WaterIKQuotaBar>
-              Preguntas: {chatQuota.usedToday || 0}/{chatQuota.dailyLimit}
+              {chatQuota.usedToday || 0}/{chatQuota.dailyLimit}
             </WaterIKQuotaBar>
           )}
         </WaterIKHeader>
         {error && (
-          <div style={{ padding: "8px 24px", background: "#FFF2F0", color: "#f5222d", fontSize: 13 }}>
+          <div style={{ padding: "6px 20px", background: "#FFF2F0", color: "#f5222d", fontSize: 12 }}>
             {error}
           </div>
         )}

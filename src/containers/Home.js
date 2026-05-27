@@ -34,6 +34,7 @@ import {
   UserOutlined,
   PushpinOutlined,
   RobotOutlined,
+  ThunderboltOutlined,
 } from "@ant-design/icons";
 import {
   Link,
@@ -858,10 +859,22 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
             },
             {
               key: "water-ik",
-              icon: <RobotOutlined />,
+              icon: <ThunderboltOutlined style={{ fontSize: 14 }} />,
               label: (
-                <span>
-                  WaterIK <Tag color="orange" style={{ fontSize: 9, padding: "0 4px", lineHeight: "16px", marginLeft: 4 }}>Beta</Tag>
+                <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  WaterIK
+                  <span style={{
+                    fontSize: 8,
+                    fontWeight: 700,
+                    color: "#FF6B35",
+                    background: "rgba(255,107,53,0.12)",
+                    padding: "1px 5px",
+                    borderRadius: 4,
+                    letterSpacing: 0.5,
+                    textTransform: "uppercase",
+                  }}>
+                    beta
+                  </span>
                 </span>
               ),
               onClick: () => {
