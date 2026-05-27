@@ -17,7 +17,6 @@ import {
   Typography,
   Row,
   Col,
-  ConfigProvider,
   Spin,
   Skeleton,
   Tag,
@@ -579,8 +578,7 @@ const Sma = () => {
         {/* CONTROLS SECTION */}
         <div style={{ padding: "16px 32px", borderBottom: "1px solid #f0f7ff", background: ikoluTokens.colorWhite }}>
           <Flex justify="space-between" align="center" wrap="wrap" gap={16}>
-             <ConfigProvider locale={locale}>
-                <Space.Compact style={{ 
+             <Space.Compact style={{
                   boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
                   borderRadius: token.borderRadiusLG,
                   overflow: "hidden"
@@ -612,7 +610,6 @@ const Sma = () => {
                     style={{ width: "130px", border: "none", background: "#f9fcff", borderLeft: "1px solid #eee" }}
                   />
                 </Space.Compact>
-              </ConfigProvider>
               
               {showSmaFeatures && (
                 <Button

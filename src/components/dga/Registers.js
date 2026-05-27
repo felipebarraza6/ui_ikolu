@@ -6,7 +6,6 @@ import {
   Typography,
   DatePicker,
   Form,
-  ConfigProvider,
   Flex,
   Tag,
   message,
@@ -201,8 +200,7 @@ const ExportModal = ({ open, onCancel, profile }) => {
   };
 
   return (
-    <ConfigProvider locale={locale}>
-      <Form form={form} layout="vertical" name="export_form">
+    <Form form={form} layout="vertical" name="export_form">
         <p style={{ marginBottom: 16 }}>
           Selecciona un mes para generar el reporte DGA. Puedes exportar
           <strong> un mes a la vez</strong> del año actual o anterior.
@@ -231,7 +229,6 @@ const ExportModal = ({ open, onCancel, profile }) => {
           </Button>
         </Flex>
       </Form>
-    </ConfigProvider>
   );
 };
 

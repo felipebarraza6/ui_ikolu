@@ -7,7 +7,6 @@ import {
   DatePicker,
   Select,
   Tag,
-  ConfigProvider,
   Spin,
   Typography,
 } from "antd";
@@ -366,8 +365,7 @@ const GraphisNav = () => {
   return (
     <QueueAnim delay={300} duration={900} type="right">
       <div key="graphisnav">
-        <ConfigProvider locale={locale}>
-          <Card
+        <Card
             bordered={false}
             style={{
               borderRadius: "12px",
@@ -415,7 +413,6 @@ const GraphisNav = () => {
             </Flex>
             <div style={{ marginTop: "24px" }}>{renderContent()}</div>
           </Card>
-        </ConfigProvider>
       </div>
     </QueueAnim>
   );

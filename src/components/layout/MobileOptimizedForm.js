@@ -12,7 +12,6 @@ import {
   Typography,
   Divider,
   InputNumber,
-  ConfigProvider,
 } from "antd";
 import {
   CalendarOutlined,
@@ -20,7 +19,6 @@ import {
   ClearOutlined,
   InfoCircleOutlined,
 } from "@ant-design/icons";
-import locale from "antd/locale/es_ES";
 import "dayjs/locale/es";
 
 const { Title, Text } = Typography;
@@ -218,8 +216,7 @@ export const MobileDatePicker = (props) => {
   }, []);
 
   return (
-    <ConfigProvider locale={locale}>
-      <DatePicker
+    <DatePicker
         {...props}
         style={{
           width: "100%",
@@ -231,7 +228,6 @@ export const MobileDatePicker = (props) => {
         suffixIcon={<CalendarOutlined />}
         format="DD/MM/YYYY"
       />
-    </ConfigProvider>
   );
 };
 

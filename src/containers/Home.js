@@ -4,7 +4,6 @@ import {
   Menu,
   Button,
   Flex,
-  ConfigProvider,
   theme,
   Drawer,
   Typography,
@@ -54,7 +53,7 @@ import sh from "../api/sh/endpoints";
 import { FcDoughnutChart } from "react-icons/fc";
 import { useLazyProfile } from "../hooks/useLazyProfile";
 import { useResponsive } from "../hooks/useResponsive";
-import { ikoluTokens, ikoluTheme } from "../theme";
+import { ikoluTokens } from "../theme";
 import { AppContext } from "../App";
 import PointDetailGuard from "../components/common/PointDetailGuard";
 import "../styles/admin-select.css";
@@ -1089,8 +1088,7 @@ const AppLayout = ({ children }) => {
 
 const Home = () => {
   return (
-    <ConfigProvider theme={ikoluTheme}>
-
+    <>
       <ModuleTour
         tourKey={generalTour.key}
         steps={generalTour.steps}
@@ -1102,7 +1100,7 @@ const Home = () => {
       <AppLayout>
         <AppRoutes />
       </AppLayout>
-    </ConfigProvider>
+    </>
   );
 };
 

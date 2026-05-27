@@ -9,7 +9,6 @@ import {
   notification,
   Tag,
   Form,
-  ConfigProvider,
   Flex,
   Card,
   Statistic,
@@ -408,8 +407,7 @@ const Reports = () => {
           }}
           bodyStyle={{ padding: isMobile ? "16px" : "24px" }}
         >
-          <ConfigProvider locale={locale}>
-            <Form
+          <Form
               form={form}
               onFinish={onFinish}
               style={{ marginBottom: "20px" }}
@@ -459,7 +457,6 @@ const Reports = () => {
                 </Col>
               </Row>
             </Form>
-          </ConfigProvider>
         </Card>
 
         {/* Tabla */}

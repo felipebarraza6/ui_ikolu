@@ -6,7 +6,6 @@ import {
   Select,
   Flex,
   Spin,
-  ConfigProvider,
   Tag,
 } from "antd";
 import {
@@ -168,7 +167,6 @@ const ResponsiveSmartAnalysis = () => {
               </Flex>
             </Select.Option>
           </Select>
-          <ConfigProvider locale={locale}>
             <DatePicker
               key={dateType}
               placeholder="Seleccionar fecha"
@@ -208,7 +206,6 @@ const ResponsiveSmartAnalysis = () => {
                 Hoy {dayjs().format("DD/MM/YYYY")}
               </Tag>
             )}
-          </ConfigProvider>
         </Flex>
       </Card>
 
