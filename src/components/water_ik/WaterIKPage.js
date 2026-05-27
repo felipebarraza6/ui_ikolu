@@ -14,6 +14,7 @@ import {
   WaterIKTitle,
   WaterIKBetaBadge,
   WaterIKQuotaBar,
+  WaterIKContentArea,
 } from "./WaterIKStyles";
 import { ThunderboltOutlined } from "@ant-design/icons";
 
@@ -131,7 +132,9 @@ const WaterIKPage = () => {
             {error}
           </div>
         )}
+        <WaterIKContentArea>
         {renderContent()}
+        </WaterIKContentArea>
       </WaterIKMainArea>
     </WaterIKPageContainer>
   );

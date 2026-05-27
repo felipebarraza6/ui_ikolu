@@ -7,9 +7,10 @@ import { ExperimentOutlined, CheckOutlined, LoadingOutlined, MinusOutlined } fro
 const PanelContainer = styled.div`
   ${animations.fadeInUp}
   animation: fadeInUp 0.3s ease-out;
-  padding: 16px 20px;
+  padding: 16px;
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
 `;
 
 const PanelTitle = styled.h2`

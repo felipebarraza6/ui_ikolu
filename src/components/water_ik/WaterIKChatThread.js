@@ -12,9 +12,10 @@ import {
 const ThreadContainer = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 20px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 `;
 
 const WelcomeContainer = styled.div`
