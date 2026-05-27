@@ -6,6 +6,7 @@ import { Badge, Select, Flex, Button, Tooltip, Tag } from "antd";
 import { useNavigate, useLocation } from "react-router";
 import { FaEye } from "react-icons/fa";
 import { MdSensorOccupied } from "react-icons/md";
+import "../../styles/yellow-select.css";
 
 const ListWells = () => {
   const { dispatch, user } = useAuth();
@@ -288,45 +289,6 @@ const ListWells = () => {
 
   return (
     <Flex align="bottom" justify="end" gap="small" wrap="wrap">
-      {/* 🎨 Estilos forzados para el Select */}
-      <style>{`
-        .yellow-select .ant-select-selector {
-          background-color: #BDC00C !important;
-          border-color: #a3a60a !important;
-          color: #1a1a1a !important;
-          font-weight: 600 !important;
-        }
-        .yellow-select .ant-select-selection-item {
-          color: #1a1a1a !important;
-          font-weight: 600 !important;
-        }
-        .yellow-select .ant-select-selection-placeholder {
-          color: #595959 !important;
-        }
-        .yellow-select .ant-select-arrow {
-          color: #1a1a1a !important;
-        }
-        .yellow-select.ant-select-focused .ant-select-selector {
-          border-color: #1F3461 !important;
-          box-shadow: 0 0 0 2px rgba(31, 52, 97, 0.15) !important;
-        }
-        /* Dropdown limpio: blanco con hover amarillo suave */
-        .yellow-select-dropdown .ant-select-item {
-          border-radius: 4px !important;
-          margin: 2px 6px !important;
-          padding: 6px 10px !important;
-        }
-        .yellow-select-dropdown .ant-select-item-option-active {
-          background-color: #f0f2b3 !important;
-        }
-        .yellow-select-dropdown .ant-select-item-option-selected {
-          background-color: #BDC00C !important;
-          font-weight: 600 !important;
-        }
-        .yellow-select-dropdown .ant-select-item-option-selected .ant-select-item-option-state {
-          color: #1a1a1a !important;
-        }
-      `}</style>
       <Select
         className="yellow-select"
         style={{

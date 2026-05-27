@@ -134,6 +134,20 @@ export const waterRipple = css`
   }
 `;
 
+export const fadeIn = css`
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+`;
+
+export const waveMove = css`
+  @keyframes waveMove {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+`;
+
 export const animations = {
   fadeInUp,
   shimmer,
@@ -145,4 +159,6 @@ export const animations = {
   skeletonPulse,
   floatUp,
   waterRipple,
+  fadeIn,
+  waveMove,
 };

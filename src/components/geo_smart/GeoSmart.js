@@ -346,7 +346,6 @@ const GeoSmart = () => {
             <FaExclamationTriangle style={{ marginRight: 6 }} /> Caudal en 0 L/s
           </Typography.Text>
         )}
-        <style>{`@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }`}</style>
       </div>
     );
 
@@ -456,14 +455,6 @@ const GeoSmart = () => {
                 opacity="0.7"
               />
             </svg>
-            <style>
-              {`
-                @keyframes waveMove {
-                  0% { transform: translateX(0); }
-                  100% { transform: translateX(-50%); }
-                }
-              `}
-            </style>
           </>
         ) : (
           <svg

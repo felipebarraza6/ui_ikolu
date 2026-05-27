@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import "./styles/mobile.css";
 import "./styles/components.css";
+import "./styles/global-animations.css";
 import { ConfigProvider, App } from "antd";
 import AppStore from "./App";
 import reportWebVitals from "./reportWebVitals";
