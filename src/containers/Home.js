@@ -34,6 +34,7 @@ import {
   FolderOutlined,
   UserOutlined,
   PushpinOutlined,
+  RobotOutlined,
 } from "@ant-design/icons";
 import {
   Link,
@@ -81,6 +82,7 @@ const AdminRoot = lazy(() => import("../components/admin/AdminRoot"));
 const GeoSmart = lazy(() => import("../components/geo_smart/GeoSmart"));
 const GeneralSummaryUser34 = lazy(() => import("../components/geo_smart/GeneralSummaryUser34"));
 const ControlCenter = lazy(() => import("../components/geo_smart/ControlCenter"));
+const WaterIKPage = lazy(() => import("../components/water_ik/WaterIKPage"));
 
 const { Header, Sider, Content } = Layout;
 const { useToken } = theme;
@@ -104,6 +106,7 @@ const RouteLoader = ({ children }) => (
 const GLOBAL_ITEMS = [
   { key: "0", icon: <GlobalOutlined />, label: "Centro de Control", to: "/control_center" },
   { key: "1", icon: <EnvironmentOutlined />, label: "GEO Smart", to: "/geo" },
+  { key: "water-ik", icon: <RobotOutlined />, label: "WaterIK", to: "/water-ik" },
   { key: "2", icon: <WifiOutlined />, label: "Telemetría", to: "/telemetry" },
   { key: "4", icon: <FileTextOutlined />, label: "DGA - MEE", to: "/dga" },
 ];
@@ -295,6 +298,7 @@ const AppRoutes = React.memo(() => {
 
       {/* Rutas disponibles SIN punto: Centro de Control + Geo Smart + Admin + Documentación */}
       <Route path="/geo" element={<RouteLoader><GeoSmart /></RouteLoader>} />
+      <Route path="/water-ik/*" element={<RouteLoader><WaterIKPage /></RouteLoader>} />
 
       {/* Rutas que REQUIEREN punto seleccionado */}
       {hasPoint && (
