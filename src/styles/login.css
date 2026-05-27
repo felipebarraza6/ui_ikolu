@@ -1,0 +1,41 @@
+.modern-input input {
+  background: transparent !important;
+  color: #1f3461 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.modern-input input::placeholder {
+  color: rgba(31, 52, 97, 0.4) !important;
+}
+
+.modern-input:hover {
+  border-color: rgba(31, 52, 97, 0.3) !important;
+  box-shadow: 0 0 0 3px rgba(31, 52, 97, 0.08) !important;
+}
+
+.modern-input:focus-within {
+  border-color: #40a9ff !important;
+  box-shadow: 0 0 0 3px rgba(64, 169, 255, 0.15) !important;
+}
+
+.water-input:focus-within {
+  animation: waterRipple 1.2s ease-out;
+}
+
+.module-card:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.notif-item:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  transform: translateX(2px);
+}
+
+@media (max-width: 991px) {
+  .ant-card {
+    border-radius: 24px !important;
+  }
+}

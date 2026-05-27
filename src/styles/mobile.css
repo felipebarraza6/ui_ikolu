@@ -1,0 +1,72 @@
+@media (max-width: 992px) {
+  .ant-layout-sider {
+    display: none !important;
+    width: 0 !important;
+    max-width: 0 !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .ant-layout-content {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .ant-layout {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  body, html, #root {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .ant-layout-sider-trigger {
+    display: none !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .ant-layout-content {
+    padding: 8px !important;
+    margin: 0 !important;
+  }
+
+  .ant-layout-header {
+    padding: 0 8px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .ant-layout-sider {
+    display: none !important;
+    width: 0 !important;
+    max-width: 0 !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .ant-layout-content {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .ant-layout {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  body, html, #root {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}

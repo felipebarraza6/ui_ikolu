@@ -101,6 +101,39 @@ export const skeletonPulse = css`
   }
 `;
 
+export const floatUp = css`
+  @keyframes floatUp {
+    0% {
+      transform: translateY(0) scale(1);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-110vh) scale(0.6);
+      opacity: 0;
+    }
+  }
+`;
+
+export const waterRipple = css`
+  @keyframes waterRipple {
+    0% {
+      box-shadow: 0 0 0 0 rgba(64, 169, 255, 0.3);
+    }
+    70% {
+      box-shadow: 0 0 0 8px rgba(64, 169, 255, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(64, 169, 255, 0);
+    }
+  }
+`;
+
 export const animations = {
   fadeInUp,
   shimmer,
@@ -110,4 +143,6 @@ export const animations = {
   slideInRight,
   scaleIn,
   skeletonPulse,
+  floatUp,
+  waterRipple,
 };

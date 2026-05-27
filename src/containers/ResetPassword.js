@@ -18,6 +18,7 @@ import {
 import logo from "../assets/images/logozivo.png";
 import sh from "../api/sh/endpoints";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import "../styles/login.css";
 
 const { Title, Text } = Typography;
 
@@ -232,26 +233,6 @@ const ResetPassword = () => {
           )}
         </Card>
       </div>
-
-      <style jsx>{`
-        .modern-input input {
-          background: transparent !important;
-          color: #1f3461 !important;
-          border: none !important;
-          box-shadow: none !important;
-        }
-        .modern-input input::placeholder {
-          color: rgba(31, 52, 97, 0.4) !important;
-        }
-        .modern-input:hover {
-          border-color: rgba(31, 52, 97, 0.3) !important;
-          box-shadow: 0 0 0 3px rgba(31, 52, 97, 0.08) !important;
-        }
-        .modern-input:focus-within {
-          border-color: #40a9ff !important;
-          box-shadow: 0 0 0 3px rgba(64, 169, 255, 0.15) !important;
-        }
-      `}</style>
     </div>
   );
 };

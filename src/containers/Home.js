@@ -57,6 +57,7 @@ import { useResponsive } from "../hooks/useResponsive";
 import { ikoluTokens, ikoluTheme } from "../theme";
 import { AppContext } from "../App";
 import PointDetailGuard from "../components/common/PointDetailGuard";
+import "../styles/admin-select.css";
 
 // Lazy loaded route components
 const MyWell = lazy(() => import("../components/mywell/MyWell"));

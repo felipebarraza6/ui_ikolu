@@ -101,6 +101,9 @@ export const ikoluTheme = {
     },
     Table: {
       borderRadius: 8,
+      headerBg: CORPORATE_BLUE,
+      headerColor: "#ffffff",
+      headerBorderRadius: 20,
     },
     Progress: {
       defaultColor: CORPORATE_BLUE,
