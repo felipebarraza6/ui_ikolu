@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "@emotion/styled";
 import { animations } from "../../styles/animations";
+import { UnorderedListOutlined } from "@ant-design/icons";
 
 const PanelContainer = styled.div`
   ${animations.fadeInUp}
@@ -153,7 +154,7 @@ const WaterIKTaskPanel = ({ tasks, onUpdateTask, onDeleteTask }) => {
   return (
     <PanelContainer>
       <PanelTitle>
-        <span>📋</span>
+        <span><UnorderedListOutlined /></span>
         <span>Tareas del Copiloto</span>
       </PanelTitle>
 

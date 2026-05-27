@@ -2,6 +2,7 @@ import React from "react";
 import styled from "@emotion/styled";
 import { animations } from "../../styles/animations";
 import { SkeletonFlow } from "../common/skeletons";
+import { ExperimentOutlined, CheckOutlined, LoadingOutlined, MinusOutlined } from "@ant-design/icons";
 
 const PanelContainer = styled.div`
   ${animations.fadeInUp}
@@ -210,7 +211,7 @@ const WaterIKFlowPanel = ({ flows, activeFlowRun, onRunFlow, isLoading }) => {
     return (
       <PanelContainer>
         <PanelTitle>
-          <span>🔬</span>
+          <span><ExperimentOutlined /></span>
           <span>Ejecutando Flujo</span>
         </PanelTitle>
 
@@ -225,7 +226,7 @@ const WaterIKFlowPanel = ({ flows, activeFlowRun, onRunFlow, isLoading }) => {
           {activeFlowRun.steps.map((step, i) => (
             <StepItem key={i}>
               <StepIcon status={step.status}>
-                {step.status === "completed" ? "✓" : step.status === "running" ? "⟳" : "○"}
+                {step.status === "completed" ? <CheckOutlined /> : step.status === "running" ? <LoadingOutlined /> : <MinusOutlined />}
               </StepIcon>
               <StepName>{step.name}</StepName>
             </StepItem>
@@ -266,7 +267,7 @@ const WaterIKFlowPanel = ({ flows, activeFlowRun, onRunFlow, isLoading }) => {
         <FlowGrid>
           {availableFlows.map((flow) => (
             <FlowCard key={flow.id} onClick={() => onRunFlow(flow.id)}>
-              <FlowIcon>🔬</FlowIcon>
+              <FlowIcon><ExperimentOutlined /></FlowIcon>
               <FlowTitle>{flow.title}</FlowTitle>
               <FlowDescription>{flow.description}</FlowDescription>
               <FlowSteps>

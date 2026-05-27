@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "@emotion/styled";
 import { animations } from "../../styles/animations";
+import { FileTextOutlined, ExperimentOutlined, CheckCircleOutlined, UnorderedListOutlined } from "@ant-design/icons";
 
 const SidebarContainer = styled.div`
   width: 280px;
@@ -157,10 +158,10 @@ const WaterIKSidebar = ({
 }) => {
   const navItems = [
     { key: "chat", icon: "💬", label: "Chat", delay: "0.05s" },
-    { key: "documents", icon: "📄", label: "Documentos", badge: documents.length, delay: "0.1s" },
-    { key: "flows", icon: "🔬", label: "Flujos", delay: "0.15s" },
-    { key: "validation", icon: "✅", label: "Validación", delay: "0.2s" },
-    { key: "tasks", icon: "📋", label: "Tareas", badge: tasks.filter((t) => t.status === "pending").length, delay: "0.25s" },
+    { key: "documents", icon: <FileTextOutlined />, label: "Documentos", badge: documents.length, delay: "0.1s" },
+    { key: "flows", icon: <ExperimentOutlined />, label: "Flujos", delay: "0.15s" },
+    { key: "validation", icon: <CheckCircleOutlined />, label: "Validación", delay: "0.2s" },
+    { key: "tasks", icon: <UnorderedListOutlined />, label: "Tareas", badge: tasks.filter((t) => t.status === "pending").length, delay: "0.25s" },
   ];
 
   return (

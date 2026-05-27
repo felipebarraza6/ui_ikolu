@@ -2,6 +2,7 @@ import React from "react";
 import styled from "@emotion/styled";
 import { animations } from "../../styles/animations";
 import { SkeletonValidation } from "../common/skeletons";
+import { CheckCircleOutlined } from "@ant-design/icons";
 
 const PanelContainer = styled.div`
   ${animations.fadeInUp}
@@ -166,11 +167,11 @@ const WaterIKValidationPanel = ({ validation, isLoading }) => {
   if (isLoading) {
     return (
       <PanelContainer>
-        <PanelTitle>
-          <span>✅</span>
-          <span>Validación de Módulos</span>
-        </PanelTitle>
-        <SkeletonValidation />
+      <PanelTitle>
+        <span><CheckCircleOutlined /></span>
+        <span>Validación de Módulos</span>
+      </PanelTitle>
+      <SkeletonValidation />
       </PanelContainer>
     );
   }
@@ -178,12 +179,12 @@ const WaterIKValidationPanel = ({ validation, isLoading }) => {
   if (!validation) {
     return (
       <PanelContainer>
-        <PanelTitle>
-          <span>✅</span>
-          <span>Validación de Módulos</span>
-        </PanelTitle>
-        <div style={{ textAlign: "center", padding: 60, color: "#8c8c8c" }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
+      <PanelTitle>
+        <span><CheckCircleOutlined /></span>
+        <span>Validación de Módulos</span>
+      </PanelTitle>
+      <div style={{ textAlign: "center", padding: 60, color: "#8c8c8c" }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}><CheckCircleOutlined /></div>
           <h3>Sin validación disponible</h3>
           <p>La validación se ejecuta automáticamente una vez al día.</p>
         </div>
@@ -196,7 +197,7 @@ const WaterIKValidationPanel = ({ validation, isLoading }) => {
   return (
     <PanelContainer>
       <PanelTitle>
-        <span>✅</span>
+        <span><CheckCircleOutlined /></span>
         <span>Validación de Módulos</span>
       </PanelTitle>
 

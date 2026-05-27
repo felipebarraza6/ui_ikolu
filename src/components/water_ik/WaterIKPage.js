@@ -15,6 +15,7 @@ import {
   WaterIKBetaBadge,
   WaterIKQuotaBar,
 } from "./WaterIKStyles";
+import { ThunderboltOutlined } from "@ant-design/icons";
 
 const WaterIKPage = () => {
   const {
@@ -115,7 +116,7 @@ const WaterIKPage = () => {
       <WaterIKMainArea>
         <WaterIKHeader>
           <WaterIKTitle>
-            <span>💧</span>
+            <span><ThunderboltOutlined /></span>
             <span>WaterIK</span>
             <WaterIKBetaBadge>Beta</WaterIKBetaBadge>
           </WaterIKTitle>

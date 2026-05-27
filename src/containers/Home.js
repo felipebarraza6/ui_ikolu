@@ -856,6 +856,19 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
                 if (onLinkClick) onLinkClick();
               },
             },
+            {
+              key: "water-ik",
+              icon: <RobotOutlined />,
+              label: (
+                <span>
+                  WaterIK <Tag color="orange" style={{ fontSize: 9, padding: "0 4px", lineHeight: "16px", marginLeft: 4 }}>Beta</Tag>
+                </span>
+              ),
+              onClick: () => {
+                navigate("/water-ik");
+                if (onLinkClick) onLinkClick();
+              },
+            },
           ];
 
           // Items que REQUIEREN punto seleccionado

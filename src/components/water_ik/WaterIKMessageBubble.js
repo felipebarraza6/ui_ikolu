@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "@emotion/styled";
 import { animations } from "../../styles/animations";
+import { ThunderboltOutlined, UserOutlined } from "@ant-design/icons";
 
 const MessageContainer = styled.div`
   ${animations.fadeInUp}
@@ -92,7 +93,7 @@ const WaterIKMessageBubble = ({ message, isTyping = false }) => {
   if (isTyping) {
     return (
       <MessageContainer className="ai">
-        <Avatar variant="ai">💧</Avatar>
+        <Avatar variant="ai"><ThunderboltOutlined /></Avatar>
         <Bubble variant="ai">
           <TypingIndicator>
             <TypingDot delay="0s" />
@@ -106,7 +107,7 @@ const WaterIKMessageBubble = ({ message, isTyping = false }) => {
 
   return (
     <MessageContainer className={variant}>
-      <Avatar variant={variant}>{variant === "user" ? "👤" : "💧"}</Avatar>
+      <Avatar variant={variant}>{variant === "user" ? <UserOutlined /> : <ThunderboltOutlined />}</Avatar>
       <div>
         <Bubble variant={variant}>
           <MessageText>{message.text}</MessageText>

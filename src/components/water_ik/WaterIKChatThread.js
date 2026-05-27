@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import styled from "@emotion/styled";
+import { ThunderboltOutlined } from "@ant-design/icons";
 import WaterIKMessageBubble from "./WaterIKMessageBubble";
 import {
   SkeletonChat,
@@ -66,7 +67,7 @@ const WaterIKChatThread = ({ messages, isLoading, suggestions, onSuggestionClick
     return (
       <ThreadContainer>
         <WelcomeContainer>
-          <WelcomeIcon>💧</WelcomeIcon>
+          <WelcomeIcon><ThunderboltOutlined style={{ fontSize: 36 }} /></WelcomeIcon>
           <WelcomeTitle>WaterIK</WelcomeTitle>
           <WelcomeText>
             Tu asistente inteligente de gestión hídrica. Pregúntame sobre normativa DGA,

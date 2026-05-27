@@ -2,6 +2,7 @@ import React from "react";
 import styled from "@emotion/styled";
 import { animations } from "../../styles/animations";
 import { SkeletonDocument } from "../common/skeletons";
+import { BarChartOutlined, FileTextOutlined, FileProtectOutlined, FileOutlined } from "@ant-design/icons";
 
 const PanelContainer = styled.div`
   ${animations.fadeInUp}
@@ -117,10 +118,10 @@ const EmptyIcon = styled.div`
 
 const WaterIKDocumentPanel = ({ documents, isLoading, onGenerateDocument }) => {
   const getIcon = (type) => {
-    if (type === "report") return "📊";
-    if (type === "certificate") return "📜";
-    if (type === "presentation") return "📑";
-    return "📄";
+    if (type === "report") return <BarChartOutlined />;
+    if (type === "certificate") return <FileProtectOutlined />;
+    if (type === "presentation") return <FileTextOutlined />;
+    return <FileOutlined />;
   };
 
   const formatDate = (dateString) => {
@@ -134,7 +135,7 @@ const WaterIKDocumentPanel = ({ documents, isLoading, onGenerateDocument }) => {
   return (
     <PanelContainer>
       <PanelTitle>
-        <span>📄</span>
+        <span><FileTextOutlined /></span>
         <span>Documentos Generados</span>
       </PanelTitle>
 
@@ -146,7 +147,7 @@ const WaterIKDocumentPanel = ({ documents, isLoading, onGenerateDocument }) => {
         </DocumentGrid>
       ) : documents.length === 0 ? (
         <EmptyState>
-          <EmptyIcon>📄</EmptyIcon>
+          <EmptyIcon><FileOutlined /></EmptyIcon>
           <h3>Sin documentos aún</h3>
           <p>Pide un informe o certificado desde el chat para generarlo.</p>
         </EmptyState>
