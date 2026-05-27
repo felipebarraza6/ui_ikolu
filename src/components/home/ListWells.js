@@ -305,6 +305,7 @@ const ListWells = () => {
         onSelect={onSelectWell}
         dropdownClassName="yellow-select-dropdown"
         dropdownStyle={{ zIndex: 1001, background: "#fff" }}
+        dropdownMatchSelectWidth={false}
         listHeight={280}
         getPopupContainer={() => document.body}
         loading={!hasValidData || isLoading}

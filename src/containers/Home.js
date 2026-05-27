@@ -432,7 +432,7 @@ const BottomNav = ({ onMoreClick }) => {
 // ──────────────────────────────────────────
 // Sidebar Menu
 // ──────────────────────────────────────────
-const SideMenu = ({ inDrawer = false, onLinkClick }) => {
+const SideMenu = ({ inDrawer = false, onLinkClick, collapsed = false }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isMobile } = useResponsive();
@@ -658,10 +658,9 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
           </div>
         )}
 
-        {/* Selects de Admin: Cliente / Proyecto / Punto */}
-        {isAdmin && (
+        {/* Selects de Admin: Cliente / Proyecto / Punto — oculto si colapsado */}
+        {isAdmin && !collapsed && (
           <div style={{ padding: "0 12px 12px 12px", minWidth: 0 }}>
-            {/* Estilos admin-select movidos a index.css */}
             <Spin spinning={adminLoading} size="small">
               <Flex id="point-selector" vertical gap="small">
                 {/* Select Cliente */}
@@ -676,7 +675,8 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
                   optionLabelProp="label"
                   allowClear
                   prefix={<UserOutlined style={{ color: "rgba(255,255,255,0.55)", fontSize: 14 }} />}
-                  popupMatchSelectWidth
+                  popupMatchSelectWidth={false}
+                  getPopupContainer={() => document.body}
                   listHeight={280}
                   dropdownStyle={{ borderRadius: 8 }}
                 >
@@ -714,7 +714,8 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
                   disabled={!selectedClient}
                   allowClear
                   prefix={<FolderOutlined style={{ color: "rgba(255,255,255,0.55)", fontSize: 14 }} />}
-                  popupMatchSelectWidth
+                  popupMatchSelectWidth={false}
+                  getPopupContainer={() => document.body}
                   listHeight={280}
                   dropdownStyle={{ borderRadius: 8 }}
                 >
@@ -751,7 +752,8 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
                   disabled={!selectedProject || projectPoints.length === 0}
                   allowClear
                   prefix={<PushpinOutlined style={{ color: "rgba(255,255,255,0.55)", fontSize: 14 }} />}
-                  popupMatchSelectWidth
+                  popupMatchSelectWidth={false}
+                  getPopupContainer={() => document.body}
                   listHeight={280}
                   dropdownStyle={{ borderRadius: 8 }}
                 >
@@ -804,8 +806,8 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
           </div>
         )}
 
-        {/* Selector de pozo — SOLO para usuarios normales (no admin/staff) */}
-        {!isAdmin && (
+        {/* Selector de pozo — SOLO para usuarios normales (no admin/staff). Se oculta si colapsado */}
+        {!isAdmin && !collapsed && (
           <div id="point-selector" style={{ padding: "0 12px 16px 12px", minWidth: 0 }}>
             <ListWells />
           </div>
@@ -999,13 +1001,6 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
             </Button>
           )}
         </Flex>
-        <div style={{ padding: "12px 0 0 0", textAlign: "center" }}>
-          <img
-            src={minLogo}
-            alt="Smart Hydro"
-            style={{ width: "70%", maxWidth: "100px", opacity: 0.6 }}
-          />
-        </div>
         {isMobile && (
           <div style={{ paddingTop: 8 }}>
             <Popconfirm
@@ -1038,14 +1033,22 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
 const AppLayout = ({ children }) => {
   const { isMobile } = useResponsive();
   const [drawerVisible, setDrawerVisible] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const { token } = useToken();
+
+  const siderWidth = collapsed ? 64 : 240;
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
       {!isMobile && (
         <Sider
           id="app-sider"
-          width={320}
+          width={240}
+          collapsedWidth={64}
+          collapsible
+          collapsed={collapsed}
+          onCollapse={setCollapsed}
+          trigger={null}
           style={{
             background: token.colorPrimary,
             position: "fixed",
@@ -1057,10 +1060,10 @@ const AppLayout = ({ children }) => {
             zIndex: 1000,
           }}
         >
-          <SideMenu />
+          <SideMenu collapsed={collapsed} />
         </Sider>
       )}
-      <Layout style={{ marginLeft: isMobile ? 0 : 320 }}>
+      <Layout style={{ marginLeft: isMobile ? 0 : siderWidth }}>
         <Header
           id="app-header"
           style={{
@@ -1076,6 +1079,24 @@ const AppLayout = ({ children }) => {
             lineHeight: "52px",
           }}
         >
+          {!isMobile && (
+            <div
+              onClick={() => setCollapsed(!collapsed)}
+              style={{
+                cursor: "pointer",
+                padding: "4px 8px",
+                marginRight: 8,
+                borderRadius: 6,
+                color: token.colorTextSecondary,
+                fontSize: 16,
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) => (e.target.style.background = "#f0f0f0")}
+              onMouseLeave={(e) => (e.target.style.background = "transparent")}
+            >
+              <MenuOutlined />
+            </div>
+          )}
           <div style={{ flex: 1, minWidth: 0 }}>
             <HeaderNav onMenuClick={() => setDrawerVisible(true)} />
           </div>
@@ -1100,7 +1121,7 @@ const AppLayout = ({ children }) => {
             closable={false}
             onClose={() => setDrawerVisible(false)}
             open={drawerVisible}
-            width={320}
+            width={300}
             bodyStyle={{ padding: 0, background: token.colorPrimary }}
           >
             <SideMenu inDrawer onLinkClick={() => setDrawerVisible(false)} />
