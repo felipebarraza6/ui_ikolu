@@ -27,7 +27,7 @@ export const createIkoluTheme = (algorithm = null) => ({
     colorLinkHover: CORPORATE_BLUE_LIGHT,
     colorLinkActive: CORPORATE_BLUE,
     colorSuccess: "#52c41a",
-    colorWarning: "#faad14",
+colorWarning: "#CCCF07",
     colorError: "#f5222d",
     colorInfo: "#1890ff",
     borderRadius: 8,
@@ -71,7 +71,7 @@ export const ikoluTheme = createIkoluTheme();
 export const ikoluTokens = {
   colorCorporateBlue: CORPORATE_BLUE,
   colorSuccess: "#52c41a",
-  colorWarning: "#faad14",
+  colorWarning: "#CCCF07",
   colorError: "#f5222d",
   colorInfo: "#1890ff",
   colorText: "rgba(0, 0, 0, 0.88)",

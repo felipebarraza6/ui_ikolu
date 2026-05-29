@@ -246,7 +246,11 @@ const Container = ({ data, isToday = false }) => {
                 key="2"
               >
                 <Card hoverable style={styles.card}>
-                  <TotalHour data={data} />
+                  <TotalHour 
+                    data={data} 
+                    minConsumoHora={minConsumoHora} 
+                    maxConsumoHora={maxConsumoHora}
+                  />
                 </Card>
               </TabPane>}
               {hasTotalizado && <TabPane
@@ -286,7 +290,11 @@ const Container = ({ data, isToday = false }) => {
                 key="3"
               >
                 <Card hoverable style={styles.card}>
-                  <TotalDay data={data} />
+                  <TotalDay 
+                    data={data} 
+                    minConsumoHora={minConsumoHora} 
+                    maxConsumoHora={maxConsumoHora}
+                  />
                 </Card>
               </TabPane>}
               {hasCaudal && <TabPane
@@ -326,7 +334,11 @@ const Container = ({ data, isToday = false }) => {
                 }
               >
                 <Card hoverable style={styles.card}>
-                  <FlowArea data={data} />
+                  <FlowArea 
+                    data={data} 
+                    caudalMax={caudalMax} 
+                    caudalMin={caudalMin}
+                  />
                 </Card>
               </TabPane>}
               {hasNivel && <TabPane
@@ -366,7 +378,11 @@ const Container = ({ data, isToday = false }) => {
                 }
               >
                 <Card hoverable style={styles.card}>
-                  <WaterTableBar data={data} />
+                  <WaterTableBar 
+                    data={data} 
+                    nivelMax={nivelMax} 
+                    nivelMin={nivelMin}
+                  />
                 </Card>
               </TabPane>}
               <TabPane

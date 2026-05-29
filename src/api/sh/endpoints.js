@@ -1,3 +1,4 @@
+import axios from "axios";
 import { upload } from "@testing-library/user-event/dist/upload";
 import { POST_LOGIN, GET, DOWNLOAD, DELETE, POST, PATCH, Axios } from "./config";
 
@@ -597,8 +598,8 @@ const get_daily_summary = async (date) => {
  * Endpoint: GET /api/ik/dashboard_stats/
  * Devuelve contadores y métricas globales del usuario
  */
-const get_dashboard_stats = async () => {
-  const rq = await GET(`ik/dashboard_stats/`);
+const get_dashboard_stats = async (signal) => {
+  const rq = await GET(`ik/dashboard_stats/`, null, signal ? { signal } : {});
   return rq.data;
 };
 
@@ -615,6 +616,68 @@ const chat = async (message) => {
 const get_point_records = async (pointId, startDate, endDate, limit = 100) => {
   const rq = await GET(`ik/point/${pointId}/records/?start_date=${startDate}&end_date=${endDate}&limit=${limit}`);
   return rq.data;
+};
+
+/**
+ * 🆕 CONFIGURACIÓN TÉCNICA DEL PUNTO
+ * Endpoint: GET /api/ik/point/{id}/config/
+ * Devuelve d1-d5: profundidad, posicionamiento bomba, nivel freático, diámetro bomba, diámetro flujómetro
+ */
+const get_point_config = async (pointId) => {
+  const rq = await GET(`ik/point/${pointId}/config/`);
+  return rq.data;
+};
+
+/**
+ * 🆕 VERIFICACIÓN DGA: Validar comprobante en sistema DGA
+ * Endpoint: GET /compliance/dga/verify/?codigo_obra=XXX&numero_comprobante=YYY&tipo_dga=ZZZ
+ * Auth: Bearer Token o Session
+ */
+const verifyDgaVoucher = async (codigoObra, numeroComprobante, tipoDga = 'SUPERFICIAL') => {
+  const token = JSON.parse(localStorage.getItem("token") || "null");
+  if (!token) {
+    throw new Error("No se encontró token de autenticación.");
+  }
+  
+  // Crear instancia de axios sin baseURL para endpoint externo
+  const dgaClient = axios.create({
+    baseURL: 'https://api.smarthydro.app',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  });
+  
+  // Interceptor para agregar el token a cada request
+  dgaClient.interceptors.request.use((config) => {
+    const authToken = JSON.parse(localStorage.getItem("token") || "null");
+    if (authToken) {
+      config.headers['Authorization'] = `Token ${authToken}`;
+    }
+    return config;
+  });
+  
+  try {
+    const response = await dgaClient.get('/compliance/dga/verify/', {
+      params: {
+        codigo_obra: codigoObra,
+        numero_comprobante: numeroComprobante,
+        tipo_dga: tipoDga
+      }
+    });
+    
+    return {
+      status: response.status,
+      ...response.data
+    };
+  } catch (error) {
+    if (error.response) {
+      return {
+        status: error.response.status,
+        ...error.response.data
+      };
+    }
+    throw error;
+  }
 };
 
 // ==========================================
@@ -738,6 +801,10 @@ const sh = {
   chat,
   // 🆕 MEDICIONES POR PUNTO Y DÍA
   pointRecords: get_point_records,
+  // 🆕 CONFIGURACIÓN TÉCNICA DEL PUNTO
+  pointConfig: get_point_config,
+  // 🆕 VERIFICACIÓN DGA
+  verifyDgaVoucher,
 };
 
 export default sh;

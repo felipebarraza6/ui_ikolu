@@ -11,7 +11,7 @@ import {
   message,
   Drawer,
   Empty,
-  Card,
+  theme,
 } from "antd";
 import {
   CheckCircleOutlined,
@@ -28,6 +28,7 @@ import dayjs from "dayjs";
 import locale from "antd/locale/es_ES";
 import "dayjs/locale/es";
 import { formatInteger, formatFlow } from "../../utils/numberFormatter";
+import { PageContainer, SectionCard } from "../common/LayoutPrimitives";
 
 dayjs.locale("es");
 
@@ -35,6 +36,7 @@ const { Text, Title } = Typography;
 
 // ── Drawer de detalle ──
 const DetailDrawer = ({ open, onClose, record }) => {
+  const { token } = theme.useToken();
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     message.success("Comprobante copiado");
@@ -59,7 +61,7 @@ const DetailDrawer = ({ open, onClose, record }) => {
   return (
     <Drawer
       title={
-        <span style={{ color: "#1F3461", fontWeight: 700, fontSize: 16 }}>
+        <span style={{ color: token.colorTextHeading, fontWeight: 700, fontSize: 16 }}>
           Detalle del Envío DGA
         </span>
       }
@@ -70,7 +72,11 @@ const DetailDrawer = ({ open, onClose, record }) => {
       styles={{ body: { padding: 24 } }}
     >
       <Flex vertical gap="middle">
-        <Card size="small" style={{ borderRadius: 10, background: "#f8f9fa", border: "none" }}>
+        <div style={{ 
+          padding: 12, 
+          borderRadius: token.borderRadiusLG, 
+          background: token.colorBgLayout,
+        }}>
           <Flex justify="space-between" align="center">
             <Text strong>Estado</Text>
             <Tag
@@ -80,11 +86,11 @@ const DetailDrawer = ({ open, onClose, record }) => {
               {statusText}
             </Tag>
           </Flex>
-        </Card>
+        </div>
 
         <div>
           <Text type="secondary" style={{ fontSize: 12 }}>Fecha / Hora</Text>
-          <div style={{ fontSize: 15, fontWeight: 600, color: "#1F3461" }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: token.colorText }}>
             {record.date_time_medition
               ? dayjs(record.date_time_medition).format("DD/MM/YYYY HH:mm")
               : "—"}
@@ -235,6 +241,7 @@ const ExportModal = ({ open, onCancel, profile }) => {
 // ── Componente principal ──
 const Registers = ({ dataDga = [], loading: externalLoading = false }) => {
   const { state } = useContext(AppContext);
+  const { token } = theme.useToken();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailRecord, setDetailRecord] = useState(null);
@@ -421,54 +428,46 @@ const Registers = ({ dataDga = [], loading: externalLoading = false }) => {
   ];
 
   return (
-    <>
-      <Flex
-        justify="space-between"
-        align="center"
-        wrap="wrap"
-        gap="small"
-        style={{ marginBottom: 16 }}
+    <PageContainer>
+      <SectionCard
+        title="Registros DGA"
+        extra={
+          <Button
+            type="primary"
+            icon={<ExportOutlined />}
+            onClick={() => setIsModalOpen(true)}
+            style={{
+              borderRadius: token.borderRadiusLG,
+            }}
+          >
+            Exportar
+          </Button>
+        }
       >
-        <Title level={5} style={{ margin: 0, color: "#1F3461" }}>
-          Registros DGA
-        </Title>
-        <Button
-          type="primary"
-          icon={<ExportOutlined />}
-          onClick={() => setIsModalOpen(true)}
-          style={{
-            background: "#1F3461",
-            borderColor: "#1F3461",
-            borderRadius: 8,
+        <Table
+          columns={columns}
+          dataSource={dataDga}
+          loading={externalLoading}
+          size="small"
+          rowKey="id"
+          scroll={{ x: "max-content" }}
+          pagination={{
+            pageSize: 10,
+            showSizeChanger: false,
+            size: "small",
           }}
-        >
-          Exportar
-        </Button>
-      </Flex>
+          locale={{ emptyText: <Empty description="Sin registros DGA" /> }}
+        />
 
-      <Table
-        columns={columns}
-        dataSource={dataDga}
-        loading={externalLoading}
-        size="small"
-        rowKey="id"
-        scroll={{ x: "max-content" }}
-        pagination={{
-          pageSize: 10,
-          showSizeChanger: false,
-          size: "small",
-        }}
-        locale={{ emptyText: <Empty description="Sin registros DGA" /> }}
-      />
-
-      <div style={{ marginTop: 12, textAlign: "right" }}>
-        <Text type="secondary" style={{ fontSize: 11 }}>
-          <Tag style={{ margin: 0, fontSize: 10, padding: "0 6px" }} color="#52C41A">Normal</Tag>{" "}
-          <Tag style={{ margin: 0, fontSize: 10, padding: "0 6px" }} color="#faad14">Alerta</Tag>{" "}
-          <Tag style={{ margin: 0, fontSize: 10, padding: "0 6px" }} color="#FF4D4F">Excedido</Tag>
-          {" "}— Validación de caudal vs límite autorizado
-        </Text>
-      </div>
+        <div style={{ marginTop: 12, textAlign: "right" }}>
+          <Text type="secondary" style={{ fontSize: 11 }}>
+            <Tag style={{ margin: 0, fontSize: 10, padding: "0 6px" }} color="#52C41A">Normal</Tag>{" "}
+            <Tag style={{ margin: 0, fontSize: 10, padding: "0 6px" }} color="#faad14">Alerta</Tag>{" "}
+            <Tag style={{ margin: 0, fontSize: 10, padding: "0 6px" }} color="#FF4D4F">Excedido</Tag>
+            {" "}— Validación de caudal vs límite autorizado
+          </Text>
+        </div>
+      </SectionCard>
 
       {/* Export modal como drawer pequeño */}
       <Drawer
@@ -487,7 +486,7 @@ const Registers = ({ dataDga = [], loading: externalLoading = false }) => {
       </Drawer>
 
       <DetailDrawer open={detailOpen} onClose={closeDetail} record={detailRecord} />
-    </>
+    </PageContainer>
   );
 };
 

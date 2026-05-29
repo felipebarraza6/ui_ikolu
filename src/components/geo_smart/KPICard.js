@@ -46,21 +46,21 @@ const KPICard = memo(({
     <Card
       size="small"
       style={{
-        borderRadius: 16,
+        borderRadius: 10,
         background: gradient || 'linear-gradient(135deg, #1F3461 0%, #2A4A8A 100%)',
         border: 'none',
-        boxShadow: '0 4px 12px rgba(31, 52, 97, 0.25)',
+        boxShadow: '0 2px 8px rgba(31, 52, 97, 0.2)',
         cursor: onClick ? 'pointer' : 'default',
         ...style,
       }}
-      bodyStyle={{ padding: sparklineConfig ? '12px 16px 8px' : '20px 16px' }}
+      bodyStyle={{ padding: sparklineConfig ? '8px 12px 6px' : '12px 14px' }}
       onClick={onClick}
     >
       <Flex vertical gap={sparklineConfig ? 4 : 0}>
         <Flex align="center" gap="small">
           {icon && (
             <div style={{
-              width: 44, height: 44, borderRadius: 12,
+              width: 32, height: 32, borderRadius: 8,
               background: 'rgba(255,255,255,0.15)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0,
@@ -69,19 +69,19 @@ const KPICard = memo(({
             </div>
           )}
           <div style={{ minWidth: 0 }}>
-            <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', display: 'block' }}>
+            <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', display: 'block' }}>
               {label}
             </Text>
-            <Text style={{ fontSize: 28, color: 'white', fontWeight: 700, lineHeight: 1 }}>
+            <Text style={{ fontSize: 20, color: 'white', fontWeight: 700, lineHeight: 1 }}>
               {value}
               {suffix && (
-                <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', marginLeft: 4 }}>
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginLeft: 4 }}>
                   {suffix}
                 </span>
               )}
             </Text>
             {sublabel && (
-              <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)' }}>
+              <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)' }}>
                 {sublabel}
               </Text>
             )}

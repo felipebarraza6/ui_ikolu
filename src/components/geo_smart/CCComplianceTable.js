@@ -1,64 +1,77 @@
 import React, { useMemo } from "react";
-import { Card, Flex, Typography, Table, Tag, Tooltip, theme } from "antd";
-import { FaClipboardCheck, FaEye, FaPauseCircle } from "react-icons/fa";
+import { Flex, Typography, Table, Tag, Tooltip, theme } from "antd";
+import { FaClipboardCheck, FaEye, FaPauseCircle, FaHeadset, FaInfoCircle, FaExternalLinkAlt } from "react-icons/fa";
 import moment from "moment";
-import { ikoluTokens } from "../../theme";
 import { formatInteger } from "../../utils/numberFormatter";
 
 const { Text } = Typography;
 const { useToken } = theme;
 
-const pointsColumns = (onViewVoucher, onStopCompliance, token) => [
+const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPointConfig, token) => [
   {
-    title: "Punto / Código",
+    title: "Punto",
     key: "point_code",
-    fixed: "left",
     width: 220,
     sorter: (a, b) => (a.title || "").localeCompare(b.title || ""),
     defaultSortOrder: "ascend",
-    render: (_, record) => (
-      <Flex align="center" gap={8} wrap="wrap">
-        <Text strong style={{ fontSize: 13, color: ikoluTokens.colorCorporateBlue }}>
-          {record.title || "—"}
-        </Text>
-        {record.code && (
-          <Flex align="center" gap={4}>
-            <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>—</Text>
-            {record.compliance_type?.includes("DGA") ? (
+    onHeaderCell: () => ({
+      style: { background: token.colorPrimary, color: "#fff" },
+    }),
+    render: (_, record) => {
+      return (
+        <Flex vertical gap={2}>
+          <Flex align="center" gap={6}>
+            <Text strong style={{ fontSize: 13, color: token.colorText, lineHeight: 1.2 }}>
+              {record.title || "—"}
+            </Text>
+            <FaInfoCircle
+              style={{ fontSize: 11, color: token.colorPrimary, cursor: "pointer", opacity: 0.7 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewPointConfig(record.title || record.name);
+              }}
+            />
+          </Flex>
+          {record.code && (
+            record.compliance_type?.includes("DGA") ? (
               <a
                 href={`https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${encodeURIComponent(record.code)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ color: token.colorPrimary, fontSize: 11, fontWeight: 600, whiteSpace: "nowrap" }}
+                style={{ color: token.colorPrimary, fontSize: 11, fontWeight: 600, whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", gap: 4 }}
                 onClick={(e) => e.stopPropagation()}
               >
                 {record.code}
+                <FaExternalLinkAlt style={{ fontSize: 9, opacity: 0.7 }} />
               </a>
             ) : (
-              <Text style={{ fontSize: 11, color: token.colorTextSecondary, whiteSpace: "nowrap" }}>
+              <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>
                 {record.code}
               </Text>
-            )}
-            {record.compliance_type?.includes("DGA") && (
-              <Flex gap={4} align="center" wrap="nowrap">
-                <Tag style={{ fontSize: 10, margin: 0, padding: "1px 6px", lineHeight: "16px", background: token.colorPrimaryBg, border: "none", color: token.colorPrimary, fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0 }}>
-                  {record.standard}
-                </Tag>
-                <Tag style={{ fontSize: 10, margin: 0, padding: "1px 6px", lineHeight: "16px", background: token.colorBgLayout, border: "none", color: token.colorTextSecondary, whiteSpace: "nowrap", flexShrink: 0 }}>
-                  {record.type_dga}
-                </Tag>
-              </Flex>
-            )}
-          </Flex>
-        )}
-      </Flex>
-    ),
+            )
+          )}
+          {record.compliance_type?.includes("DGA") && (
+            <Flex align="center" gap={4}>
+              <Tag style={{ fontSize: 10, margin: 0, padding: "1px 5px", lineHeight: "15px", background: token.colorPrimaryBg, border: "none", color: token.colorPrimary, fontWeight: 600 }}>
+                {record.standard}
+              </Tag>
+              <Tag style={{ fontSize: 10, margin: 0, padding: "1px 5px", lineHeight: "15px", background: token.colorBgLayout, border: "none", color: token.colorTextSecondary }}>
+                {record.type_dga}
+              </Tag>
+            </Flex>
+          )}
+        </Flex>
+      );
+    },
   },
   {
     title: "Limites / Estado",
     key: "limits",
     width: 220,
     responsive: ["md"],
+    onHeaderCell: () => ({
+      style: { background: token.colorPrimary, color: "#fff" },
+    }),
     render: (_, record) => (
       <Flex vertical gap={8}>
         <Flex vertical gap={3}>
@@ -151,13 +164,16 @@ const pointsColumns = (onViewVoucher, onStopCompliance, token) => [
     key: "last_sent_at",
     width: 100,
     align: "center",
+    onHeaderCell: () => ({
+      style: { background: token.colorPrimary, color: "#fff" },
+    }),
     render: (date) =>
       date ? (
         <Text style={{ fontSize: 12, color: token.colorText, whiteSpace: "nowrap" }}>
           {moment(date).format("DD/MM HH:mm")}
         </Text>
       ) : (
-        <span style={{ color: ikoluTokens.colorGreyTextLight }}>—</span>
+        <span style={{ color: token.colorTextDisabled }}>—</span>
       ),
   },
   {
@@ -166,6 +182,9 @@ const pointsColumns = (onViewVoucher, onStopCompliance, token) => [
     key: "flow_lps",
     width: 90,
     align: "right",
+    onHeaderCell: () => ({
+      style: { background: token.colorPrimary, color: "#fff" },
+    }),
     render: (v) =>
       v != null ? (
         <Text strong style={{ fontSize: 13, color: v > 0 ? token.colorSuccess : token.colorTextSecondary }}>
@@ -182,9 +201,12 @@ const pointsColumns = (onViewVoucher, onStopCompliance, token) => [
     key: "water_table_m",
     width: 85,
     align: "right",
+    onHeaderCell: () => ({
+      style: { background: token.colorPrimary, color: "#fff" },
+    }),
     render: (v) =>
       v != null ? (
-        <Text style={{ fontSize: 13, color: token.colorInfo }}>
+          <Text style={{ fontSize: 13, color: token.colorPrimary }}>
           {Number(v).toFixed(2)}
           <span style={{ fontSize: 10, marginLeft: 2 }}>m</span>
         </Text>
@@ -198,6 +220,9 @@ const pointsColumns = (onViewVoucher, onStopCompliance, token) => [
     key: "total_m3",
     width: 110,
     align: "right",
+    onHeaderCell: () => ({
+      style: { background: token.colorPrimary, color: "#fff" },
+    }),
     render: (v) =>
       v != null ? (
         <Text strong style={{ fontSize: 14, color: token.colorPrimary }}>
@@ -210,110 +235,141 @@ const pointsColumns = (onViewVoucher, onStopCompliance, token) => [
   },
   {
     title: "",
-    dataIndex: "voucher",
-    key: "voucher",
-    width: 50,
-    align: "center",
-    fixed: "right",
-    render: (v, record) =>
-      v ? (
-        <div
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: "50%",
-            background: `${token.colorPrimary}10`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            transition: "background 0.2s",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = `${token.colorPrimary}20`)}
-          onMouseLeave={(e) => (e.currentTarget.style.background = `${token.colorPrimary}10`)}
-          onClick={(e) => {
-            e.stopPropagation();
-            onViewVoucher(record);
-          }}
-        >
-          <FaEye style={{ fontSize: 12, color: token.colorPrimary }} />
-        </div>
-      ) : (
-        <span style={{ color: ikoluTokens.colorGreyTextLight }}>—</span>
-      ),
-  },
-  {
-    title: "",
-    key: "stop_compliance",
-    width: 36,
+    key: "actions",
+    width: 110,
     align: "center",
     fixed: "right",
     render: (_, record) => (
-      <Tooltip title="Solicitar detencion de cumplimiento">
-        <div
-          style={{
-            width: 24,
-            height: 24,
-            borderRadius: "50%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            transition: "all 0.2s",
-            border: `1px solid ${token.colorPrimary}40`,
-            background: `${token.colorPrimary}08`,
-            margin: "0 auto",
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            onStopCompliance(record);
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = `${token.colorPrimary}15`; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = `${token.colorPrimary}08`; }}
-        >
-          <FaPauseCircle style={{ fontSize: 11, color: token.colorPrimary }} />
-        </div>
-      </Tooltip>
+      <Flex align="center" justify="center" gap={6} onClick={(e) => e.stopPropagation()}>
+        {record.voucher ? (
+          <Tooltip title="Ver voucher">
+            <div
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                transition: "background 0.2s",
+                background: `${token.colorPrimary}10`,
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = `${token.colorPrimary}20`)}
+              onMouseLeave={(e) => (e.currentTarget.style.background = `${token.colorPrimary}10`)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewVoucher(record);
+              }}
+            >
+              <FaEye style={{ fontSize: 11, color: token.colorPrimary }} />
+            </div>
+          </Tooltip>
+        ) : (
+          <div style={{ width: 24, height: 24 }} />
+        )}
+        <Tooltip title="Solicitar detención de cumplimiento">
+          <div
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              transition: "all 0.2s",
+              border: `1px solid ${token.colorPrimary}40`,
+              background: `${token.colorPrimary}08`,
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onStopCompliance(record);
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = `${token.colorPrimary}15`; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = `${token.colorPrimary}08`; }}
+          >
+            <FaPauseCircle style={{ fontSize: 10, color: token.colorPrimary }} />
+          </div>
+        </Tooltip>
+        <Tooltip title="Solicitar soporte">
+          <div
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              transition: "all 0.2s",
+              border: `1px solid ${token.colorPrimary}40`,
+              background: `${token.colorPrimary}08`,
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenSupport(record, "CUMPLIMIENTO");
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = `${token.colorPrimary}15`; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = `${token.colorPrimary}08`; }}
+          >
+            <FaHeadset style={{ fontSize: 10, color: token.colorPrimary }} />
+          </div>
+        </Tooltip>
+      </Flex>
     ),
   },
 ];
 
-const CCComplianceTable = ({ points, onViewVoucher, onOpenStopCompliance, onSelectPoint }) => {
+const CCComplianceTable = ({ points, last7, onViewVoucher, onOpenStopCompliance, onOpenSupport = () => {}, onViewPointConfig, onSelectPoint, loading = false }) => {
   const { token } = useToken();
 
-  const columns = useMemo(() => pointsColumns(onViewVoucher, onOpenStopCompliance, token), [onViewVoucher, onOpenStopCompliance, token]);
+  // Misma lógica que CCWeekConsumption: usar variables del backend
+  const activeVars = useMemo(() => {
+    const allVars = Object.values(last7 || {}).flatMap(w => w.variables || []);
+    return {
+      hasFlow: allVars.some(v => v.includes("CAUDAL")),
+      hasLevel: allVars.some(v => v === "NIVEL" || v === "NIVEL_FREATICO"),
+      hasTotal: allVars.some(v => v === "TOTALIZADO"),
+    };
+  }, [last7]);
+
+  const columns = useMemo(() => {
+    const allColumns = pointsColumns(onViewVoucher, onOpenStopCompliance, onOpenSupport, onViewPointConfig, token);
+    return allColumns.filter(col => {
+      if (col.key === "flow_lps" && !activeVars.hasFlow) return false;
+      if (col.key === "water_table_m" && !activeVars.hasLevel) return false;
+      if (col.key === "total_m3" && !activeVars.hasTotal) return false;
+      return true;
+    });
+  }, [onViewVoucher, onOpenStopCompliance, onOpenSupport, onViewPointConfig, token, activeVars]);
 
   return (
-    <Card
+    <Table
+      loading={loading}
+      dataSource={points}
+      columns={columns}
+      rowKey="id"
+      bordered
       size="small"
-      style={{ borderRadius: token.borderRadiusLG, overflow: "hidden" }}
-      bodyStyle={{ padding: 0 }}
-    >
-      <Table
-        dataSource={points}
-        columns={columns}
-        rowKey="id"
-        size="small"
-        scroll={{ x: "max-content" }}
-        pagination={{ pageSize: 10, hideOnSinglePage: true }}
-        locale={{ emptyText: "No hay puntos disponibles" }}
-        onRow={(record) => ({
-          onClick: () => onSelectPoint(record),
-          style: {
-            cursor: "pointer",
-            background: "transparent",
-            borderBottom: `1px solid ${token.colorBorderSecondary}`,
-          },
-          onMouseEnter: (e) => {
-            e.currentTarget.style.background = token.colorBgTextHover || "#f5f5f5";
-            e.currentTarget.style.transition = "background 0.15s ease";
-          },
-          onMouseLeave: (e) => {
-            e.currentTarget.style.background = "transparent";
-          },
-        })}
-      />
-    </Card>
+      scroll={{ x: "max-content" }}
+      pagination={{ pageSize: 10, hideOnSinglePage: true }}
+      locale={{ emptyText: "No hay puntos disponibles" }}
+      onRow={(record) => ({
+        onClick: () => onSelectPoint(record),
+        style: {
+          cursor: "pointer",
+          borderBottom: `1px solid ${token.colorBorderSecondary}`,
+        },
+        onMouseEnter: (e) => {
+          e.currentTarget.style.background = token.colorBgTextHover;
+          e.currentTarget.style.transition = "background 0.15s ease";
+        },
+        onMouseLeave: (e) => {
+          e.currentTarget.style.background = "transparent";
+        },
+      })}
+    />
   );
 };
 

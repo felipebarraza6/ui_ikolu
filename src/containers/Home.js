@@ -35,6 +35,8 @@ import {
   PushpinOutlined,
   RobotOutlined,
   ThunderboltOutlined,
+  LeftOutlined,
+  RightOutlined,
 } from "@ant-design/icons";
 import {
   Link,
@@ -605,24 +607,37 @@ const SideMenu = ({ inDrawer = false, onLinkClick, collapsed = false }) => {
   return (
     <Flex vertical style={{ height: "100%" }} justify="space-between">
       <div>
-        {/* Logo — SOLO para usuarios normales */}
+        {/* Logo — Ikolu App */}
         {!isAdmin && (
           <Flex
             align="center"
             justify="center"
-            style={{ padding: "16px 0 12px 0", gap: 10 }}
+            style={{
+              padding: collapsed ? "12px 0" : "16px 0 12px 0",
+              gap: 10,
+            }}
           >
-            <img src={logo} alt="Logo Zivo" style={{ width: "28px" }} />
-            <span
+            <img
+              src={logo}
+              alt="Ikolu"
               style={{
-                color: "white",
-                fontWeight: 700,
-                fontSize: 16,
-                letterSpacing: 1,
+                width: "28px",
+                height: "auto",
+                transition: "all 0.2s",
               }}
-            >
-              Ikolu App
-            </span>
+            />
+            {!collapsed && (
+              <span
+                style={{
+                  color: "white",
+                  fontWeight: 700,
+                  fontSize: 16,
+                  letterSpacing: 1,
+                }}
+              >
+                Ikolu App
+              </span>
+            )}
           </Flex>
         )}
 
@@ -658,162 +673,7 @@ const SideMenu = ({ inDrawer = false, onLinkClick, collapsed = false }) => {
           </div>
         )}
 
-        {/* Selects de Admin: Cliente / Proyecto / Punto — oculto si colapsado */}
-        {isAdmin && !collapsed && (
-          <div style={{ padding: "0 12px 12px 12px", minWidth: 0 }}>
-            <Spin spinning={adminLoading} size="small">
-              <Flex id="point-selector" vertical gap="small">
-                {/* Select Cliente */}
-                <Select
-                  className="admin-select"
-                  placeholder="Seleccionar cliente"
-                  value={selectedClient}
-                  onChange={handleClientChange}
-                  style={{ width: "100%" }}
-                  showSearch
-                  optionFilterProp="label"
-                  optionLabelProp="label"
-                  allowClear
-                  prefix={<UserOutlined style={{ color: "rgba(255,255,255,0.55)", fontSize: 14 }} />}
-                  popupMatchSelectWidth={false}
-                  getPopupContainer={() => document.body}
-                  listHeight={280}
-                  dropdownStyle={{ borderRadius: 8 }}
-                >
-                  {clientTree.map((c) => (
-                    <Select.Option key={c.id} value={c.id} label={c.name || `Cliente ${c.id}`}>
-                      <Flex align="center" justify="space-between" style={{ width: "100%" }}>
-                        <span style={{ fontWeight: 500 }}>{c.name || `Cliente ${c.id}`}</span>
-                        <Tag
-                          size="small"
-                          style={{
-                            fontSize: 10,
-                            background: ikoluTokens.colorCorporateBlue,
-                            color: ikoluTokens.colorWhite,
-                            border: "none",
-                            marginLeft: 8,
-                          }}
-                        >
-                          {c.projects?.length || 0} proyectos
-                        </Tag>
-                      </Flex>
-                    </Select.Option>
-                  ))}
-                </Select>
-
-                {/* Select Proyecto (filtrado por cliente) */}
-                <Select
-                  className="admin-select"
-                  placeholder="Seleccionar proyecto"
-                  value={selectedProject}
-                  onChange={handleProjectChange}
-                  style={{ width: "100%" }}
-                  showSearch
-                  optionFilterProp="label"
-                  optionLabelProp="label"
-                  disabled={!selectedClient}
-                  allowClear
-                  prefix={<FolderOutlined style={{ color: "rgba(255,255,255,0.55)", fontSize: 14 }} />}
-                  popupMatchSelectWidth={false}
-                  getPopupContainer={() => document.body}
-                  listHeight={280}
-                  dropdownStyle={{ borderRadius: 8 }}
-                >
-                  {availableProjects.map((p) => (
-                    <Select.Option
-                      key={p.id}
-                      value={p.id}
-                      label={p.name || p.title || `Proyecto ${p.id}`}
-                    >
-                      <Flex align="center" justify="space-between" style={{ width: "100%" }}>
-                        <Flex vertical style={{ flex: 1, minWidth: 0 }}>
-                          <span style={{ fontWeight: 500 }}>{p.name || p.title || `Proyecto ${p.id}`}</span>
-                          {p.code_internal && (
-                            <span style={{ fontSize: 11, color: "#888" }}>
-                              Código: {p.code_internal}
-                            </span>
-                          )}
-                        </Flex>
-                      </Flex>
-                    </Select.Option>
-                  ))}
-                </Select>
-
-                {/* Select Punto (puntos del proyecto seleccionado) */}
-                <Select
-                  className="admin-select"
-                  placeholder="Seleccionar punto"
-                  value={selectedProjectPoint}
-                  onChange={handleProjectPointChange}
-                  style={{ width: "100%" }}
-                  showSearch
-                  optionFilterProp="label"
-                  optionLabelProp="label"
-                  disabled={!selectedProject || projectPoints.length === 0}
-                  allowClear
-                  prefix={<PushpinOutlined style={{ color: "rgba(255,255,255,0.55)", fontSize: 14 }} />}
-                  popupMatchSelectWidth={false}
-                  getPopupContainer={() => document.body}
-                  listHeight={280}
-                  dropdownStyle={{ borderRadius: 8 }}
-                >
-                  {projectPoints.map((p) => (
-                    <Select.Option
-                      key={p.id}
-                      value={p.id}
-                      label={p.title || `Punto ${p.id}`}
-                    >
-                      <Flex align="center" justify="space-between" style={{ width: "100%" }}>
-                        <Flex vertical style={{ flex: 1, minWidth: 0 }}>
-                          <span style={{ fontWeight: 500 }}>{p.title || `Punto ${p.id}`}</span>
-                          {p.frecuency && (
-                            <span style={{ fontSize: 11, color: "#888" }}>
-                              Frec: {p.frecuency} min
-                            </span>
-                          )}
-                        </Flex>
-                        <Flex gap="small">
-                          {p.dga?.code_dga && (
-                            <Tag
-                              size="small"
-                              color="green"
-                              style={{ fontSize: 10, margin: 0 }}
-                            >
-                              {p.dga.code_dga}
-                            </Tag>
-                          )}
-                          {p.lat && p.lon && (
-                            <Tag
-                              size="small"
-                              style={{
-                                fontSize: 10,
-                                background: ikoluTokens.colorCorporateBlue,
-                                color: ikoluTokens.colorWhite,
-                                border: "none",
-                                margin: 0,
-                              }}
-                            >
-                              GPS
-                            </Tag>
-                          )}
-                        </Flex>
-                      </Flex>
-                    </Select.Option>
-                  ))}
-                </Select>
-              </Flex>
-            </Spin>
-          </div>
-        )}
-
-        {/* Selector de pozo — SOLO para usuarios normales (no admin/staff). Se oculta si colapsado */}
-        {!isAdmin && !collapsed && (
-          <div id="point-selector" style={{ padding: "0 12px 16px 12px", minWidth: 0 }}>
-            <ListWells />
-          </div>
-        )}
-
-        {/* MENÚ UNIFICADO: siempre visible, bloqueado si no hay punto */}
+        {/* MENÚ REORGANIZADO: globales → selector → por-punto → generales abajo */}
         {(() => {
           const hasPoint = !!state.selected_profile?.id;
           const isAdminUser = state.user?.is_staff || state.user?.is_superuser;
@@ -833,8 +693,8 @@ const SideMenu = ({ inDrawer = false, onLinkClick, collapsed = false }) => {
             title: requiresPoint && !hasPoint ? blockMsg : undefined,
           });
 
-          // Items que SIEMPRE están disponibles
-          const alwaysItems = [
+          // Items GLOBALES (siempre disponibles, no necesitan punto)
+          const globalItems = [
             {
               key: "0",
               icon: <GlobalOutlined />,
@@ -886,44 +746,32 @@ const SideMenu = ({ inDrawer = false, onLinkClick, collapsed = false }) => {
             },
           ];
 
-          // Items que REQUIEREN punto seleccionado
+          // Items POR PUNTO (requieren punto seleccionado)
           const pointItems = [
             mkItem("2", <WifiOutlined />, "Telemetría", "/telemetry", true),
             ...(state.selected_profile?.dga?.code_dga ? [mkItem("4", <FileTextOutlined />, "DGA - MEE", "/dga", true)] : []),
           ];
 
-          // Submenú Análisis
+          // Submenú Análisis (por punto)
           const analisisChildren = [
             mkItem("3", <BarChartOutlined />, "Smart Análisis", "/analysis", true),
             mkItem("5", <DownloadOutlined />, "Descarga", "/download", true),
           ];
 
-          // Submenú Gestión
+          // Submenú Gestión (por punto)
           const gestionChildren = [
             mkItem("6", <FileTextOutlined />, "Documentos", "/documents", true),
             mkItem("7", <AlertOutlined />, "Alertas", "/alerts", true),
           ];
 
-          // Admin siempre ve Admin
-          const adminItem = isAdminUser
-            ? [mkItem("admin", <DashboardOutlined />, "Admin", "/admin")]
-            : [];
-
-          // Documentación siempre visible
-          const docsItem = [mkItem("docs", <BookOutlined />, "Documentación", "/documentation")];
-
-          // Soporte solo para usuarios normales
-          const soporteItem = !isAdminUser
-            ? [mkItem("8", <CustomerServiceOutlined />, "Soporte", "/support", true)]
-            : [];
-
-          // Items globales (siempre visibles)
-          const globalMenuItems = [
-            ...alwaysItems,
-            ...pointItems,
+          // Items GENERALES ABAJO (siempre visibles, no necesitan punto)
+          const bottomGeneralItems = [
+            ...(!isAdminUser ? [mkItem("8", <CustomerServiceOutlined />, "Soporte", "/support")] : []),
+            ...(isAdminUser ? [mkItem("admin", <DashboardOutlined />, "Admin", "/admin")] : []),
+            ...[mkItem("docs", <BookOutlined />, "Documentación", "/documentation")],
           ];
 
-          // Items agrupados
+          // Items agrupados (por punto)
           const groupedItems = [
             {
               key: "analisis",
@@ -937,14 +785,11 @@ const SideMenu = ({ inDrawer = false, onLinkClick, collapsed = false }) => {
               label: "Gestión",
               children: gestionChildren,
             },
-            ...soporteItem,
-            ...adminItem,
-            ...docsItem,
           ];
 
           return (
             <>
-              {/* Items globales */}
+              {/* SECCIÓN 1: Items GLOBALES (siempre visibles) */}
               <Menu
                 theme="dark"
                 mode="inline"
@@ -957,10 +802,159 @@ const SideMenu = ({ inDrawer = false, onLinkClick, collapsed = false }) => {
                   paddingBottom: 8,
                   marginBottom: 8,
                 }}
-                items={globalMenuItems}
+                items={globalItems}
               />
 
-              {/* Menú agrupado */}
+              {/* SECCIÓN 2: Selector de punto */}
+              {!collapsed && (
+                <div style={{ padding: "0 0 8px 0" }}>
+                  {isAdmin ? (
+                    <Spin spinning={adminLoading} size="small">
+                      <Flex id="point-selector" vertical gap="small" style={{ padding: "0 12px" }}>
+                        <Select
+                          className="admin-select"
+                          placeholder="Seleccionar cliente"
+                          value={selectedClient}
+                          onChange={handleClientChange}
+                          style={{ width: "100%" }}
+                          showSearch
+                          optionFilterProp="label"
+                          optionLabelProp="label"
+                          allowClear
+                          prefix={<UserOutlined style={{ color: "rgba(255,255,255,0.55)", fontSize: 14 }} />}
+                          popupMatchSelectWidth={false}
+                          getPopupContainer={() => document.body}
+                          listHeight={280}
+                          dropdownStyle={{ borderRadius: 8 }}
+                        >
+                          {clientTree.map((c) => (
+                            <Select.Option key={c.id} value={c.id} label={c.name || `Cliente ${c.id}`}>
+                              <Flex align="center" justify="space-between" style={{ width: "100%" }}>
+                                <span style={{ fontWeight: 500 }}>{c.name || `Cliente ${c.id}`}</span>
+                                <Tag
+                                  size="small"
+                                  style={{
+                                    fontSize: 10,
+                                    background: ikoluTokens.colorCorporateBlue,
+                                    color: ikoluTokens.colorWhite,
+                                    border: "none",
+                                    marginLeft: 8,
+                                  }}
+                                >
+                                  {c.projects?.length || 0} proyectos
+                                </Tag>
+                              </Flex>
+                            </Select.Option>
+                          ))}
+                        </Select>
+
+                        <Select
+                          className="admin-select"
+                          placeholder="Seleccionar proyecto"
+                          value={selectedProject}
+                          onChange={handleProjectChange}
+                          style={{ width: "100%" }}
+                          showSearch
+                          optionFilterProp="label"
+                          optionLabelProp="label"
+                          disabled={!selectedClient}
+                          allowClear
+                          prefix={<FolderOutlined style={{ color: "rgba(255,255,255,0.55)", fontSize: 14 }} />}
+                          popupMatchSelectWidth={false}
+                          getPopupContainer={() => document.body}
+                          listHeight={280}
+                          dropdownStyle={{ borderRadius: 8 }}
+                        >
+                          {availableProjects.map((p) => (
+                            <Select.Option
+                              key={p.id}
+                              value={p.id}
+                              label={p.name || p.title || `Proyecto ${p.id}`}
+                            >
+                              <Flex align="center" justify="space-between" style={{ width: "100%" }}>
+                                <Flex vertical style={{ flex: 1, minWidth: 0 }}>
+                                  <span style={{ fontWeight: 500 }}>{p.name || p.title || `Proyecto ${p.id}`}</span>
+                                  {p.code_internal && (
+                                    <span style={{ fontSize: 11, color: "#888" }}>
+                                      Código: {p.code_internal}
+                                    </span>
+                                  )}
+                                </Flex>
+                              </Flex>
+                            </Select.Option>
+                          ))}
+                        </Select>
+
+                        <Select
+                          className="admin-select"
+                          placeholder="Seleccionar punto"
+                          value={selectedProjectPoint}
+                          onChange={handleProjectPointChange}
+                          style={{ width: "100%" }}
+                          showSearch
+                          optionFilterProp="label"
+                          optionLabelProp="label"
+                          disabled={!selectedProject || projectPoints.length === 0}
+                          allowClear
+                          prefix={<PushpinOutlined style={{ color: "rgba(255,255,255,0.55)", fontSize: 14 }} />}
+                          popupMatchSelectWidth={false}
+                          getPopupContainer={() => document.body}
+                          listHeight={280}
+                          dropdownStyle={{ borderRadius: 8 }}
+                        >
+                          {projectPoints.map((p) => (
+                            <Select.Option
+                              key={p.id}
+                              value={p.id}
+                              label={p.name || `Punto ${p.id}`}
+                            >
+                              <Flex align="center" justify="space-between" style={{ width: "100%" }}>
+                                <span style={{ fontWeight: 500 }}>{p.name || `Punto ${p.id}`}</span>
+                                {p.gps && (
+                                  <Tag
+                                    size="small"
+                                    style={{
+                                      fontSize: 10,
+                                      background: ikoluTokens.colorCorporateBlue,
+                                      color: ikoluTokens.colorWhite,
+                                      border: "none",
+                                      marginLeft: 8,
+                                    }}
+                                  >
+                                    GPS
+                                  </Tag>
+                                )}
+                              </Flex>
+                            </Select.Option>
+                          ))}
+                        </Select>
+                      </Flex>
+                    </Spin>
+                  ) : (
+                    <div id="point-selector" style={{ padding: "0 12px", minWidth: 0 }}>
+                      <ListWells />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* SECCIÓN 3: Items POR PUNTO (requieren punto) */}
+              <Menu
+                theme="dark"
+                mode="inline"
+                selectedKeys={[selectedKey]}
+                onClick={onLinkClick}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  borderBottom: "1px solid rgba(255,255,255,0.08)",
+                  paddingBottom: 8,
+                  marginBottom: 8,
+                }}
+                items={pointItems}
+              />
+
+              {/* Menú agrupado (Análisis, Gestión) */}
               <Menu
                 theme="dark"
                 mode="inline"
@@ -974,8 +968,24 @@ const SideMenu = ({ inDrawer = false, onLinkClick, collapsed = false }) => {
                 style={{
                   background: "transparent",
                   border: "none",
+                  borderBottom: "1px solid rgba(255,255,255,0.08)",
+                  paddingBottom: 8,
+                  marginBottom: 8,
                 }}
                 items={groupedItems}
+              />
+
+              {/* SECCIÓN 4: Items GENERALES ABAJO (Soporte, Admin, Documentación) */}
+              <Menu
+                theme="dark"
+                mode="inline"
+                selectedKeys={[selectedKey]}
+                onClick={onLinkClick}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                }}
+                items={bottomGeneralItems}
               />
             </>
           );
@@ -983,9 +993,18 @@ const SideMenu = ({ inDrawer = false, onLinkClick, collapsed = false }) => {
       </div>
 
       {/* Footer del menú */}
-      <div style={{ padding: "12px" }}>
-        <Flex gap="small" vertical>
-          {state.user && state.user.username === "demosmart" && (
+      <div style={{ textAlign: "center" }}>
+        {!collapsed && (
+          <div style={{ padding: "8px 12px 4px", opacity: 0.35 }}>
+            <img
+              src={logo}
+              alt="Ikolu"
+              style={{ width: "auto", height: 16 }}
+            />
+          </div>
+        )}
+        {state.user && state.user.username === "demosmart" && (
+          <div style={{ padding: "0 12px 8px" }}>
             <Button
               block
               size="small"
@@ -999,8 +1018,8 @@ const SideMenu = ({ inDrawer = false, onLinkClick, collapsed = false }) => {
             >
               Cert B
             </Button>
-          )}
-        </Flex>
+          </div>
+        )}
         {isMobile && (
           <div style={{ paddingTop: 8 }}>
             <Popconfirm
@@ -1088,13 +1107,16 @@ const AppLayout = ({ children }) => {
                 marginRight: 8,
                 borderRadius: 6,
                 color: token.colorTextSecondary,
-                fontSize: 16,
+                fontSize: 14,
                 transition: "all 0.2s",
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
               }}
-              onMouseEnter={(e) => (e.target.style.background = "#f0f0f0")}
-              onMouseLeave={(e) => (e.target.style.background = "transparent")}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#f0f0f0")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
             >
-              <MenuOutlined />
+              {collapsed ? <RightOutlined /> : <LeftOutlined />}
             </div>
           )}
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -1105,10 +1127,11 @@ const AppLayout = ({ children }) => {
           id="app-content"
           style={{
             margin: isMobile ? "52px 0 64px 0" : "12px 12px 12px 12px",
-            padding: isMobile ? 8 : 12,
+            padding: 0,
             minHeight: 280,
-            background: "#f5f5f5",
+            background: token.colorBgLayout,
             borderRadius: token.borderRadiusLG,
+            overflow: "hidden",
           }}
         >
           {children}

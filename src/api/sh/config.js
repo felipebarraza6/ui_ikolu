@@ -37,7 +37,7 @@ export const POST_LOGIN = async (endpoint, data) => {
   }
 };
 
-export const GET = async (endpoint, token = null) => {
+export const GET = async (endpoint, token = null, options = {}) => {
   // Si se proporciona token, usarlo; si no, intentar obtenerlo de localStorage
   let authToken = token;
   if (!authToken) {
@@ -50,12 +50,13 @@ export const GET = async (endpoint, token = null) => {
     );
   }
 
-  const options = {
+  const requestOptions = {
     headers: {
       Authorization: `Token ${authToken}`,
     },
+    ...options,
   };
-  const request = await Axios.get(endpoint, options);
+  const request = await Axios.get(endpoint, requestOptions);
   return request;
 };
 

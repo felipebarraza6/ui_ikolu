@@ -116,6 +116,9 @@ const transformDashboardStats = (raw) => {
       avg_flow_week: wStats.avg_flow_week,
       avg_level_week: wStats.avg_level_week,
       weekly_total_m3: wStats.total_m3,
+      // Configuración del punto (variables activas)
+      config_data: p.config_data || null,
+      profile_ikolu: p.profile_ikolu || null,
       // Datos desde warnings
       warnings_count: warningsByPoint[p.point_name] || 0,
     };
@@ -155,6 +158,7 @@ const transformDashboardStats = (raw) => {
       total_m3: extractNum(weekData?.total_m3),
       avg_flow_week: extractNum(weekData?.avg_flow_week),
       avg_level_week: extractNum(weekData?.avg_level_week),
+      variables: (weekData?.variables || []).map(v => String(v).toUpperCase()),
       days: (weekData?.days || []).map((d) => ({
         ...d,
         consumption: extractNum(d.consumption),
@@ -185,7 +189,7 @@ const transformDashboardStats = (raw) => {
       difference_percent: Number(diffPercent),
       trend: diffM3 > 0 ? "up" : diffM3 < 0 ? "down" : "same",
       date_label_today: `Hoy (${today.format("D MMM")})`,
-      date_label_yesterday: `Ayer (${today.subtract(1, "day").format("D MMM")})`,
+      date_label_yesterday: `Ayer (${moment(today).subtract(1, "day").format("D MMM")})`,
     },
     service_status: {
       connected_today: statusToday.connected || 0,
@@ -242,9 +246,10 @@ export const useControlCenter = (options = {}) => {
       if (!silent) setLoading(true);
       setError(null);
 
+      const controller = new AbortController();
+
       try {
-        const raw = await sh.dashboardStats();
-        console.log("[useControlCenter] dashboard_stats raw:", raw);
+        const raw = await sh.dashboardStats(controller.signal);
 
         const transformed = transformDashboardStats(raw);
 
@@ -254,7 +259,7 @@ export const useControlCenter = (options = {}) => {
           setError(null);
         }
       } catch (err) {
-        console.error("[useControlCenter] Error:", err);
+        if (err.name === "AbortError") return;
         if (isMountedRef.current) {
           setError(err);
         }
@@ -263,6 +268,8 @@ export const useControlCenter = (options = {}) => {
           setLoading(false);
         }
       }
+
+      return () => controller.abort();
     },
     [isAuth]
   );

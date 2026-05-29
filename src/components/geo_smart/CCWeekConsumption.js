@@ -1,13 +1,41 @@
 import React, { useCallback, useMemo } from "react";
-import { Flex, Typography, Table, Tooltip, theme } from "antd";
-import { FaEye, FaHandPaper } from "react-icons/fa";
+import { Flex, Typography, Table, Tooltip, Tag, theme } from "antd";
+import { FaEye, FaHandPaper, FaHeadset, FaExclamationTriangle, FaInfoCircle } from "react-icons/fa";
 import moment from "moment";
+import { ikoluTokens } from "../../theme";
 import { formatInteger } from "../../utils/numberFormatter";
 
 const { Text } = Typography;
 const { useToken } = theme;
 
-const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasurements, onOpenStopTelemetry, onSelectPoint }) => {
+const TableMemo = React.memo(({ data, columns, onSelectPoint, loading }) => {
+  const dataSource = useMemo(() =>
+    [...data]
+      .sort((a, b) => (b.consumption || 0) - (a.consumption || 0))
+      .map((p, idx) => ({ ...p, key: idx, rank: idx + 1 })),
+    [data]
+  );
+
+  const onRow = useCallback((record) => ({
+    onClick: () => onSelectPoint(record),
+    style: { cursor: "pointer" },
+  }), [onSelectPoint]);
+
+  return (
+    <Table
+      loading={loading}
+      dataSource={dataSource}
+      size="small"
+      pagination={false}
+      showHeader={true}
+      columns={columns}
+      onRow={onRow}
+      locale={{ emptyText: "Sin datos" }}
+    />
+  );
+});
+
+const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasurements, onOpenStopTelemetry, onOpenSupport = () => {}, onWarningPointClick = () => {}, onViewPointConfig, warningsRaw = {}, onSelectPoint, loading = false }) => {
   const { token } = useToken();
 
   const dayMap = useMemo(() => {
@@ -34,36 +62,131 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
   }, [selectedDate, onDateSelect]);
 
   const handleViewMeasurements = useCallback((record) => {
-    onViewMeasurements(record.pointName, activeDate);
-  }, [onViewMeasurements, activeDate]);
+    const pointVars = last7?.[record.pointName]?.variables || [];
+    onViewMeasurements(record.pointName, activeDate, pointVars);
+  }, [onViewMeasurements, activeDate, last7]);
 
   const handleOpenStopTelemetry = useCallback((record) => {
     onOpenStopTelemetry(record.pointName);
   }, [onOpenStopTelemetry]);
 
+  const handleOpenSupport = useCallback((record) => {
+    onOpenSupport(record.pointName);
+  }, [onOpenSupport]);
+
   const handleSelectPoint = useCallback((record) => {
     onSelectPoint({ id: record.pointName, title: record.pointName });
   }, [onSelectPoint]);
 
-  const columns = useMemo(() => [
-    {
-      title: "#",
-      dataIndex: "rank",
-      key: "rank",
-      width: 40,
-      align: "center",
-      render: (rank) => (
-        <div style={{ width: 20, height: 20, borderRadius: "50%", background: `${token.colorPrimary}15`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: token.colorPrimary, fontWeight: 700, margin: "0 auto" }}>
-          {rank}
-        </div>
-      ),
-    },
-    { title: "Punto", dataIndex: "pointName", key: "pointName", width: 70, render: (text) => <Text strong style={{ fontSize: 12 }}>{text}</Text> },
-    { title: "Consumo (m³)", dataIndex: "consumption", key: "consumption", width: 130, align: "right", render: (v) => <Text strong style={{ fontSize: 12, color: token.colorPrimary }}>{formatInteger(v || 0)}</Text> },
-    { title: "Caudal prom. (L/s)", dataIndex: "avg_flow", key: "avg_flow", width: 120, align: "right", render: (v) => <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{v != null ? Number(v).toFixed(1) : "—"}</Text> },
-    { title: "Nivel prom. (m)", dataIndex: "avg_level", key: "avg_level", width: 100, align: "right", render: (v) => <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{v != null ? Number(v).toFixed(2) : "—"}</Text> },
-    { title: "Med.", dataIndex: "measurements_count", key: "measurements_count", width: 90, align: "center", render: (v, record) => (
-      <Flex align="center" justify="center" gap={6} onClick={(e) => e.stopPropagation()}>
+  // Detectar variables activas en al menos un punto
+  const activeVars = useMemo(() => {
+    const allVars = Object.values(last7 || {}).flatMap(w => w.variables || []);
+    return {
+      hasConsumption: allVars.some(v => v === "TOTALIZADO"),
+      hasFlow: allVars.some(v => v.includes("CAUDAL")),
+      hasLevel: allVars.some(v => v === "NIVEL" || v === "NIVEL_FREATICO"),
+    };
+  }, [last7]);
+
+  const columns = useMemo(() => {
+    const cols = [
+      {
+        title: "#",
+        dataIndex: "status",
+        key: "status",
+        width: 40,
+        align: "center",
+        render: (_, record) => {
+          const isConnected = (record.measurements_count || 0) > 0;
+          return (
+            <div style={{ width: 20, height: 20, minWidth: 20, minHeight: 20, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", background: isConnected ? `${token.colorPrimary}20` : "#ff4d4f20", overflow: "hidden" }}>
+              <div
+                style={{
+                  width: 8,
+                  height: 8,
+                  minWidth: 8,
+                  minHeight: 8,
+                  borderRadius: "50%",
+                  background: isConnected ? token.colorPrimary : "#ff4d4f",
+                  animation: isConnected ? "pulse-badge 2s ease-in-out infinite" : "none",
+                  flexShrink: 0,
+                }}
+              />
+            </div>
+          );
+        },
+      },
+      {
+        title: "Punto",
+        dataIndex: "pointName",
+        key: "pointName",
+        width: 70,
+        render: (text, record) => {
+          const allWarnings = warningsRaw?.[text];
+          // Filtrar warnings por fecha: solo mostrar hasta la fecha seleccionada
+          const filteredWarnings = Array.isArray(allWarnings) 
+            ? allWarnings.filter(w => {
+                const warningDate = moment(w.time).format("YYYY-MM-DD");
+                return warningDate <= activeDate;
+              })
+            : [];
+          const warningCount = filteredWarnings.length;
+          return (
+            <Flex align="center" justify="space-between" style={{ width: "100%" }}>
+              <Flex align="center" gap={6}>
+                <Text strong style={{ fontSize: 12 }}>{text}</Text>
+                <FaInfoCircle
+                  style={{ fontSize: 11, color: token.colorPrimary, cursor: "pointer", opacity: 0.7 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onViewPointConfig(text);
+                  }}
+                />
+              </Flex>
+              {warningCount > 0 && (
+                <Tag
+                  style={{
+                    fontSize: 10,
+                    margin: 0,
+                    padding: "0 6px",
+                    lineHeight: "18px",
+                    cursor: "pointer",
+                    fontWeight: 700,
+                    background: ikoluTokens.colorWarning,
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 4,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 3,
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onWarningPointClick(text);
+                  }}
+                >
+                  <FaExclamationTriangle style={{ fontSize: 9 }} />
+                  {warningCount}
+                </Tag>
+              )}
+            </Flex>
+          );
+        },
+      },
+    ];
+
+    if (activeVars.hasConsumption) {
+      cols.push({ title: "Consumo (m³)", dataIndex: "consumption", key: "consumption", width: 130, align: "right", render: (v) => <Text strong style={{ fontSize: 12, color: token.colorTextHeading }}>{formatInteger(v || 0)}</Text> });
+    }
+    if (activeVars.hasFlow) {
+      cols.push({ title: "Caudal prom. (L/s)", dataIndex: "avg_flow", key: "avg_flow", width: 120, align: "right", render: (v) => <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{v != null ? Number(v).toFixed(1) : "—"}</Text> });
+    }
+    if (activeVars.hasLevel) {
+      cols.push({ title: "Nivel prom. (m)", dataIndex: "avg_level", key: "avg_level", width: 100, align: "right", render: (v) => <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{v != null ? Number(v).toFixed(2) : "—"}</Text> });
+    }
+
+    cols.push({ title: "", dataIndex: "measurements_count", key: "measurements_count", width: 120, align: "center", render: (v, record) => (
+      <Flex align="center" justify="center" gap={4} onClick={(e) => e.stopPropagation()}>
         <Tooltip title={`Ver ${v || 0} mediciones`}>
           <div
             style={{
@@ -87,7 +210,8 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
             <Text style={{ fontSize: 10, color: token.colorTextSecondary, lineHeight: 1 }}>{v || 0}</Text>
           </div>
         </Tooltip>
-        <Tooltip title="Solicitar detención de telemetría">
+        {(record.measurements_count || 0) > 0 && (
+        <Tooltip title="Detener telemetría">
           <div
             style={{
               width: 22,
@@ -111,9 +235,37 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
             <FaHandPaper style={{ fontSize: 9, color: token.colorPrimary }} />
           </div>
         </Tooltip>
+        )}
+        <Tooltip title="Solicitar soporte">
+          <div
+            style={{
+              width: 22,
+              height: 22,
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              transition: "all 0.2s",
+              border: `1px solid ${token.colorPrimary}40`,
+              background: `${token.colorPrimary}08`,
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpenSupport(record);
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = `${token.colorPrimary}15`; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = `${token.colorPrimary}08`; }}
+          >
+            <FaHeadset style={{ fontSize: 9, color: token.colorPrimary }} />
+          </div>
+        </Tooltip>
       </Flex>
-    ) },
-  ], [token, handleViewMeasurements, handleOpenStopTelemetry]);
+    ) });
+
+    return cols;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, handleViewMeasurements, handleOpenStopTelemetry, handleOpenSupport, onWarningPointClick, onSelectPoint, activeVars]);
 
   if (sortedDays.length === 0) {
     return (
@@ -166,20 +318,11 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
         </Flex>
 
         {activeDate && dayMap[activeDate] && (
-          <Table
-            dataSource={[...dayMap[activeDate].points]
-              .sort((a, b) => (b.consumption || 0) - (a.consumption || 0))
-              .map((p, idx) => ({ ...p, key: idx, rank: idx + 1 }))}
-            size="small"
-            bordered
-            pagination={false}
-            showHeader={true}
+          <TableMemo
+            loading={loading}
+            data={dayMap[activeDate].points}
             columns={columns}
-            onRow={(record) => ({
-              onClick: () => handleSelectPoint(record),
-              style: { cursor: "pointer" },
-            })}
-            locale={{ emptyText: "Sin datos" }}
+            onSelectPoint={handleSelectPoint}
           />
         )}
       </Flex>

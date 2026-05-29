@@ -12,6 +12,7 @@ import {
   Flex,
   Card,
   Statistic,
+  theme,
 } from "antd";
 import { AppContext } from "../../App";
 import ModuleTour from "../common/ModuleTour";
@@ -35,6 +36,7 @@ import {
   formatLevel,
 } from "../../utils/numberFormatter";
 import { useResponsive } from "../../hooks/useResponsive";
+import { PageContainer, SectionCard } from "../common/LayoutPrimitives";
 
 // Configurar dayjs para español
 dayjs.locale("es");
@@ -383,34 +385,19 @@ const Reports = () => {
 
   return (
     <QueueAnim delay={300} duration={900} type="right">
-      <div
-        key="reports"
-        style={{
-          maxWidth: "1600px",
-          margin: isMobile ? "12px auto" : "0 auto",
-          padding: isMobile ? "0 8px" : "0",
-          minHeight: "90vh",
-        }}
-      >
+      <PageContainer key="reports">
         {/* KPIs */}
         {renderKPIs()}
 
         {/* Filtros */}
-        <Card
+        <SectionCard
           id="download-filters"
-          style={{
-            borderRadius: "12px",
-            background: "white",
-            boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-            border: "none",
-            marginBottom: "24px",
-          }}
-          bodyStyle={{ padding: isMobile ? "16px" : "24px" }}
+          style={{ marginBottom: 24 }}
         >
           <Form
               form={form}
               onFinish={onFinish}
-              style={{ marginBottom: "20px" }}
+              style={{ marginBottom: 20 }}
               layout="inline"
             >
               <Row gutter={[16, 16]} style={{ width: "100%" }}>
@@ -457,51 +444,32 @@ const Reports = () => {
                 </Col>
               </Row>
             </Form>
-        </Card>
+        </SectionCard>
 
         {/* Tabla */}
-        <Card
-          style={{
-            borderRadius: "12px",
-            background: "white",
-            boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-            border: "none",
-          }}
-          bodyStyle={{ padding: isMobile ? "16px" : "24px" }}
-        >
-          <Flex
-            justify="space-between"
-            align="center"
-            style={{ marginBottom: "20px" }}
-          >
-            <span
-              style={{
-                margin: 0,
-                color: "#1F3461",
-                fontSize: 16,
-                fontWeight: 700,
-              }}
-            >
+        <SectionCard
+          title={
+            <span>
               <TableOutlined style={{ marginRight: 8 }} />
               Registros de Telemetría
             </span>
+          }
+          extra={
             <Tag
               style={{
                 fontWeight: 600,
                 fontSize: "12px",
                 padding: "4px 12px",
                 borderRadius: "6px",
-                borderColor: "#1F3461",
-                color: "#1F3461",
-                background: "#f2f5fa",
               }}
             >
               {total} registros
             </Tag>
-          </Flex>
+          }
+        >
           {renderContent()}
-        </Card>
-      </div>
+        </SectionCard>
+      </PageContainer>
     </QueueAnim>
   );
 };

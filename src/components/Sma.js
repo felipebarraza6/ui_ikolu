@@ -9,7 +9,6 @@ import {
   Table,
   Flex,
   Select,
-  Card,
   Statistic,
   Badge,
   DatePicker,
@@ -51,6 +50,7 @@ import {
 import sh from "../api/sh/endpoints";
 import { useResponsive } from "../hooks/useResponsive";
 import { ikoluTokens } from "../theme";
+import { PageContainer, SectionCard } from "../components/common/LayoutPrimitives";
 
 // Configurar dayjs correctamente
 dayjs.extend(customParseFormat);
@@ -475,111 +475,113 @@ const Sma = () => {
   const dateRangeIsSelected = initialDate && finishDate;
 
   return (
-    <div style={{ padding: isMobile ? "0" : "0 24px" }}>
-      <Card 
-        style={{ borderRadius: 32, overflow: "hidden", border: "none", boxShadow: "0 20px 50px rgba(0, 50, 150, 0.12)" }} 
+    <PageContainer>
+      {/* HEADER CON GRADIENTE Y STATS */}
+      <div style={{ 
+        background: `linear-gradient(135deg, ${primaryColor} 0%, #001a35 100%)`, 
+        padding: isMobile ? "16px" : "24px 32px", 
+        position: "relative",
+        overflow: "hidden",
+        borderRadius: token.borderRadiusLG,
+        marginBottom: 16,
+      }}>
+        <div className="water-wave" style={{ opacity: 0.15, top: -120 }}></div>
+        <div className="water-wave wave-reverse" style={{ opacity: 0.1, top: -100, animationDuration: '25s' }}></div>
+        
+        <Flex justify="space-between" align="center" wrap="wrap" gap={24} style={{ position: "relative", zIndex: 1 }}>
+          <Flex align="center" gap={16} style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ 
+              background: "rgba(255, 255, 255, 0.1)", 
+              backdropFilter: "blur(10px)",
+              padding: 14, 
+              borderRadius: 20, 
+              color: ikoluTokens.colorWhite,
+              boxShadow: "0 4px 15px rgba(0,0,0,0.2)"
+            }}>
+              <DatabaseFilled style={{ fontSize: ikoluTokens.fontSize4XL, color: "#10ebff" }} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <Title level={isMobile ? 4 : 2} style={{ margin: 0, color: ikoluTokens.colorWhite, fontWeight: 800 }}>
+                Captación Superficial
+              </Title>
+              <Flex align="center" gap={8} wrap="wrap">
+                {showSmaFeatures && <Tag color="cyan" style={{ border: "none", borderRadius: token.borderRadiusXS, fontSize: 10, fontWeight: 700 }}>SMA</Tag>}
+                {isDga && <Tag color="blue" style={{ border: "none", borderRadius: token.borderRadiusXS, fontSize: 10, fontWeight: 700 }}>DGA</Tag>}
+                {workCode && (
+                  <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: token.fontSizeSM, fontWeight: 500 }}>
+                    Cód: <span style={{ color: ikoluTokens.colorWhite, fontWeight: 700 }}>{workCode}</span>
+                  </Text>
+                )}
+                {selected_profile?.config_data?.variables?.map(v => (
+                  <Tag 
+                    key={v.id} 
+                    color="blue" 
+                    style={{ 
+                      background: "rgba(24, 144, 255, 0.2)", 
+                      border: "1px solid rgba(24, 144, 255, 0.3)", 
+                      borderRadius: token.borderRadiusXS, 
+                      fontSize: 9, 
+                      color: ikoluTokens.colorWhite,
+                      textTransform: "uppercase"
+                    }}
+                  >
+                    {v.label}
+                  </Tag>
+                ))}
+                <Badge 
+                  status="processing" 
+                  color="#10ebff" 
+                  text={<span style={{ color: "#10ebff", fontWeight: 700, fontSize: 10, letterSpacing: 0.5 }}>ONLINE</span>} 
+                  className="pulse-badge"
+                />
+              </Flex>
+            </div>
+          </Flex>
+
+          {/* HORIZONTAL QUICK STATS BAR */}
+          <Flex gap={16} wrap={isMobile ? "wrap" : "nowrap"} flex={isMobile ? "100%" : "auto"}>
+            <div style={miniCardStyle}>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", fontWeight: 700 }}>CONEXIÓN</div>
+              <div style={{ fontSize: ikoluTokens.fontSize2XL, color: ikoluTokens.colorWhite, fontWeight: 900 }}>
+                {dataSelected?.modules?.m1?.date_time_medition ? dayjs(dataSelected.modules.m1.date_time_medition).format("HH:mm") : "--:--"}
+                <small style={{ fontSize: 10, marginLeft: 2, opacity: 0.7 }}>hrs</small>
+              </div>
+              <div className="water-wave wave-slow" style={{ opacity: 0.1, top: 15 }}></div>
+              <div className="water-wave wave-reverse" style={{ opacity: 0.05, top: 25, animationDuration: '25s' }}></div>
+            </div>
+
+            <div style={miniCardStyle}>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", fontWeight: 700 }}>HOY ({dayjs().format("DD/MM")})</div>
+              <div style={{ fontSize: ikoluTokens.fontSize2XL, color: "#10ebff", fontWeight: 900 }}>
+                {dataSelected?.modules?.total_consumed_today ? Math.round(dataSelected.modules.total_consumed_today * 1000).toLocaleString("es-ES") : 0}
+                <small style={{ fontSize: 10, marginLeft: 2, opacity: 0.7 }}>lt</small>
+              </div>
+              <div className="water-wave" style={{ opacity: 0.1, top: 15 }}></div>
+              <div className="water-wave wave-slow" style={{ opacity: 0.05, top: 25, left: '-30px' }}></div>
+            </div>
+
+            <div style={miniCardStyle}>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", fontWeight: 700 }}>AYER</div>
+              <div style={{ fontSize: ikoluTokens.fontSize2XL, color: ikoluTokens.colorWhite, fontWeight: 900 }}>
+                {dataSelected?.modules?.total_consumed_yesterday ? Math.round(dataSelected.modules.total_consumed_yesterday * 1000).toLocaleString("es-ES") : 0}
+                <small style={{ fontSize: 10, marginLeft: 2, opacity: 0.7 }}>lt</small>
+              </div>
+              <div className="water-wave wave-reverse" style={{ opacity: 0.1, top: 15 }}></div>
+              <div className="water-wave" style={{ opacity: 0.05, top: 25, animationDuration: '18s' }}></div>
+            </div>
+          </Flex>
+        </Flex>
+      </div>
+
+      {/* CONTROLS Y TABLA EN SECTIONCARD */}
+      <SectionCard
         bodyStyle={{ padding: 0 }}
       >
-        {/* COMPACT DYNAMIC HEADER WITH STATS */}
-        <div style={{ 
-          background: `linear-gradient(135deg, ${primaryColor} 0%, #001a35 100%)`, 
-          padding: "24px 32px", 
-          position: "relative",
-          overflow: "hidden" 
-        }}>
-          <div className="water-wave" style={{ opacity: 0.15, top: -120 }}></div>
-          <div className="water-wave wave-reverse" style={{ opacity: 0.1, top: -100, animationDuration: '25s' }}></div>
-          
-          <Flex justify="space-between" align="center" wrap="wrap" gap={24} style={{ position: "relative", zIndex: 1 }}>
-            <Flex align="center" gap={16} style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ 
-                background: "rgba(255, 255, 255, 0.1)", 
-                backdropFilter: "blur(10px)",
-                padding: 14, 
-                borderRadius: 20, 
-                color: ikoluTokens.colorWhite,
-                boxShadow: "0 4px 15px rgba(0,0,0,0.2)"
-              }}>
-                <DatabaseFilled style={{ fontSize: ikoluTokens.fontSize4XL, color: "#10ebff" }} />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <Title level={isMobile ? 4 : 2} style={{ margin: 0, color: ikoluTokens.colorWhite, fontWeight: 800 }}>
-                  Captación Superficial
-                </Title>
-                <Flex align="center" gap={8} wrap="wrap">
-                  {showSmaFeatures && <Tag color="cyan" style={{ border: "none", borderRadius: token.borderRadiusXS, fontSize: 10, fontWeight: 700 }}>SMA</Tag>}
-                  {isDga && <Tag color="blue" style={{ border: "none", borderRadius: token.borderRadiusXS, fontSize: 10, fontWeight: 700 }}>DGA</Tag>}
-                  {workCode && (
-                    <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: token.fontSizeSM, fontWeight: 500 }}>
-                      Cód: <span style={{ color: ikoluTokens.colorWhite, fontWeight: 700 }}>{workCode}</span>
-                    </Text>
-                  )}
-                  {selected_profile?.config_data?.variables?.map(v => (
-                    <Tag 
-                      key={v.id} 
-                      color="blue" 
-                      style={{ 
-                        background: "rgba(24, 144, 255, 0.2)", 
-                        border: "1px solid rgba(24, 144, 255, 0.3)", 
-                        borderRadius: token.borderRadiusXS, 
-                        fontSize: 9, 
-                        color: ikoluTokens.colorWhite,
-                        textTransform: "uppercase"
-                      }}
-                    >
-                      {v.label}
-                    </Tag>
-                  ))}
-                  <Badge 
-                    status="processing" 
-                    color="#10ebff" 
-                    text={<span style={{ color: "#10ebff", fontWeight: 700, fontSize: 10, letterSpacing: 0.5 }}>ONLINE</span>} 
-                    className="pulse-badge"
-                  />
-                </Flex>
-              </div>
-            </Flex>
-
-            {/* HORIZONTAL QUICK STATS BAR */}
-            <Flex gap={16} wrap={isMobile ? "wrap" : "nowrap"} flex={isMobile ? "100%" : "auto"}>
-              <div style={miniCardStyle}>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", fontWeight: 700 }}>CONEXIÓN</div>
-                <div style={{ fontSize: ikoluTokens.fontSize2XL, color: ikoluTokens.colorWhite, fontWeight: 900 }}>
-                  {dataSelected?.modules?.m1?.date_time_medition ? dayjs(dataSelected.modules.m1.date_time_medition).format("HH:mm") : "--:--"}
-                  <small style={{ fontSize: 10, marginLeft: 2, opacity: 0.7 }}>hrs</small>
-                </div>
-                <div className="water-wave wave-slow" style={{ opacity: 0.1, top: 15 }}></div>
-                <div className="water-wave wave-reverse" style={{ opacity: 0.05, top: 25, animationDuration: '25s' }}></div>
-              </div>
-
-              <div style={miniCardStyle}>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", fontWeight: 700 }}>HOY ({dayjs().format("DD/MM")})</div>
-                <div style={{ fontSize: ikoluTokens.fontSize2XL, color: "#10ebff", fontWeight: 900 }}>
-                  {dataSelected?.modules?.total_consumed_today ? Math.round(dataSelected.modules.total_consumed_today * 1000).toLocaleString("es-ES") : 0}
-                  <small style={{ fontSize: 10, marginLeft: 2, opacity: 0.7 }}>lt</small>
-                </div>
-                <div className="water-wave" style={{ opacity: 0.1, top: 15 }}></div>
-                <div className="water-wave wave-slow" style={{ opacity: 0.05, top: 25, left: '-30px' }}></div>
-              </div>
-
-              <div style={miniCardStyle}>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", fontWeight: 700 }}>AYER</div>
-                <div style={{ fontSize: ikoluTokens.fontSize2XL, color: ikoluTokens.colorWhite, fontWeight: 900 }}>
-                  {dataSelected?.modules?.total_consumed_yesterday ? Math.round(dataSelected.modules.total_consumed_yesterday * 1000).toLocaleString("es-ES") : 0}
-                  <small style={{ fontSize: 10, marginLeft: 2, opacity: 0.7 }}>lt</small>
-                </div>
-                <div className="water-wave wave-reverse" style={{ opacity: 0.1, top: 15 }}></div>
-                <div className="water-wave" style={{ opacity: 0.05, top: 25, animationDuration: '18s' }}></div>
-              </div>
-            </Flex>
-          </Flex>
-        </div>
-
         {/* CONTROLS SECTION */}
-        <div style={{ padding: "16px 32px", borderBottom: "1px solid #f0f7ff", background: ikoluTokens.colorWhite }}>
+        <div style={{ padding: isMobile ? "12px" : "16px 24px", borderBottom: `1px solid ${token.colorBorderSecondary}` }}>
           <Flex justify="space-between" align="center" wrap="wrap" gap={16}>
              <Space.Compact style={{
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                  boxShadow: token.boxShadowTertiary,
                   borderRadius: token.borderRadiusLG,
                   overflow: "hidden"
                 }}>
@@ -598,7 +600,7 @@ const Sma = () => {
                     }}
                     disabled={!activate}
                     format="DD/MM/YYYY"
-                    style={{ width: "130px", border: "none", background: "#f9fcff" }}
+                    style={{ width: "130px", border: "none", background: token.colorBgLayout }}
                   />
                   <DatePicker
                     placeholder="Hasta"
@@ -607,7 +609,7 @@ const Sma = () => {
                     disabled={!initialDate || !activate}
                     disabledDate={disabledFinishDate}
                     format="DD/MM/YYYY"
-                    style={{ width: "130px", border: "none", background: "#f9fcff", borderLeft: "1px solid #eee" }}
+                    style={{ width: "130px", border: "none", background: token.colorBgLayout, borderLeft: `1px solid ${token.colorBorder}` }}
                   />
                 </Space.Compact>
               
@@ -635,7 +637,7 @@ const Sma = () => {
         </div>
 
         {loading ? (
-          <div style={{ padding: "40px 32px" }}>
+          <div style={{ padding: isMobile ? "24px 12px" : "40px 24px" }}>
             <Skeleton active paragraph={{ rows: 8 }} className="skeleton-pulse" />
           </div>
         ) : (
@@ -660,8 +662,8 @@ const Sma = () => {
               locale={{
                 emptyText: (
                   <Flex vertical align="center" style={{ padding: "80px 0" }}>
-                    <SearchOutlined style={{ fontSize: 64, color: "#e6f7ff", marginBottom: 20 }} />
-                    <Title level={4} style={{ color: ikoluTokens.colorGreyTextLight, margin: 0, fontWeight: 600 }}>
+                    <SearchOutlined style={{ fontSize: 64, color: token.colorBorder, marginBottom: 20 }} />
+                    <Title level={4} style={{ color: token.colorTextSecondary, margin: 0, fontWeight: 600 }}>
                       {dateRangeIsSelected ? "No hay datos para este período" : "Selecciona un rango de fechas"}
                     </Title>
                   </Flex>
@@ -670,7 +672,7 @@ const Sma = () => {
             />
           </div>
         )}
-      </Card>
+      </SectionCard>
 
       <style>{`
         .water-wave {
@@ -846,7 +848,7 @@ const Sma = () => {
           </Form>
         )}
       </Drawer>
-    </div>
+    </PageContainer>
   );
 };
 

@@ -14,6 +14,12 @@
   100% { box-shadow: 0 0 0 0 rgba(0, 212, 170, 0); }
 }
 
+@keyframes pulse-badge {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
 .chat-dark-input::placeholder {
   color: #5a6d8f !important;
   opacity: 1 !important;

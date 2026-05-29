@@ -1,62 +1,76 @@
-import React from "react";
-import { Tabs, Flex, theme } from "antd";
+import React, { useState, useMemo } from "react";
+import { Segmented, Flex, theme } from "antd";
 import { FaClipboardCheck, FaBroadcastTower } from "react-icons/fa";
 import CCComplianceTable from "./CCComplianceTable";
 import CCWeekConsumption from "./CCWeekConsumption";
-import "../../styles/cc-data-tabs.css";
 
 const { useToken } = theme;
 
-const CCDataTabs = ({ points, onViewVoucher, onOpenStopCompliance, onSelectPoint, onViewMeasurements, onOpenStopTelemetry, last7, selectedDate, onDateSelect }) => {
+const CCDataTabs = ({ points, onViewVoucher, onOpenStopCompliance, onOpenSupport = () => {}, onWarningPointClick = () => {}, warningsRaw = {}, onSelectPoint, onViewMeasurements, onOpenStopTelemetry, onViewPointConfig, last7, selectedDate, onDateSelect, loading = false }) => {
   const { token } = useToken();
+  const [activeTab, setActiveTab] = useState("telemetria");
 
-  const tabItems = [
+  const segmentOptions = useMemo(() => [
     {
-      key: "telemetria",
+      value: "telemetria",
       label: (
-        <Flex align="center" gap={6} className="tab-label">
+        <Flex align="center" gap={6}>
           <FaBroadcastTower style={{ fontSize: 14 }} />
           <span>Telemetría</span>
         </Flex>
       ),
-      children: (
+    },
+    {
+      value: "cumplimiento",
+      label: (
+        <Flex align="center" gap={6}>
+          <FaClipboardCheck style={{ fontSize: 14 }} />
+          <span>Cumplimiento</span>
+        </Flex>
+      ),
+    },
+  ], []);
+
+  return (
+    <div style={{ padding: "8px 0 0" }}>
+      <Flex justify="flex-end" style={{ marginBottom: 8 }}>
+        <Segmented
+          options={segmentOptions}
+          value={activeTab}
+          onChange={setActiveTab}
+          style={{
+            background: token.colorBgLayout,
+          }}
+        />
+      </Flex>
+      {activeTab === "telemetria" && (
         <CCWeekConsumption
           last7={last7}
           selectedDate={selectedDate}
           onDateSelect={onDateSelect}
           onViewMeasurements={onViewMeasurements}
           onOpenStopTelemetry={onOpenStopTelemetry}
+          onOpenSupport={onOpenSupport}
+          onWarningPointClick={onWarningPointClick}
+          onViewPointConfig={onViewPointConfig}
+          warningsRaw={warningsRaw}
           onSelectPoint={onSelectPoint}
+          loading={loading}
         />
-      ),
-    },
-    {
-      key: "cumplimiento",
-      label: (
-        <Flex align="center" gap={6} className="tab-label">
-          <FaClipboardCheck style={{ fontSize: 14 }} />
-          <span>Cumplimiento Normativo</span>
-        </Flex>
-      ),
-      children: (
+      )}
+      {activeTab === "cumplimiento" && (
         <CCComplianceTable
           points={points}
+          last7={last7}
           onViewVoucher={onViewVoucher}
           onOpenStopCompliance={onOpenStopCompliance}
+          onOpenSupport={onOpenSupport}
+          onViewPointConfig={onViewPointConfig}
           onSelectPoint={onSelectPoint}
+          loading={loading}
         />
-      ),
-    },
-  ];
-
-  return (
-    <div className="cc-data-tabs" style={{ borderRadius: token.borderRadiusLG, overflow: "hidden" }}>
-        <Tabs
-          defaultActiveKey="telemetria"
-          type="card"
-          items={tabItems}
-        />
-      </div>
+      )}
+    </div>
   );
 };
 
