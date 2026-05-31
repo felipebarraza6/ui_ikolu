@@ -65,9 +65,34 @@ const transformDashboardStats = (raw) => {
   const warningsByPoint = {};
   const recentWarningsList = [];
 
+  // Extraer warnings desde last_7[point].days[].warnings
+  Object.entries(ds.last_7 || {}).forEach(([pointName, pointData]) => {
+    const days = pointData?.days || [];
+    const pointWarnings = [];
+    
+    days.forEach((day) => {
+      const dayWarnings = day?.warnings || [];
+      dayWarnings.forEach((w) => {
+        pointWarnings.push({
+          pointName,
+          time: w.time,
+          type: w.type,
+          severity: w.severity,
+          message: w.message,
+        });
+      });
+    });
+    
+    warningsByPoint[pointName] = pointWarnings.length;
+    recentWarningsList.push(...pointWarnings);
+  });
+
+  // También soportar recent_warnings si el backend lo envía
   Object.entries(ds.recent_warnings || {}).forEach(([pointName, warnings]) => {
     const arr = Array.isArray(warnings) ? warnings : [];
-    warningsByPoint[pointName] = arr.length;
+    if (!warningsByPoint[pointName]) {
+      warningsByPoint[pointName] = arr.length;
+    }
     arr.forEach((w) => {
       recentWarningsList.push({
         pointName,

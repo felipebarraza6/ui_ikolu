@@ -1,11 +1,9 @@
-import React, { useCallback, useState, useMemo, useRef } from "react";
+import React, { useCallback, useState, useMemo, useRef, useEffect } from "react";
 import "./ControlCenter.css";
-import ApexChartWrapper from "./ApexChartWrapper";
-import ReactApexChart from "react-apexcharts";
 import { useData } from "../../contexts/DataContext";
 import { useControlCenter } from "../../hooks/useControlCenter";
 import sh from "../../api/sh/endpoints";
-import { Row, Col, Card, Flex, Typography, Spin, Table, Tag, theme, Drawer, Modal, Button, Input, Space, Segmented, Form, message, DatePicker, Alert, Tabs } from "antd";
+import { Row, Col, Card, Flex, Typography, Spin, Table, Tag, theme, Drawer, Modal, Button, Input, Space, Segmented, Form, message, DatePicker, Alert, Tabs, Select, Tooltip } from "antd";
 import {
   FaMapMarkerAlt,
   FaBroadcastTower,
@@ -18,7 +16,10 @@ import {
   FaTable,
   FaHandPaper,
   FaPauseCircle,
-  FaExternalLinkAlt,
+  FaSearch,
+  FaArrowLeft,
+  FaArrowRight,
+  FaDownload,
 } from "react-icons/fa";
 
 
@@ -33,744 +34,11 @@ import { centroControlTour } from "../../config/tours";
 import { ikoluTokens, kpiGradients } from "../../theme";
 import moment from "moment";
 import { useAuth } from "../../contexts/AuthContext";
+import { MeasurementsDrawerContentMemo } from "./measurements/MeasurementDrawer";
+import { extractRecordNum } from "./measurements/MeasurementUtils";
 
 const { Text } = Typography;
 const { useToken } = theme;
-
-/* ── Helper: normalizar número que puede venir como objeto {source, parsedValue} ── */
-const extractRecordNum = (val) => {
-  if (val == null) return null;
-  if (typeof val === "number") return val;
-  if (typeof val === "string") {
-    const n = Number(val);
-    return isNaN(n) ? null : n;
-  }
-  if (typeof val === "object") {
-    if (val.parsedValue != null) {
-      const n = Number(val.parsedValue);
-      return isNaN(n) ? null : n;
-    }
-    if (val.source != null) {
-      const n = Number(val.source);
-      return isNaN(n) ? null : n;
-    }
-  }
-  return null;
-};
-
-/* ── Helper: extraer mediciones de respuesta del endpoint ── */
-const extractMeasurements = (raw) => {
-  if (!raw) return [];
-  if (Array.isArray(raw)) return raw;
-  if (Array.isArray(raw.records)) return raw.records;
-  if (Array.isArray(raw.results)) return raw.results;
-  if (Array.isArray(raw.measurements)) return raw.measurements;
-  if (Array.isArray(raw.data)) return raw.data;
-  if (Array.isArray(raw.calendar)) return raw.calendar;
-  return [];
-};
-
-/* ── Helper: clasificar mediciones por franja horaria ── */
-const classifyByTimeOfDay = (measurements) => {
-  const dawn = [];     // 00:00 - 05:00
-  const morning = [];  // 06:00 - 12:00
-  const afternoon = []; // 13:00 - 18:00
-  const night = [];    // 19:00 - 23:00
-
-  measurements.forEach((m) => {
-    const timeStr = m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at;
-    if (!timeStr) return;
-    const hour = moment(timeStr).hour();
-    if (hour >= 0 && hour <= 5) dawn.push(m);
-    else if (hour >= 6 && hour <= 12) morning.push(m);
-    else if (hour >= 13 && hour <= 18) afternoon.push(m);
-    else night.push(m);
-  });
-
-  const sortByTime = (a, b) => {
-    const ta = moment(a.date_time || a.date_time_medition || a.timestamp || a.time || a.created_at).valueOf();
-    const tb = moment(b.date_time || b.date_time_medition || b.timestamp || b.time || b.created_at).valueOf();
-    return ta - tb;
-  };
-
-  return {
-    dawn: dawn.sort(sortByTime),
-    morning: morning.sort(sortByTime),
-    afternoon: afternoon.sort(sortByTime),
-    night: night.sort(sortByTime),
-  };
-};
-
-/*  Helper: generar annotation de promedio condicional ─ */
-const getAvgAnnotation = (avgVal, minVal, maxVal, token, unit = "") => {
-  return [{
-    type: "line",
-    start: ["min", avgVal],
-    end: ["max", avgVal],
-    style: { stroke: token.colorTextSecondary, lineWidth: 1.5, lineDash: [4, 4], opacity: 0.5 }
-  }];
-};
-
-/*  ChartToolbar: botón descarga + toggle indicadores ─ */
-/*  Area Chart (Consumo) ─ */
-const MeasurementsAreaChart = ({ data, metric, token, color, title, minInfo, maxInfo }) => {
-  return (
-    <ApexChartWrapper
-      type="area"
-      data={data}
-      metric={metric}
-      token={token}
-      color={color || token.colorPrimary}
-      title={title || "Consumo"}
-      minInfo={minInfo}
-      maxInfo={maxInfo}
-      unit="m³"
-    />
-  );
-};
-
-/*  Line Chart (Caudal)  */
-const MeasurementsLineChart = ({ data, metric, token, color, title, minInfo, maxInfo }) => {
-  return (
-    <ApexChartWrapper
-      type="line"
-      data={data}
-      metric={metric}
-      token={token}
-      color={color || token.colorPrimary}
-      title={title || "Caudal"}
-      minInfo={minInfo}
-      maxInfo={maxInfo}
-      unit="L/s"
-    />
-  );
-};
-
-/*  Column Chart (Nivel)  */
-const MeasurementsColumnChart = ({ data, metric, token, color, title, minInfo, maxInfo }) => {
-  return (
-    <ApexChartWrapper
-      type="bar"
-      data={data}
-      metric={metric}
-      token={token}
-      color={color || token.colorPrimary}
-      title={title || "Nivel"}
-      minInfo={minInfo}
-      maxInfo={maxInfo}
-      unit="m"
-    />
-  );
-};
-
-/*  Inverted Column Chart (Nivel Freático)  */
-const MeasurementsColumnInvertedChart = ({ data, metric, token, color, title, minInfo, maxInfo }) => {
-  return (
-    <ApexChartWrapper
-      type="bar"
-      data={data}
-      metric={metric}
-      token={token}
-      color={color || token.colorPrimary}
-      title={title || "Nivel Freático"}
-      minInfo={minInfo}
-      maxInfo={maxInfo}
-      unit="m"
-    />
-  );
-};
-
-/*  Stacked Column Chart (Nivel + Nivel Freático combinados)  */
-const MeasurementsStackedColumnChart = ({ data, token }) => {
-  if (!data || data.length === 0) return <Flex justify="center" align="center" style={{ height: 220 }} vertical><Text type="secondary" style={{ fontSize: 12 }}>Sin datos</Text></Flex>;
-
-  const stackedData = [];
-  data.forEach((d) => {
-    if (d.nivel != null) {
-      stackedData.push({ time: d.time, value: Number(d.nivel), type: "Nivel del sensor" });
-    }
-    if (d.water_table != null) {
-      stackedData.push({ time: d.time, value: Number(d.water_table), type: "Nivel freático" });
-    }
-  });
-
-  const nivelVals = data.map(d => d.nivel).filter(v => v != null);
-  const wtVals = data.map(d => d.water_table).filter(v => v != null);
-  const allVals = [...nivelVals, ...wtVals];
-  const maxVal = allVals.length ? Math.max(...allVals) : 0;
-  const minVal = allVals.length ? Math.min(...allVals) : 0;
-  const yMax = maxVal + (maxVal - minVal) * 0.1;
-
-  const nivelMax = nivelVals.length ? Math.max(...nivelVals) : null;
-  const nivelMin = nivelVals.length ? Math.min(...nivelVals) : null;
-  const wtMax = wtVals.length ? Math.max(...wtVals) : null;
-  const wtMin = wtVals.length ? Math.min(...wtVals) : null;
-
-  const allTimes = [...new Set(stackedData.map(d => d.time))].sort();
-  
-  if (allTimes.length === 0) return <Flex justify="center" align="center" style={{ height: 220 }} vertical><Text type="secondary" style={{ fontSize: 12 }}>Sin datos válidos</Text></Flex>;
-
-  const series = [
-    {
-      name: 'Nivel del sensor',
-      data: allTimes.map(time => {
-        const item = stackedData.find(d => d.time === time && d.type === "Nivel del sensor");
-        const val = item ? Number(item.value) : null;
-        return { 
-          x: time, 
-          y: val,
-          fillColor: val === nivelMax ? '#ff4d4f' : val === nivelMin ? '#52c41a' : undefined
-        };
-      })
-    },
-    {
-      name: 'Nivel freático',
-      data: allTimes.map(time => {
-        const item = stackedData.find(d => d.time === time && d.type === "Nivel freático");
-        const val = item ? Number(item.value) : null;
-        return { 
-          x: time, 
-          y: val,
-          fillColor: val === wtMax ? '#ff4d4f' : val === wtMin ? '#52c41a' : undefined
-        };
-      })
-    }
-  ];
-
-  const options = {
-    chart: {
-      type: 'bar',
-      height: 350,
-      stacked: true,
-      toolbar: { show: false },
-      animations: { enabled: false },
-      fontFamily: 'inherit',
-    },
-    colors: ['#1890ff', '#595959'],
-    plotOptions: {
-      bar: {
-        borderRadius: 4,
-        columnWidth: '60%',
-      }
-    },
-    states: {
-      hover: {
-        filter: {
-          type: 'darken',
-          value: 0.8,
-        }
-      }
-    },
-    dataLabels: { enabled: false },
-    xaxis: {
-      categories: allTimes,
-      labels: {
-        style: { colors: token.colorTextSecondary, fontSize: '11px' },
-        rotate: -45,
-        rotateAlways: true,
-      },
-      axisBorder: { color: token.colorBorder },
-      axisTicks: { color: token.colorBorder }
-    },
-    yaxis: {
-      labels: {
-        style: { colors: token.colorTextSecondary, fontSize: '11px' },
-        formatter: (value) => Number(value).toFixed(2)
-      },
-      title: {
-        text: 'Nivel (m)',
-        style: { color: token.colorTextSecondary, fontSize: '12px', fontWeight: 'bold' }
-      }
-    },
-    grid: {
-      borderColor: token.colorBorderSecondary + '50',
-      strokeDashArray: 4,
-    },
-    tooltip: {
-      theme: 'light',
-      custom: function({ series, seriesIndex, dataPointIndex, w }) {
-        const datum = stackedData.find(d => d.time === w.config.xaxis.categories[dataPointIndex] && d.type === w.config.series[seriesIndex].name);
-        if (!datum) return '';
-        const isMaxNivel = datum.type === "Nivel del sensor" && datum.value === nivelMax;
-        const isMaxWt = datum.type === "Nivel freático" && datum.value === wtMax;
-        const isMinNivel = datum.type === "Nivel del sensor" && datum.value === nivelMin;
-        const isMinWt = datum.type === "Nivel freático" && datum.value === wtMin;
-        let suffix = '';
-        if (isMaxNivel || isMaxWt) suffix = ' (MÁXIMO)';
-        if (isMinNivel || isMinWt) suffix = ' (MÍNIMO)';
-        
-        return `
-          <div style="padding: 8px 12px; background: ${token.colorBgElevated}; border-radius: 8px; box-shadow: ${token.boxShadowSecondary};">
-            <div style="font-size: 12px; color: ${token.colorTextSecondary}; margin-bottom: 4px;">${datum.time} hrs</div>
-            <div style="font-size: 13px; color: ${token.colorText}; font-weight: 500;">
-              ${datum.type}${suffix}: <strong>${Number(datum.value).toFixed(2)} m</strong>
-            </div>
-          </div>
-        `;
-      }
-    },
-    legend: {
-      show: true,
-      position: 'top',
-      horizontalAlign: 'center',
-      fontSize: '12px',
-      labels: { colors: token.colorText }
-    },
-    annotations: { points: [] },
-  };
-
-  return (
-    <ReactApexChart
-      options={options}
-      series={series}
-      type="bar"
-      height={350}
-    />
-  );
-};
-
-/* ─ Sub-componentes extraídos para evitar recreación en cada render ─ */
-const TrendArrow = ({ current, previous }) => {
-  if (previous == null || current == null) return null;
-  const cur = extractRecordNum(current);
-  const prev = extractRecordNum(previous);
-  if (cur == null || prev == null || cur === prev) return null;
-  const up = cur > prev;
-  return (
-    <span style={{ fontSize: 9, marginLeft: 4, color: up ? "#1890ff" : "#52c41a" }}>
-      {up ? "▲" : "▼"}
-    </span>
-  );
-};
-
-const StatPill = ({ label, value, sub, color, valueColor }) => (
-  <Card
-    size="small"
-    bordered={false}
-    style={{
-      textAlign: "center",
-      minWidth: 110,
-      flex: "0 0 auto",
-      background: `${color}08`,
-      borderRadius: 12,
-      border: `1.5px solid ${color}20`,
-    }}
-    bodyStyle={{ padding: "12px 16px" }}
-  >
-    <Text style={{ fontSize: 10, color: "#8c8c8c", display: "block", lineHeight: 1.2, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4, fontWeight: 500 }}>{label}</Text>
-    <Text strong style={{ fontSize: 18, color: valueColor || color, display: "block", lineHeight: 1.2 }}>{value}</Text>
-    {sub && <Text style={{ fontSize: 11, color: "#8c8c8c", lineHeight: 1.2, marginTop: 4 }}>{sub}</Text>}
-  </Card>
-);
-
-const MemoizedMeasurementsTable = React.memo(({ allMeasurements, measurementColumns, token }) => {
-  const dataSource = useMemo(() =>
-    allMeasurements.map((m, i) => ({ ...m, key: i, _prev: allMeasurements[i - 1] || null })),
-    [allMeasurements]
-  );
-
-  const components = useMemo(() => ({
-    header: {
-      cell: (props) => (
-        <th {...props} style={{ ...props.style, fontSize: 10, padding: "10px 8px", fontWeight: 600, color: token.colorTextSecondary, textTransform: "uppercase", letterSpacing: 0.5, background: token.colorBgLayout }} />
-      ),
-    },
-  }), [token.colorTextSecondary, token.colorBgLayout]);
-
-  return (
-    <Table
-      dataSource={dataSource}
-      columns={measurementColumns}
-      size="small"
-      pagination={{ pageSize: 15, showSizeChanger: false }}
-      bordered={false}
-      showHeader={true}
-      locale={{ emptyText: "Sin mediciones para este día" }}
-      scroll={{ x: "max-content", y: 500 }}
-      style={{ borderRadius: 12, overflow: "hidden" }}
-      components={components}
-    />
-  );
-});
-
-/* ── Componente: contenido del Drawer de mediciones ── */
-const MeasurementsDrawerContent = ({ data, token, viewMode, variables }) => {
-
-  const measurements = extractMeasurements(data);
-
-  // Determinar variables activas según configuración del punto (viene desde last_7)
-  // O según los datos reales si el backend no envía la variable separada
-  const activeVars = useMemo(() => {
-    const vars = variables || [];
-    const hasNivelVar = vars.some(v => v === "NIVEL");
-    const hasWaterTableVar = vars.some(v => v === "NIVEL_FREATICO");
-    // Si el backend no envía NIVEL_FREATICO como variable separada,
-    // pero los datos sí tienen water_table, mostramos el gráfico
-    const hasWaterTableData = measurements.some(m => extractRecordNum(m.water_table) != null);
-    return {
-      hasCaudal: vars.some(v => v.includes("CAUDAL")),
-      hasNivel: hasNivelVar,
-      hasWaterTable: hasWaterTableVar || (hasNivelVar && hasWaterTableData),
-      hasTotalizado: vars.some(v => v === "TOTALIZADO"),
-    };
-  }, [variables, measurements]);
-
-  const sortedMeasurements = useMemo(() => {
-    // Mantener orden original de la API
-    return [...measurements];
-  }, [measurements]);
-
-  const groups = useMemo(() => classifyByTimeOfDay(measurements), [measurements]);
-
-  /* ── Helpers para KPIs ── */
-  const findExtreme = useCallback((arr, key, fallbackKey, mode) => {
-    if (!arr.length) return null;
-    let target = mode === "max" ? -Infinity : Infinity;
-    let targetItem = null;
-    arr.forEach((m) => {
-      const v = extractRecordNum(m[key]) ?? extractRecordNum(m[fallbackKey]);
-      if (v == null) return;
-      const better = mode === "max" ? v > target : v < target;
-      if (better) { target = v; targetItem = m; }
-    });
-    if (!targetItem) return null;
-    const t = moment(targetItem.date_time || targetItem.date_time_medition || targetItem.timestamp || targetItem.time || targetItem.created_at).format("HH:mm");
-    return { value: target, time: t };
-  }, []);
-
-  const calcAvg = useCallback((arr, key, fallbackKey) => {
-    const vals = arr.map((m) => extractRecordNum(m[key]) ?? extractRecordNum(m[fallbackKey])).filter((v) => v != null);
-    if (!vals.length) return null;
-    return vals.reduce((a, b) => a + b, 0) / vals.length;
-  }, []);
-
-  const kpis = useMemo(() => ({
-    maxConsumo: findExtreme(sortedMeasurements, "total_diff", null, "max"),
-    minConsumo: findExtreme(sortedMeasurements, "total_diff", null, "min"),
-    avgConsumo: calcAvg(sortedMeasurements, "total_diff", null),
-    maxCaudal: findExtreme(sortedMeasurements, "flow", "caudal", "max"),
-    minCaudal: findExtreme(sortedMeasurements, "flow", "caudal", "min"),
-    avgCaudal: calcAvg(sortedMeasurements, "flow", "caudal"),
-    maxNivel: findExtreme(sortedMeasurements, "nivel", "level", "max"),
-    minNivel: findExtreme(sortedMeasurements, "nivel", "level", "min"),
-    avgNivel: calcAvg(sortedMeasurements, "nivel", "level"),
-    maxWaterTable: findExtreme(sortedMeasurements, "water_table", null, "max"),
-    minWaterTable: findExtreme(sortedMeasurements, "water_table", null, "min"),
-    avgWaterTable: calcAvg(sortedMeasurements, "water_table", null),
-  }), [sortedMeasurements, findExtreme, calcAvg]);
-
-  const chartDataAll = useMemo(() => {
-    return sortedMeasurements
-      .map((m) => {
-        const t = moment(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at).format("HH:mm");
-        return {
-          time: t,
-          consumo: extractRecordNum(m.total_diff),
-          caudal: extractRecordNum(m.flow) ?? extractRecordNum(m.caudal),
-          nivel: extractRecordNum(m.nivel) ?? extractRecordNum(m.level),
-          water_table: extractRecordNum(m.water_table),
-        };
-      })
-      .sort((a, b) => a.time.localeCompare(b.time));
-  }, [sortedMeasurements]);
-
-  /* ── Columnas tabla (idénticas a antes) ── */
-  const getPeriod = (hour) => {
-    if (hour >= 0 && hour <= 5) return { label: "Madrugada", icon: FaMoon };
-    if (hour >= 6 && hour <= 12) return { label: "Mañana", icon: FaSun };
-    if (hour >= 13 && hour <= 18) return { label: "Tarde", icon: FaSun };
-    return { label: "Noche", icon: FaMoon };
-  };
-
-
-
-  const baseColumns = [
-    {
-      title: "Período",
-      key: "period",
-      width: 85,
-      align: "center",
-      render: (_, m) => {
-        const hour = moment(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at).hour();
-        const p = getPeriod(hour);
-        const Icon = p.icon;
-        return (
-          <Flex align="center" justify="center" gap={4}>
-            <Icon style={{ fontSize: 9, color: token.colorPrimary, opacity: 0.5 }} />
-            <Text style={{ fontSize: 10, color: token.colorPrimary }}>{p.label}</Text>
-          </Flex>
-        );
-      },
-    },
-    {
-      title: "Fecha logger",
-      key: "logger_time",
-      width: 120,
-      align: "center",
-      render: (_, m) => {
-        const t = moment(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at).format("DD/MM HH:mm:ss");
-        return <Text strong style={{ fontSize: 10, color: token.colorPrimary }}>{t}</Text>;
-      },
-    },
-    {
-      title: "Hora",
-      key: "time",
-      width: 50,
-      align: "center",
-      render: (_, m) => {
-        const t = moment(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at).format("HH:mm");
-        return <Text style={{ fontSize: 11, color: token.colorText }}>{t}</Text>;
-      },
-    },
-  ];
-
-  const caudalColumn = {
-    title: "Caudal (L/s)",
-    key: "flow",
-    width: 90,
-    align: "right",
-    render: (_, m) => {
-      const flowVal = extractRecordNum(m.flow) ?? extractRecordNum(m.caudal);
-      return flowVal != null ? (
-        <Text style={{ fontSize: 11, color: token.colorText }}>
-          {flowVal.toFixed(1)}
-          <TrendArrow current={m.flow} previous={m._prev?.flow} />
-        </Text>
-      ) : <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>—</Text>;
-    },
-  };
-
-  const nivelColumn = {
-    title: "Nivel (m)",
-    key: "nivel",
-    width: 80,
-    align: "right",
-    render: (_, m) => {
-      const levelVal = extractRecordNum(m.nivel) ?? extractRecordNum(m.level);
-      return levelVal != null ? (
-        <Text style={{ fontSize: 11, color: token.colorText }}>
-          {levelVal.toFixed(2)}
-          <TrendArrow current={m.nivel} previous={m._prev?.nivel} />
-        </Text>
-      ) : <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>—</Text>;
-    },
-  };
-
-  const waterTableColumn = {
-    title: "Nivel freático (m)",
-    key: "water_table",
-    width: 115,
-    align: "right",
-    render: (_, m) => {
-      const wtVal = extractRecordNum(m.water_table);
-      return wtVal != null ? (
-        <Text style={{ fontSize: 11, color: token.colorText }}>
-          {wtVal.toFixed(2)}
-          <TrendArrow current={m.water_table} previous={m._prev?.water_table} />
-        </Text>
-      ) : <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>—</Text>;
-    },
-  };
-
-  const totalColumn = {
-    title: "Total (m³)",
-    key: "total",
-    width: 100,
-    align: "right",
-    render: (_, m) => {
-      const totalVal = extractRecordNum(m.total);
-      return totalVal != null ? (
-        <Text style={{ fontSize: 11, color: token.colorText }}>
-          {totalVal.toLocaleString("es-CL", { maximumFractionDigits: 0 })}
-          <TrendArrow current={m.total} previous={m._prev?.total} />
-        </Text>
-      ) : <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>—</Text>;
-    },
-  };
-
-  const consumoColumn = {
-    title: "Consumo (m³)",
-    key: "consumo",
-    width: 100,
-    align: "right",
-    render: (_, m) => {
-      const diffVal = extractRecordNum(m.total_diff);
-      return diffVal != null ? (
-        <Text strong style={{ fontSize: 11, color: token.colorPrimary }}>
-          {diffVal.toLocaleString("es-CL", { maximumFractionDigits: 0 })}
-          <TrendArrow current={m.total_diff} previous={m._prev?.total_diff} />
-        </Text>
-      ) : <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>—</Text>;
-    },
-  };
-
-  const estadoColumn = {
-    title: "Estado",
-    key: "estado",
-    width: 85,
-    align: "center",
-    render: (_, m) => {
-      if (m.is_error) {
-        return <Tag color="error" style={{ fontSize: 9, margin: 0, padding: "0 6px", lineHeight: "18px" }}>Error</Tag>;
-      }
-      return <Tag style={{ fontSize: 9, margin: 0, padding: "0 6px", lineHeight: "18px", background: `${token.colorSuccess}10`, border: `1px solid ${token.colorSuccess}30`, color: token.colorSuccess }}>Confirmado</Tag>;
-    },
-  };
-
-  const measurementColumns = useMemo(() => {
-    const cols = [...baseColumns];
-    if (activeVars.hasCaudal) cols.push(caudalColumn);
-    if (activeVars.hasNivel) cols.push(nivelColumn);
-    if (activeVars.hasWaterTable) cols.push(waterTableColumn);
-    if (activeVars.hasTotalizado) {
-      cols.push(totalColumn);
-      cols.push(consumoColumn);
-    }
-    cols.push(estadoColumn);
-    return cols;
-  }, [activeVars]);
-
-  const allMeasurements = useMemo(() => sortedMeasurements, [sortedMeasurements]);
-
-  const formatKPI = useCallback((obj, decimals = 2, suffix = "") => {
-    if (!obj) return "—";
-    const val = Number(obj.value).toFixed(decimals);
-    return `${val}${suffix}`;
-  }, []);
-
-
-
-
-
-  if (measurements.length === 0) {
-    return (
-      <Flex justify="center" align="center" style={{ height: 200 }} vertical gap={8}>
-        <Text type="secondary" style={{ fontSize: 14 }}>Sin mediciones para este día</Text>
-      </Flex>
-    );
-  }
-
-  return (
-    <Flex vertical gap={20}>
-      {viewMode === "chart" && (
-        <Flex vertical gap={12}>
-          {/* ── Gráficos con Tabs ── */}
-          {(() => {
-            const tabItems = [];
-            
-            if (activeVars.hasTotalizado || activeVars.hasCaudal) {
-              tabItems.push({
-                key: "1",
-                label: "Hidrometría",
-                children: (
-                  <Row gutter={[16, 16]} justify="center">
-                    {activeVars.hasTotalizado && (
-                      <Col xs={24} md={12}>
-                        <Flex vertical gap={8}>
-                          <Flex gap={8} wrap="nowrap" justify="center" style={{ minWidth: "max-content" }}>
-                            <StatPill label="Máx. Consumo" value={formatKPI(kpis.maxConsumo, 0, " m³")} sub={kpis.maxConsumo ? `a las ${kpis.maxConsumo.time} hrs` : null} color={token.colorPrimary} valueColor="#ff4d4f" />
-                            <StatPill label="Mín. Consumo" value={formatKPI(kpis.minConsumo, 0, " m³")} sub={kpis.minConsumo ? `a las ${kpis.minConsumo.time} hrs` : null} color={token.colorPrimary} valueColor="#52c41a" />
-                            <StatPill label="Prom. Consumo" value={kpis.avgConsumo != null ? `${kpis.avgConsumo.toFixed(0)} m³` : "—"} sub="promedio" color={token.colorPrimary} />
-                          </Flex>
-                          <Text strong style={{ fontSize: 12, color: token.colorTextSecondary }}>Consumo acumulado (m³)</Text>
-                          <MeasurementsAreaChart 
-                            data={chartDataAll.filter(d => d.consumo != null)} 
-                            metric="consumo" 
-                            token={token} 
-                            color={token.colorPrimary} 
-                            title="Consumo" 
-                            minInfo={kpis.minConsumo} 
-                            maxInfo={kpis.maxConsumo} 
-                          />
-                        </Flex>
-                      </Col>
-                    )}
-                    {activeVars.hasCaudal && (
-                      <Col xs={24} md={12}>
-                        <Flex vertical gap={8}>
-                          <Flex gap={8} wrap="nowrap" justify="center" style={{ minWidth: "max-content" }}>
-                            <StatPill label="Máx. Caudal" value={formatKPI(kpis.maxCaudal, 1, " L/s")} sub={kpis.maxCaudal ? `a las ${kpis.maxCaudal.time} hrs` : null} color={token.colorPrimary} valueColor="#ff4d4f" />
-                            <StatPill label="Mín. Caudal" value={formatKPI(kpis.minCaudal, 1, " L/s")} sub={kpis.minCaudal ? `a las ${kpis.minCaudal.time} hrs` : null} color={token.colorPrimary} valueColor="#52c41a" />
-                            <StatPill label="Prom. Caudal" value={kpis.avgCaudal != null ? `${kpis.avgCaudal.toFixed(1)} L/s` : "—"} sub="promedio" color={token.colorPrimary} />
-                          </Flex>
-                          <Text strong style={{ fontSize: 12, color: token.colorTextSecondary }}>Caudal instantáneo (L/s)</Text>
-                          <MeasurementsLineChart 
-                            data={chartDataAll.filter(d => d.caudal != null)} 
-                            metric="caudal" 
-                            token={token} 
-                            color={token.colorPrimary} 
-                            title="Caudal" 
-                            minInfo={kpis.minCaudal} 
-                            maxInfo={kpis.maxCaudal} 
-                          />
-                        </Flex>
-                      </Col>
-                    )}
-                  </Row>
-                ),
-              });
-            }
-            
-            if (activeVars.hasNivel || activeVars.hasWaterTable) {
-              tabItems.push({
-                key: "2",
-                label: "Niveles",
-                children: (
-                  <Row gutter={[16, 16]} justify="center">
-                    <Col xs={24}>
-                      <Flex vertical gap={8}>
-                        <Flex gap={8} wrap="nowrap" justify="center" style={{ minWidth: "max-content" }}>
-                          {activeVars.hasNivel && (
-                            <>
-                              <StatPill label="Máx. Nivel" value={formatKPI(kpis.maxNivel, 2, " m")} sub={kpis.maxNivel ? `a las ${kpis.maxNivel.time} hrs` : null} color={token.colorPrimary} valueColor="#ff4d4f" />
-                              <StatPill label="Mín. Nivel" value={formatKPI(kpis.minNivel, 2, " m")} sub={kpis.minNivel ? `a las ${kpis.minNivel.time} hrs` : null} color={token.colorPrimary} valueColor="#52c41a" />
-                              <StatPill label="Prom. Nivel" value={kpis.avgNivel != null ? `${kpis.avgNivel.toFixed(2)} m` : "—"} sub="promedio" color={token.colorPrimary} />
-                            </>
-                          )}
-                          {activeVars.hasWaterTable && (
-                            <>
-                              <StatPill label="Máx. Freático" value={formatKPI(kpis.maxWaterTable, 2, " m")} sub={kpis.maxWaterTable ? `a las ${kpis.maxWaterTable.time} hrs` : null} color={token.colorPrimary} valueColor="#ff4d4f" />
-                              <StatPill label="Mín. Freático" value={formatKPI(kpis.minWaterTable, 2, " m")} sub={kpis.minWaterTable ? `a las ${kpis.minWaterTable.time} hrs` : null} color={token.colorPrimary} valueColor="#52c41a" />
-                              <StatPill label="Prom. Freático" value={kpis.avgWaterTable != null ? `${kpis.avgWaterTable.toFixed(2)} m` : "—"} sub="promedio" color={token.colorPrimary} />
-                            </>
-                          )}
-                        </Flex>
-                        <Text strong style={{ fontSize: 12, color: token.colorTextSecondary }}>Niveles combinados</Text>
-                        <MeasurementsStackedColumnChart 
-                          data={chartDataAll} 
-                          token={token} 
-                        />
-                      </Flex>
-                    </Col>
-                  </Row>
-                ),
-              });
-            }
-            
-            return tabItems.length > 0 ? (
-              <Tabs
-                defaultActiveKey={tabItems[0].key}
-                items={tabItems}
-                style={{ marginTop: -8 }}
-                tabBarStyle={{ marginBottom: 8, display: 'flex', justifyContent: 'flex-end' }}
-              />
-            ) : null;
-          })()}
-        </Flex>
-      )}
-
-      {viewMode === "table" && (
-        <MemoizedMeasurementsTable
-          allMeasurements={allMeasurements}
-          measurementColumns={measurementColumns}
-          token={token}
-        />
-      )}
-    </Flex>
-  );
-};
-
-const MeasurementsDrawerContentMemo = React.memo(MeasurementsDrawerContent);
 
 const ControlCenter = () => {
   const { dispatch } = useData();
@@ -784,9 +52,12 @@ const ControlCenter = () => {
   // Ref para estabilizar callbacks sin depender de data?.points
   const pointsRef = useRef(data?.points || []);
   pointsRef.current = data?.points || [];
+  const last7Ref = useRef(data?.last_7 || {});
+  last7Ref.current = data?.last_7 || {};
   const [selectedDate, setSelectedDate] = useState(null);
   const [warningsDrawerOpen, setWarningsDrawerOpen] = useState(false);
   const [selectedWarningPoint, setSelectedWarningPoint] = useState(null);
+  const [wellConfig, setWellConfig] = useState(null);
   const [voucherModalOpen, setVoucherModalOpen] = useState(false);
   const [selectedVoucher, setSelectedVoucher] = useState(null);
   const [voucherCopied, setVoucherCopied] = useState(false);
@@ -802,6 +73,7 @@ const ControlCenter = () => {
   const [measurementsData, setMeasurementsData] = useState(null);
   const [measurementsLoading, setMeasurementsLoading] = useState(false);
   const [measurementsViewMode, setMeasurementsViewMode] = useState("chart");
+  const [measurementsTab, setMeasurementsTab] = useState("1");
   // ── Consumo total del día (para mostrar en header del drawer) ──
   const totalDayConsumo = useMemo(() => {
     const records = Array.isArray(measurementsData?.results) ? measurementsData.results 
@@ -892,19 +164,91 @@ const ControlCenter = () => {
   const handleViewMeasurements = useCallback(async (pointName, date, variables = []) => {
     const point = pointsRef.current?.find((p) => p.title === pointName);
     if (!point) return;
+    const pointCfg = last7Ref.current?.[pointName] || null;
     setSelectedMeasurementPoint({ pointName, date, pointId: point.id, variables });
+    setWellConfig(pointCfg?.d1 != null ? pointCfg : null);
     setMeasurementsDrawerOpen(true);
     setMeasurementsLoading(true);
     setMeasurementsData(null);
     try {
-      const res = await sh.pointRecords(point.id, date, date, 100);
-      setMeasurementsData(res);
+      const [recordsRes, configRes] = await Promise.all([
+        sh.pointRecords(point.id, date, date, 100),
+        !pointCfg?.d1 ? sh.pointConfig(point.id) : Promise.resolve(null)
+      ]);
+      setMeasurementsData(recordsRes);
+      if (configRes && configRes.d1 != null) setWellConfig(configRes);
     } catch (err) {
       console.error("[Measurements] Error:", err);
     } finally {
       setMeasurementsLoading(false);
     }
   }, []); // Sin dependencias gracias a pointsRef
+
+  const handleNavigateDate = useCallback((direction) => {
+    if (!selectedMeasurementPoint?.date) return;
+    const today = moment().format('YYYY-MM-DD');
+    const sevenDaysAgo = moment().subtract(7, 'days').format('YYYY-MM-DD');
+    const newDate = moment(selectedMeasurementPoint.date).add(direction, 'days').format('YYYY-MM-DD');
+    
+    if (newDate > today || newDate < sevenDaysAgo) return;
+    
+    const point = pointsRef.current?.find((p) => p.title === selectedMeasurementPoint.pointName);
+    if (!point) return;
+    setSelectedMeasurementPoint({ pointName: selectedMeasurementPoint.pointName, date: newDate, pointId: point.id, variables: selectedMeasurementPoint.variables || [] });
+    setMeasurementsLoading(true);
+    setMeasurementsData(null);
+    sh.pointRecords(point.id, newDate, newDate, 100)
+      .then(res => setMeasurementsData(res))
+      .catch(err => console.error("[Measurements] Error:", err))
+      .finally(() => setMeasurementsLoading(false));
+  }, [selectedMeasurementPoint]);
+
+  const handleNavigatePoint = useCallback((direction) => {
+    const points = pointsRef.current || [];
+    if (points.length === 0) return;
+    const currentIndex = points.findIndex(p => p.title === selectedMeasurementPoint?.pointName);
+    if (currentIndex === -1) return;
+    const newIndex = (currentIndex + direction + points.length) % points.length;
+    const newPoint = points[newIndex];
+    const date = selectedMeasurementPoint?.date;
+    const pointVars = last7Ref.current?.[newPoint.title]?.variables || [];
+    const pointCfg = last7Ref.current?.[newPoint.title] || null;
+    setSelectedMeasurementPoint({ pointName: newPoint.title, date, pointId: newPoint.id, variables: pointVars });
+    setWellConfig(pointCfg?.d1 != null ? pointCfg : null);
+    setMeasurementsLoading(true);
+    setMeasurementsData(null);
+    Promise.all([
+      sh.pointRecords(newPoint.id, date, date, 100),
+      !pointCfg?.d1 ? sh.pointConfig(newPoint.id) : Promise.resolve(null)
+    ])
+      .then(([recordsRes, configRes]) => {
+        setMeasurementsData(recordsRes);
+        if (configRes && configRes.d1 != null) setWellConfig(configRes);
+      })
+      .catch(err => console.error("[Measurements] Error:", err))
+      .finally(() => setMeasurementsLoading(false));
+  }, [selectedMeasurementPoint]);
+
+  const handleNavigatePointTo = useCallback((point) => {
+    if (!point) return;
+    const date = selectedMeasurementPoint?.date || moment().format('YYYY-MM-DD');
+    const pointVars = last7Ref.current?.[point.title]?.variables || [];
+    const pointCfg = last7Ref.current?.[point.title] || null;
+    setSelectedMeasurementPoint({ pointName: point.title, date, pointId: point.id, variables: pointVars });
+    setWellConfig(pointCfg?.d1 != null ? pointCfg : null);
+    setMeasurementsLoading(true);
+    setMeasurementsData(null);
+    Promise.all([
+      sh.pointRecords(point.id, date, date, 100),
+      !pointCfg?.d1 ? sh.pointConfig(point.id) : Promise.resolve(null)
+    ])
+      .then(([recordsRes, configRes]) => {
+        setMeasurementsData(recordsRes);
+        if (configRes && configRes.d1 != null) setWellConfig(configRes);
+      })
+      .catch(err => console.error("[Measurements] Error:", err))
+      .finally(() => setMeasurementsLoading(false));
+  }, [selectedMeasurementPoint]);
 
   const handleViewPointConfig = useCallback(async (pointName) => {
     const point = pointsRef.current?.find((p) => p.title === pointName);
@@ -1246,62 +590,173 @@ const ControlCenter = () => {
       ════════════════════════════════════════ */}
       <Drawer
         title={
-          <Flex align="center" gap={12} style={{ width: "100%" }}>
-            <Flex align="center" gap={10}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: `${token.colorPrimary}12`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <FaBroadcastTower style={{ color: token.colorPrimary, fontSize: 18 }} />
-              </div>
-              <div>
-                <Text strong style={{ fontSize: 16, display: "block", lineHeight: 1.2 }}>{selectedMeasurementPoint?.pointName}</Text>
-                <Text style={{ fontSize: 12, color: token.colorTextSecondary }}>
-                  {selectedMeasurementPoint?.date ? moment(selectedMeasurementPoint.date).format("dddd D [de] MMMM, YYYY") : ""}
-                </Text>
-              </div>
+          <div style={{ width: "100%" }}>
+            {/* Fila única: punto + fecha/tabs + toggle */}
+            <Flex align="center" justify="space-between" gap={16}>
+              {/* Selector de punto */}
+              <Select
+                showSearch
+                value={selectedMeasurementPoint?.pointId}
+                onChange={(val) => {
+                  const point = pointsRef.current?.find(p => p.id === val);
+                  if (!point) return;
+                  handleNavigatePointTo(point);
+                }}
+                style={{ minWidth: 280, maxWidth: 400 }}
+                placeholder="Seleccionar punto"
+                optionFilterProp="label"
+                optionLabelProp="label"
+                size="middle"
+                popupMatchSelectWidth={false}
+                getPopupContainer={() => document.body}
+                listHeight={320}
+                dropdownStyle={{ borderRadius: 10, boxShadow: token.boxShadowSecondary }}
+                suffixIcon={<FaMapMarkerAlt size={12} style={{ color: token.colorPrimary }} />}
+              >
+                {pointsRef.current.map((p) => {
+                  const pointData = last7Ref.current?.[p.title] || {};
+                  const hasGPS = p.hasGPS || pointData.hasGPS;
+                  const typeDGA = p.type_dga || pointData.type_dga || '—';
+                  const codeDGA = p.code_dga || pointData.code_dga;
+                  
+                  return (
+                    <Select.Option key={p.id} value={p.id} label={p.title || p.name || `Punto ${p.id}`}>
+                      <Flex align="center" justify="space-between" style={{ width: '100%', padding: '4px 0' }}>
+                        <Flex align="center" gap={10}>
+                          <div style={{ 
+                            width: 28, 
+                            height: 28, 
+                            borderRadius: 6, 
+                            background: `${token.colorPrimary}15`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}>
+                            <FaMapMarkerAlt size={12} style={{ color: token.colorPrimary }} />
+                          </div>
+                          <Flex vertical>
+                            <span style={{ fontWeight: 600, fontSize: 13 }}>{p.title || p.name || `Punto ${p.id}`}</span>
+                            {codeDGA && (
+                              <span style={{ fontSize: 11, color: token.colorTextSecondary }}>{codeDGA}</span>
+                            )}
+                          </Flex>
+                        </Flex>
+                        <Flex gap={6}>
+                          {hasGPS && (
+                            <Tag size="small" style={{ fontSize: 10, margin: 0, background: '#e6f7ff', color: '#1890ff', border: 'none' }}>
+                              GPS
+                            </Tag>
+                          )}
+                          <Tag size="small" style={{ fontSize: 10, margin: 0, background: typeDGA === 'SUBTERRANEO' ? '#f6ffed' : '#fff7e6', color: typeDGA === 'SUBTERRANEO' ? '#52c41a' : '#fa8c16', border: 'none' }}>
+                            {typeDGA === 'SUBTERRANEO' ? 'SUB' : typeDGA === 'SUPERFICIAL' ? 'SUP' : typeDGA}
+                          </Tag>
+                        </Flex>
+                      </Flex>
+                    </Select.Option>
+                  );
+                })}
+              </Select>
+
+              {/* Centro: navegación + tabs */}
+              <Flex align="center" gap={16}>
+                {/* Navegación entre fechas */}
+                <Flex align="center" gap={8}>
+                  {(() => {
+                    const today = moment().format('YYYY-MM-DD');
+                    const sevenDaysAgo = moment().subtract(7, 'days').format('YYYY-MM-DD');
+                    const currentDate = selectedMeasurementPoint?.date;
+                    const canGoBack = currentDate > sevenDaysAgo;
+                    const canGoForward = currentDate < today;
+                    
+                    return (
+                      <>
+                        <FaArrowLeft
+                          size={12}
+                          onClick={() => canGoBack && handleNavigateDate(-1)}
+                          style={{
+                            cursor: canGoBack ? 'pointer' : 'default',
+                            opacity: canGoBack ? 0.8 : 0.2,
+                            transition: 'opacity 0.2s',
+                          }}
+                        />
+                        <Text style={{ fontSize: 12, fontWeight: 500 }}>
+                          {selectedMeasurementPoint?.date ? moment(selectedMeasurementPoint.date).format("ddd D MMM YYYY") : ""}
+                        </Text>
+                        <FaArrowRight
+                          size={12}
+                          onClick={() => canGoForward && handleNavigateDate(1)}
+                          style={{
+                            cursor: canGoForward ? 'pointer' : 'default',
+                            opacity: canGoForward ? 0.8 : 0.2,
+                            transition: 'opacity 0.2s',
+                          }}
+                        />
+                      </>
+                    );
+                  })()}
+                </Flex>
+
+                {/* Tabs (solo gráfico) */}
+                {measurementsViewMode === "chart" && (
+                  <Tabs
+                    activeKey={measurementsTab}
+                    onChange={setMeasurementsTab}
+                    size="small"
+                    tabBarStyle={{ marginBottom: 0 }}
+                    items={[
+                      { key: "1", label: "Hidrometría" },
+                      { key: "2", label: "Niveles" },
+                    ]}
+                  />
+                )}
+              </Flex>
+
+              {/* Toggle vista */}
+              <Segmented
+                value={measurementsViewMode}
+                onChange={setMeasurementsViewMode}
+                options={[
+                  { label: <Flex align="center" gap={4}><FaChartLine size={12} />Gráfico</Flex>, value: "chart" },
+                  { label: <Flex align="center" gap={4}><FaTable size={12} />Datos</Flex>, value: "table" },
+                ]}
+                size="small"
+              />
             </Flex>
-            <div style={{ flex: 1 }} />
-            <Segmented
-              value={measurementsViewMode}
-              onChange={setMeasurementsViewMode}
-              options={[
-                { label: <Flex align="center" gap={4}><FaChartLine size={12} />Gráfico</Flex>, value: "chart" },
-                { label: <Flex align="center" gap={4}><FaTable size={12} />Datos</Flex>, value: "table" },
-              ]}
-              size="small"
-            />
-            {totalDayConsumo > 0 && (
-              <Tag style={{ fontSize: 12, margin: 0, padding: "4px 12px", background: `${token.colorPrimary}08`, border: `1px solid ${token.colorPrimary}20`, color: token.colorPrimary, fontWeight: 600, borderRadius: 20 }}>
-                {totalDayConsumo.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".")} m³ totales
-              </Tag>
-            )}
-          </Flex>
+          </div>
         }
         open={measurementsDrawerOpen}
         onClose={() => {
           setMeasurementsDrawerOpen(false);
           setSelectedMeasurementPoint(null);
           setMeasurementsData(null);
+          setWellConfig(null);
           setMeasurementsViewMode("chart");
+          setMeasurementsTab("1");
         }}
-        width={1360}
-        bodyStyle={{ padding: 24, overflow: "auto" }}
+        width="100%"
+        bodyStyle={{ padding: 8, overflow: "auto" }}
         styles={{
           header: {
-            borderBottom: `1px solid ${token.colorBorderSecondary}`,
-            paddingBottom: 12,
+            paddingBottom: 0,
             marginBottom: 0,
           },
         }}
         style={{ zIndex: 900 }}
       >
         {measurementsLoading ? (
-          <Flex vertical gap={20} style={{ padding: "20px 0" }}>
-            <Flex gap={10} wrap="wrap">
-              {[1,2,3,4,5].map(i => <div key={i} style={{ flex: 1, minWidth: 100, height: 60, borderRadius: 8, background: "#f5f5f5" }} />)}
-            </Flex>
+          <Flex vertical gap={16} style={{ padding: "10px 0" }}>
             <Row gutter={[16, 16]}>
-              {[1,2,3,4].map(i => (
+              {[1, 2].map(i => (
                 <Col xs={24} md={12} key={i}>
-                  <div style={{ height: 280, borderRadius: 12, background: "#f5f5f5" }} />
+                  <div style={{ borderRadius: 12, border: `1px solid ${token.colorBorderSecondary}`, overflow: "hidden" }}>
+                    <div style={{ height: 40, background: token.colorBgLayout }} />
+                    <div style={{ height: 50, padding: "10px 16px", display: "flex", gap: 8, justifyContent: "center" }}>
+                      {[1, 2, 3].map(j => <div key={j} style={{ flex: 1, height: 40, borderRadius: 6, background: "#f5f5f5" }} />)}
+                    </div>
+                    <div style={{ height: 220, padding: 16 }}>
+                      <div style={{ height: "100%", borderRadius: 8, background: "#f5f5f5" }} />
+                    </div>
+                  </div>
                 </Col>
               ))}
             </Row>
@@ -1312,6 +767,11 @@ const ControlCenter = () => {
             token={token}
             viewMode={measurementsViewMode}
             variables={selectedMeasurementPoint?.variables || []}
+            activeTab={measurementsTab}
+            onTabChange={setMeasurementsTab}
+            totalDayConsumo={totalDayConsumo}
+            selectedMeasurementPoint={selectedMeasurementPoint}
+            wellConfig={wellConfig}
           />
         )}
       </Drawer>
@@ -1321,9 +781,15 @@ const ControlCenter = () => {
       ════════════════════════════════════════ */}
       <Modal
         title={
-          <Flex align="center" gap={8}>
+          <Flex align="center" gap={8} wrap="wrap">
             <FaClipboardCheck style={{ color: token.colorPrimary, fontSize: 16 }} />
-            <Text strong style={{ fontSize: 16 }}>Voucher DGA</Text>
+            <Text strong style={{ fontSize: 14 }}>{selectedVoucher?.title || "Voucher DGA"}</Text>
+            <Tag style={{ fontSize: 10, margin: 0, padding: "0 4px", lineHeight: "16px" }}>
+              {selectedVoucher?.code || "—"}
+            </Tag>
+            <Tag style={{ fontSize: 10, margin: 0, padding: "0 4px", lineHeight: "16px" }}>
+              {selectedVoucher?.type_dga || "SUPERFICIAL"}
+            </Tag>
           </Flex>
         }
         open={voucherModalOpen}
@@ -1334,26 +800,10 @@ const ControlCenter = () => {
           setDgaConsole([]);
         }}
         footer={null}
-        width={980}
+        width={900}
         style={{ top: 0, maxWidth: "95vw" }}
       >
         <Flex vertical gap={12} style={{ marginTop: 0 }}>
-          {/* ── Info del punto ── */}
-          <Flex vertical gap={4}>
-            <Text strong style={{ fontSize: 14 }}>
-              {selectedVoucher?.title}
-            </Text>
-            <Flex align="center" gap={6}>
-              <Text style={{ fontSize: 12, color: token.colorTextSecondary }}>Código DGA:</Text>
-              <Text strong style={{ fontSize: 12, color: token.colorPrimary, fontFamily: "monospace" }}>
-                {selectedVoucher?.code || "—"}
-              </Text>
-              <Tag style={{ fontSize: 10, margin: 0, padding: "0 4px", lineHeight: "16px" }}>
-                {selectedVoucher?.type_dga || "SUPERFICIAL"}
-              </Tag>
-            </Flex>
-          </Flex>
-
           {/* ── Voucher + Validar en dos columnas ── */}
           {selectedVoucher?.code && selectedVoucher?.voucher && (
             <Row gutter={[12, 12]} align="middle">
@@ -1384,148 +834,190 @@ const ControlCenter = () => {
                   type="primary"
                   loading={dgaVerifying}
                   onClick={handleVerifyDGA}
-                  icon={<FaExternalLinkAlt style={{ fontSize: 12 }} />}
+                  icon={<FaSearch style={{ fontSize: 12 }} />}
                   style={{ width: "100%" }}
                 >
-                  {dgaVerifying ? "Validando..." : "Validar en DGA"}
+                  {dgaVerifying ? "Validando..." : "Validar comprobante"}
                 </Button>
               </Col>
             </Row>
           )}
 
-          {/* ── Resultados DGA ── */}
-          {dgaConsole.length > 0 && (
-            <>
-              {/* Layout dos columnas: Consola + Resultado */}
-              <Row gutter={[16, 16]}>
-                  {/* ── Consola (izquierda) ── */}
-                  <Col xs={24} md={dgaResult && dgaResult.status === "00" ? 10 : 24}>
-                    <div
-                      style={{
-                        background: "#1e1e1e",
-                        borderRadius: 8,
-                        padding: "12px 16px",
-                        fontFamily: "monospace",
-                        fontSize: 11,
-                        color: "#d4d4d4",
-                        height: dgaResult && dgaResult.status === "00" ? 480 : 300,
-                        overflowY: "auto",
-                        lineHeight: 1.6,
-                      }}
-                    >
-                      {dgaConsole.map((line, i) => (
-                        <div key={i} style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
-                          {line.startsWith("> ERROR") ? (
-                            <span style={{ color: "#f87171" }}>{line}</span>
-                          ) : line.startsWith("> Status: 2") ? (
-                            <span style={{ color: "#4ade80" }}>{line}</span>
-                          ) : line.startsWith("> Status:") ? (
-                            <span style={{ color: "#fbbf24" }}>{line}</span>
-                          ) : (
-                            line
-                          )}
-                        </div>
-                      ))}
-                      {dgaVerifying && (
-                        <div style={{ color: "#60a5fa" }}>
-                          {"▋"}
-                        </div>
+          {/* ── Layout fijo dos columnas: Consola + Resultado ── */}
+          <Row gutter={[16, 16]}>
+            {/* ── Consola (izquierda) ── */}
+            <Col xs={24} md={10}>
+              <div
+                style={{
+                  background: "#1e1e1e",
+                  borderRadius: 8,
+                  padding: "12px 16px",
+                  fontFamily: "monospace",
+                  fontSize: 11,
+                  color: "#d4d4d4",
+                  height: 400,
+                  overflowY: "auto",
+                  lineHeight: 1.6,
+                }}
+              >
+                {dgaConsole.length === 0 ? (
+                  <Flex align="center" justify="center" style={{ height: "100%", color: "#6b7280" }}>
+                    <Text style={{ color: "#6b7280", fontSize: 12 }}>Listo para validar...</Text>
+                  </Flex>
+                ) : (
+                  dgaConsole.map((line, i) => (
+                    <div key={i} style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
+                      {line.startsWith("> ERROR") ? (
+                        <span style={{ color: "#f87171" }}>{line}</span>
+                      ) : line.startsWith("> Status: 2") ? (
+                        <span style={{ color: "#4ade80" }}>{line}</span>
+                      ) : line.startsWith("> Status:") ? (
+                        <span style={{ color: "#fbbf24" }}>{line}</span>
+                      ) : (
+                        line
                       )}
                     </div>
-                  </Col>
+                  ))
+                )}
+                {dgaVerifying && (
+                  <div style={{ color: "#60a5fa" }}>
+                    {"▋"}
+                  </div>
+                )}
+              </div>
+            </Col>
 
-                  {/* ── Resultado bonito (derecha) ── */}
-                  {dgaResult && dgaResult.status === "00" && dgaResult.data && (
-                    <Col xs={24} md={14}>
-                      <Flex vertical gap={12} style={{ maxHeight: 480, overflowY: "auto" }}>
-                  <Alert
-                    message="Comprobante encontrado"
-                    description={dgaResult.message}
-                    type="success"
-                    showIcon
-                  />
-                  
-                  {/* Datos de la medición */}
-                  <Card size="small" title="Datos enviados a DGA" bordered={false} style={{ background: token.colorBgLayout }}>
-                    <Row gutter={[8, 8]}>
-                      <Col span={12}>
-                        <Text type="secondary" style={{ fontSize: 11 }}>Caudal</Text>
-                        <div><Text strong style={{ fontSize: 16, color: token.colorPrimary }}>{dgaResult.data.caudal} L/s</Text></div>
-                      </Col>
-                      <Col span={12}>
-                        <Text type="secondary" style={{ fontSize: 11 }}>Totalizador</Text>
-                        <div><Text strong style={{ fontSize: 16, color: token.colorPrimary }}>{dgaResult.data.totalizador} m³</Text></div>
-                      </Col>
-                      <Col span={12}>
-                        <Text type="secondary" style={{ fontSize: 11 }}>Fecha</Text>
-                        <div><Text strong style={{ fontSize: 14 }}>{dgaResult.data.fechaMedicion}</Text></div>
-                      </Col>
-                      <Col span={12}>
-                        <Text type="secondary" style={{ fontSize: 11 }}>Hora</Text>
-                        <div><Text strong style={{ fontSize: 14 }}>{dgaResult.data.horaMedicion}</Text></div>
-                      </Col>
-                    </Row>
-                  </Card>
+            {/* ── Resultado (derecha) ── */}
+            <Col xs={24} md={14}>
+              <Flex vertical gap={12} style={{ height: 400, overflowY: "auto" }}>
+                {/* Estado vacío */}
+                {!dgaResult && !dgaVerifying && (
+                  <Flex vertical align="center" justify="center" style={{ height: "100%", textAlign: "center" }}>
+                    <FaClipboardCheck style={{ fontSize: 32, color: token.colorTextDisabled, marginBottom: 12 }} />
+                    <Text strong style={{ fontSize: 13, color: token.colorTextSecondary }}>
+                      Sin validar
+                    </Text>
+                    <Text style={{ fontSize: 11, color: token.colorTextTertiary, marginTop: 4 }}>
+                      Haz clic en <Text strong>Validar comprobante</Text> para verificar
+                    </Text>
+                  </Flex>
+                )}
 
-                  {/* Meta información */}
-                  {dgaResult.meta && (
-                    <Card size="small" title="Información del punto" bordered={false} style={{ background: token.colorBgLayout }}>
-                      <Flex vertical gap={4}>
-                        <Flex justify="space-between">
-                          <Text type="secondary" style={{ fontSize: 11 }}>Punto:</Text>
-                          <Text style={{ fontSize: 12 }}>{dgaResult.meta.punto}</Text>
-                        </Flex>
-                        <Flex justify="space-between">
-                          <Text type="secondary" style={{ fontSize: 11 }}>Código obra:</Text>
-                          <Text style={{ fontSize: 12, fontFamily: 'monospace' }}>{dgaResult.meta.codigo_obra}</Text>
-                        </Flex>
-                        <Flex justify="space-between">
-                          <Text type="secondary" style={{ fontSize: 11 }}>Tipo:</Text>
-                          <Tag size="small">{dgaResult.meta.tipo_dga}</Tag>
-                        </Flex>
-                        <Flex justify="space-between">
-                          <Text type="secondary" style={{ fontSize: 11 }}>Enviado DGA:</Text>
-                          <Tag color={dgaResult.meta.enviado_dga ? "success" : "error"} style={{ fontSize: 10, margin: 0 }}>
-                            {dgaResult.meta.enviado_dga ? "Sí" : "No"}
-                          </Tag>
-                        </Flex>
-                        {dgaResult.meta.return_dga && (
-                          <div style={{ marginTop: 4, padding: "6px 8px", background: token.colorSuccessBg, borderRadius: 6 }}>
-                            <Text style={{ fontSize: 11, color: token.colorSuccess }}>{dgaResult.meta.return_dga}</Text>
+                {/* Validando */}
+                {dgaVerifying && !dgaResult && (
+                  <Flex vertical align="center" justify="center" style={{ height: "100%", textAlign: "center" }}>
+                    <Spin size="large" style={{ marginBottom: 12 }} />
+                    <Text strong style={{ fontSize: 13, color: token.colorPrimary }}>
+                      Consultando DGA...
+                    </Text>
+                  </Flex>
+                )}
+
+                {/* Éxito - status 00 */}
+                {dgaResult && dgaResult.status === "00" && dgaResult.data && (
+                  <Flex vertical style={{ height: "100%" }} justify="space-between">
+                    <Flex vertical gap={12}>
+                      {/* Datos principales - grid 2x2 */}
+                      <Row gutter={[10, 10]}>
+                        <Col span={12}>
+                          <div style={{ background: token.colorBgLayout, borderRadius: 8, padding: "12px 14px", textAlign: "center" }}>
+                            <Text type="secondary" style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>Caudal</Text>
+                            <div><Text strong style={{ fontSize: 20, color: token.colorPrimary }}>{dgaResult.data.caudal}</Text> <Text style={{ fontSize: 12, color: token.colorTextSecondary }}>L/s</Text></div>
                           </div>
-                        )}
-                      </Flex>
-                    </Card>
-                  )}
+                        </Col>
+                        <Col span={12}>
+                          <div style={{ background: token.colorBgLayout, borderRadius: 8, padding: "12px 14px", textAlign: "center" }}>
+                            <Text type="secondary" style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>Totalizador</Text>
+                            <div><Text strong style={{ fontSize: 20, color: token.colorPrimary }}>{dgaResult.data.totalizador}</Text> <Text style={{ fontSize: 12, color: token.colorTextSecondary }}>m³</Text></div>
+                          </div>
+                        </Col>
+                        <Col span={12}>
+                          <div style={{ background: token.colorBgLayout, borderRadius: 8, padding: "12px 14px", textAlign: "center" }}>
+                            <Text type="secondary" style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>Fecha</Text>
+                            <div><Text strong style={{ fontSize: 15 }}>{dgaResult.data.fechaMedicion}</Text></div>
+                          </div>
+                        </Col>
+                        <Col span={12}>
+                          <div style={{ background: token.colorBgLayout, borderRadius: 8, padding: "12px 14px", textAlign: "center" }}>
+                            <Text type="secondary" style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>Hora</Text>
+                            <div><Text strong style={{ fontSize: 15 }}>{dgaResult.data.horaMedicion}</Text></div>
+                          </div>
+                        </Col>
+                      </Row>
 
-                  {/* Botón copiar respuesta */}
-                  <Button
-                    size="small"
-                    icon={<FaCopy style={{ fontSize: 12 }} />}
-                    onClick={() => {
-                      navigator.clipboard.writeText(JSON.stringify(dgaResult, null, 2));
-                      message.success("Respuesta copiada al portapapeles");
-                    }}
-                  >
-                    Copiar respuesta JSON
-                  </Button>
-                </Flex>
-              </Col>
-            )}
-            </Row>
-            </>
-          )}
+                      {/* Info punto - fila compacta */}
+                      {dgaResult.meta && (
+                        <Flex gap={8} wrap="wrap">
+                          <div style={{ background: token.colorBgLayout, borderRadius: 6, padding: "8px 12px", flex: 1, minWidth: 120 }}>
+                            <Text type="secondary" style={{ fontSize: 9, textTransform: "uppercase" }}>Punto</Text>
+                            <div><Text style={{ fontSize: 12 }}>{dgaResult.meta.punto}</Text></div>
+                          </div>
+                          <div style={{ background: token.colorBgLayout, borderRadius: 6, padding: "8px 12px", flex: 1, minWidth: 120 }}>
+                            <Text type="secondary" style={{ fontSize: 9, textTransform: "uppercase" }}>Código</Text>
+                            <div><Text style={{ fontSize: 12, fontFamily: "monospace" }}>{dgaResult.meta.codigo_obra}</Text></div>
+                          </div>
+                          <div style={{ background: token.colorBgLayout, borderRadius: 6, padding: "8px 12px", flex: 1, minWidth: 100 }}>
+                            <Text type="secondary" style={{ fontSize: 9, textTransform: "uppercase" }}>Tipo</Text>
+                            <div><Text style={{ fontSize: 12 }}>{dgaResult.meta.tipo_dga}</Text></div>
+                          </div>
+                          <div style={{ background: dgaResult.meta.enviado_dga ? token.colorSuccessBg : token.colorErrorBg, borderRadius: 6, padding: "8px 12px", flex: 1, minWidth: 100 }}>
+                            <Text type="secondary" style={{ fontSize: 9, textTransform: "uppercase" }}>Enviado</Text>
+                            <div><Text style={{ fontSize: 12, color: dgaResult.meta.enviado_dga ? token.colorSuccess : token.colorError }}>{dgaResult.meta.enviado_dga ? "Sí" : "No"}</Text></div>
+                          </div>
+                        </Flex>
+                      )}
 
-          {/* Alerta cuando no se encuentra */}
-          {dgaResult && dgaResult.status === "01" && (
-            <Alert
-              message="Comprobante no encontrado"
-              description={dgaResult.message || "No se encontró el comprobante en los registros enviados a la DGA."}
-              type="warning"
-              showIcon
-              style={{ marginTop: 8 }}
-            />
-          )}
+                      {/* return_dga banner */}
+                      {dgaResult.meta?.return_dga && (
+                        <div style={{ background: token.colorSuccessBg, borderRadius: 6, padding: "8px 12px" }}>
+                          <Text style={{ fontSize: 11, color: token.colorSuccess }}>{dgaResult.meta.return_dga}</Text>
+                        </div>
+                      )}
+                    </Flex>
+
+                    {/* Botón copiar */}
+                    <Button
+                      size="small"
+                      block
+                      icon={<FaCopy style={{ fontSize: 11 }} />}
+                      onClick={() => {
+                        navigator.clipboard.writeText(JSON.stringify(dgaResult, null, 2));
+                        message.success("Respuesta copiada");
+                      }}
+                    >
+                      Copiar JSON
+                    </Button>
+                  </Flex>
+                )}
+
+                {/* No encontrado - status 01 */}
+                {dgaResult && dgaResult.status === "01" && (
+                  <Flex vertical align="center" justify="center" style={{ height: "100%", textAlign: "center" }}>
+                    <FaExclamationTriangle style={{ fontSize: 32, color: "#faad14", marginBottom: 12 }} />
+                    <Text strong style={{ fontSize: 13, color: token.colorTextSecondary }}>
+                      Comprobante no encontrado
+                    </Text>
+                    <Text style={{ fontSize: 11, color: token.colorTextTertiary, marginTop: 4 }}>
+                      Verifica el código y número de comprobante
+                    </Text>
+                  </Flex>
+                )}
+
+                {/* Error de red */}
+                {dgaResult && !dgaResult.status && (
+                  <Flex vertical align="center" justify="center" style={{ height: "100%", textAlign: "center" }}>
+                    <FaExclamationTriangle style={{ fontSize: 32, color: "#ff4d4f", marginBottom: 12 }} />
+                    <Text strong style={{ fontSize: 13, color: token.colorTextSecondary }}>
+                      Error de conexión
+                    </Text>
+                    <Text style={{ fontSize: 11, color: token.colorTextTertiary, marginTop: 4 }}>
+                      Revisa la consola para más detalles
+                    </Text>
+                  </Flex>
+                )}
+              </Flex>
+            </Col>
+          </Row>
         </Flex>
       </Modal>
 
