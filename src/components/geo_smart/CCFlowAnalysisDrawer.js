@@ -20,9 +20,14 @@ const CCFlowAnalysisDrawer = ({
         <Flex justify="space-between" align="center">
           <div>
             <Title level={5} style={{ margin: 0 }}>{pointName}</Title>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              Límite: {authorizedFlow} L/s • {measurements.length} mediciones
-            </Text>
+            <Flex gap={8} align="center">
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                Autorizado: <Text strong style={{ color: "#1890ff" }}>{authorizedFlow} L/s</Text>
+              </Text>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                • {measurements.length} mediciones
+              </Text>
+            </Flex>
           </div>
           <FaTimes 
             style={{ cursor: "pointer", fontSize: 16, color: "#999" }} 
@@ -56,21 +61,29 @@ const CCFlowAnalysisDrawer = ({
             {
               title: "% del límite",
               align: "right",
-              width: 100,
+              width: 120,
               render: (_, record) => {
                 const flow = record.flow;
                 const pct = authorizedFlow > 0 ? (flow / authorizedFlow) * 100 : 0;
                 const isExceeded = authorizedFlow > 0 && flow > authorizedFlow;
+                const excessPct = isExceeded ? Math.round(pct - 100) : 0;
                 return (
-                  <Text 
-                    strong 
-                    style={{ 
-                      fontSize: 12, 
-                      color: isExceeded ? "#ff4d4f" : "#52c41a" 
-                    }}
-                  >
-                    {Math.round(pct)}%
-                  </Text>
+                  <Flex vertical align="end" gap={2}>
+                    <Text 
+                      strong 
+                      style={{ 
+                        fontSize: 13, 
+                        color: isExceeded ? "#ff4d4f" : "#52c41a" 
+                      }}
+                    >
+                      {Math.round(pct)}%
+                    </Text>
+                    {isExceeded && (
+                      <Text style={{ fontSize: 10, color: "#ff4d4f" }}>
+                        (+{excessPct}%)
+                      </Text>
+                    )}
+                  </Flex>
                 );
               },
             },
