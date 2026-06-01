@@ -33,8 +33,10 @@ const MemoizedMeasurementsTable = React.memo(({ allMeasurements, measurementColu
       measurementColumns.map(c => {
         const field = fieldMap[c.key] || c.key;
         let val = m[field];
-        if (c.key === 'period' && m.period) {
-          val = m.period.label || m.period;
+        if (c.key === 'period') {
+          const hour = moment(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at).hour();
+          const p = getPeriod(hour);
+          val = p.label;
         }
         if (c.key === 'logger_time') {
           val = moment(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at).format('DD/MM/YYYY HH:mm:ss');

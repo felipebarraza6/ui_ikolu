@@ -120,17 +120,10 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
         title: "Punto",
         dataIndex: "pointName",
         key: "pointName",
-        width: 70,
+        width: 140,
         render: (text, record) => {
-          const allWarnings = warningsRaw?.[text];
-          // Filtrar warnings por fecha: solo mostrar hasta la fecha seleccionada
-          const filteredWarnings = Array.isArray(allWarnings) 
-            ? allWarnings.filter(w => {
-                const warningDate = moment(w.time).format("YYYY-MM-DD");
-                return warningDate <= activeDate;
-              })
-            : [];
-          const warningCount = filteredWarnings.length;
+          const allWarnings = record.warnings || [];
+          const warningCount = allWarnings.length;
           return (
             <Flex align="center" justify="space-between" style={{ width: "100%" }}>
               <Flex align="center" gap={6}>
