@@ -61,31 +61,33 @@ const CCFlowAnalysisDrawer = ({
             {
               title: "% del límite",
               align: "right",
-              width: 120,
+              width: 100,
               render: (_, record) => {
                 const flow = record.flow;
                 const pct = authorizedFlow > 0 ? (flow / authorizedFlow) * 100 : 0;
                 const isExceeded = authorizedFlow > 0 && flow > authorizedFlow;
-                const excessPct = isExceeded ? Math.round(pct - 100) : 0;
                 return (
-                  <Flex vertical align="end" gap={2}>
-                    <Text 
-                      strong 
-                      style={{ 
-                        fontSize: 13, 
-                        color: isExceeded ? "#ff4d4f" : "#52c41a" 
-                      }}
-                    >
-                      {Math.round(pct)}%
-                    </Text>
-                    {isExceeded && (
-                      <Text style={{ fontSize: 10, color: "#ff4d4f" }}>
-                        (+{excessPct}%)
-                      </Text>
-                    )}
-                  </Flex>
+                  <Text 
+                    strong 
+                    style={{ 
+                      fontSize: 13, 
+                      color: isExceeded ? "#ff4d4f" : "#52c41a" 
+                    }}
+                  >
+                    {Math.round(pct)}%
+                  </Text>
                 );
               },
+            },
+            {
+              title: "Caudal Autorizado",
+              align: "right",
+              width: 120,
+              render: () => (
+                <Text style={{ fontSize: 12, color: "#1890ff" }}>
+                  {Number(authorizedFlow).toFixed(1)} L/s
+                </Text>
+              ),
             },
             {
               title: "Caudal",
