@@ -177,68 +177,79 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
       ),
   },
   {
-    title: "Caudal",
-    dataIndex: "flow_lps",
-    key: "flow_lps",
-    width: 130,
+    title: "Estado Caudal",
+    key: "flow_status",
+    width: 140,
     align: "center",
     onHeaderCell: () => ({
       style: { background: token.colorPrimary, color: "#fff" },
     }),
     render: (v, record) => {
-      // Obtener datos del último día con datos desde last7
-      const pointData = last7?.[record.title];
-      const days = pointData?.days || [];
-      const lastDay = days[days.length - 1];
-      
-      // Calcular análisis del último día
-      let exceededCount = 0;
-      let nearLimitCount = 0;
-      
-      if (lastDay && record.authorized_flow > 0 && lastDay.avg_flow != null) {
-        const avgFlow = typeof lastDay.avg_flow === 'object' ? lastDay.avg_flow.parsedValue : lastDay.avg_flow;
-        // Para el análisis diario usamos el promedio del día
-        // (En el drawer se verá el detalle hora por hora)
-        if (avgFlow > record.authorized_flow) {
-          exceededCount = 1; // Indicamos que ese día tuvo superación
-        } else if (avgFlow >= record.authorized_flow * 0.8) {
-          nearLimitCount = 1;
-        }
-      }
+      const exceededCount = record.flow_exceeded_count || 0;
+      const nearLimitCount = record.flow_near_limit_count || 0;
+      const analysisDays = record.flow_analysis_days || 0;
       
       return (
-        <Flex vertical align="center" gap={4} style={{ cursor: onViewFlowAnalysis ? "pointer" : "default" }}
-          onClick={() => {
-            if (onViewFlowAnalysis && lastDay?.date) {
-              onViewFlowAnalysis(record.title, lastDay.date, record.authorized_flow);
-            }
-          }}
-        >
-          {v != null ? (
-            <Text strong style={{ fontSize: 13, color: v > 0 ? token.colorSuccess : token.colorTextSecondary }}>
-              {Number(v).toFixed(2)}
+        <Flex vertical align="center" gap={5} style={{ padding: "4px 0" }}>
+          {/* Valor actual */}
+          {record.flow_lps != null ? (
+            <Text strong style={{ fontSize: 14, color: exceededCount > 0 ? token.colorError : nearLimitCount > 0 ? token.colorWarning : token.colorSuccess }}>
+              {Number(record.flow_lps).toFixed(1)}
               <span style={{ fontSize: 10, fontWeight: 400, marginLeft: 2 }}>L/s</span>
             </Text>
           ) : (
             <Text style={{ fontSize: 13 }}>—</Text>
           )}
           
-          {/* Análisis del último día */}
-          {exceededCount > 0 && (
-            <Tag color="error" style={{ fontSize: 9, margin: 0, padding: "0 4px", lineHeight: "16px", fontWeight: 600 }}>
-              Superó ayer
-            </Tag>
-          )}
-          {nearLimitCount > 0 && exceededCount === 0 && (
-            <Tag color="warning" style={{ fontSize: 9, margin: 0, padding: "0 4px", lineHeight: "16px", fontWeight: 600 }}>
-              Cercano ayer
-            </Tag>
-          )}
-          {exceededCount === 0 && nearLimitCount === 0 && lastDay && (
-            <Tag style={{ fontSize: 9, margin: 0, padding: "0 4px", lineHeight: "16px", fontWeight: 600, background: "#f6ffed", borderColor: "#b7eb8f", color: "#52c41a" }}>
-              ✓ Normal
-            </Tag>
-          )}
+          {/* Métricas MVP */}
+          <Flex vertical gap={2} style={{ width: "100%" }}>
+            {exceededCount > 0 && (
+              <Flex align="center" justify="center" gap={4} style={{ 
+                background: "#fff2f0", 
+                borderRadius: 4, 
+                padding: "2px 6px",
+                border: "1px solid #ffccc7"
+              }}>
+                <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#ff4d4f" }} />
+                <Text style={{ fontSize: 10, color: "#ff4d4f", fontWeight: 600 }}>
+                  Superó: {exceededCount}
+                </Text>
+              </Flex>
+            )}
+            
+            {nearLimitCount > 0 && (
+              <Flex align="center" justify="center" gap={4} style={{ 
+                background: "#fff7e6", 
+                borderRadius: 4, 
+                padding: "2px 6px",
+                border: "1px solid #ffd591"
+              }}>
+                <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#fa8c16" }} />
+                <Text style={{ fontSize: 10, color: "#fa8c16", fontWeight: 600 }}>
+                  Por superar: {nearLimitCount}
+                </Text>
+              </Flex>
+            )}
+            
+            {exceededCount === 0 && nearLimitCount === 0 && (
+              <Flex align="center" justify="center" gap={4} style={{ 
+                background: "#f6ffed", 
+                borderRadius: 4, 
+                padding: "2px 6px",
+                border: "1px solid #b7eb8f"
+              }}>
+                <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#52c41a" }} />
+                <Text style={{ fontSize: 10, color: "#52c41a", fontWeight: 600 }}>
+                  Dentro límite
+                </Text>
+              </Flex>
+            )}
+          </Flex>
+          
+          {/* Nota MVP */}
+          <Text style={{ fontSize: 9, color: token.colorTextSecondary }}>
+            (últimos {analysisDays} días)
+          </Text>
         </Flex>
       );
     },

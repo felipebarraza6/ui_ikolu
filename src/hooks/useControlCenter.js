@@ -129,8 +129,48 @@ const transformDashboardStats = (raw) => {
     ? ds.compliance_summary
     : [];
 
+  // ── 4.1 Calcular métricas de caudal vs límite desde last_7 (MVP) ──
+  const flowAnalysisByPoint = {};
+  Object.entries(ds.last_7 || {}).forEach(([pointName, pointData]) => {
+    const days = pointData?.days || [];
+    const authorizedFlow = extractNum(
+      complianceList.find(c => c.point_name === pointName)?.authorized_flow
+    );
+    
+    if (!authorizedFlow || authorizedFlow <= 0) {
+      flowAnalysisByPoint[pointName] = { exceeded: 0, nearLimit: 0 };
+      return;
+    }
+    
+    let exceededCount = 0;
+    let nearLimitCount = 0;
+    
+    days.forEach(day => {
+      const avgFlow = extractNum(day.avg_flow);
+      if (avgFlow == null) return;
+      
+      if (avgFlow > authorizedFlow) {
+        exceededCount++;
+      } else if (avgFlow >= authorizedFlow * 0.8) {
+        nearLimitCount++;
+      }
+    });
+    
+    flowAnalysisByPoint[pointName] = {
+      exceeded: exceededCount,
+      nearLimit: nearLimitCount,
+      totalDays: days.length,
+    };
+  });
+
+  // ── 4. Construir tabla de puntos desde compliance_summary ──
+  const complianceList = Array.isArray(ds.compliance_summary)
+    ? ds.compliance_summary
+    : [];
+
   const points = complianceList.map((p) => {
     const wStats = weeklyStatsByPoint[p.point_name] || {};
+    const flowAnalysis = flowAnalysisByPoint[p.point_name] || { exceeded: 0, nearLimit: 0, totalDays: 0 };
     return {
       id: p.point_id,
       title: p.point_name,
@@ -159,6 +199,10 @@ const transformDashboardStats = (raw) => {
       profile_ikolu: p.profile_ikolu || null,
       // Datos desde warnings
       warnings_count: warningsByPoint[p.point_name] || 0,
+      // Análisis de caudal vs límite (MVP - usando last_7)
+      flow_exceeded_count: flowAnalysis.exceeded,
+      flow_near_limit_count: flowAnalysis.nearLimit,
+      flow_analysis_days: flowAnalysis.totalDays,
     };
   });
 
