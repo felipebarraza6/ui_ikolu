@@ -225,54 +225,58 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
           {/* Métricas de caudal - HISTÓRICO */}
           <Flex vertical gap={2} style={{ width: "100%" }}>
             {exceededCount > 0 && (
-              <Flex 
-                align="center" 
-                justify="center" 
-                gap={4} 
-                style={{ 
-                  background: "#fff2f0", 
-                  borderRadius: 4, 
-                  padding: "2px 6px",
-                  border: "1px solid #ffccc7",
-                  cursor: "pointer",
-                  transition: "all 0.2s"
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onViewFlowAnalysis?.(record.title, authorizedFlow, flowHistory?.measurements || []);
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = "#ffe8e8"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "#fff2f0"; }}
-              >
-                <FaExclamationTriangle style={{ fontSize: 9, color: "#ff4d4f" }} />
-                <Text style={{ fontSize: 10, color: "#ff4d4f", fontWeight: 600 }}>
-                  Superó: {exceededCount}
-                </Text>
-              </Flex>
+              <Tooltip title={`Superó ${exceededCount} veces el límite de ${authorizedFlow} L/s`}>
+                <Flex 
+                  align="center" 
+                  justify="center" 
+                  gap={4} 
+                  style={{ 
+                    background: "#fff2f0", 
+                    borderRadius: 4, 
+                    padding: "2px 6px",
+                    border: "1px solid #ffccc7",
+                    cursor: "pointer",
+                    transition: "all 0.2s"
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onViewFlowAnalysis?.(record.title, authorizedFlow, flowHistory?.measurements || []);
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "#ffe8e8"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "#fff2f0"; }}
+                >
+                  <FaExclamationTriangle style={{ fontSize: 9, color: "#ff4d4f" }} />
+                  <Text style={{ fontSize: 10, color: "#ff4d4f", fontWeight: 600 }}>
+                    {exceededCount}
+                  </Text>
+                </Flex>
+              </Tooltip>
             )}
             
             {nearLimitCount > 0 && (
-              <Flex 
-                align="center" 
-                justify="center" 
-                gap={4} 
-                style={{ 
-                  background: "#fff7e6", 
-                  borderRadius: 4, 
-                  padding: "2px 6px",
-                  border: "1px solid #ffd591",
-                  cursor: "pointer",
-                  transition: "all 0.2s"
-                }}
-                onClick={() => onViewFlowAnalysis?.(record.title, null, authorizedFlow, "near")}
-                onMouseEnter={(e) => { e.currentTarget.style.background = "#fff0d6"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "#fff7e6"; }}
-              >
-                <FaChartLine style={{ fontSize: 9, color: "#fa8c16" }} />
-                <Text style={{ fontSize: 10, color: "#fa8c16", fontWeight: 600 }}>
-                  Por superar: {nearLimitCount}
-                </Text>
-              </Flex>
+              <Tooltip title={`Cercano al límite ${nearLimitCount} veces`}>
+                <Flex 
+                  align="center" 
+                  justify="center" 
+                  gap={4} 
+                  style={{ 
+                    background: "#fff7e6", 
+                    borderRadius: 4, 
+                    padding: "2px 6px",
+                    border: "1px solid #ffd591",
+                    cursor: "pointer",
+                    transition: "all 0.2s"
+                  }}
+                  onClick={() => onViewFlowAnalysis?.(record.title, null, authorizedFlow, "near")}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "#fff0d6"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "#fff7e6"; }}
+                >
+                  <FaChartLine style={{ fontSize: 9, color: "#fa8c16" }} />
+                  <Text style={{ fontSize: 10, color: "#fa8c16", fontWeight: 600 }}>
+                    {nearLimitCount}
+                  </Text>
+                </Flex>
+              </Tooltip>
             )}
             
             {exceededCount === 0 && nearLimitCount === 0 && (
@@ -283,26 +287,22 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
                 border: "1px solid #b7eb8f"
               }}>
                 <FaCheckCircle style={{ fontSize: 9, color: "#52c41a" }} />
-                <Text style={{ fontSize: 10, color: "#52c41a", fontWeight: 600 }}>
-                  Dentro límite
-                </Text>
               </Flex>
             )}
           </Flex>
           
           {/* Alerta de cumplimiento (pct_consumed >= threshold) */}
           {isComplianceWarning && (
-            <Flex align="center" justify="center" gap={4} style={{ 
-              background: "#fffbe6", 
-              borderRadius: 4, 
-              padding: "2px 6px",
-              border: "1px solid #ffe58f"
-            }}>
-              <FaExclamationTriangle style={{ fontSize: 9, color: "#d48806" }} />
-              <Text style={{ fontSize: 9, color: "#d48806", fontWeight: 600 }}>
-                Consumo: {Math.round(pctConsumed)}%/{thresholdPct}%
-              </Text>
-            </Flex>
+            <Tooltip title={`Consumo: ${Math.round(pctConsumed)}% del ${thresholdPct}% permitido`}>
+              <Flex align="center" justify="center" gap={4} style={{ 
+                background: "#fffbe6", 
+                borderRadius: 4, 
+                padding: "2px 6px",
+                border: "1px solid #ffe58f"
+              }}>
+                <FaExclamationTriangle style={{ fontSize: 9, color: "#d48806" }} />
+              </Flex>
+            </Tooltip>
           )}
           
           {/* Nota indicando fuente de datos */}
