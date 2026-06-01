@@ -7,7 +7,7 @@ import { formatInteger } from "../../utils/numberFormatter";
 const { Text } = Typography;
 const { useToken } = theme;
 
-const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPointConfig, token) => [
+const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPointConfig, onViewFlowAnalysis, last7, token) => [
   {
     title: "Punto",
     key: "point_code",
@@ -180,20 +180,68 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
     title: "Caudal",
     dataIndex: "flow_lps",
     key: "flow_lps",
-    width: 90,
-    align: "right",
+    width: 130,
+    align: "center",
     onHeaderCell: () => ({
       style: { background: token.colorPrimary, color: "#fff" },
     }),
-    render: (v) =>
-      v != null ? (
-        <Text strong style={{ fontSize: 13, color: v > 0 ? token.colorSuccess : token.colorTextSecondary }}>
-          {Number(v).toFixed(2)}
-          <span style={{ fontSize: 10, fontWeight: 400, marginLeft: 2 }}>L/s</span>
-        </Text>
-      ) : (
-        "—"
-      ),
+    render: (v, record) => {
+      // Obtener datos del último día con datos desde last7
+      const pointData = last7?.[record.title];
+      const days = pointData?.days || [];
+      const lastDay = days[days.length - 1];
+      
+      // Calcular análisis del último día
+      let exceededCount = 0;
+      let nearLimitCount = 0;
+      
+      if (lastDay && record.authorized_flow > 0 && lastDay.avg_flow != null) {
+        const avgFlow = typeof lastDay.avg_flow === 'object' ? lastDay.avg_flow.parsedValue : lastDay.avg_flow;
+        // Para el análisis diario usamos el promedio del día
+        // (En el drawer se verá el detalle hora por hora)
+        if (avgFlow > record.authorized_flow) {
+          exceededCount = 1; // Indicamos que ese día tuvo superación
+        } else if (avgFlow >= record.authorized_flow * 0.8) {
+          nearLimitCount = 1;
+        }
+      }
+      
+      return (
+        <Flex vertical align="center" gap={4} style={{ cursor: onViewFlowAnalysis ? "pointer" : "default" }}
+          onClick={() => {
+            if (onViewFlowAnalysis && lastDay?.date) {
+              onViewFlowAnalysis(record.title, lastDay.date, record.authorized_flow);
+            }
+          }}
+        >
+          {v != null ? (
+            <Text strong style={{ fontSize: 13, color: v > 0 ? token.colorSuccess : token.colorTextSecondary }}>
+              {Number(v).toFixed(2)}
+              <span style={{ fontSize: 10, fontWeight: 400, marginLeft: 2 }}>L/s</span>
+            </Text>
+          ) : (
+            <Text style={{ fontSize: 13 }}>—</Text>
+          )}
+          
+          {/* Análisis del último día */}
+          {exceededCount > 0 && (
+            <Tag color="error" style={{ fontSize: 9, margin: 0, padding: "0 4px", lineHeight: "16px", fontWeight: 600 }}>
+              Superó ayer
+            </Tag>
+          )}
+          {nearLimitCount > 0 && exceededCount === 0 && (
+            <Tag color="warning" style={{ fontSize: 9, margin: 0, padding: "0 4px", lineHeight: "16px", fontWeight: 600 }}>
+              Cercano ayer
+            </Tag>
+          )}
+          {exceededCount === 0 && nearLimitCount === 0 && lastDay && (
+            <Tag style={{ fontSize: 9, margin: 0, padding: "0 4px", lineHeight: "16px", fontWeight: 600, background: "#f6ffed", borderColor: "#b7eb8f", color: "#52c41a" }}>
+              ✓ Normal
+            </Tag>
+          )}
+        </Flex>
+      );
+    },
   },
   {
     title: "Nivel",
@@ -321,7 +369,7 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
   },
 ];
 
-const CCComplianceTable = ({ points, last7, onViewVoucher, onOpenStopCompliance, onOpenSupport = () => {}, onViewPointConfig, onSelectPoint, loading = false }) => {
+const CCComplianceTable = ({ points, last7, onViewVoucher, onOpenStopCompliance, onOpenSupport = () => {}, onViewPointConfig, onViewFlowAnalysis, onSelectPoint, loading = false }) => {
   const { token } = useToken();
 
   // Misma lógica que CCWeekConsumption: usar variables del backend
@@ -335,14 +383,14 @@ const CCComplianceTable = ({ points, last7, onViewVoucher, onOpenStopCompliance,
   }, [last7]);
 
   const columns = useMemo(() => {
-    const allColumns = pointsColumns(onViewVoucher, onOpenStopCompliance, onOpenSupport, onViewPointConfig, token);
+    const allColumns = pointsColumns(onViewVoucher, onOpenStopCompliance, onOpenSupport, onViewPointConfig, onViewFlowAnalysis, last7, token);
     return allColumns.filter(col => {
       if (col.key === "flow_lps" && !activeVars.hasFlow) return false;
       if (col.key === "water_table_m" && !activeVars.hasLevel) return false;
       if (col.key === "total_m3" && !activeVars.hasTotal) return false;
       return true;
     });
-  }, [onViewVoucher, onOpenStopCompliance, onOpenSupport, onViewPointConfig, token, activeVars]);
+  }, [onViewVoucher, onOpenStopCompliance, onOpenSupport, onViewPointConfig, onViewFlowAnalysis, last7, token, activeVars]);
 
   return (
     <Table

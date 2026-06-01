@@ -6,7 +6,7 @@ import CCWeekConsumption from "./CCWeekConsumption";
 
 const { useToken } = theme;
 
-const CCDataTabs = ({ points, onViewVoucher, onOpenStopCompliance, onOpenSupport = () => {}, onWarningPointClick = () => {}, warningsRaw = {}, onSelectPoint, onViewMeasurements, onOpenStopTelemetry, onViewPointConfig, last7, selectedDate, onDateSelect, loading = false }) => {
+const CCDataTabs = ({ points, onViewVoucher, onOpenStopCompliance, onOpenSupport = () => {}, onWarningPointClick = () => {}, warningsRaw = {}, onSelectPoint, onViewMeasurements, onViewFlowAnalysis, onOpenStopTelemetry, onViewPointConfig, last7, selectedDate, onDateSelect, loading = false }) => {
   const { token } = useToken();
   const [activeTab, setActiveTab] = useState("telemetria");
 
@@ -66,6 +66,7 @@ const CCDataTabs = ({ points, onViewVoucher, onOpenStopCompliance, onOpenSupport
           onOpenStopCompliance={onOpenStopCompliance}
           onOpenSupport={onOpenSupport}
           onViewPointConfig={onViewPointConfig}
+          onViewFlowAnalysis={onViewFlowAnalysis}
           onSelectPoint={onSelectPoint}
           loading={loading}
         />

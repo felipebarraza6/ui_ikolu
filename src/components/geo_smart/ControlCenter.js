@@ -28,6 +28,7 @@ import ControlCenterChat from "./ControlCenterChat";
 import CCDataTabs from "./CCDataTabs";
 import CCSupportDrawer from "./CCSupportDrawer";
 import PointConfigDrawer from "./PointConfigDrawer";
+import CCFlowAnalysisDrawer from "./CCFlowAnalysisDrawer";
 import SkeletonControlCenter from "./SkeletonControlCenter";
 import ModuleTour from "../common/ModuleTour";
 import { centroControlTour } from "../../config/tours";
@@ -74,6 +75,12 @@ const ControlCenter = () => {
   const [measurementsLoading, setMeasurementsLoading] = useState(false);
   const [measurementsViewMode, setMeasurementsViewMode] = useState("chart");
   const [measurementsTab, setMeasurementsTab] = useState("1");
+
+  // ── Drawer de Análisis de Caudal ──
+  const [flowAnalysisDrawerOpen, setFlowAnalysisDrawerOpen] = useState(false);
+  const [selectedFlowPoint, setSelectedFlowPoint] = useState(null);
+  const [flowAnalysisData, setFlowAnalysisData] = useState(null);
+  const [flowAnalysisLoading, setFlowAnalysisLoading] = useState(false);
   // ── Consumo total del día (para mostrar en header del drawer) ──
   const totalDayConsumo = useMemo(() => {
     const records = Array.isArray(measurementsData?.results) ? measurementsData.results 
@@ -249,6 +256,56 @@ const ControlCenter = () => {
       .catch(err => console.error("[Measurements] Error:", err))
       .finally(() => setMeasurementsLoading(false));
   }, [selectedMeasurementPoint]);
+
+  // ── Análisis de Caudal vs Límite ──
+  const handleViewFlowAnalysis = useCallback(async (pointName, date, authorizedFlow) => {
+    const point = pointsRef.current?.find((p) => p.title === pointName);
+    if (!point) return;
+    setSelectedFlowPoint({ pointName, date, pointId: point.id, authorizedFlow });
+    setFlowAnalysisDrawerOpen(true);
+    setFlowAnalysisLoading(true);
+    setFlowAnalysisData(null);
+    try {
+      const recordsRes = await sh.pointRecords(point.id, date, date, 100);
+      // Extraer solo mediciones de caudal
+      const allRecords = Array.isArray(recordsRes?.results) ? recordsRes.results 
+        : Array.isArray(recordsRes?.records) ? recordsRes.records
+        : Array.isArray(recordsRes?.measurements) ? recordsRes.measurements
+        : Array.isArray(recordsRes?.data) ? recordsRes.data
+        : [];
+      setFlowAnalysisData(allRecords);
+    } catch (err) {
+      console.error("[FlowAnalysis] Error:", err);
+    } finally {
+      setFlowAnalysisLoading(false);
+    }
+  }, []);
+
+  const handleNavigateFlowDate = useCallback((direction) => {
+    if (!selectedFlowPoint?.date) return;
+    const today = moment().format('YYYY-MM-DD');
+    const sevenDaysAgo = moment().subtract(7, 'days').format('YYYY-MM-DD');
+    const newDate = moment(selectedFlowPoint.date).add(direction, 'days').format('YYYY-MM-DD');
+    
+    if (newDate > today || newDate < sevenDaysAgo) return;
+    
+    const point = pointsRef.current?.find((p) => p.title === selectedFlowPoint.pointName);
+    if (!point) return;
+    setSelectedFlowPoint({ ...selectedFlowPoint, date: newDate });
+    setFlowAnalysisLoading(true);
+    setFlowAnalysisData(null);
+    sh.pointRecords(point.id, newDate, newDate, 100)
+      .then(res => {
+        const allRecords = Array.isArray(res?.results) ? res.results 
+          : Array.isArray(res?.records) ? res.records
+          : Array.isArray(res?.measurements) ? res.measurements
+          : Array.isArray(res?.data) ? res.data
+          : [];
+        setFlowAnalysisData(allRecords);
+      })
+      .catch(err => console.error("[FlowAnalysis] Error:", err))
+      .finally(() => setFlowAnalysisLoading(false));
+  }, [selectedFlowPoint]);
 
   const handleViewPointConfig = useCallback(async (pointName) => {
     const point = pointsRef.current?.find((p) => p.title === pointName);
@@ -487,6 +544,7 @@ const ControlCenter = () => {
           warningsRaw={warningsRaw}
           onSelectPoint={handleSelectPoint}
           onViewMeasurements={handleViewMeasurements}
+          onViewFlowAnalysis={handleViewFlowAnalysis}
           onOpenStopTelemetry={handleOpenStopTelemetry}
           onViewPointConfig={handleViewPointConfig}
           last7={data?.last_7}
@@ -1245,6 +1303,24 @@ const ControlCenter = () => {
         loading={supportLoading}
         setLoading={setSupportLoading}
         contextType={supportContextType}
+      />
+
+      {/* ════════════════════════════════════════
+          Drawer Análisis de Caudal vs Límite
+      ════════════════════════════════════════ */}
+      <CCFlowAnalysisDrawer
+        open={flowAnalysisDrawerOpen}
+        onClose={() => {
+          setFlowAnalysisDrawerOpen(false);
+          setSelectedFlowPoint(null);
+          setFlowAnalysisData(null);
+        }}
+        pointName={selectedFlowPoint?.pointName}
+        date={selectedFlowPoint?.date}
+        authorizedFlow={selectedFlowPoint?.authorizedFlow}
+        data={flowAnalysisData}
+        loading={flowAnalysisLoading}
+        onNavigateDate={handleNavigateFlowDate}
       />
 
       <ModuleTour
