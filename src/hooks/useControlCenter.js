@@ -117,7 +117,11 @@ const transformDashboardStats = (raw) => {
     if (!recentWarningsByPoint[w.pointName]) {
       recentWarningsByPoint[w.pointName] = [];
     }
-    recentWarningsByPoint[w.pointName].push(w);
+    const normalizedWarning = { ...w };
+    if (normalizedWarning.type === "Salto masivo bloqueado") {
+      normalizedWarning.type = "Salto masivo";
+    }
+    recentWarningsByPoint[w.pointName].push(normalizedWarning);
   });
 
   // ── 4. Construir tabla de puntos desde compliance_summary ──
