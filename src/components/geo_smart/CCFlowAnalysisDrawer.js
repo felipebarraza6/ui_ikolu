@@ -1,6 +1,6 @@
 import React from "react";
-import { Drawer, Flex, Typography, Table, Tag } from "antd";
-import { FaExclamationTriangle, FaTimes } from "react-icons/fa";
+import { Drawer, Flex, Typography, Table, Button } from "antd";
+import { FaDownload, FaTimes } from "react-icons/fa";
 import moment from "moment";
 
 const { Text, Title } = Typography;
@@ -13,6 +13,27 @@ const CCFlowAnalysisDrawer = ({
   data 
 }) => {
   const measurements = Array.isArray(data) ? data : [];
+  
+  const handleExportCSV = () => {
+    const headers = ["Fecha/Hora", "% del limite", "Autorizado (L/s)", "Caudal (L/s)"];
+    const rows = measurements.map(m => {
+      const flow = m.flow;
+      const pct = authorizedFlow > 0 ? (flow / authorizedFlow) * 100 : 0;
+      return [
+        moment(m.date).format("DD/MM/YYYY HH:mm"),
+        Math.round(pct) + "%",
+        authorizedFlow,
+        flow
+      ];
+    });
+    
+    const csv = [headers, ...rows].map(r => r.join(",")).join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${pointName}_caudal.csv`;
+    link.click();
+  };
   
   return (
     <Drawer
@@ -37,7 +58,7 @@ const CCFlowAnalysisDrawer = ({
       }
       open={open}
       onClose={onClose}
-      width={500}
+      width={600}
       styles={{ body: { padding: 16 } }}
     >
       {measurements.length === 0 ? (
@@ -45,72 +66,84 @@ const CCFlowAnalysisDrawer = ({
           <Text type="secondary">No hay mediciones disponibles</Text>
         </Flex>
       ) : (
-        <Table
-          size="small"
-          dataSource={measurements.map((m, i) => ({ ...m, key: i }))}
-          columns={[
-            {
-              title: "Fecha/Hora",
-              dataIndex: "date",
-              render: (date) => (
-                <Text style={{ fontSize: 12 }}>
-                  {moment(date).format("DD/MM/YYYY HH:mm")}
-                </Text>
-              ),
-            },
-            {
-              title: "% del límite",
-              align: "right",
-              width: 100,
-              render: (_, record) => {
-                const flow = record.flow;
-                const pct = authorizedFlow > 0 ? (flow / authorizedFlow) * 100 : 0;
-                const isExceeded = authorizedFlow > 0 && flow > authorizedFlow;
-                return (
-                  <Text 
-                    strong 
-                    style={{ 
-                      fontSize: 13, 
-                      color: isExceeded ? "#ff4d4f" : "#52c41a" 
-                    }}
-                  >
-                    {Math.round(pct)}%
+        <>
+          <Flex justify="flex-end" style={{ marginBottom: 12 }}>
+            <Button 
+              size="small" 
+              icon={<FaDownload size={12} />} 
+              onClick={handleExportCSV}
+            >
+              Descargar CSV
+            </Button>
+          </Flex>
+          <Table
+            size="small"
+            bordered
+            dataSource={measurements.map((m, i) => ({ ...m, key: i }))}
+            columns={[
+              {
+                title: "Fecha/Hora",
+                dataIndex: "date",
+                render: (date) => (
+                  <Text style={{ fontSize: 12 }}>
+                    {moment(date).format("DD/MM/YYYY HH:mm")}
                   </Text>
-                );
+                ),
               },
-            },
-            {
-              title: "Caudal Autorizado",
-              align: "right",
-              width: 120,
-              render: () => (
-                <Text style={{ fontSize: 12, color: "#1890ff" }}>
-                  {Number(authorizedFlow).toFixed(1)} L/s
-                </Text>
-              ),
-            },
-            {
-              title: "Caudal",
-              dataIndex: "flow",
-              align: "right",
-              render: (flow) => {
-                const isExceeded = authorizedFlow > 0 && flow > authorizedFlow;
-                return (
-                  <Text 
-                    strong 
-                    style={{ 
-                      fontSize: 13, 
-                      color: isExceeded ? "#ff4d4f" : "#1890ff" 
-                    }}
-                  >
-                    {Number(flow).toFixed(1)} L/s
+              {
+                title: "% del límite",
+                align: "right",
+                width: 100,
+                render: (_, record) => {
+                  const flow = record.flow;
+                  const pct = authorizedFlow > 0 ? (flow / authorizedFlow) * 100 : 0;
+                  const isExceeded = authorizedFlow > 0 && flow > authorizedFlow;
+                  return (
+                    <Text 
+                      strong 
+                      style={{ 
+                        fontSize: 13, 
+                        color: isExceeded ? "#ff4d4f" : "#52c41a" 
+                      }}
+                    >
+                      {Math.round(pct)}%
+                    </Text>
+                  );
+                },
+              },
+              {
+                title: "Autorizado",
+                align: "right",
+                width: 100,
+                render: () => (
+                  <Text style={{ fontSize: 12, color: "#1890ff" }}>
+                    {Number(authorizedFlow).toFixed(1)} L/s
                   </Text>
-                );
+                ),
               },
-            },
-          ]}
-          pagination={{ pageSize: 10, size: "small" }}
-        />
+              {
+                title: "Caudal",
+                dataIndex: "flow",
+                align: "right",
+                render: (flow) => {
+                  const isExceeded = authorizedFlow > 0 && flow > authorizedFlow;
+                  return (
+                    <Text 
+                      strong 
+                      style={{ 
+                        fontSize: 13, 
+                        color: isExceeded ? "#ff4d4f" : "#1890ff" 
+                      }}
+                    >
+                      {Number(flow).toFixed(1)} L/s
+                    </Text>
+                  );
+                },
+              },
+            ]}
+            pagination={{ pageSize: 10, size: "small" }}
+          />
+        </>
       )}
     </Drawer>
   );
