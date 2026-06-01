@@ -163,11 +163,6 @@ const transformDashboardStats = (raw) => {
     };
   });
 
-  // ── 4. Construir tabla de puntos desde compliance_summary ──
-  const complianceList = Array.isArray(ds.compliance_summary)
-    ? ds.compliance_summary
-    : [];
-
   const points = complianceList.map((p) => {
     const wStats = weeklyStatsByPoint[p.point_name] || {};
     const flowAnalysis = flowAnalysisByPoint[p.point_name] || { exceeded: 0, nearLimit: 0, totalDays: 0 };
