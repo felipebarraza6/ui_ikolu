@@ -1,9 +1,10 @@
 import React from "react";
-import { Drawer, Flex, Typography, Table, Button } from "antd";
+import { Drawer, Flex, Typography, Table, Button, theme } from "antd";
 import { FaDownload, FaTimes } from "react-icons/fa";
 import moment from "moment";
 
 const { Text, Title } = Typography;
+const { useToken } = theme;
 
 const CCFlowAnalysisDrawer = ({ 
   open, 
@@ -12,6 +13,7 @@ const CCFlowAnalysisDrawer = ({
   authorizedFlow, 
   data 
 }) => {
+  const { token } = useToken();
   const measurements = Array.isArray(data) ? data : [];
   
   const handleExportCSV = () => {
@@ -41,9 +43,9 @@ const CCFlowAnalysisDrawer = ({
         <Flex justify="space-between" align="center">
           <div>
             <Title level={5} style={{ margin: 0 }}>{pointName}</Title>
-            <Flex gap={8} align="center">
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                Autorizado: <Text strong style={{ color: "#1890ff" }}>{authorizedFlow} L/s</Text>
+            <Flex gap={8} align="center" style={{ marginTop: 4 }}>
+              <Text strong style={{ fontSize: 13, color: token.colorPrimary }}>
+                Autorizado: {authorizedFlow} L/s
               </Text>
               <Text type="secondary" style={{ fontSize: 12 }}>
                 • {measurements.length} mediciones
@@ -67,11 +69,19 @@ const CCFlowAnalysisDrawer = ({
         </Flex>
       ) : (
         <>
-          <Flex justify="flex-end" style={{ marginBottom: 12 }}>
+          <Flex justify="flex-end" style={{ marginBottom: 16 }}>
             <Button 
+              type="primary"
               size="small" 
               icon={<FaDownload size={12} />} 
               onClick={handleExportCSV}
+              style={{ 
+                borderRadius: 6,
+                fontWeight: 600,
+                display: "flex",
+                alignItems: "center",
+                gap: 6
+              }}
             >
               Descargar CSV
             </Button>
@@ -103,7 +113,7 @@ const CCFlowAnalysisDrawer = ({
                       strong 
                       style={{ 
                         fontSize: 13, 
-                        color: isExceeded ? "#ff4d4f" : "#52c41a" 
+                        color: isExceeded ? token.colorError : token.colorSuccess 
                       }}
                     >
                       {Math.round(pct)}%
@@ -116,7 +126,7 @@ const CCFlowAnalysisDrawer = ({
                 align: "right",
                 width: 100,
                 render: () => (
-                  <Text style={{ fontSize: 12, color: "#1890ff" }}>
+                  <Text strong style={{ fontSize: 12, color: token.colorPrimary }}>
                     {Number(authorizedFlow).toFixed(1)} L/s
                   </Text>
                 ),
@@ -132,7 +142,7 @@ const CCFlowAnalysisDrawer = ({
                       strong 
                       style={{ 
                         fontSize: 13, 
-                        color: isExceeded ? "#ff4d4f" : "#1890ff" 
+                        color: isExceeded ? token.colorError : token.colorText 
                       }}
                     >
                       {Number(flow).toFixed(1)} L/s
