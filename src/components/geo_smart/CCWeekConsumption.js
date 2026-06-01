@@ -8,18 +8,13 @@ import { formatInteger } from "../../utils/numberFormatter";
 const { Text } = Typography;
 const { useToken } = theme;
 
-const TableMemo = React.memo(({ data, columns, onSelectPoint, loading }) => {
+const TableMemo = React.memo(({ data, columns, loading }) => {
   const dataSource = useMemo(() =>
     [...data]
       .sort((a, b) => (b.consumption || 0) - (a.consumption || 0))
       .map((p, idx) => ({ ...p, key: idx, rank: idx + 1 })),
     [data]
   );
-
-  const onRow = useCallback((record) => ({
-    onClick: () => onSelectPoint(record),
-    style: { cursor: "pointer" },
-  }), [onSelectPoint]);
 
   return (
     <Table
@@ -29,13 +24,12 @@ const TableMemo = React.memo(({ data, columns, onSelectPoint, loading }) => {
       pagination={false}
       showHeader={true}
       columns={columns}
-      onRow={onRow}
       locale={{ emptyText: "Sin datos" }}
     />
   );
 });
 
-const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasurements, onOpenStopTelemetry, onOpenSupport = () => {}, onWarningPointClick = () => {}, onViewPointConfig, warningsRaw = {}, onSelectPoint, loading = false }) => {
+const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasurements, onOpenStopTelemetry, onOpenSupport = () => {}, onWarningPointClick = () => {}, onViewPointConfig, warningsRaw = {}, loading = false }) => {
   const { token } = useToken();
 
   const dayMap = useMemo(() => {
@@ -73,10 +67,6 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
   const handleOpenSupport = useCallback((record) => {
     onOpenSupport(record.pointName);
   }, [onOpenSupport]);
-
-  const handleSelectPoint = useCallback((record) => {
-    onSelectPoint({ id: record.pointName, title: record.pointName });
-  }, [onSelectPoint]);
 
   // Detectar variables activas en al menos un punto
   const activeVars = useMemo(() => {
@@ -258,7 +248,7 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
 
     return cols;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, handleViewMeasurements, handleOpenStopTelemetry, handleOpenSupport, onWarningPointClick, onSelectPoint, activeVars]);
+  }, [token, handleViewMeasurements, handleOpenStopTelemetry, handleOpenSupport, onWarningPointClick, activeVars]);
 
   if (sortedDays.length === 0) {
     return (
@@ -315,7 +305,6 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
             loading={loading}
             data={dayMap[activeDate].points}
             columns={columns}
-            onSelectPoint={handleSelectPoint}
           />
         )}
       </Flex>

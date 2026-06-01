@@ -609,6 +609,16 @@ const chat = async (message) => {
 };
 
 /**
+ * 🆕 COMPLIANCE: Datos de cumplimiento con historial de caudal
+ * Endpoint: GET /api/ik/compliance/
+ * Devuelve stats agregados + puntos con flow_history y compliance_warning
+ */
+const get_compliance = async (signal) => {
+  const rq = await GET(`ik/compliance/`, null, signal ? { signal } : {});
+  return rq.data;
+};
+
+/**
  * 🆕 MEDICIONES POR PUNTO Y DÍA
  * Endpoint: GET /api/ik/point/{id}/records/?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD&limit=100
  * Devuelve registros detallados de un punto para un rango de fechas.
@@ -799,6 +809,8 @@ const sh = {
   dailySummary: get_daily_summary,
   dashboardStats: get_dashboard_stats,
   chat,
+  // 🆕 COMPLIANCE: Datos de cumplimiento con historial de caudal
+  compliance: get_compliance,
   // 🆕 MEDICIONES POR PUNTO Y DÍA
   pointRecords: get_point_records,
   // 🆕 CONFIGURACIÓN TÉCNICA DEL PUNTO

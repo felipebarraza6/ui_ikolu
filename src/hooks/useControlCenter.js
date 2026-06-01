@@ -37,7 +37,7 @@ const extractNum = (val) => {
  * Transforma la respuesta del nuevo endpoint /api/ik/dashboard_stats/
  * (unificado) al formato que espera ControlCenter.js.
  */
-const transformDashboardStats = (raw) => {
+const transformDashboardStats = (raw, complianceRaw = null) => {
   if (!raw || typeof raw !== "object") {
     console.warn("[useControlCenter] Respuesta inválida:", raw);
     return null;
@@ -125,9 +125,16 @@ const transformDashboardStats = (raw) => {
   });
 
   // ── 4. Construir tabla de puntos desde compliance_summary ──
-  const complianceList = Array.isArray(ds.compliance_summary)
-    ? ds.compliance_summary
-    : [];
+  // Usar compliance_summary de dashboard_stats como primario
+  // Fallback a complianceRaw.points si está vacío
+  const dashboardCompliance = Array.isArray(ds.compliance_summary) ? ds.compliance_summary : [];
+  const endpointCompliance = Array.isArray(complianceRaw?.points) ? complianceRaw.points : [];
+  
+  console.log("[transform] dashboardCompliance:", dashboardCompliance.length, "endpointCompliance:", endpointCompliance.length);
+  
+  const complianceList = dashboardCompliance.length > 0 
+    ? dashboardCompliance 
+    : endpointCompliance;
 
   // ── 4.1 Calcular métricas de caudal vs límite desde last_7 (MVP) ──
   const flowAnalysisByPoint = {};
@@ -163,9 +170,21 @@ const transformDashboardStats = (raw) => {
     };
   });
 
+  // ── Merge con datos de compliance endpoint (si existe) ──
+  console.log("[transformDashboardStats] complianceRaw:", complianceRaw ? "existe" : "null", 
+    complianceRaw ? JSON.stringify(complianceRaw).substring(0, 200) : "");
+  const compliancePoints = complianceRaw?.points || [];
+  console.log("[transformDashboardStats] compliancePoints:", compliancePoints.length);
+  const complianceByPointName = {};
+  compliancePoints.forEach(cp => {
+    complianceByPointName[cp.point_name] = cp;
+  });
+
   const points = complianceList.map((p) => {
     const wStats = weeklyStatsByPoint[p.point_name] || {};
     const flowAnalysis = flowAnalysisByPoint[p.point_name] || { exceeded: 0, nearLimit: 0, totalDays: 0 };
+    const complianceData = complianceByPointName[p.point_name] || {};
+    
     return {
       id: p.point_id,
       title: p.point_name,
@@ -198,6 +217,9 @@ const transformDashboardStats = (raw) => {
       flow_exceeded_count: flowAnalysis.exceeded,
       flow_near_limit_count: flowAnalysis.nearLimit,
       flow_analysis_days: flowAnalysis.totalDays,
+      // 🆕 Datos del endpoint de compliance (histórico anual)
+      flow_history: complianceData.flow_history || null,
+      compliance_warning: complianceData.compliance_warning || null,
     };
   });
 
@@ -326,13 +348,21 @@ export const useControlCenter = (options = {}) => {
       const controller = new AbortController();
 
       try {
-        const raw = await sh.dashboardStats(controller.signal);
+        const [rawDashboard, rawCompliance] = await Promise.all([
+          sh.dashboardStats(controller.signal),
+          sh.compliance(controller.signal).catch((err) => {
+            console.warn("[useControlCenter] Endpoint compliance no disponible:", err?.message || err);
+            return null;
+          }),
+        ]);
 
-        const transformed = transformDashboardStats(raw);
+        console.log("[useControlCenter] Compliance response:", rawCompliance ? "OK" : "FALLÓ/NULL", 
+          rawCompliance?.points?.length || 0, "puntos");
+
+        const transformed = transformDashboardStats(rawDashboard, rawCompliance);
 
         if (isMountedRef.current) {
           setData(transformed);
-          setLastRefresh(new Date());
           setError(null);
         }
       } catch (err) {

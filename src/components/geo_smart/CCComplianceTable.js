@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { Flex, Typography, Table, Tag, Tooltip, theme } from "antd";
-import { FaClipboardCheck, FaEye, FaPauseCircle, FaHeadset, FaInfoCircle, FaExternalLinkAlt } from "react-icons/fa";
+import { FaClipboardCheck, FaEye, FaPauseCircle, FaHeadset, FaInfoCircle, FaExternalLinkAlt, FaExclamationTriangle, FaChartLine, FaCheckCircle } from "react-icons/fa";
 import moment from "moment";
 import { formatInteger } from "../../utils/numberFormatter";
 
@@ -185,32 +185,66 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
       style: { background: token.colorPrimary, color: "#fff" },
     }),
     render: (v, record) => {
-      const exceededCount = record.flow_exceeded_count || 0;
-      const nearLimitCount = record.flow_near_limit_count || 0;
-      const analysisDays = record.flow_analysis_days || 0;
+      // 🆕 Usar datos del endpoint de compliance (histórico anual)
+      const flowHistory = record.flow_history;
+      const complianceWarning = record.compliance_warning;
+      
+      // Si hay datos del endpoint compliance, usarlos. Si no, fallback a MVP (last_7)
+      const exceededCount = flowHistory?.count ?? record.flow_exceeded_count ?? 0;
+      const nearLimitCount = record.flow_near_limit_count ?? 0;
+      const isComplianceWarning = complianceWarning?.triggered ?? false;
+      const pctConsumed = complianceWarning?.pct_consumed ?? record.pct_consumed ?? 0;
+      const thresholdPct = complianceWarning?.threshold_pct ?? 80;
+      
+      const hasFlowHistory = !!flowHistory;
+      
+      // Color del valor actual: basado en valor ACTUAL vs autorizado (NO histórico)
+      const currentFlow = record.flow_lps;
+      const authorizedFlow = record.authorized_flow;
+      const isCurrentExceeded = currentFlow != null && authorizedFlow > 0 && currentFlow > authorizedFlow;
+      const isCurrentNearLimit = currentFlow != null && authorizedFlow > 0 && currentFlow >= authorizedFlow * 0.8 && currentFlow <= authorizedFlow;
+      
+      const flowColor = isCurrentExceeded 
+        ? token.colorError 
+        : isCurrentNearLimit 
+          ? token.colorWarning 
+          : token.colorSuccess;
       
       return (
         <Flex vertical align="center" gap={5} style={{ padding: "4px 0" }}>
-          {/* Valor actual */}
-          {record.flow_lps != null ? (
-            <Text strong style={{ fontSize: 14, color: exceededCount > 0 ? token.colorError : nearLimitCount > 0 ? token.colorWarning : token.colorSuccess }}>
-              {Number(record.flow_lps).toFixed(1)}
+          {/* Valor actual - color según estado ACTUAL */}
+          {currentFlow != null ? (
+            <Text strong style={{ fontSize: 14, color: flowColor }}>
+              {Number(currentFlow).toFixed(1)}
               <span style={{ fontSize: 10, fontWeight: 400, marginLeft: 2 }}>L/s</span>
             </Text>
           ) : (
             <Text style={{ fontSize: 13 }}>—</Text>
           )}
           
-          {/* Métricas MVP */}
+          {/* Métricas de caudal - HISTÓRICO */}
           <Flex vertical gap={2} style={{ width: "100%" }}>
             {exceededCount > 0 && (
-              <Flex align="center" justify="center" gap={4} style={{ 
-                background: "#fff2f0", 
-                borderRadius: 4, 
-                padding: "2px 6px",
-                border: "1px solid #ffccc7"
-              }}>
-                <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#ff4d4f" }} />
+              <Flex 
+                align="center" 
+                justify="center" 
+                gap={4} 
+                style={{ 
+                  background: "#fff2f0", 
+                  borderRadius: 4, 
+                  padding: "2px 6px",
+                  border: "1px solid #ffccc7",
+                  cursor: "pointer",
+                  transition: "all 0.2s"
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onViewFlowAnalysis?.(record.title, authorizedFlow, flowHistory?.measurements || []);
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "#ffe8e8"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "#fff2f0"; }}
+              >
+                <FaExclamationTriangle style={{ fontSize: 9, color: "#ff4d4f" }} />
                 <Text style={{ fontSize: 10, color: "#ff4d4f", fontWeight: 600 }}>
                   Superó: {exceededCount}
                 </Text>
@@ -218,13 +252,23 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
             )}
             
             {nearLimitCount > 0 && (
-              <Flex align="center" justify="center" gap={4} style={{ 
-                background: "#fff7e6", 
-                borderRadius: 4, 
-                padding: "2px 6px",
-                border: "1px solid #ffd591"
-              }}>
-                <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#fa8c16" }} />
+              <Flex 
+                align="center" 
+                justify="center" 
+                gap={4} 
+                style={{ 
+                  background: "#fff7e6", 
+                  borderRadius: 4, 
+                  padding: "2px 6px",
+                  border: "1px solid #ffd591",
+                  cursor: "pointer",
+                  transition: "all 0.2s"
+                }}
+                onClick={() => onViewFlowAnalysis?.(record.title, null, authorizedFlow, "near")}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "#fff0d6"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "#fff7e6"; }}
+              >
+                <FaChartLine style={{ fontSize: 9, color: "#fa8c16" }} />
                 <Text style={{ fontSize: 10, color: "#fa8c16", fontWeight: 600 }}>
                   Por superar: {nearLimitCount}
                 </Text>
@@ -238,7 +282,7 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
                 padding: "2px 6px",
                 border: "1px solid #b7eb8f"
               }}>
-                <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#52c41a" }} />
+                <FaCheckCircle style={{ fontSize: 9, color: "#52c41a" }} />
                 <Text style={{ fontSize: 10, color: "#52c41a", fontWeight: 600 }}>
                   Dentro límite
                 </Text>
@@ -246,9 +290,24 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
             )}
           </Flex>
           
-          {/* Nota MVP */}
+          {/* Alerta de cumplimiento (pct_consumed >= threshold) */}
+          {isComplianceWarning && (
+            <Flex align="center" justify="center" gap={4} style={{ 
+              background: "#fffbe6", 
+              borderRadius: 4, 
+              padding: "2px 6px",
+              border: "1px solid #ffe58f"
+            }}>
+              <FaExclamationTriangle style={{ fontSize: 9, color: "#d48806" }} />
+              <Text style={{ fontSize: 9, color: "#d48806", fontWeight: 600 }}>
+                Consumo: {Math.round(pctConsumed)}%/{thresholdPct}%
+              </Text>
+            </Flex>
+          )}
+          
+          {/* Nota indicando fuente de datos */}
           <Text style={{ fontSize: 9, color: token.colorTextSecondary }}>
-            (últimos {analysisDays} días)
+            {hasFlowHistory ? "(resumen anual)" : "(últimos 7 días)"}
           </Text>
         </Flex>
       );
@@ -381,6 +440,7 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
 ];
 
 const CCComplianceTable = ({ points, last7, onViewVoucher, onOpenStopCompliance, onOpenSupport = () => {}, onViewPointConfig, onViewFlowAnalysis, onSelectPoint, loading = false }) => {
+  console.log("[CCComplianceTable] onViewFlowAnalysis:", typeof onViewFlowAnalysis, onViewFlowAnalysis?.toString().substring(0, 50));
   const { token } = useToken();
 
   // Misma lógica que CCWeekConsumption: usar variables del backend
@@ -396,7 +456,7 @@ const CCComplianceTable = ({ points, last7, onViewVoucher, onOpenStopCompliance,
   const columns = useMemo(() => {
     const allColumns = pointsColumns(onViewVoucher, onOpenStopCompliance, onOpenSupport, onViewPointConfig, onViewFlowAnalysis, last7, token);
     return allColumns.filter(col => {
-      if (col.key === "flow_lps" && !activeVars.hasFlow) return false;
+      if (col.key === "flow_status" && !activeVars.hasFlow) return false;
       if (col.key === "water_table_m" && !activeVars.hasLevel) return false;
       if (col.key === "total_m3" && !activeVars.hasTotal) return false;
       return true;
@@ -415,9 +475,7 @@ const CCComplianceTable = ({ points, last7, onViewVoucher, onOpenStopCompliance,
       pagination={{ pageSize: 10, hideOnSinglePage: true }}
       locale={{ emptyText: "No hay puntos disponibles" }}
       onRow={(record) => ({
-        onClick: () => onSelectPoint(record),
         style: {
-          cursor: "pointer",
           borderBottom: `1px solid ${token.colorBorderSecondary}`,
         },
         onMouseEnter: (e) => {

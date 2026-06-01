@@ -257,28 +257,16 @@ const ControlCenter = () => {
       .finally(() => setMeasurementsLoading(false));
   }, [selectedMeasurementPoint]);
 
-  // ── Análisis de Caudal vs Límite ──
-  const handleViewFlowAnalysis = useCallback(async (pointName, date, authorizedFlow) => {
+  // ─ Análisis de Caudal vs Límite ──
+  const handleViewFlowAnalysis = useCallback((pointName, authorizedFlow, measurements) => {
+    console.log("[FlowAnalysis] Abriendo drawer:", pointName, authorizedFlow, measurements.length, "mediciones");
     const point = pointsRef.current?.find((p) => p.title === pointName);
     if (!point) return;
-    setSelectedFlowPoint({ pointName, date, pointId: point.id, authorizedFlow });
+    
+    setSelectedFlowPoint({ pointName, authorizedFlow, pointId: point.id, measurements });
     setFlowAnalysisDrawerOpen(true);
-    setFlowAnalysisLoading(true);
-    setFlowAnalysisData(null);
-    try {
-      const recordsRes = await sh.pointRecords(point.id, date, date, 100);
-      // Extraer solo mediciones de caudal
-      const allRecords = Array.isArray(recordsRes?.results) ? recordsRes.results 
-        : Array.isArray(recordsRes?.records) ? recordsRes.records
-        : Array.isArray(recordsRes?.measurements) ? recordsRes.measurements
-        : Array.isArray(recordsRes?.data) ? recordsRes.data
-        : [];
-      setFlowAnalysisData(allRecords);
-    } catch (err) {
-      console.error("[FlowAnalysis] Error:", err);
-    } finally {
-      setFlowAnalysisLoading(false);
-    }
+    setFlowAnalysisLoading(false); // Datos ya vienen listos, no hay loading
+    setFlowAnalysisData(measurements);
   }, []);
 
   const handleNavigateFlowDate = useCallback((direction) => {
@@ -542,7 +530,6 @@ const ControlCenter = () => {
             setWarningsDrawerOpen(true);
           }}
           warningsRaw={warningsRaw}
-          onSelectPoint={handleSelectPoint}
           onViewMeasurements={handleViewMeasurements}
           onViewFlowAnalysis={handleViewFlowAnalysis}
           onOpenStopTelemetry={handleOpenStopTelemetry}
@@ -1316,11 +1303,8 @@ const ControlCenter = () => {
           setFlowAnalysisData(null);
         }}
         pointName={selectedFlowPoint?.pointName}
-        date={selectedFlowPoint?.date}
         authorizedFlow={selectedFlowPoint?.authorizedFlow}
-        data={flowAnalysisData}
-        loading={flowAnalysisLoading}
-        onNavigateDate={handleNavigateFlowDate}
+        data={selectedFlowPoint?.measurements || []}
       />
 
       <ModuleTour
