@@ -29,6 +29,7 @@ import CCDataTabs from "./CCDataTabs";
 import CCSupportDrawer from "./CCSupportDrawer";
 import PointConfigDrawer from "./PointConfigDrawer";
 import CCFlowAnalysisDrawer from "./CCFlowAnalysisDrawer";
+import CCComplianceDetailDrawer from "./CCComplianceDetailDrawer";
 import SkeletonControlCenter from "./SkeletonControlCenter";
 import ModuleTour from "../common/ModuleTour";
 import { centroControlTour } from "../../config/tours";
@@ -52,9 +53,15 @@ const ControlCenter = () => {
 
   // Ref para estabilizar callbacks sin depender de data?.points
   const pointsRef = useRef(data?.points || []);
-  pointsRef.current = data?.points || [];
   const last7Ref = useRef(data?.last_7 || {});
-  last7Ref.current = data?.last_7 || {};
+  
+  useEffect(() => {
+    pointsRef.current = data?.points || [];
+  }, [data?.points]);
+  
+  useEffect(() => {
+    last7Ref.current = data?.last_7 || {};
+  }, [data?.last_7]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [warningsDrawerOpen, setWarningsDrawerOpen] = useState(false);
   const [selectedWarningPoint, setSelectedWarningPoint] = useState(null);
@@ -81,6 +88,10 @@ const ControlCenter = () => {
   const [selectedFlowPoint, setSelectedFlowPoint] = useState(null);
   const [flowAnalysisData, setFlowAnalysisData] = useState(null);
   const [flowAnalysisLoading, setFlowAnalysisLoading] = useState(false);
+  
+  // ── Drawer de Detalle de Cumplimiento ──
+  const [complianceDetailDrawerOpen, setComplianceDetailDrawerOpen] = useState(false);
+  const [selectedCompliancePoint, setSelectedCompliancePoint] = useState(null);
   // ── Consumo total del día (para mostrar en header del drawer) ──
   const totalDayConsumo = useMemo(() => {
     const records = Array.isArray(measurementsData?.results) ? measurementsData.results 
@@ -186,6 +197,7 @@ const ControlCenter = () => {
       if (configRes && configRes.d1 != null) setWellConfig(configRes);
     } catch (err) {
       console.error("[Measurements] Error:", err);
+      message.error("Error cargando mediciones");
     } finally {
       setMeasurementsLoading(false);
     }
@@ -206,7 +218,10 @@ const ControlCenter = () => {
     setMeasurementsData(null);
     sh.pointRecords(point.id, newDate, newDate, 100)
       .then(res => setMeasurementsData(res))
-      .catch(err => console.error("[Measurements] Error:", err))
+      .catch(err => {
+        console.error("[Measurements] Error:", err);
+        message.error("Error navegando fecha");
+      })
       .finally(() => setMeasurementsLoading(false));
   }, [selectedMeasurementPoint]);
 
@@ -232,7 +247,10 @@ const ControlCenter = () => {
         setMeasurementsData(recordsRes);
         if (configRes && configRes.d1 != null) setWellConfig(configRes);
       })
-      .catch(err => console.error("[Measurements] Error:", err))
+      .catch(err => {
+        console.error("[Measurements] Error:", err);
+        message.error("Error cambiando punto");
+      })
       .finally(() => setMeasurementsLoading(false));
   }, [selectedMeasurementPoint]);
 
@@ -253,7 +271,10 @@ const ControlCenter = () => {
         setMeasurementsData(recordsRes);
         if (configRes && configRes.d1 != null) setWellConfig(configRes);
       })
-      .catch(err => console.error("[Measurements] Error:", err))
+      .catch(err => {
+        console.error("[Measurements] Error:", err);
+        message.error("Error cargando punto");
+      })
       .finally(() => setMeasurementsLoading(false));
   }, [selectedMeasurementPoint]);
 
@@ -267,6 +288,13 @@ const ControlCenter = () => {
     setFlowAnalysisDrawerOpen(true);
     setFlowAnalysisLoading(false); // Datos ya vienen listos, no hay loading
     setFlowAnalysisData(measurements);
+  }, []);
+  
+  // ─ Detalle de Cumplimiento ──
+  const handleViewComplianceDetail = useCallback((point, section = "detail") => {
+    console.log("[ComplianceDetail] Abriendo drawer:", point.title, section);
+    setSelectedCompliancePoint(point);
+    setComplianceDetailDrawerOpen(true);
   }, []);
 
   const handleNavigateFlowDate = useCallback((direction) => {
@@ -291,7 +319,10 @@ const ControlCenter = () => {
           : [];
         setFlowAnalysisData(allRecords);
       })
-      .catch(err => console.error("[FlowAnalysis] Error:", err))
+      .catch(err => {
+        console.error("[FlowAnalysis] Error:", err);
+        message.error("Error cargando datos de caudal");
+      })
       .finally(() => setFlowAnalysisLoading(false));
   }, [selectedFlowPoint]);
 
@@ -307,6 +338,7 @@ const ControlCenter = () => {
       setPointConfigData(res);
     } catch (err) {
       console.error("[PointConfig] Error:", err);
+      message.error("Error cargando configuración");
     } finally {
       setPointConfigLoading(false);
     }
@@ -532,6 +564,7 @@ const ControlCenter = () => {
           warningsRaw={warningsRaw}
           onViewMeasurements={handleViewMeasurements}
           onViewFlowAnalysis={handleViewFlowAnalysis}
+          onViewComplianceDetail={handleViewComplianceDetail}
           onOpenStopTelemetry={handleOpenStopTelemetry}
           onViewPointConfig={handleViewPointConfig}
           last7={data?.last_7}
@@ -560,7 +593,7 @@ const ControlCenter = () => {
           setSelectedWarningPoint(null);
         }}
         open={warningsDrawerOpen}
-        width={640}
+        width={{ xs: "100%", sm: "100%", md: 640 }}
         styles={{ body: { padding: 16 } }}
       >
         <Flex wrap="wrap" gap={8} style={{ marginBottom: 16 }}>
@@ -778,14 +811,8 @@ const ControlCenter = () => {
           setMeasurementsViewMode("chart");
           setMeasurementsTab("1");
         }}
-        width="100%"
-        bodyStyle={{ padding: 8, overflow: "auto" }}
-        styles={{
-          header: {
-            paddingBottom: 0,
-            marginBottom: 0,
-          },
-        }}
+        width={{ xs: "100%", md: "100%" }}
+        styles={{ body: { padding: 8, overflow: "auto" }, header: { paddingBottom: 0, marginBottom: 0 } }}
         style={{ zIndex: 900 }}
       >
         {measurementsLoading ? (
@@ -845,8 +872,8 @@ const ControlCenter = () => {
           setDgaConsole([]);
         }}
         footer={null}
-        width={900}
-        style={{ top: 0, maxWidth: "95vw" }}
+        width={{ xs: "100%", sm: "95%", md: 900 }}
+        centered
       >
         <Flex vertical gap={12} style={{ marginTop: 0 }}>
           {/* ── Voucher + Validar en dos columnas ── */}
@@ -1305,6 +1332,18 @@ const ControlCenter = () => {
         pointName={selectedFlowPoint?.pointName}
         authorizedFlow={selectedFlowPoint?.authorizedFlow}
         data={selectedFlowPoint?.measurements || []}
+      />
+      
+      {/* ════════════════════════════════════════
+          Drawer Detalle de Cumplimiento
+      ════════════════════════════════════════ */}
+      <CCComplianceDetailDrawer
+        open={complianceDetailDrawerOpen}
+        onClose={() => {
+          setComplianceDetailDrawerOpen(false);
+          setSelectedCompliancePoint(null);
+        }}
+        point={selectedCompliancePoint}
       />
 
       <ModuleTour

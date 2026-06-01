@@ -1,9 +1,21 @@
 import React, { useCallback, useMemo } from "react";
 import { Flex, Typography, Table, Tooltip, Tag, theme } from "antd";
 import { FaEye, FaHandPaper, FaHeadset, FaExclamationTriangle, FaInfoCircle } from "react-icons/fa";
+import { FormOutlined, CheckCircleOutlined, CloseCircleOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import moment from "moment";
 import { ikoluTokens } from "../../theme";
 import { formatInteger } from "../../utils/numberFormatter";
+
+const typeDgaLabels = {
+  "SUPERFICIAL": "Superficial",
+  "SUBTERRANEO": "Subterráneo",
+  "SUPERFICIAL_MAYOR": "Superficial Mayor",
+  "SUBTERRANEO_MENOR": "Subterráneo Menor",
+  "CAUDALES_MUY_PEQUENOS": "Caudales muy pequeños",
+  "MEDIO": "Medio",
+  "MAYOR": "Mayor",
+  "MENOR": "Menor",
+};
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -38,7 +50,12 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
       (pointWeek?.days || []).forEach((d) => {
         if (!d.date) return;
         if (!map[d.date]) map[d.date] = { points: [] };
-        map[d.date].points.push({ pointName, ...d });
+        map[d.date].points.push({ 
+          pointName, 
+          is_telemetry: pointWeek.is_telemetry,
+          is_form: pointWeek.is_form,
+          ...d 
+        });
       });
     });
     return map;
@@ -87,21 +104,42 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
         width: 40,
         align: "center",
         render: (_, record) => {
+          const isForm = record.is_form === true;
+          const isTelemetry = record.is_telemetry === true;
           const isConnected = (record.measurements_count || 0) > 0;
+          
+          if (isForm) {
+            return (
+              <Tooltip title="Formulario">
+                <div style={{ width: 20, height: 20, minWidth: 20, minHeight: 20, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", background: `${token.colorPrimary}20` }}>
+                  <FormOutlined style={{ fontSize: 10, color: token.colorPrimary }} />
+                </div>
+              </Tooltip>
+            );
+          }
+          
+          if (isTelemetry) {
+            return (
+              <div style={{ width: 20, height: 20, minWidth: 20, minHeight: 20, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", background: isConnected ? `${token.colorPrimary}20` : "#ff4d4f20", overflow: "hidden" }}>
+                <div
+                  style={{
+                    width: 8,
+                    height: 8,
+                    minWidth: 8,
+                    minHeight: 8,
+                    borderRadius: "50%",
+                    background: isConnected ? token.colorPrimary : "#ff4d4f",
+                    animation: isConnected ? "pulse-badge 2s ease-in-out infinite" : "none",
+                    flexShrink: 0,
+                  }}
+                />
+              </div>
+            );
+          }
+          
           return (
-            <div style={{ width: 20, height: 20, minWidth: 20, minHeight: 20, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", background: isConnected ? `${token.colorPrimary}20` : "#ff4d4f20", overflow: "hidden" }}>
-              <div
-                style={{
-                  width: 8,
-                  height: 8,
-                  minWidth: 8,
-                  minHeight: 8,
-                  borderRadius: "50%",
-                  background: isConnected ? token.colorPrimary : "#ff4d4f",
-                  animation: isConnected ? "pulse-badge 2s ease-in-out infinite" : "none",
-                  flexShrink: 0,
-                }}
-              />
+            <div style={{ width: 20, height: 20, minWidth: 20, minHeight: 20, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", background: "#d9d9d920" }}>
+              <MinusCircleOutlined style={{ fontSize: 10, color: "#d9d9d9" }} />
             </div>
           );
         },
@@ -126,7 +164,7 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
                   }}
                 />
               </Flex>
-              {warningCount > 0 && (
+              {warningCount > 0 ? (
                 <Tag
                   style={{
                     fontSize: 10,
@@ -151,6 +189,8 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
                   <FaExclamationTriangle style={{ fontSize: 9 }} />
                   {warningCount}
                 </Tag>
+              ) : (
+                <Text style={{ fontSize: 11, color: token.colorTextDisabled }}>-</Text>
               )}
             </Flex>
           );

@@ -130,8 +130,6 @@ const transformDashboardStats = (raw, complianceRaw = null) => {
   const dashboardCompliance = Array.isArray(ds.compliance_summary) ? ds.compliance_summary : [];
   const endpointCompliance = Array.isArray(complianceRaw?.points) ? complianceRaw.points : [];
   
-  console.log("[transform] dashboardCompliance:", dashboardCompliance.length, "endpointCompliance:", endpointCompliance.length);
-  
   const complianceList = dashboardCompliance.length > 0 
     ? dashboardCompliance 
     : endpointCompliance;
@@ -171,10 +169,7 @@ const transformDashboardStats = (raw, complianceRaw = null) => {
   });
 
   // ── Merge con datos de compliance endpoint (si existe) ──
-  console.log("[transformDashboardStats] complianceRaw:", complianceRaw ? "existe" : "null", 
-    complianceRaw ? JSON.stringify(complianceRaw).substring(0, 200) : "");
   const compliancePoints = complianceRaw?.points || [];
-  console.log("[transformDashboardStats] compliancePoints:", compliancePoints.length);
   const complianceByPointName = {};
   compliancePoints.forEach(cp => {
     complianceByPointName[cp.point_name] = cp;
@@ -184,6 +179,22 @@ const transformDashboardStats = (raw, complianceRaw = null) => {
     const wStats = weeklyStatsByPoint[p.point_name] || {};
     const flowAnalysis = flowAnalysisByPoint[p.point_name] || { exceeded: 0, nearLimit: 0, totalDays: 0 };
     const complianceData = complianceByPointName[p.point_name] || {};
+    
+    // Mapear near_limit_history desde endpoint compliance
+    const nearLimitHistory = complianceData.near_limit_history || null;
+    const flowHistory = complianceData.flow_history || null;
+    
+    // Mapear compliance_warning completo con level/status/messages
+    const rawWarning = complianceData.compliance_warning || {};
+    const complianceWarning = {
+      level: rawWarning.level || (rawWarning.triggered ? "warning" : "safe"),
+      status: rawWarning.status || (rawWarning.triggered ? "Alerta" : "Dentro de límites"),
+      flow_pct: extractNum(rawWarning.flow_pct),
+      pct_consumed: extractNum(rawWarning.pct_consumed) ?? extractNum(p.pct_consumed) ?? 0,
+      threshold_pct: extractNum(rawWarning.threshold_pct) ?? 80,
+      messages: Array.isArray(rawWarning.messages) ? rawWarning.messages : [],
+      triggered: rawWarning.triggered ?? false,
+    };
     
     return {
       id: p.point_id,
@@ -204,22 +215,28 @@ const transformDashboardStats = (raw, complianceRaw = null) => {
       authorized_total: extractNum(p.authorized_total),
       annual_consumption: extractNum(p.annual_consumption),
       pct_consumed: extractNum(p.pct_consumed),
-      // Datos enriquecidos desde last_7
       avg_flow_week: wStats.avg_flow_week,
       avg_level_week: wStats.avg_level_week,
       weekly_total_m3: wStats.total_m3,
-      // Configuración del punto (variables activas)
       config_data: p.config_data || null,
       profile_ikolu: p.profile_ikolu || null,
-      // Datos desde warnings
       warnings_count: warningsByPoint[p.point_name] || 0,
-      // Análisis de caudal vs límite (MVP - usando last_7)
-      flow_exceeded_count: flowAnalysis.exceeded,
-      flow_near_limit_count: flowAnalysis.nearLimit,
+      flow_exceeded_count: flowHistory?.count ?? flowAnalysis.exceeded,
+      flow_near_limit_count: nearLimitHistory?.count ?? flowAnalysis.nearLimit,
       flow_analysis_days: flowAnalysis.totalDays,
-      // 🆕 Datos del endpoint de compliance (histórico anual)
-      flow_history: complianceData.flow_history || null,
-      compliance_warning: complianceData.compliance_warning || null,
+      flow_history: flowHistory ? {
+        count: flowHistory.count ?? 0,
+        has_more: flowHistory.has_more ?? false,
+        threshold: flowHistory.threshold,
+        measurements: flowHistory.measurements || []
+      } : null,
+      near_limit_history: nearLimitHistory ? {
+        count: nearLimitHistory.count ?? 0,
+        has_more: nearLimitHistory.has_more ?? false,
+        threshold: nearLimitHistory.threshold,
+        measurements: nearLimitHistory.measurements || []
+      } : null,
+      compliance_warning: complianceWarning,
     };
   });
 
@@ -355,9 +372,6 @@ export const useControlCenter = (options = {}) => {
             return null;
           }),
         ]);
-
-        console.log("[useControlCenter] Compliance response:", rawCompliance ? "OK" : "FALLÓ/NULL", 
-          rawCompliance?.points?.length || 0, "puntos");
 
         const transformed = transformDashboardStats(rawDashboard, rawCompliance);
 
