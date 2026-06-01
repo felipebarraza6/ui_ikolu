@@ -223,7 +223,7 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
           )}
           
           {/* Métricas de caudal - HISTÓRICO */}
-          <Flex vertical gap={2} style={{ width: "100%" }}>
+          <Flex gap={4} wrap="wrap" justify="center" style={{ width: "100%" }}
             {exceededCount > 0 && (
               <Tooltip title={`Superó ${exceededCount} veces el límite de ${authorizedFlow} L/s`}>
                 <Flex 
