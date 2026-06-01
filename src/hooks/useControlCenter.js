@@ -111,6 +111,15 @@ const transformDashboardStats = (raw) => {
     return tb - ta;
   });
 
+  // Construir recent_warnings (objeto keyed por punto) desde los warnings extraídos de last_7
+  const recentWarningsByPoint = {};
+  recentWarningsList.forEach(w => {
+    if (!recentWarningsByPoint[w.pointName]) {
+      recentWarningsByPoint[w.pointName] = [];
+    }
+    recentWarningsByPoint[w.pointName].push(w);
+  });
+
   // ── 4. Construir tabla de puntos desde compliance_summary ──
   const complianceList = Array.isArray(ds.compliance_summary)
     ? ds.compliance_summary
@@ -225,7 +234,7 @@ const transformDashboardStats = (raw) => {
     },
     points,
     last_7: last7Normalized,
-    recent_warnings: ds.recent_warnings || {},
+    recent_warnings: recentWarningsByPoint,
     recent_warnings_list: recentWarningsList,
     compliance_stats: complianceStats,
     chat_quota: ds.chat_quota || null,
