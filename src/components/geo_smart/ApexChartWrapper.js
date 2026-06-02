@@ -140,14 +140,32 @@ export const ApexChartWrapper = ({
   date,
   yAnnotations = [],
   customTooltip = null,
-  invertible = false
+  invertible = false,
+  forcedYMin,
+  forcedYMax,
+  series: externalSeries,
+  colors: externalColors,
+  reversed: forceReversed,
+  fill: externalFill,
+  stroke: externalStroke,
+  markers: externalMarkers,
+  yAxisTickAmount,
+  showLegend = true,
+  showDownload = true,
+  showSelection = true,
+  showZoom = true,
+  showZoomIn = true,
+  showZoomOut = true,
+  showPan = true,
+  showReset = true,
+  customToolbarIcons = []
 }) => {
   const chartRef = useRef(null);
   const [inverted, setInverted] = useState(false);
 
   const chartColor = color || token.colorPrimary;
   
-  if (!data || data.length === 0) {
+  if (externalSeries && externalSeries.length === 0) {
     return (
       <Flex justify="center" align="center" style={{ minHeight: 200 }} vertical>
         <span style={{ fontSize: 12, color: token.colorTextSecondary }}>Sin datos</span>
@@ -155,17 +173,25 @@ export const ApexChartWrapper = ({
     );
   }
 
-  const cleanData = data
+  if (!externalSeries && (!data || data.length === 0)) {
+    return (
+      <Flex justify="center" align="center" style={{ minHeight: 200 }} vertical>
+        <span style={{ fontSize: 12, color: token.colorTextSecondary }}>Sin datos</span>
+      </Flex>
+    );
+  }
+
+  const cleanData = externalSeries ? [] : data
     .filter(d => d[metric] != null && !isNaN(Number(d[metric])))
     .map(d => ({
       x: d.datetime || d.time,
       y: Number(d[metric]),
     }));
 
-  const processedData = inverted ? [...cleanData].reverse() : cleanData;
-  const series = buildSeries(processedData, title, metric, maxInfo, minInfo);
+  const processedData = inverted && !externalSeries ? [...cleanData].reverse() : cleanData;
+  const series = externalSeries || buildSeries(processedData, title, metric, maxInfo, minInfo);
   
-  if (cleanData.length === 0) {
+  if (!externalSeries && cleanData.length === 0) {
     return (
       <Flex justify="center" align="center" style={{ minHeight: 200 }} vertical>
         <span style={{ fontSize: 12, color: token.colorTextSecondary }}>Sin datos válidos</span>
@@ -173,14 +199,16 @@ export const ApexChartWrapper = ({
     );
   }
 
-  const vals = cleanData.map(d => d.y);
-  const dataMin = vals.length ? Math.min(...vals) : 0;
-  const dataMax = vals.length ? Math.max(...vals) : 0;
+  const vals = externalSeries ? [] : cleanData.map(d => d.y);
+  const dataMin = externalSeries ? 0 : (vals.length ? Math.min(...vals) : 0);
+  const dataMax = externalSeries ? 0 : (vals.length ? Math.max(...vals) : 0);
   const dataRange = dataMax - dataMin;
   const padding = dataRange > 0 ? dataRange * 0.15 : Math.abs(dataMax) * 0.05 || 1;
-  const hasZero = vals.some(v => v === 0);
-  const yMin = hasZero ? 0 : dataMin - padding;
-  const yMax = dataMax + padding;
+  const hasZero = externalSeries ? false : vals.some(v => v === 0);
+  const autoYMin = hasZero ? 0 : dataMin - padding;
+  const autoYMax = dataMax + padding;
+  const yMin = forcedYMin != null ? forcedYMin : autoYMin;
+  const yMax = forcedYMax != null ? forcedYMax : autoYMax;
 
   const annotations = buildAnnotations(yAnnotations, avgInfo, yMin, yMax, cleanData, maxInfo, minInfo);
 
@@ -190,20 +218,23 @@ export const ApexChartWrapper = ({
       toolbar: {
         show: true,
         tools: {
-          download: true,
-          selection: true,
-          zoom: true,
-          zoomin: true,
-          zoomout: true,
-          pan: true,
-          reset: true,
-          customIcons: invertible ? [{
-            icon: `<div style="font-size: 14px; font-weight: bold; color: ${inverted ? COLORS.consumo : token.colorTextSecondary}; padding: 0 4px;">⇅</div>`,
-            title: inverted ? 'Orden: más reciente primero' : 'Orden: más antiguo primero',
-            index: 'menu',
-            class: 'apexcharts-toolbar-invert',
-            click: () => setInverted(prev => !prev),
-          }] : [],
+          download: showDownload,
+          selection: showSelection,
+          zoom: showZoom,
+          zoomin: showZoomIn,
+          zoomout: showZoomOut,
+          pan: showPan,
+          reset: showReset,
+          customIcons: [
+            ...(invertible ? [{
+              icon: `<div style="font-size: 14px; font-weight: bold; color: ${inverted ? COLORS.consumo : token.colorTextSecondary}; padding: 0 4px;">⇅</div>`,
+              title: inverted ? 'Orden: más reciente primero' : 'Orden: más antiguo primero',
+              index: 'menu',
+              class: 'apexcharts-toolbar-invert',
+              click: () => setInverted(prev => !prev),
+            }] : []),
+            ...customToolbarIcons
+          ],
         },
         autoSelected: 'zoom',
         export: {
@@ -243,9 +274,9 @@ export const ApexChartWrapper = ({
     grid: {
       padding: { left: 40, right: -10 },
     },
-    colors: [chartColor],
-    stroke: getStrokeConfig(type, metric),
-    fill: getFillConfig(type, metric),
+    colors: externalColors || [chartColor],
+    stroke: externalStroke || getStrokeConfig(type, metric),
+    fill: externalFill || getFillConfig(type, metric),
     plotOptions: type === 'bar' ? {
       bar: {
         borderRadius: 3,
@@ -277,7 +308,8 @@ export const ApexChartWrapper = ({
     yaxis: {
       min: yMin,
       max: yMax,
-      reversed: metric === 'water_table',
+      tickAmount: yAxisTickAmount,
+      reversed: forceReversed != null ? forceReversed : metric === 'water_table',
       labels: {
         style: {
           colors: token.colorTextSecondary,
@@ -305,14 +337,16 @@ export const ApexChartWrapper = ({
       custom: customTooltip || buildDefaultTooltip(token, title, metric, unit, maxInfo, minInfo, avgInfo)
     },
     legend: {
-      show: true,
+      show: showLegend,
       position: 'top',
       horizontalAlign: 'center',
       fontSize: '12px',
-      labels: { colors: token.colorText }
+      labels: { colors: token.colorText },
+      onItemClick: { toggleDataSeries: false },
+      onItemHover: { highlightDataSeries: false }
     },
     annotations,
-    markers: getMarkersConfig(type, metric, chartColor)
+    markers: externalMarkers || getMarkersConfig(type, metric, chartColor)
   };
 
   return (

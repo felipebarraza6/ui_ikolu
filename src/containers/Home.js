@@ -59,6 +59,8 @@ import { useResponsive } from "../hooks/useResponsive";
 import { ikoluTokens } from "../theme";
 import { AppContext } from "../App";
 import PointDetailGuard from "../components/common/PointDetailGuard";
+import TelemetryTab from "../components/geo_smart/TelemetryTab";
+import ComplianceTab from "../components/geo_smart/ComplianceTab";
 import "../styles/admin-select.css";
 
 // Lazy loaded route components
@@ -279,13 +281,12 @@ const AppRoutes = React.memo(() => {
   const isAdmin = state.user?.is_staff || state.user?.is_superuser;
   const hasPoint = !!state.selected_profile?.id;
 
-  const location = useLocation();
   return (
-    <div key={location.pathname} className="route-fade-in">
+    <div className="route-fade-in">
     <Routes>
       {/* Rutas SIEMPRE visibles */}
       <Route path="/" element={renderHome()} />
-      <Route path="/control_center" element={
+      <Route path="/control_center/*" element={
         <RouteLoader>
           {state.user?.id === 34 ? (
             <GeneralSummaryUser34 profiles={state.selected_profile?.id ? [state.selected_profile] : (state.points_list || [])} />
@@ -293,7 +294,15 @@ const AppRoutes = React.memo(() => {
             <ControlCenter />
           )}
         </RouteLoader>
-      } />
+      }>
+        {state.user?.id !== 34 && (
+          <>
+            <Route index element={<Navigate to="telemetry" replace />} />
+            <Route path="telemetry" element={<TelemetryTab />} />
+            <Route path="compliance" element={<ComplianceTab />} />
+          </>
+        )}
+      </Route>
       <Route path="/documentation" element={<RouteLoader><Documentation /></RouteLoader>} />
       <Route path="/user-documentation" element={<RouteLoader><UserDocumentation /></RouteLoader>} />
       <Route path="/profile" element={<RouteLoader><UserProfile /></RouteLoader>} />

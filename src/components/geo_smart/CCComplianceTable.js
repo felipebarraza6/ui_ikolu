@@ -31,22 +31,19 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
   {
     title: "Punto",
     key: "point_name",
-    width: 200,
+    width: 100,
     sorter: (a, b) => (a.title || "").localeCompare(b.title || ""),
     defaultSortOrder: "ascend",
-    onHeaderCell: () => ({
-      style: { background: token.colorPrimary, color: "#fff" },
-    }),
+
     render: (_, record) => {
       const level = record.compliance_warning?.level || "safe";
       const levelCfg = levelColorMap[level] || levelColorMap.safe;
       
       return (
-        <Flex vertical gap={4}>
-          <Flex align="center" gap={6}>
-            <div style={{ width: 4, height: 24, borderRadius: 2, background: levelCfg.color }} />
+        <Flex vertical>
+          <Flex justify="space-between" align="center">
             <Text strong style={{ fontSize: 13, color: token.colorText, lineHeight: 1.2 }}>
-              {record.title || "—"}
+              {record.title?.slice(0,20) || "—"}
             </Text>
             <FaInfoCircle
               style={{ fontSize: 11, color: token.colorPrimary, cursor: "pointer", opacity: 0.7 }}
@@ -56,7 +53,7 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
               }}
             />
           </Flex>
-          <Flex align="center" gap={4} wrap="wrap">
+          <Flex justify="space-between">
             {record.compliance_type?.includes("DGA") && (
               <Tag style={{ fontSize: 10, margin: 0, padding: "1px 5px", lineHeight: "15px", background: token.colorPrimaryBg, border: "none", color: token.colorPrimary, fontWeight: 600 }}>
                 DGA
@@ -96,9 +93,6 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
     width: 100,
     align: "center",
     responsive: ["md"],
-    onHeaderCell: () => ({
-      style: { background: token.colorPrimary, color: "#fff" },
-    }),
     render: (_, record) => (
       <Flex vertical gap={2} align="center">
         <Tag style={{ fontSize: 10, margin: 0, padding: "1px 6px", lineHeight: "15px", background: token.colorBgLayout, border: `1px solid ${token.colorBorder}`, color: token.colorTextSecondary }}>
@@ -120,9 +114,7 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
       const vb = b.pct_consumed ?? -Infinity;
       return va - vb;
     },
-    onHeaderCell: () => ({
-      style: { background: token.colorPrimary, color: "#fff" },
-    }),
+
     render: (_, record) => {
       const pct = record.pct_consumed;
       const pctNum = pct != null ? Number(pct) : null;
@@ -172,9 +164,7 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
       const vb = b.flow_lps ?? -Infinity;
       return va - vb;
     },
-    onHeaderCell: () => ({
-      style: { background: token.colorPrimary, color: "#fff" },
-    }),
+
     render: (_, record) => {
       const currentFlow = record.flow_lps;
       const authorizedFlow = record.authorized_flow;
@@ -215,9 +205,7 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
       const vb = b.water_table_m ?? -Infinity;
       return va - vb;
     },
-    onHeaderCell: () => ({
-      style: { background: token.colorPrimary, color: "#fff" },
-    }),
+
     render: (_, record) => {
       const v = record.water_table_m;
       return v != null ? (
@@ -347,9 +335,7 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
       const vb = levelOrder[b.compliance_warning?.level || "safe"] ?? 3;
       return va - vb;
     },
-    onHeaderCell: () => ({
-      style: { background: token.colorPrimary, color: "#fff" },
-    }),
+
     render: (_, record) => {
       const level = record.compliance_warning?.level || "safe";
       const status = record.compliance_warning?.status || levelColorMap[level]?.label || "—";

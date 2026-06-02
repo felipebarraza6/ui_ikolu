@@ -50,12 +50,11 @@ colorWarning: "#CCCF07",
       colorBgHeader: CORPORATE_BLUE,
     },
     Table: {
-      borderRadius: 8,
       headerBg: CORPORATE_BLUE,
       headerColor: "white",
       headerSortActiveBg: CORPORATE_BLUE,
-      headerSortHoverBg: CORPORATE_BLUE,
-      headerBorderRadius: 20,
+      headerSortHoverBg: CORPORATE_BLUE_LIGHT,
+
     },
     Progress: {
       defaultColor: CORPORATE_BLUE,

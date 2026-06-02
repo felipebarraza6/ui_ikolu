@@ -1,10 +1,11 @@
-import React, { useCallback, useState, useMemo } from "react";
+import React, { useCallback, useState, useMemo, useRef } from "react";
 import moment from "moment";
+import html2canvas from "html2canvas";
 import { Row, Col, Flex, Typography, Table, Tag, Button, message } from "antd";
-import { FaDownload, FaSun, FaMoon } from "react-icons/fa";
+import { FaDownload, FaSun, FaMoon, FaImage } from "react-icons/fa";
 import { extractRecordNum, extractMeasurements, classifyByTimeOfDay, getPeriod, formatKPI } from "./MeasurementUtils";
 import { TrendArrow, StatPill, MetricCard } from "./MeasurementKPIs";
-import { MeasurementsAreaChart, MeasurementsLineChart, MeasurementsDualColumnChart } from "./MeasurementCharts";
+import { MeasurementsAreaChart, MeasurementsLineChart, MeasurementsDualColumnChart, MeasurementsCombinedLevelChart } from "./MeasurementCharts";
 
 const { Text } = Typography;
 
@@ -27,7 +28,7 @@ const MemoizedMeasurementsTable = React.memo(({ allMeasurements, measurementColu
       if (c.key === 'logger_time') return 'Fecha';
       if (c.key === 'time') return 'Hora';
       return c.title;
-    }).join(",");
+    }).join(";");
     
     const rows = allMeasurements.map(m =>
       measurementColumns.map(c => {
@@ -51,7 +52,7 @@ const MemoizedMeasurementsTable = React.memo(({ allMeasurements, measurementColu
           val = val.toFixed(c.key === 'flow' ? 1 : c.key === 'nivel' || c.key === 'water_table' ? 2 : 0);
         }
         return val != null ? `"${String(val).replace(/"/g, '""')}"` : "";
-      }).join(",")
+      }).join(";")
     );
     const csv = [csvHeaders, ...rows].join("\n");
     const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
@@ -104,8 +105,72 @@ const MemoizedMeasurementsTable = React.memo(({ allMeasurements, measurementColu
   );
 });
 
+const handleExportLevelsPNG = async (chartRef, pointName, date) => {
+  if (!chartRef.current) return;
+  
+  try {
+    const canvas = await html2canvas(chartRef.current, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      logging: false,
+      useCORS: true,
+      onclone: (clonedDoc) => {
+        const customIcons = clonedDoc.querySelectorAll('.apexcharts-toolbar-custom-icon');
+        customIcons.forEach(icon => icon.style.display = 'none');
+      }
+    });
+    
+    const link = document.createElement('a');
+    link.download = pointName && date 
+      ? `${pointName}_niveles_${date}.png` 
+      : 'niveles.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    message.success("Imagen descargada");
+  } catch (err) {
+    console.error('Error exporting PNG:', err);
+    message.error("Error al descargar imagen");
+  }
+};
+
+const handleExportLevelsCSV = (chartData, wellConfig, pointName, date) => {
+  const wellDepth = wellConfig?.d1;
+  const sensorPos = wellConfig?.d3;
+  
+  const headers = ["Fecha", "Hora", "Nivel freático (m)"];
+  if (sensorPos != null) headers.push("Nivel (m)");
+  if (sensorPos != null) headers.push("Posicionamiento Sensor (m)");
+  if (wellDepth != null) headers.push("Profundidad Total (m)");
+  
+  const rows = chartData
+    .filter(d => d.water_table != null)
+    .map(d => {
+      const dt = moment(d.datetime, "DD/MM HH:mm");
+      const fecha = dt.format("DD/MM/YYYY");
+      const hora = dt.format("HH:mm");
+      const wt = Number(d.water_table);
+      const nivel = sensorPos != null ? (sensorPos - wt).toFixed(2) : null;
+      
+      const row = [fecha, hora, wt.toFixed(2)];
+      if (sensorPos != null) row.push(nivel);
+      if (sensorPos != null) row.push(sensorPos);
+      if (wellDepth != null) row.push(wellDepth);
+      return row.join(";");
+    });
+  
+  const csv = [headers.join(";"), ...rows].join("\n");
+  const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  const fileName = pointName && date ? `${pointName}_niveles_${date}.csv` : 'niveles.csv';
+  link.download = fileName;
+  link.click();
+  message.success("Datos de niveles exportados");
+};
+
 export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, activeTab, onTabChange, totalDayConsumo, selectedMeasurementPoint, wellConfig }) => {
   const measurements = extractMeasurements(data);
+  const levelsChartRef = useRef(null);
 
   const activeVars = useMemo(() => {
     const vars = variables || [];
@@ -424,60 +489,58 @@ export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, ac
 
           {activeTab === "2" && (activeVars.hasNivel || activeVars.hasWaterTable) && (
             <Row gutter={[8, 8]}>
-               {activeVars.hasNivel && (
-                 <Col xs={24} md={12}>
-                   <MetricCard
-                     title="Nivel"
-                     icon={<div style={{ width: 8, height: 8, borderRadius: 4, background: '#1890ff' }} />}
-                     kpis={
-                       <>
-                          <StatPill label="Profundidad" value={wellConfig?.d1 != null ? `${wellConfig.d1} m` : "—"} sub="TOTAL" color={token.colorPrimary} />
-                         <StatPill label="Máx" value={formatKPI(kpis.maxNivel, 2, " m")} sub={kpis.maxNivel ? `${kpis.maxNivel.time} hrs` : null} color={token.colorPrimary} valueColor="#ff4d4f" />
-                         <StatPill label="Mín" value={formatKPI(kpis.minNivel, 2, " m")} sub={kpis.minNivel ? `${kpis.minNivel.time} hrs` : null} color={token.colorPrimary} valueColor="#52c41a" />
-                          <StatPill label="Prom" value={kpis.avgNivel != null ? `${kpis.avgNivel.toFixed(2)} m` : "—"} sub="promedio" color="#000000" />
-                       </>
-                     }
-                   >
-                    <MeasurementsDualColumnChart 
-                      data={chartDataAll} 
-                      token={token} 
-                      showOnly="nivel"
+              <Col xs={24}>
+                <MetricCard
+                  title="Niveles"
+                  icon={
+                    <Flex gap={4}>
+                      <div style={{ width: 8, height: 8, borderRadius: 4, background: '#1890ff' }} />
+                      <div style={{ width: 8, height: 8, borderRadius: 4, background: '#8c8c8c' }} />
+                    </Flex>
+                  }
+                  kpis={
+                    <>
+                      <StatPill label="Profundidad total" value={wellConfig?.d1 != null ? `${wellConfig.d1} m` : "—"} sub="POZO" color={token.colorPrimary} />
+                      <StatPill label="Posicionamiento Sensor" value={wellConfig?.d3 != null ? `${wellConfig.d3} m` : "—"} sub="SENSOR" color={token.colorPrimary} />
+                      {activeVars.hasNivel && (
+                        <>
+                          <StatPill label="Nivel máx" value={formatKPI(kpis.maxNivel, 2, " m")} sub={kpis.maxNivel ? `${kpis.maxNivel.time} hrs` : null} color="#1890ff" valueColor="#ff4d4f" />
+                          <StatPill label="Nivel mín" value={formatKPI(kpis.minNivel, 2, " m")} sub={kpis.minNivel ? `${kpis.minNivel.time} hrs` : null} color="#1890ff" valueColor="#52c41a" />
+                          <StatPill label="Nivel prom" value={kpis.avgNivel != null ? `${kpis.avgNivel.toFixed(2)} m` : "—"} sub="PROMEDIO" color="#000000" />
+                        </>
+                      )}
+                      {activeVars.hasWaterTable && (
+                        <>
+                          <StatPill label="Freático máx" value={formatKPI(kpis.maxWaterTable, 2, " m")} sub={kpis.maxWaterTable ? `${kpis.maxWaterTable.time} hrs` : null} color="#8c8c8c" valueColor="#ff4d4f" />
+                          <StatPill label="Freático mín" value={formatKPI(kpis.minWaterTable, 2, " m")} sub={kpis.minWaterTable ? `${kpis.minWaterTable.time} hrs` : null} color="#8c8c8c" valueColor="#52c41a" />
+                          <StatPill label="Freático prom" value={kpis.avgWaterTable != null ? `${kpis.avgWaterTable.toFixed(2)} m` : "—"} sub="PROMEDIO" color="#000000" />
+                        </>
+                      )}
+                    </>
+                  }
+                >
+                  <div ref={levelsChartRef}>
+                    <MeasurementsCombinedLevelChart
+                      data={chartDataAll}
+                      token={token}
                       wellConfig={wellConfig}
                       pointName={selectedMeasurementPoint?.pointName}
                       date={selectedMeasurementPoint?.date}
-                      metric="nivel"
-                      avgInfo={kpis.avgNivel}
+                      onExportCSV={() => handleExportLevelsCSV(
+                        chartDataAll,
+                        wellConfig,
+                        selectedMeasurementPoint?.pointName,
+                        selectedMeasurementPoint?.date
+                      )}
+                      onExportPNG={() => handleExportLevelsPNG(
+                        levelsChartRef,
+                        selectedMeasurementPoint?.pointName,
+                        selectedMeasurementPoint?.date
+                      )}
                     />
-                  </MetricCard>
-                </Col>
-              )}
-               {activeVars.hasWaterTable && (
-                 <Col xs={24} md={12}>
-                   <MetricCard
-                     title="Nivel freático"
-                     icon={<div style={{ width: 8, height: 8, borderRadius: 4, background: '#8c8c8c' }} />}
-                     kpis={
-                       <>
-                          <StatPill label="Posicionamiento" value={wellConfig?.d3 != null ? `${wellConfig.d3} m` : "—"} sub="Sensor de nivel" color={token.colorPrimary} />
-                         <StatPill label="Máx" value={formatKPI(kpis.maxWaterTable, 2, " m")} sub={kpis.maxWaterTable ? `${kpis.maxWaterTable.time} hrs` : null} color="#8c8c8c" valueColor="#ff4d4f" />
-                         <StatPill label="Mín" value={formatKPI(kpis.minWaterTable, 2, " m")} sub={kpis.minWaterTable ? `${kpis.minWaterTable.time} hrs` : null} color="#8c8c8c" valueColor="#52c41a" />
-                          <StatPill label="Prom" value={kpis.avgWaterTable != null ? `${kpis.avgWaterTable.toFixed(2)} m` : "—"} sub="promedio" color="#000000" />
-                       </>
-                     }
-                   >
-                    <MeasurementsDualColumnChart 
-                      data={chartDataAll} 
-                      token={token} 
-                      showOnly="water_table"
-                      wellConfig={wellConfig}
-                      pointName={selectedMeasurementPoint?.pointName}
-                      date={selectedMeasurementPoint?.date}
-                      metric="water_table"
-                      avgInfo={kpis.avgWaterTable}
-                    />
-                  </MetricCard>
-                </Col>
-              )}
+                  </div>
+                </MetricCard>
+              </Col>
             </Row>
           )}
 

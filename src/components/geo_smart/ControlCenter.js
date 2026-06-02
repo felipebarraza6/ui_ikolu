@@ -3,6 +3,7 @@ import "./ControlCenter.css";
 import { useData } from "../../contexts/DataContext";
 import { useControlCenter } from "../../hooks/useControlCenter";
 import sh from "../../api/sh/endpoints";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Row, Col, Card, Flex, Typography, Spin, Table, Tag, theme, Drawer, Modal, Button, Input, Space, Segmented, Form, message, DatePicker, Alert, Tabs, Select, Tooltip } from "antd";
 import {
   FaMapMarkerAlt,
@@ -23,9 +24,7 @@ import {
 } from "react-icons/fa";
 
 
-import KPICard from "./KPICard";
-import ControlCenterChat from "./ControlCenterChat";
-import CCDataTabs from "./CCDataTabs";
+import ControlCenterLayout from "./ControlCenterLayout";
 import CCSupportDrawer from "./CCSupportDrawer";
 import PointConfigDrawer from "./PointConfigDrawer";
 import CCFlowAnalysisDrawer from "./CCFlowAnalysisDrawer";
@@ -50,6 +49,20 @@ const ControlCenter = () => {
     refreshInterval: 60000,
   });
   const { token } = useToken();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // ── Tab activa desde URL ──
+  const activeTab = useMemo(() => {
+    const path = location.pathname;
+    if (path.includes("/compliance")) return "compliance";
+    return "telemetry";
+  }, [location.pathname]);
+
+  const handleTabChange = useCallback((tab) => {
+    if (tab === activeTab) return;
+    navigate(tab === "compliance" ? "/control_center/compliance" : "/control_center/telemetry");
+  }, [activeTab, navigate]);
 
   // Ref para estabilizar callbacks sin depender de data?.points
   const pointsRef = useRef(data?.points || []);
@@ -496,83 +509,40 @@ const ControlCenter = () => {
   const showDgaCriticalAlert = stopCompliancePoint?.code && stopCompliancePoint?.code !== "—" && compDiffDays > 10;
 
   return (
-    <div style={{ marginBottom: 24 }}>
-      {/* ════════════════════════════════════════
-          KPIs
-      ════════════════════════════════════════ */}
-      <Row id="cc-kpi-cards" gutter={[12, 12]} style={{ marginBottom: 8 }}>
-        <Col xs={12} sm={6} md={6}>
-          <KPICard
-            icon={<FaMapMarkerAlt style={{ fontSize: 20, color: ikoluTokens.colorWhite }} />}
-            label="Total Puntos"
-            value={overview.total_points || 0}
-            gradient={kpiGradients.primary}
-          />
-        </Col>
-        <Col xs={12} sm={6} md={6}>
-          <KPICard
-            icon={<FaBroadcastTower style={{ fontSize: 20, color: ikoluTokens.colorWhite }} />}
-            label="Telemetría Activa"
-            value={`${overview.points_with_telemetry || 0}`}
-            suffix={`/${overview.total_points || 0}`}
-            gradient={kpiGradients.secondary}
-          />
-        </Col>
-        <Col xs={12} sm={6} md={6}>
-          <KPICard
-            icon={<FaClipboardCheck style={{ fontSize: 20, color: ikoluTokens.colorWhite }} />}
-            label="Cumplimiento Normativo"
-            value={overview.points_with_compliance || 0}
-            gradient={kpiGradients.secondary}
-          />
-        </Col>
-        <Col xs={12} sm={6} md={6}>
-          <KPICard
-            icon={<FaExclamationTriangle style={{ fontSize: 20, color: ikoluTokens.colorWhite }} />}
-            label="Warnings"
-            value={warningsList.length}
-            gradient={kpiGradients.secondary}
-            onClick={warningsList.length > 0 ? () => {
-              const firstPoint = Object.keys(warningsRaw)[0];
-              if (firstPoint) {
-                setSelectedWarningPoint(firstPoint);
-                setWarningsDrawerOpen(true);
-              }
-            } : undefined}
-          />
-        </Col>
-      </Row>
-
-      {/* ═══════════════════════════════════════
-          Chat IA (componente aislado)
-      ════════════════════════════════════════ */}
-      <ControlCenterChat points={points} chatQuota={chatQuota} />
-
-      {/* ════════════════════════════════════════
-          Datos: Telemetría + Cumplimiento (Tabs)
-      ════════════════════════════════════════ */}
-      <div style={{ marginTop: 10 }}>
-        <CCDataTabs
-          points={points}
-          onViewVoucher={handleViewVoucher}
-          onOpenStopCompliance={handleOpenStopCompliance}
-          onOpenSupport={handleOpenSupport}
-          onWarningPointClick={(pointName) => {
+    <>
+      <ControlCenterLayout
+        overview={overview}
+        points={points}
+        warningsList={warningsList}
+        warningsRaw={warningsRaw}
+        chatQuota={chatQuota}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        onWarningClick={(pointName) => {
+          setSelectedWarningPoint(pointName);
+          setWarningsDrawerOpen(true);
+        }}
+        outletContext={{
+          last7: data?.last_7,
+          selectedDate,
+          setSelectedDate,
+          handleViewMeasurements,
+          handleOpenStopTelemetry,
+          handleOpenSupport,
+          handleWarningPointClick: (pointName) => {
             setSelectedWarningPoint(pointName);
             setWarningsDrawerOpen(true);
-          }}
-          warningsRaw={warningsRaw}
-          onViewMeasurements={handleViewMeasurements}
-          onViewFlowAnalysis={handleViewFlowAnalysis}
-          onViewComplianceDetail={handleViewComplianceDetail}
-          onOpenStopTelemetry={handleOpenStopTelemetry}
-          onViewPointConfig={handleViewPointConfig}
-          last7={data?.last_7}
-          selectedDate={selectedDate}
-          onDateSelect={setSelectedDate}
-          loading={loading}
-        />
-      </div>
+          },
+          warningsRaw,
+          points,
+          handleViewVoucher,
+          handleOpenStopCompliance,
+          handleViewPointConfig,
+          handleViewFlowAnalysis,
+          handleViewComplianceDetail,
+          loading,
+        }}
+      />
 
       {/* ════════════════════════════════════════
           Drawer de Warnings
@@ -811,7 +781,7 @@ const ControlCenter = () => {
           setMeasurementsViewMode("chart");
           setMeasurementsTab("1");
         }}
-        width={{ xs: "100%", md: "100%" }}
+        width="100%"
         styles={{ body: { padding: 8, overflow: "auto" }, header: { paddingBottom: 0, marginBottom: 0 } }}
         style={{ zIndex: 900 }}
       >
@@ -872,10 +842,11 @@ const ControlCenter = () => {
           setDgaConsole([]);
         }}
         footer={null}
-        width={{ xs: "100%", sm: "95%", md: 900 }}
         centered
+        width="800px"
+        styles={{ body: { paddingBottom: 24, display: 'flex', flexDirection: 'column' } }}
       >
-        <Flex vertical gap={12} style={{ marginTop: 0 }}>
+        <Flex vertical gap={12} >
           {/* ── Voucher + Validar en dos columnas ── */}
           {selectedVoucher?.code && selectedVoucher?.voucher && (
             <Row gutter={[12, 12]} align="middle">
@@ -909,16 +880,16 @@ const ControlCenter = () => {
                   icon={<FaSearch style={{ fontSize: 12 }} />}
                   style={{ width: "100%" }}
                 >
-                  {dgaVerifying ? "Validando..." : "Validar comprobante"}
+                  {dgaVerifying ? "Validando..." : "Validar "}
                 </Button>
               </Col>
             </Row>
           )}
 
           {/* ── Layout fijo dos columnas: Consola + Resultado ── */}
-          <Row gutter={[16, 16]}>
+          <Row gutter={[16, 16]} style={{ minHeight: 500 }}>
             {/* ── Consola (izquierda) ── */}
-            <Col xs={24} md={10}>
+            <Col xs={24} md={12} style={{ height: 400 }}>
               <div
                 style={{
                   background: "#1e1e1e",
@@ -927,7 +898,7 @@ const ControlCenter = () => {
                   fontFamily: "monospace",
                   fontSize: 11,
                   color: "#d4d4d4",
-                  height: 400,
+                  height: "500px",
                   overflowY: "auto",
                   lineHeight: 1.6,
                 }}
@@ -960,8 +931,8 @@ const ControlCenter = () => {
             </Col>
 
             {/* ── Resultado (derecha) ── */}
-            <Col xs={24} md={14}>
-              <Flex vertical gap={12} style={{ height: 400, overflowY: "auto" }}>
+            <Col xs={24} md={12} style={{ height: 500 }}>
+              <Flex vertical gap={12} style={{ height: "100%" }}>
                 {/* Estado vacío */}
                 {!dgaResult && !dgaVerifying && (
                   <Flex vertical align="center" justify="center" style={{ height: "100%", textAlign: "center" }}>
@@ -1354,7 +1325,7 @@ const ControlCenter = () => {
         autoStart={true}
         delay={1000}
       />
-    </div>
+    </>
   );
 };
 
