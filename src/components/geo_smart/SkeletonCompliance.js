@@ -16,19 +16,18 @@ const ShimmerBar = ({ width, height, style = {} }) => (
 const SkeletonCompliance = () => {
   return (
     <div style={{ marginBottom: 24 }}>
-      {/* Compliance Table - Exactamente igual a CCComplianceTable */}
       <Table
         size="small"
         pagination={false}
-        dataSource={[1, 2, 3, 4, 5, 6, 7, 8].map((i) => ({ key: i }))}
+        dataSource={[1, 2, 3, 4, 5].map((i) => ({ key: i }))}
         columns={[
           {
             title: "Punto",
             key: "point_name",
             width: 100,
             render: () => (
-              <Flex vertical gap={4}>
-                <ShimmerBar width="80%" height={14} />
+              <Flex vertical gap={2}>
+                <ShimmerBar width="80%" height={13} />
                 <Flex gap={4}>
                   <div
                     style={{
@@ -72,12 +71,12 @@ const SkeletonCompliance = () => {
             width: 120,
             align: "center",
             render: () => (
-              <Flex vertical gap={4} align="center">
-                <ShimmerBar width={50} height={16} />
+              <Flex vertical gap={2} align="center">
+                <ShimmerBar width={50} height={14} />
                 <div style={{ width: "100%", height: 6, borderRadius: 3, background: "#f5f5f5", overflow: "hidden" }}>
                   <ShimmerBar width="60%" height={6} />
                 </div>
-                <ShimmerBar width={80} height={10} />
+                <ShimmerBar width={80} height={9} />
               </Flex>
             ),
           },
@@ -88,7 +87,7 @@ const SkeletonCompliance = () => {
             align: "center",
             render: () => (
               <Flex vertical gap={2} align="center">
-                <ShimmerBar width={60} height={16} />
+                <ShimmerBar width={60} height={14} />
                 <ShimmerBar width={50} height={10} />
               </Flex>
             ),
@@ -98,7 +97,7 @@ const SkeletonCompliance = () => {
             key: "water_table",
             width: 85,
             align: "right",
-            render: () => <ShimmerBar width={50} height={14} style={{ marginLeft: "auto" }} />,
+            render: () => <ShimmerBar width={50} height={13} style={{ marginLeft: "auto" }} />,
           },
           {
             title: "Auditoría",
@@ -106,7 +105,7 @@ const SkeletonCompliance = () => {
             width: 140,
             align: "center",
             render: () => (
-              <Flex vertical gap={4} align="center">
+              <Flex vertical gap={2} align="center">
                 <div
                   style={{
                     display: "inline-flex",
@@ -118,11 +117,11 @@ const SkeletonCompliance = () => {
                     padding: "2px 6px",
                     border: "1px solid #ffccc7",
                     minWidth: 40,
-                    height: 24,
+                    height: 22,
                   }}
                 >
                   <ShimmerBar width={10} height={10} style={{ borderRadius: "50%" }} />
-                  <ShimmerBar width={20} height={12} />
+                  <ShimmerBar width={20} height={10} />
                 </div>
                 <div
                   style={{
@@ -135,11 +134,11 @@ const SkeletonCompliance = () => {
                     padding: "2px 6px",
                     border: "1px solid #ffd591",
                     minWidth: 40,
-                    height: 24,
+                    height: 22,
                   }}
                 >
                   <ShimmerBar width={10} height={10} style={{ borderRadius: "50%" }} />
-                  <ShimmerBar width={20} height={12} />
+                  <ShimmerBar width={20} height={10} />
                 </div>
               </Flex>
             ),
@@ -161,10 +160,11 @@ const SkeletonCompliance = () => {
                   padding: "3px 8px",
                   border: "1px solid #b7eb8f",
                   minWidth: 80,
+                  height: 24,
                 }}
               >
                 <ShimmerBar width={10} height={10} style={{ borderRadius: "50%" }} />
-                <ShimmerBar width={30} height={12} />
+                <ShimmerBar width={30} height={10} />
               </div>
             ),
           },
