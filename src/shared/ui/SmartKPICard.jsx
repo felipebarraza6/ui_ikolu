@@ -19,7 +19,7 @@ const SmartKPICard = ({
       style={{
         background: gradient,
         borderRadius: smarthydro.radii.lg,
-        padding: `${smarthydro.spacing.lg} ${smarthydro.spacing.xl}`,
+        padding: "32px 24px 24px 24px",
         textAlign: "center",
         cursor: onClick ? "pointer" : "default",
         transition: smarthydro.transitions.slow,
