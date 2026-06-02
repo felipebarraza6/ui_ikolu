@@ -3,7 +3,7 @@ import { Flex, Typography, Table, Tag, Tooltip, theme } from "antd";
 import { FaEye, FaPauseCircle, FaHeadset, FaInfoCircle, FaExternalLinkAlt, FaExclamationTriangle, FaChartLine, FaCheckCircle, FaShieldAlt, FaTint } from "react-icons/fa";
 import moment from "moment";
 import { formatInteger } from "../../utils/numberFormatter";
-import { PointHeader, ConsumptionCell, StatusBadge, ActionButtons } from "../../features/geo-smart/components";
+import { PointHeader, ConsumptionCell, ActionButtons } from "../../features/geo-smart/components";
 import { smarthydro } from "../../theme/smarthydro.tokens";
 
 const { Text } = Typography;
@@ -238,21 +238,6 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
         </Flex>
       );
     },
-  },
-  {
-    title: "Estado",
-    key: "compliance_status",
-    width: 110,
-    align: "center",
-    sorter: (a, b) => {
-      const levelOrder = { critical: 0, warning: 1, unknown: 2, safe: 3 };
-      const va = levelOrder[a.compliance_warning?.level || "safe"] ?? 3;
-      const vb = levelOrder[b.compliance_warning?.level || "safe"] ?? 3;
-      return va - vb;
-    },
-    render: (_, record) => (
-      <StatusBadge record={record} onViewComplianceDetail={onViewComplianceDetail} />
-    ),
   },
   {
     title: "",

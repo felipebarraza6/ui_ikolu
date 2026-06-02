@@ -1,23 +1,23 @@
-const CORPORATE_BLUE = "#1F3461";
-const CORPORATE_BLUE_LIGHT = "#2A4A8A";
-const CORPORATE_BLUE_MID = "#3B6CA8";
+const CORPORATE_BLUE = "#203562";
+const CORPORATE_BLUE_LIGHT = "#3A68AA";
+const CORPORATE_BLUE_MID = "#4D7FBD";
 const CORPORATE_BLUE_BRIGHT = "#1976d2";
 
-const ACCENT_ORANGE = "#FF6B35";
+const ACCENT_YELLOW_GREEN = "#CCCF07";
 
-const BACKGROUND_LIGHT = "#f2f5fa";
-const BORDER_LIGHT = "#f0f0f0";
+const BACKGROUND_LIGHT = "#F0EFF4";
+const BORDER_LIGHT = "#E8E8E8";
 
-const GREY_TEXT = "#8c8c8c";
+const GREY_TEXT = "#8C8C8C";
 const GREY_TEXT_MID = "#595959";
-const GREY_TEXT_LIGHT = "#bfbfbf";
-const GREY_TEXT_DISABLED = "#bdbdbd";
+const GREY_TEXT_LIGHT = "#BFBFBF";
+const GREY_TEXT_DISABLED = "#BDBDBD";
 
-const BLUE_TINT = "#e3f2fd";
-const BLUE_BG = "#f0f5ff";
-const RED_BG = "#FFF2F0";
-const GREEN_TEXT = "#43a047";
-const GREEN_DARK_TEXT = "#388e3c";
+const BLUE_TINT = "#EBF0F8";
+const BLUE_BG = "#F0F5FF";
+const RED_BG = "#FEF2F2";
+const GREEN_TEXT = "#69812A";
+const GREEN_DARK_TEXT = "#5A7024";
 
 export const createIkoluTheme = (algorithm = null) => ({
   algorithm,
@@ -26,10 +26,10 @@ export const createIkoluTheme = (algorithm = null) => ({
     colorLink: CORPORATE_BLUE,
     colorLinkHover: CORPORATE_BLUE_LIGHT,
     colorLinkActive: CORPORATE_BLUE,
-    colorSuccess: "#52c41a",
-colorWarning: "#CCCF07",
-    colorError: "#f5222d",
-    colorInfo: "#1890ff",
+    colorSuccess: "#69812A",
+    colorWarning: "#CCCF07",
+    colorError: "#DC2626",
+    colorInfo: "#3A68AA",
     borderRadius: 8,
     borderRadiusLG: 12,
     borderRadiusSM: 6,
@@ -54,7 +54,8 @@ colorWarning: "#CCCF07",
       headerColor: "white",
       headerSortActiveBg: CORPORATE_BLUE,
       headerSortHoverBg: CORPORATE_BLUE_LIGHT,
-
+      headerBgDark: "#1A2A4A",
+      headerColorDark: "#fff",
     },
     Progress: {
       defaultColor: CORPORATE_BLUE,
@@ -71,10 +72,10 @@ export const ikoluTheme = createIkoluTheme();
 
 export const ikoluTokens = {
   colorCorporateBlue: CORPORATE_BLUE,
-  colorSuccess: "#52c41a",
+  colorSuccess: "#69812A",
   colorWarning: "#CCCF07",
-  colorError: "#f5222d",
-  colorInfo: "#1890ff",
+  colorError: "#DC2626",
+  colorInfo: "#3A68AA",
   colorText: "rgba(0, 0, 0, 0.88)",
   colorTextSecondary: GREY_TEXT,
   colorBgLayout: "#f5f5f5",
@@ -82,7 +83,7 @@ export const ikoluTokens = {
   colorCorporateBlueLight: CORPORATE_BLUE_LIGHT,
   colorCorporateBlueMid: CORPORATE_BLUE_MID,
   colorCorporateBlueBright: CORPORATE_BLUE_BRIGHT,
-  colorAccentOrange: ACCENT_ORANGE,
+  colorAccentYellowGreen: ACCENT_YELLOW_GREEN,
   colorBackgroundLight: BACKGROUND_LIGHT,
   colorBorderLight: BORDER_LIGHT,
   colorGreyText: GREY_TEXT,
@@ -96,10 +97,10 @@ export const ikoluTokens = {
   colorGreenDarkText: GREEN_DARK_TEXT,
   colorWhite: "#ffffff",
   colorBlack: "#000000",
-  shadowCard: "0 4px 12px rgba(0, 0, 0, 0.08)",
-  shadowCardHover: "0 8px 24px rgba(0, 0, 0, 0.12)",
+  shadowCard: "0 4px 12px rgba(32, 53, 98, 0.08)",
+  shadowCardHover: "0 8px 24px rgba(32, 53, 98, 0.12)",
   shadowNav: "0 -2px 8px rgba(0, 0, 0, 0.06)",
-  shadowPrimary: "0 2px 6px rgba(24, 144, 255, 0.25)",
+  shadowPrimary: "0 2px 6px rgba(32, 53, 98, 0.25)",
   radiusXS: 4,
   radiusSmall: 6,
   radiusDefault: 8,
@@ -119,6 +120,7 @@ export const kpiGradients = {
   primary: `linear-gradient(135deg, ${CORPORATE_BLUE} 0%, ${CORPORATE_BLUE_LIGHT} 100%)`,
   secondary: `linear-gradient(135deg, ${CORPORATE_BLUE_LIGHT} 0%, ${CORPORATE_BLUE_MID} 100%)`,
   info: `linear-gradient(135deg, ${CORPORATE_BLUE_BRIGHT} 0%, #42a5f5 100%)`,
+  accent: `linear-gradient(135deg, ${ACCENT_YELLOW_GREEN} 0%, #BDC00C 100%)`,
 };
 
 export const styles = {
@@ -133,10 +135,10 @@ export const CHART_COLORS = {
   primary: CORPORATE_BLUE,
   primaryLight: CORPORATE_BLUE_LIGHT,
   primaryMid: CORPORATE_BLUE_MID,
-  success: "#52c41a",
-  warning: "#faad14",
-  error: "#f5222d",
-  info: "#1890ff",
+  success: "#69812A",
+  warning: "#CCCF07",
+  error: "#DC2626",
+  info: "#3A68AA",
   orange: "#fa8c16",
   purple: "#722ed1",
   cyan: "#13c2c2",

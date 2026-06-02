@@ -140,26 +140,22 @@ const ControlCenter = () => {
   }, [measurementsData]);
 
   // ── Drawer Detener Telemetría ──
-  const [stopTelemetryOpen, setStopTelemetryOpen] = useState(false);
   const [stopTelemetryLoading, setStopTelemetryLoading] = useState(false);
   const [stopTelemetryPoint, setStopTelemetryPoint] = useState(null);
   const [stopTelemetryForm] = Form.useForm();
 
   // ── Drawer Detener Cumplimiento ──
-  const [stopComplianceOpen, setStopComplianceOpen] = useState(false);
   const [stopComplianceLoading, setStopComplianceLoading] = useState(false);
   const [stopCompliancePoint, setStopCompliancePoint] = useState(null);
   const [stopComplianceForm] = Form.useForm();
 
   // ── Drawer Solicitar Soporte ──
-  const [supportOpen, setSupportOpen] = useState(false);
   const [supportLoading, setSupportLoading] = useState(false);
   const [supportPoint, setSupportPoint] = useState(null);
   const [supportContextType, setSupportContextType] = useState("SOPORTE");
   const [supportForm] = Form.useForm();
 
   // ── Drawer Configuración del Punto ──
-  const [pointConfigOpen, setPointConfigOpen] = useState(false);
   const [pointConfigLoading, setPointConfigLoading] = useState(false);
   const [pointConfigData, setPointConfigData] = useState(null);
   const [pointConfigName, setPointConfigName] = useState("");
