@@ -29,7 +29,7 @@ const ControlCenterLayout = memo(({
   return (
     <div style={{ marginBottom: 24 }}>
       {/* KPIs */}
-      <Row id="cc-kpi-cards" gutter={[16, 16]} style={{ marginBottom: 16 }}>
+      <Row id="cc-kpi-cards" gutter={[12, 12]} style={{ marginBottom: 12 }}>
         <Col xs={12} sm={6} md={6}>
           <SmartKPICard
             icon={<FaMapMarkerAlt style={{ fontSize: 18, color: "#fff" }} />}
