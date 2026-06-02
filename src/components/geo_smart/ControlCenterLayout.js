@@ -1,5 +1,4 @@
 import React, { memo } from "react";
-import { Outlet } from "react-router-dom";
 import { Row, Col, Flex, Typography, Tag, theme, Segmented } from "antd";
 import {
   FaMapMarkerAlt,
@@ -23,7 +22,7 @@ const ControlCenterLayout = memo(({
   activeTab,
   onTabChange,
   onWarningClick,
-  outletContext,
+  children,
 }) => {
   const { token } = useToken();
 
@@ -77,7 +76,7 @@ const ControlCenterLayout = memo(({
       {/* Chat IA */}
       <ControlCenterChat points={points} chatQuota={chatQuota} />
 
-      {/* Tabs + Outlet */}
+      {/* Tabs + Children (Outlet) */}
       <div style={{ marginTop: 10 }}>
         <Flex justify="flex-end" style={{ marginBottom: 8 }}>
           <Segmented
@@ -107,7 +106,7 @@ const ControlCenterLayout = memo(({
           />
         </Flex>
 
-        <Outlet context={outletContext} />
+        {children}
       </div>
     </div>
   );

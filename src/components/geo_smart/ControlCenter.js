@@ -3,7 +3,7 @@ import "./ControlCenter.css";
 import { useData } from "../../contexts/DataContext";
 import { useControlCenter } from "../../hooks/useControlCenter";
 import sh from "../../api/sh/endpoints";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Row, Col, Card, Flex, Typography, Spin, Table, Tag, theme, Drawer, Modal, Button, Input, Space, Segmented, Form, message, DatePicker, Alert, Tabs, Select, Tooltip } from "antd";
 import {
   FaMapMarkerAlt,
@@ -522,27 +522,30 @@ const ControlCenter = () => {
           setSelectedWarningPoint(pointName);
           setWarningsDrawerOpen(true);
         }}
-        outletContext={{
-          last7: data?.last_7,
-          selectedDate,
-          setSelectedDate,
-          handleViewMeasurements,
-          handleOpenStopTelemetry,
-          handleOpenSupport,
-          handleWarningPointClick: (pointName) => {
-            setSelectedWarningPoint(pointName);
-            setWarningsDrawerOpen(true);
-          },
-          warningsRaw,
-          points,
-          handleViewVoucher,
-          handleOpenStopCompliance,
-          handleViewPointConfig,
-          handleViewFlowAnalysis,
-          handleViewComplianceDetail,
-          loading,
-        }}
-      />
+      >
+        <Outlet
+          context={{
+            last7: data?.last_7,
+            selectedDate,
+            setSelectedDate,
+            handleViewMeasurements,
+            handleOpenStopTelemetry,
+            handleOpenSupport,
+            handleWarningPointClick: (pointName) => {
+              setSelectedWarningPoint(pointName);
+              setWarningsDrawerOpen(true);
+            },
+            warningsRaw,
+            points,
+            handleViewVoucher,
+            handleOpenStopCompliance,
+            handleViewPointConfig,
+            handleViewFlowAnalysis,
+            handleViewComplianceDetail,
+            loading,
+          }}
+        />
+      </ControlCenterLayout>
 
       {/* ════════════════════════════════════════
           Drawer de Warnings
