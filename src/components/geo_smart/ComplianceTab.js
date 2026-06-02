@@ -17,22 +17,26 @@ const ComplianceTab = () => {
   } = useOutletContext();
 
   const [showSkeleton, setShowSkeleton] = useState(true);
+  const [showContent, setShowContent] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowSkeleton(false), 300);
+    const timer = setTimeout(() => {
+      setShowSkeleton(false);
+      setShowContent(true);
+    }, 300);
     return () => clearTimeout(timer);
   }, []);
 
   if (showSkeleton || (loading && !points?.length)) {
     return (
-      <div style={{ padding: "16px 0" }}>
+      <div className="skeleton-fade-out" style={{ padding: "16px 0" }}>
         <SkeletonCompliance />
       </div>
     );
   }
 
   return (
-    <div className="tab-content-fade">
+    <div className={showContent ? "content-fade-in" : undefined}>
       <CCComplianceTable
         points={points}
         last7={last7}

@@ -18,22 +18,26 @@ const TelemetryTab = () => {
   } = useOutletContext();
 
   const [showSkeleton, setShowSkeleton] = useState(true);
+  const [showContent, setShowContent] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowSkeleton(false), 300);
+    const timer = setTimeout(() => {
+      setShowSkeleton(false);
+      setShowContent(true);
+    }, 300);
     return () => clearTimeout(timer);
   }, []);
 
   if (showSkeleton || (loading && !last7)) {
     return (
-      <div style={{ padding: "16px 0" }}>
+      <div className="skeleton-fade-out" style={{ padding: "16px 0" }}>
         <SkeletonTelemetry />
       </div>
     );
   }
 
   return (
-    <div className="tab-content-fade">
+    <div className={showContent ? "content-fade-in" : undefined}>
       <CCWeekConsumption
         last7={last7}
         selectedDate={selectedDate}

@@ -1,3 +1,5 @@
+@import "./shared/ui/SmartSkeleton/skeleton.css";
+
 body {
   margin: 0;
   background-color: rgb(32, 53, 98);

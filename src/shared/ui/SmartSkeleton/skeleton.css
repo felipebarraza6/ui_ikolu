@@ -1,0 +1,125 @@
+/* SmartSkeleton CSS Variables */
+:root {
+  --skeleton-bg: #f0f0f0;
+  --skeleton-highlight: #e8e8e8;
+  --skeleton-border: #d9d9d9;
+  --skeleton-text: #bfbfbf;
+  --skeleton-primary: #203562;
+  --skeleton-primary-light: #3A68AA;
+  --skeleton-accent: #CCCF07;
+  --skeleton-success: #69812A;
+  --skeleton-warning: #CCCF07;
+  --skeleton-error: #DC2626;
+  --skeleton-surface: #ffffff;
+  --skeleton-surface-hover: #f5f5f5;
+}
+
+[data-theme="dark"] {
+  --skeleton-bg: rgba(255, 255, 255, 0.08);
+  --skeleton-highlight: rgba(255, 255, 255, 0.12);
+  --skeleton-border: rgba(255, 255, 255, 0.12);
+  --skeleton-text: rgba(255, 255, 255, 0.3);
+  --skeleton-primary: #1A2A4A;
+  --skeleton-primary-light: #2A3A5A;
+  --skeleton-accent: rgba(204, 207, 7, 0.3);
+  --skeleton-success: rgba(105, 129, 42, 0.3);
+  --skeleton-warning: rgba(204, 207, 7, 0.3);
+  --skeleton-error: rgba(220, 38, 38, 0.3);
+  --skeleton-surface: rgba(255, 255, 255, 0.04);
+  --skeleton-surface-hover: rgba(255, 255, 255, 0.06);
+}
+
+/* Shimmer Animation */
+@keyframes smart-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Shimmer Bar */
+.smart-shimmer-bar {
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-bg) 25%,
+    var(--skeleton-highlight) 37%,
+    var(--skeleton-bg) 63%
+  );
+  background-size: 200% 100%;
+  animation: smart-shimmer 1.4s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+/* Shimmer Circle */
+.smart-shimmer-circle {
+  background: linear-gradient(
+    135deg,
+    var(--skeleton-bg) 25%,
+    var(--skeleton-highlight) 37%,
+    var(--skeleton-bg) 63%
+  );
+  background-size: 200% 100%;
+  animation: smart-shimmer 1.4s ease-in-out infinite;
+  border-radius: 50%;
+}
+
+/* Skeleton Fade Transitions */
+.skeleton-fade-out {
+  animation: skeletonFadeOut 0.3s ease-out forwards;
+}
+
+.content-fade-in {
+  animation: contentFadeIn 0.3s ease-out forwards;
+}
+
+@keyframes skeletonFadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-8px); }
+}
+
+@keyframes contentFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Skeleton Table Row */
+.skeleton-table-row {
+  height: 48px;
+  border-bottom: 1px solid var(--skeleton-border);
+}
+
+/* Skeleton KPI Card */
+.skeleton-kpi-card {
+  height: 88px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--skeleton-primary) 0%, var(--skeleton-primary-light) 100%);
+  padding: 20px 16px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Skeleton Calendar Day */
+.skeleton-calendar-day {
+  flex: 1;
+  min-height: 90px;
+  padding: 10px 8px;
+  border-radius: 8px;
+  border: 1.5px solid var(--skeleton-border);
+  background: var(--skeleton-surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.skeleton-calendar-day.active {
+  background: var(--skeleton-primary);
+  border-color: var(--skeleton-primary);
+}
