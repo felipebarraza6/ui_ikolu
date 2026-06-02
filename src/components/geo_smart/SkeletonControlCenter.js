@@ -2,7 +2,6 @@ import React from "react";
 import { Row, Col, Flex } from "antd";
 import { FaMapMarkerAlt, FaBroadcastTower, FaClipboardCheck, FaExclamationTriangle } from "react-icons/fa";
 import { SkeletonKPI, SkeletonCalendarDay, SkeletonTable } from "../../shared/ui/SmartSkeleton";
-import "./skeleton.css";
 
 const SkeletonControlCenter = () => {
   return (

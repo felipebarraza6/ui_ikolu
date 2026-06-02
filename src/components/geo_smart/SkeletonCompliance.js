@@ -1,7 +1,6 @@
 import React from "react";
 import { Flex } from "antd";
 import { SkeletonTable } from "../../shared/ui/SmartSkeleton";
-import "./skeleton.css";
 
 const SkeletonCompliance = () => {
   return (

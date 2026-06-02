@@ -1,7 +1,6 @@
 import React from "react";
 import { Flex } from "antd";
 import { SkeletonCalendarDay, SkeletonTable } from "../../shared/ui/SmartSkeleton";
-import "./skeleton.css";
 
 const SkeletonTelemetry = () => {
   return (
