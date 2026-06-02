@@ -52,7 +52,9 @@ colorWarning: "#CCCF07",
     Table: {
       borderRadius: 8,
       headerBg: CORPORATE_BLUE,
-      headerColor: "#ffffff",
+      headerColor: "white",
+      headerSortActiveBg: CORPORATE_BLUE,
+      headerSortHoverBg: CORPORATE_BLUE,
       headerBorderRadius: 20,
     },
     Progress: {

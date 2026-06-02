@@ -17,6 +17,21 @@ code {
   animation: routeFadeIn 0.35s ease-out;
 }
 
+.ant-table-column-has-sorters {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
+
+::selection {
+  background-color: #1F3461;
+  color: #ffffff;
+}
+::-moz-selection {
+  background-color: #1F3461;
+  color: #ffffff;
+}
+
 @keyframes routeFadeIn {
   from {
     opacity: 0;

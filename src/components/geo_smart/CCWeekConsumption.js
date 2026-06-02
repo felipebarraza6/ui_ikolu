@@ -22,9 +22,7 @@ const { useToken } = theme;
 
 const TableMemo = React.memo(({ data, columns, loading }) => {
   const dataSource = useMemo(() =>
-    [...data]
-      .sort((a, b) => (b.consumption || 0) - (a.consumption || 0))
-      .map((p, idx) => ({ ...p, key: idx, rank: idx + 1 })),
+    data.map((p, idx) => ({ ...p, key: p.pointName || idx, rank: idx + 1 })),
     [data]
   );
 
@@ -33,6 +31,7 @@ const TableMemo = React.memo(({ data, columns, loading }) => {
       loading={loading}
       dataSource={dataSource}
       size="small"
+      bordered
       pagination={false}
       showHeader={true}
       columns={columns}
@@ -103,6 +102,16 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
         key: "status",
         width: 40,
         align: "center",
+        sorter: (a, b) => {
+          const order = { form: 0, telemetry_connected: 1, telemetry_disconnected: 2, none: 3 };
+          const getType = (r) => {
+            if (r.is_form) return "form";
+            if (r.is_telemetry && (r.measurements_count || 0) > 0) return "telemetry_connected";
+            if (r.is_telemetry) return "telemetry_disconnected";
+            return "none";
+          };
+          return (order[getType(a)] || 3) - (order[getType(b)] || 3);
+        },
         render: (_, record) => {
           const isForm = record.is_form === true;
           const isTelemetry = record.is_telemetry === true;
@@ -149,6 +158,7 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
         dataIndex: "pointName",
         key: "pointName",
         width: 140,
+        sorter: (a, b) => (a.pointName || "").localeCompare(b.pointName || ""),
         render: (text, record) => {
           const allWarnings = record.warnings || [];
           const warningCount = allWarnings.length;
@@ -199,16 +209,16 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
     ];
 
     if (activeVars.hasConsumption) {
-      cols.push({ title: "Consumo (m³)", dataIndex: "consumption", key: "consumption", width: 130, align: "right", render: (v) => <Text strong style={{ fontSize: 12, color: token.colorTextHeading }}>{formatInteger(v || 0)}</Text> });
+      cols.push({ title: "Consumo (m³)", dataIndex: "consumption", key: "consumption", width: 130, align: "right", sorter: (a, b) => (a.consumption || 0) - (b.consumption || 0), render: (v) => <Text strong style={{ fontSize: 12, color: token.colorTextHeading }}>{formatInteger(v || 0)}</Text> });
     }
     if (activeVars.hasFlow) {
-      cols.push({ title: "Caudal prom. (L/s)", dataIndex: "avg_flow", key: "avg_flow", width: 120, align: "right", render: (v) => <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{v != null ? Number(v).toFixed(1) : "—"}</Text> });
+      cols.push({ title: "Caudal prom. (L/s)", dataIndex: "avg_flow", key: "avg_flow", width: 120, align: "right", sorter: (a, b) => (a.avg_flow || 0) - (b.avg_flow || 0), render: (v) => <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{v != null ? Number(v).toFixed(1) : "—"}</Text> });
     }
     if (activeVars.hasLevel) {
-      cols.push({ title: "Nivel prom. (m)", dataIndex: "avg_level", key: "avg_level", width: 100, align: "right", render: (v) => <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{v != null ? Number(v).toFixed(2) : "—"}</Text> });
+      cols.push({ title: "Nivel prom. (m)", dataIndex: "avg_level", key: "avg_level", width: 100, align: "right", sorter: (a, b) => (a.avg_level || 0) - (b.avg_level || 0), render: (v) => <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{v != null ? Number(v).toFixed(2) : "—"}</Text> });
     }
 
-    cols.push({ title: "", dataIndex: "measurements_count", key: "measurements_count", width: 120, align: "center", render: (v, record) => (
+    cols.push({ title: "", dataIndex: "measurements_count", key: "measurements_count", width: 120, align: "center", sorter: (a, b) => (a.measurements_count || 0) - (b.measurements_count || 0), render: (v, record) => (
       <Flex align="center" justify="center" gap={4} onClick={(e) => e.stopPropagation()}>
         <Tooltip title={`Ver ${v || 0} mediciones`}>
           <div

@@ -510,27 +510,20 @@ const CCComplianceTable = ({ points, last7, onViewVoucher, onOpenStopCompliance,
   }, [onViewVoucher, onOpenStopCompliance, onOpenSupport, onViewPointConfig, onViewComplianceDetail, last7, token, activeVars]);
 
   return (
-    <Table
-      loading={loading}
-      dataSource={points}
-      columns={columns}
-      rowKey="id"
-      bordered
-      size="small"
-      scroll={{ x: "max-content" }}
-      pagination={{ pageSize: 10, hideOnSinglePage: true }}
-      locale={{ emptyText: "No hay puntos disponibles" }}
+      <Table
+        loading={loading}
+        dataSource={points}
+        columns={columns}
+        rowKey="id"
+        bordered
+        size="small"
+        scroll={{ x: "max-content" }}
+        pagination={{ pageSize: 10, hideOnSinglePage: true }}
+        locale={{ emptyText: "No hay puntos disponibles" }}
       onRow={(record) => ({
         style: {
           borderBottom: `1px solid ${token.colorBorderSecondary}`,
           borderLeft: `4px solid ${levelColorMap[record.compliance_warning?.level || "safe"]?.color || levelColorMap.safe.color}`,
-        },
-        onMouseEnter: (e) => {
-          e.currentTarget.style.background = token.colorBgTextHover;
-          e.currentTarget.style.transition = "background 0.15s ease";
-        },
-        onMouseLeave: (e) => {
-          e.currentTarget.style.background = "transparent";
         },
       })}
     />
