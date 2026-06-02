@@ -68,3 +68,23 @@
   visibility: visible !important;
   opacity: 1 !important;
 }
+
+/* Sort arrows blancas en headers oscuros */
+.ant-table-thead > tr > th .ant-table-column-sorter {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.ant-table-thead > tr > th .ant-table-column-sorter .ant-table-column-sorter-inner .ant-table-column-sorter-up,
+.ant-table-thead > tr > th .ant-table-column-sorter .ant-table-column-sorter-inner .ant-table-column-sorter-down {
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+
+.ant-table-thead > tr > th .ant-table-column-sorter .ant-table-column-sorter-inner .ant-table-column-sorter-up.active,
+.ant-table-thead > tr > th .ant-table-column-sorter .ant-table-column-sorter-inner .ant-table-column-sorter-down.active {
+  color: #fff !important;
+}
+
+.ant-table-thead > tr > th:hover .ant-table-column-sorter .ant-table-column-sorter-inner .ant-table-column-sorter-up,
+.ant-table-thead > tr > th:hover .ant-table-column-sorter .ant-table-column-sorter-inner .ant-table-column-sorter-down {
+  color: rgba(255, 255, 255, 0.65) !important;
+}

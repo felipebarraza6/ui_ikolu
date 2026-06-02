@@ -56,6 +56,12 @@ export const createIkoluTheme = (algorithm = null) => ({
       headerSortHoverBg: CORPORATE_BLUE_LIGHT,
       headerBgDark: "#1A2A4A",
       headerColorDark: "#fff",
+      headerSortHoverBgDark: "#2A3A5A",
+      headerSortActiveBgDark: "#1A2A4A",
+      borderColor: "#E8E8E8",
+      borderColorDark: "#303030",
+      rowHoverBg: "#F0EFF4",
+      rowHoverBgDark: "#1F2937",
     },
     Progress: {
       defaultColor: CORPORATE_BLUE,
