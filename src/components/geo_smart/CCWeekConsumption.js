@@ -3,8 +3,9 @@ import { Flex, Typography, Table, Tooltip, Tag, theme } from "antd";
 import { FaEye, FaHandPaper, FaHeadset, FaExclamationTriangle, FaInfoCircle } from "react-icons/fa";
 import { FormOutlined, CheckCircleOutlined, CloseCircleOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import moment from "moment";
-import { ikoluTokens } from "../../theme";
 import { formatInteger } from "../../utils/numberFormatter";
+import { SmartIconButton, SmartBadge } from "../../shared/ui";
+import { smarthydro } from "../../theme/smarthydro.tokens";
 
 const typeDgaLabels = {
   "SUPERFICIAL": "Superficial",
@@ -84,7 +85,6 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
     onOpenSupport(record.pointName);
   }, [onOpenSupport]);
 
-  // Detectar variables activas en al menos un punto
   const activeVars = useMemo(() => {
     const allVars = Object.values(last7 || {}).flatMap(w => w.variables || []);
     return {
@@ -120,8 +120,8 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
           if (isForm) {
             return (
               <Tooltip title="Formulario">
-                <div style={{ width: 20, height: 20, minWidth: 20, minHeight: 20, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", background: `${token.colorPrimary}20` }}>
-                  <FormOutlined style={{ fontSize: 10, color: token.colorPrimary }} />
+                <div style={{ width: 20, height: 20, minWidth: 20, minHeight: 20, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", background: `${smarthydro.colors.primary[500]}20` }}>
+                  <FormOutlined style={{ fontSize: 10, color: smarthydro.colors.primary[500] }} />
                 </div>
               </Tooltip>
             );
@@ -129,7 +129,7 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
           
           if (isTelemetry) {
             return (
-              <div style={{ width: 20, height: 20, minWidth: 20, minHeight: 20, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", background: isConnected ? `${token.colorPrimary}20` : "#ff4d4f20", overflow: "hidden" }}>
+              <div style={{ width: 20, height: 20, minWidth: 20, minHeight: 20, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", background: isConnected ? `${smarthydro.colors.primary[500]}20` : `${smarthydro.colors.semantic.error}20`, overflow: "hidden" }}>
                 <div
                   style={{
                     width: 8,
@@ -137,7 +137,7 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
                     minWidth: 8,
                     minHeight: 8,
                     borderRadius: "50%",
-                    background: isConnected ? token.colorPrimary : "#ff4d4f",
+                    background: isConnected ? smarthydro.colors.primary[500] : smarthydro.colors.semantic.error,
                     animation: isConnected ? "pulse-badge 2s ease-in-out infinite" : "none",
                     flexShrink: 0,
                   }}
@@ -147,8 +147,8 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
           }
           
           return (
-            <div style={{ width: 20, height: 20, minWidth: 20, minHeight: 20, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", background: "#d9d9d920" }}>
-              <MinusCircleOutlined style={{ fontSize: 10, color: "#d9d9d9" }} />
+            <div style={{ width: 20, height: 20, minWidth: 20, minHeight: 20, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", background: `${smarthydro.colors.neutral[400]}20` }}>
+              <MinusCircleOutlined style={{ fontSize: 10, color: smarthydro.colors.neutral[400] }} />
             </div>
           );
         },
@@ -165,9 +165,9 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
           return (
             <Flex align="center" justify="space-between" style={{ width: "100%" }}>
               <Flex align="center" gap={6}>
-                <Text strong style={{ fontSize: 12 }}>{text}</Text>
+                <Text strong style={{ fontSize: 12, fontFamily: smarthydro.typography.heading }}>{text}</Text>
                 <FaInfoCircle
-                  style={{ fontSize: 11, color: token.colorPrimary, cursor: "pointer", opacity: 0.7 }}
+                  style={{ fontSize: 11, color: smarthydro.colors.primary[500], cursor: "pointer", opacity: 0.7 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     onViewPointConfig(text);
@@ -175,30 +175,18 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
                 />
               </Flex>
               {warningCount > 0 ? (
-                <Tag
-                  style={{
-                    fontSize: 10,
-                    margin: 0,
-                    padding: "0 6px",
-                    lineHeight: "18px",
-                    cursor: "pointer",
-                    fontWeight: 700,
-                    background: ikoluTokens.colorWarning,
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 4,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 3,
-                  }}
+                <SmartBadge
+                  variant="warning"
+                  size="sm"
+                  showIcon={true}
+                  style={{ cursor: "pointer" }}
                   onClick={(e) => {
                     e.stopPropagation();
                     onWarningPointClick(text);
                   }}
                 >
-                  <FaExclamationTriangle style={{ fontSize: 9 }} />
                   {warningCount}
-                </Tag>
+                </SmartBadge>
               ) : (
                 <Text style={{ fontSize: 11, color: token.colorTextDisabled }}>-</Text>
               )}
@@ -209,90 +197,40 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
     ];
 
     if (activeVars.hasConsumption) {
-      cols.push({ title: "Consumo (m³)", dataIndex: "consumption", key: "consumption", width: 130, align: "right", sorter: (a, b) => (a.consumption || 0) - (b.consumption || 0), render: (v) => <Text strong style={{ fontSize: 12, color: token.colorTextHeading }}>{formatInteger(v || 0)}</Text> });
+      cols.push({ title: "Consumo (m³)", dataIndex: "consumption", key: "consumption", width: 130, align: "right", sorter: (a, b) => (a.consumption || 0) - (b.consumption || 0), render: (v) => <Text strong style={{ fontSize: 12, color: token.colorTextHeading, fontFamily: smarthydro.typography.heading }}>{formatInteger(v || 0)}</Text> });
     }
     if (activeVars.hasFlow) {
-      cols.push({ title: "Caudal prom. (L/s)", dataIndex: "avg_flow", key: "avg_flow", width: 120, align: "right", sorter: (a, b) => (a.avg_flow || 0) - (b.avg_flow || 0), render: (v) => <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{v != null ? Number(v).toFixed(1) : "—"}</Text> });
+      cols.push({ title: "Caudal prom. (L/s)", dataIndex: "avg_flow", key: "avg_flow", width: 120, align: "right", sorter: (a, b) => (a.avg_flow || 0) - (b.avg_flow || 0), render: (v) => <Text style={{ fontSize: 11, color: token.colorTextSecondary, fontFamily: smarthydro.typography.body }}>{v != null ? Number(v).toFixed(1) : "—"}</Text> });
     }
     if (activeVars.hasLevel) {
-      cols.push({ title: "Nivel prom. (m)", dataIndex: "avg_level", key: "avg_level", width: 100, align: "right", sorter: (a, b) => (a.avg_level || 0) - (b.avg_level || 0), render: (v) => <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{v != null ? Number(v).toFixed(2) : "—"}</Text> });
+      cols.push({ title: "Nivel prom. (m)", dataIndex: "avg_level", key: "avg_level", width: 100, align: "right", sorter: (a, b) => (a.avg_level || 0) - (b.avg_level || 0), render: (v) => <Text style={{ fontSize: 11, color: token.colorTextSecondary, fontFamily: smarthydro.typography.body }}>{v != null ? Number(v).toFixed(2) : "—"}</Text> });
     }
 
     cols.push({ title: "", dataIndex: "measurements_count", key: "measurements_count", width: 120, align: "center", sorter: (a, b) => (a.measurements_count || 0) - (b.measurements_count || 0), render: (v, record) => (
       <Flex align="center" justify="center" gap={4} onClick={(e) => e.stopPropagation()}>
-        <Tooltip title={`Ver ${v || 0} mediciones`}>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 4,
-              padding: "2px 6px",
-              borderRadius: 10,
-              cursor: "pointer",
-              transition: "all 0.2s",
-              border: `1px solid ${token.colorBorderSecondary}`,
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleViewMeasurements(record);
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = token.colorPrimary; e.currentTarget.style.background = `${token.colorPrimary}08`; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = token.colorBorderSecondary; e.currentTarget.style.background = "transparent"; }}
-          >
-            <FaEye style={{ fontSize: 10, color: token.colorTextSecondary }} />
-            <Text style={{ fontSize: 10, color: token.colorTextSecondary, lineHeight: 1 }}>{v || 0}</Text>
-          </div>
-        </Tooltip>
+        <SmartIconButton
+          variant="ghost"
+          size="sm"
+          icon={<FaEye style={{ fontSize: 10 }} />}
+          tooltip={`Ver ${v || 0} mediciones`}
+          onClick={() => handleViewMeasurements(record)}
+        />
         {(record.measurements_count || 0) > 0 && (
-        <Tooltip title="Detener telemetría">
-          <div
-            style={{
-              width: 22,
-              height: 22,
-              borderRadius: "50%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              border: `1px solid ${token.colorPrimary}40`,
-              background: `${token.colorPrimary}08`,
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleOpenStopTelemetry(record);
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = `${token.colorPrimary}15`; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = `${token.colorPrimary}08`; }}
-          >
-            <FaHandPaper style={{ fontSize: 9, color: token.colorPrimary }} />
-          </div>
-        </Tooltip>
+          <SmartIconButton
+            variant="primary"
+            size="sm"
+            icon={<FaHandPaper style={{ fontSize: 9 }} />}
+            tooltip="Detener telemetría"
+            onClick={() => handleOpenStopTelemetry(record)}
+          />
         )}
-        <Tooltip title="Solicitar soporte">
-          <div
-            style={{
-              width: 22,
-              height: 22,
-              borderRadius: "50%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              border: `1px solid ${token.colorPrimary}40`,
-              background: `${token.colorPrimary}08`,
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleOpenSupport(record);
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = `${token.colorPrimary}15`; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = `${token.colorPrimary}08`; }}
-          >
-            <FaHeadset style={{ fontSize: 9, color: token.colorPrimary }} />
-          </div>
-        </Tooltip>
+        <SmartIconButton
+          variant="primary"
+          size="sm"
+          icon={<FaHeadset style={{ fontSize: 9 }} />}
+          tooltip="Solicitar soporte"
+          onClick={() => handleOpenSupport(record)}
+        />
       </Flex>
     ) });
 
@@ -303,7 +241,7 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
   if (sortedDays.length === 0) {
     return (
       <div style={{ padding: "0 0 16px" }}>
-        <Text type="secondary">Sin datos</Text>
+        <Text type="secondary" style={{ fontFamily: smarthydro.typography.body }}>Sin datos</Text>
       </div>
     );
   }
@@ -324,11 +262,11 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
                   flex: 1,
                   minHeight: 90,
                   padding: "10px 8px",
-                  borderRadius: token.borderRadius,
-                  border: `1.5px solid ${isActive ? token.colorPrimary : isToday ? token.colorPrimary + "40" : token.colorBorder}`,
-                  background: isActive ? token.colorPrimary : isToday ? `${token.colorPrimary}08` : token.colorBgContainer,
+                  borderRadius: smarthydro.radii.md,
+                  border: `1.5px solid ${isActive ? smarthydro.colors.primary[500] : isToday ? `${smarthydro.colors.primary[500]}40` : token.colorBorder}`,
+                  background: isActive ? smarthydro.colors.primary[500] : isToday ? `${smarthydro.colors.primary[500]}08` : token.colorBgContainer,
                   cursor: "pointer",
-                  transition: "all 0.2s ease",
+                  transition: smarthydro.transitions.base,
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
@@ -336,13 +274,13 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
                   gap: 4,
                 }}
               >
-                <Text style={{ fontSize: 10, color: isActive ? "#fff" : token.colorTextSecondary, textTransform: "capitalize", letterSpacing: 0.5, whiteSpace: "nowrap" }}>
+                <Text style={{ fontSize: 10, color: isActive ? "#fff" : token.colorTextSecondary, textTransform: "capitalize", letterSpacing: 0.5, whiteSpace: "nowrap", fontFamily: smarthydro.typography.body }}>
                   {moment(date).format("dddd")}
                 </Text>
-                <Text strong style={{ fontSize: 22, color: isActive ? "#fff" : token.colorText, lineHeight: 1 }}>
+                <Text strong style={{ fontSize: 22, color: isActive ? "#fff" : token.colorText, lineHeight: 1, fontFamily: smarthydro.typography.heading }}>
                   {moment(date).format("DD")}
                 </Text>
-                <Text style={{ fontSize: 10, color: isActive ? "#fff" : token.colorTextSecondary }}>
+                <Text style={{ fontSize: 10, color: isActive ? "#fff" : token.colorTextSecondary, fontFamily: smarthydro.typography.body }}>
                   {formatInteger(total)} m³
                 </Text>
               </div>

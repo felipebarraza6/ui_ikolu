@@ -3,6 +3,8 @@ import { Flex, Typography, Table, Tag, Tooltip, theme } from "antd";
 import { FaEye, FaPauseCircle, FaHeadset, FaInfoCircle, FaExternalLinkAlt, FaExclamationTriangle, FaChartLine, FaCheckCircle, FaShieldAlt, FaTint } from "react-icons/fa";
 import moment from "moment";
 import { formatInteger } from "../../utils/numberFormatter";
+import { PointHeader, ConsumptionCell, StatusBadge, ActionButtons } from "../../features/geo-smart/components";
+import { smarthydro } from "../../theme/smarthydro.tokens";
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -21,10 +23,10 @@ const typeDgaLabels = {
 };
 
 const levelColorMap = {
-  safe: { color: "#52c41a", bg: "#f6ffed", border: "#b7eb8f", label: "Dentro de límites" },
-  warning: { color: "#fa8c16", bg: "#fff7e6", border: "#ffd591", label: "Cerca de superar límite" },
-  critical: { color: "#ff4d4f", bg: "#fff2f0", border: "#ffccc7", label: "Incumplimiento detectado" },
-  unknown: { color: "#8c8c8c", bg: "#fafafa", border: "#d9d9d9", label: "Sin límites configurados" },
+  safe: { color: smarthydro.colors.semantic.success, bg: smarthydro.colors.semantic.successBg, border: smarthydro.colors.semantic.successBorder, label: "Dentro de límites" },
+  warning: { color: smarthydro.colors.semantic.warning, bg: smarthydro.colors.semantic.warningBg, border: smarthydro.colors.semantic.warningBorder, label: "Cerca de superar límite" },
+  critical: { color: smarthydro.colors.semantic.error, bg: smarthydro.colors.semantic.errorBg, border: smarthydro.colors.semantic.errorBorder, label: "Incumplimiento detectado" },
+  unknown: { color: smarthydro.colors.neutral[500], bg: smarthydro.colors.neutral[100], border: smarthydro.colors.neutral[300], label: "Sin límites configurados" },
 };
 
 const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPointConfig, onViewComplianceDetail, last7, token) => [
@@ -34,58 +36,9 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
     width: 100,
     sorter: (a, b) => (a.title || "").localeCompare(b.title || ""),
     defaultSortOrder: "ascend",
-
-    render: (_, record) => {
-      const level = record.compliance_warning?.level || "safe";
-      const levelCfg = levelColorMap[level] || levelColorMap.safe;
-      
-      return (
-        <Flex vertical>
-          <Flex justify="space-between" align="center">
-            <Text strong style={{ fontSize: 13, color: token.colorText, lineHeight: 1.2 }}>
-              {record.title?.slice(0,20) || "—"}
-            </Text>
-            <FaInfoCircle
-              style={{ fontSize: 11, color: token.colorPrimary, cursor: "pointer", opacity: 0.7 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                onViewPointConfig(record.title || record.name);
-              }}
-            />
-          </Flex>
-          <Flex justify="space-between">
-            {record.compliance_type?.includes("DGA") && (
-              <Tag style={{ fontSize: 10, margin: 0, padding: "1px 5px", lineHeight: "15px", background: token.colorPrimaryBg, border: "none", color: token.colorPrimary, fontWeight: 600 }}>
-                DGA
-              </Tag>
-            )}
-            {record.compliance_type?.includes("SMA") && (
-              <Tag style={{ fontSize: 10, margin: 0, padding: "1px 5px", lineHeight: "15px", background: "#f6ffed", border: "none", color: "#52c41a", fontWeight: 600 }}>
-                SMA
-              </Tag>
-            )}
-            {record.code && (
-              record.compliance_type?.includes("DGA") ? (
-                <a
-                  href={`https://snia.mop.gob.cl/cExtracciones2/#/consultaQR/${encodeURIComponent(record.code)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: token.colorPrimary, fontSize: 11, fontWeight: 600, whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", gap: 4 }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {record.code}
-                  <FaExternalLinkAlt style={{ fontSize: 9, opacity: 0.7 }} />
-                </a>
-              ) : (
-                <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>
-                  {record.code}
-                </Text>
-              )
-            )}
-          </Flex>
-        </Flex>
-      );
-    },
+    render: (_, record) => (
+      <PointHeader record={record} onViewPointConfig={onViewPointConfig} token={token} />
+    ),
   },
   {
     title: "Tipo",
@@ -95,10 +48,10 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
     responsive: ["md"],
     render: (_, record) => (
       <Flex vertical gap={2} align="center">
-        <Tag style={{ fontSize: 10, margin: 0, padding: "1px 6px", lineHeight: "15px", background: token.colorBgLayout, border: `1px solid ${token.colorBorder}`, color: token.colorTextSecondary }}>
+        <Tag style={{ fontSize: 10, margin: 0, padding: "1px 6px", lineHeight: "15px", background: token.colorBgLayout, border: `1px solid ${token.colorBorder}`, color: token.colorTextSecondary, fontFamily: smarthydro.typography.body }}>
           {typeDgaLabels[record.standard] || record.standard}
         </Tag>
-        <Text style={{ fontSize: 10, color: token.colorTextSecondary }}>
+        <Text style={{ fontSize: 10, color: token.colorTextSecondary, fontFamily: smarthydro.typography.body }}>
           {typeDgaLabels[record.type_dga] || record.type_dga}
         </Text>
       </Flex>
@@ -114,45 +67,9 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
       const vb = b.pct_consumed ?? -Infinity;
       return va - vb;
     },
-
-    render: (_, record) => {
-      const pct = record.pct_consumed;
-      const pctNum = pct != null ? Number(pct) : null;
-      const color = pctNum == null ? token.colorTextDisabled
-        : pctNum > 100 ? token.colorError
-        : pctNum > 80 ? token.colorWarning
-        : token.colorSuccess;
-      
-      return (
-        <Flex vertical gap={4} align="center">
-          {pctNum != null ? (
-            <>
-              <Text strong style={{ fontSize: 14, color }}>
-                {pctNum.toFixed(1)}%
-              </Text>
-              <div style={{ width: "100%", height: 6, borderRadius: 3, background: token.colorBgLayout, overflow: "hidden" }}>
-                <div
-                  style={{
-                    height: "100%",
-                    width: `${Math.min(pctNum, 100)}%`,
-                    borderRadius: 3,
-                    background: color,
-                    transition: "width 0.3s ease",
-                  }}
-                />
-              </div>
-              {record.authorized_total > 0 && record.annual_consumption != null && (
-                <Text style={{ fontSize: 9, color: token.colorTextSecondary }}>
-                  {formatInteger(record.annual_consumption)} / {formatInteger(record.authorized_total)} m³
-                </Text>
-              )}
-            </>
-          ) : (
-            <Text style={{ fontSize: 12, color: token.colorTextDisabled }}>—</Text>
-          )}
-        </Flex>
-      );
-    },
+    render: (_, record) => (
+      <ConsumptionCell record={record} token={token} />
+    ),
   },
   {
     title: "Caudal",
@@ -164,7 +81,6 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
       const vb = b.flow_lps ?? -Infinity;
       return va - vb;
     },
-
     render: (_, record) => {
       const currentFlow = record.flow_lps;
       const authorizedFlow = record.authorized_flow;
@@ -176,20 +92,20 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
         <Flex vertical gap={2} align="center">
           {currentFlow != null && authorizedFlow > 0 ? (
             <>
-              <Text strong style={{ fontSize: 14, color: flowColor }}>
+              <Text strong style={{ fontSize: 14, color: flowColor, fontFamily: smarthydro.typography.heading }}>
                 {Number(currentFlow).toFixed(1)}
-                <span style={{ fontSize: 10, fontWeight: 400, marginLeft: 2 }}>L/s</span>
+                <span style={{ fontSize: 10, fontWeight: 400, marginLeft: 2, fontFamily: smarthydro.typography.body }}>L/s</span>
               </Text>
-              <Text style={{ fontSize: 9, color: token.colorTextSecondary }}>
+              <Text style={{ fontSize: 9, color: token.colorTextSecondary, fontFamily: smarthydro.typography.body }}>
                 / {Number(authorizedFlow).toFixed(1)} L/s
               </Text>
             </>
           ) : currentFlow != null ? (
-            <Text strong style={{ fontSize: 13, color: token.colorText }}>
+            <Text strong style={{ fontSize: 13, color: token.colorText, fontFamily: smarthydro.typography.heading }}>
               {Number(currentFlow).toFixed(1)} L/s
             </Text>
           ) : (
-            <Text style={{ fontSize: 12, color: token.colorTextDisabled }}>—</Text>
+            <Text style={{ fontSize: 12, color: token.colorTextDisabled, fontFamily: smarthydro.typography.body }}>—</Text>
           )}
         </Flex>
       );
@@ -205,16 +121,15 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
       const vb = b.water_table_m ?? -Infinity;
       return va - vb;
     },
-
     render: (_, record) => {
       const v = record.water_table_m;
       return v != null ? (
-        <Text style={{ fontSize: 13, color: token.colorPrimary }}>
+        <Text style={{ fontSize: 13, color: smarthydro.colors.supporting.blue, fontFamily: smarthydro.typography.heading }}>
           {Number(v).toFixed(2)}
-          <span style={{ fontSize: 10, marginLeft: 2 }}>m</span>
+          <span style={{ fontSize: 10, marginLeft: 2, fontFamily: smarthydro.typography.body }}>m</span>
         </Text>
       ) : (
-        <Text style={{ fontSize: 12, color: token.colorTextDisabled }}>—</Text>
+        <Text style={{ fontSize: 12, color: token.colorTextDisabled, fontFamily: smarthydro.typography.body }}>—</Text>
       );
     },
   },
@@ -260,20 +175,20 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
                   alignItems: "center",
                   justifyContent: "center",
                   gap: 4,
-                  background: "#fff2f0",
-                  borderRadius: 4,
+                  background: smarthydro.colors.semantic.errorBg,
+                  borderRadius: smarthydro.radii.sm,
                   padding: "2px 6px",
-                  border: "1px solid #ffccc7",
+                  border: `1px solid ${smarthydro.colors.semantic.errorBorder}`,
                   cursor: "pointer",
-                  transition: "all 0.2s",
+                  transition: smarthydro.transitions.base,
                   minWidth: 40,
                   height: 24
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = "#ffe8e8"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "#fff2f0"; }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = smarthydro.colors.semantic.errorBg; e.currentTarget.style.opacity = 0.85; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = smarthydro.colors.semantic.errorBg; e.currentTarget.style.opacity = 1; }}
               >
-                <FaExclamationTriangle style={{ fontSize: 9, color: "#ff4d4f" }} />
-                <Text style={{ fontSize: 10, color: "#ff4d4f", fontWeight: 600 }}>
+                <FaExclamationTriangle style={{ fontSize: 9, color: smarthydro.colors.semantic.error }} />
+                <Text style={{ fontSize: 10, color: smarthydro.colors.semantic.error, fontWeight: smarthydro.typography.weights.semibold, fontFamily: smarthydro.typography.body }}>
                   {exceededHasMore ? "20+" : exceededCount}
                 </Text>
               </div>
@@ -301,20 +216,20 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
                   alignItems: "center",
                   justifyContent: "center",
                   gap: 4,
-                  background: "#fff7e6",
-                  borderRadius: 4,
+                  background: smarthydro.colors.semantic.warningBg,
+                  borderRadius: smarthydro.radii.sm,
                   padding: "2px 6px",
-                  border: "1px solid #ffd591",
+                  border: `1px solid ${smarthydro.colors.semantic.warningBorder}`,
                   cursor: "pointer",
-                  transition: "all 0.2s",
+                  transition: smarthydro.transitions.base,
                   minWidth: 40,
                   height: 24
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = "#fff0d6"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "#fff7e6"; }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = smarthydro.colors.semantic.warningBg; e.currentTarget.style.opacity = 0.85; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = smarthydro.colors.semantic.warningBg; e.currentTarget.style.opacity = 1; }}
               >
-                <FaChartLine style={{ fontSize: 9, color: "#fa8c16" }} />
-                <Text style={{ fontSize: 10, color: "#fa8c16", fontWeight: 600 }}>
+                <FaChartLine style={{ fontSize: 9, color: smarthydro.colors.semantic.warning }} />
+                <Text style={{ fontSize: 10, color: smarthydro.colors.semantic.warning, fontWeight: smarthydro.typography.weights.semibold, fontFamily: smarthydro.typography.body }}>
                   {nearLimitHasMore ? "20+" : nearLimitCount}
                 </Text>
               </div>
@@ -335,55 +250,9 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
       const vb = levelOrder[b.compliance_warning?.level || "safe"] ?? 3;
       return va - vb;
     },
-
-    render: (_, record) => {
-      const level = record.compliance_warning?.level || "safe";
-      const status = record.compliance_warning?.status || levelColorMap[level]?.label || "—";
-      const levelCfg = levelColorMap[level] || levelColorMap.safe;
-      
-      return (
-        <Tooltip title={status}>
-          <div
-            role="button"
-            tabIndex={0}
-            aria-label={`Ver detalle de cumplimiento de ${record.title}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onViewComplianceDetail?.(record, "detail");
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onViewComplianceDetail?.(record, "detail");
-              }
-            }}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 4,
-              background: levelCfg.bg,
-              borderRadius: 4,
-              padding: "3px 8px",
-              border: `1px solid ${levelCfg.border}`,
-              cursor: "pointer",
-              transition: "all 0.2s",
-              minWidth: 80
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.opacity = 0.85; }}
-            onMouseLeave={(e) => { e.currentTarget.style.opacity = 1; }}
-          >
-            {level === "safe" && <FaCheckCircle style={{ fontSize: 10, color: levelCfg.color }} />}
-            {level === "warning" && <FaExclamationTriangle style={{ fontSize: 10, color: levelCfg.color }} />}
-            {level === "critical" && <FaExclamationTriangle style={{ fontSize: 10, color: levelCfg.color }} />}
-            {level === "unknown" && <FaShieldAlt style={{ fontSize: 10, color: levelCfg.color }} />}
-            <Text style={{ fontSize: 10, color: levelCfg.color, fontWeight: 600 }}>
-              {level === "safe" ? "OK" : level === "warning" ? "Alerta" : level === "critical" ? "Crítico" : "N/A"}
-            </Text>
-          </div>
-        </Tooltip>
-      );
-    },
+    render: (_, record) => (
+      <StatusBadge record={record} onViewComplianceDetail={onViewComplianceDetail} />
+    ),
   },
   {
     title: "",
@@ -392,83 +261,12 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
     align: "center",
     fixed: "right",
     render: (_, record) => (
-      <Flex align="center" justify="center" gap={6} onClick={(e) => e.stopPropagation()}>
-        {record.voucher ? (
-          <Tooltip title="Ver voucher">
-            <div
-              style={{
-                width: 24,
-                height: 24,
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                transition: "background 0.2s",
-                background: `${token.colorPrimary}10`,
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = `${token.colorPrimary}20`)}
-              onMouseLeave={(e) => (e.currentTarget.style.background = `${token.colorPrimary}10`)}
-              onClick={(e) => {
-                e.stopPropagation();
-                onViewVoucher(record);
-              }}
-            >
-              <FaEye style={{ fontSize: 11, color: token.colorPrimary }} />
-            </div>
-          </Tooltip>
-        ) : (
-          <div style={{ width: 24, height: 24 }} />
-        )}
-        <Tooltip title="Solicitar detención de cumplimiento">
-          <div
-            style={{
-              width: 24,
-              height: 24,
-              borderRadius: "50%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              border: `1px solid ${token.colorPrimary}40`,
-              background: `${token.colorPrimary}08`,
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              onStopCompliance(record);
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = `${token.colorPrimary}15`; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = `${token.colorPrimary}08`; }}
-          >
-            <FaPauseCircle style={{ fontSize: 10, color: token.colorPrimary }} />
-          </div>
-        </Tooltip>
-        <Tooltip title="Solicitar soporte">
-          <div
-            style={{
-              width: 24,
-              height: 24,
-              borderRadius: "50%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              border: `1px solid ${token.colorPrimary}40`,
-              background: `${token.colorPrimary}08`,
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpenSupport(record, "CUMPLIMIENTO");
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = `${token.colorPrimary}15`; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = `${token.colorPrimary}08`; }}
-          >
-            <FaHeadset style={{ fontSize: 10, color: token.colorPrimary }} />
-          </div>
-        </Tooltip>
-      </Flex>
+      <ActionButtons
+        record={record}
+        onViewVoucher={onViewVoucher}
+        onOpenStopCompliance={onStopCompliance}
+        onOpenSupport={onOpenSupport}
+      />
     ),
   },
 ];
