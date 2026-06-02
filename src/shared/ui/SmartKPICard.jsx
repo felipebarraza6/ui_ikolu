@@ -19,7 +19,7 @@ const SmartKPICard = ({
       style={{
         background: gradient,
         borderRadius: smarthydro.radii.lg,
-        padding: `${smarthydro.spacing.md} ${smarthydro.spacing.lg}`,
+        padding: `${smarthydro.spacing.lg} ${smarthydro.spacing.xl}`,
         textAlign: "center",
         cursor: onClick ? "pointer" : "default",
         transition: smarthydro.transitions.slow,
@@ -39,16 +39,17 @@ const SmartKPICard = ({
         e.currentTarget.style.boxShadow = smarthydro.shadows.md;
       }}
     >
-      <Flex vertical align="center" gap={6}>
+      <Flex vertical align="center" gap={8}>
         {icon && (
           <div style={{
-            width: 36,
-            height: 36,
+            width: 40,
+            height: 40,
             borderRadius: smarthydro.radii.full,
             background: "rgba(255, 255, 255, 0.15)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            marginBottom: 4,
           }}>
             {icon}
           </div>
@@ -59,6 +60,7 @@ const SmartKPICard = ({
             color: "rgba(255, 255, 255, 0.85)",
             fontFamily: smarthydro.typography.body,
             fontWeight: smarthydro.typography.weights.medium,
+            marginBottom: 2,
           }}
         >
           {label}
