@@ -171,7 +171,7 @@ const SkeletonCompliance = () => {
           {
             title: "",
             key: "actions",
-            width: 120,
+            width: 110,
             align: "center",
             render: () => (
               <Flex align="center" justify="center" gap={4}>
