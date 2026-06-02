@@ -2,6 +2,7 @@ import React, { useCallback, useState, useMemo, useRef, useEffect } from "react"
 import "./ControlCenter.css";
 import { useData } from "../../contexts/DataContext";
 import { useControlCenter } from "../../hooks/useControlCenter";
+import { useControlCenterStore } from "../../features/geo-smart/stores/controlCenterStore";
 import sh from "../../api/sh/endpoints";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Row, Col, Card, Flex, Typography, Spin, Table, Tag, theme, Drawer, Modal, Button, Input, Space, Segmented, Form, message, DatePicker, Alert, Tabs, Select, Tooltip } from "antd";
@@ -32,7 +33,7 @@ import CCComplianceDetailDrawer from "./CCComplianceDetailDrawer";
 import SkeletonControlCenter from "./SkeletonControlCenter";
 import ModuleTour from "../common/ModuleTour";
 import { centroControlTour } from "../../config/tours";
-import { ikoluTokens, kpiGradients } from "../../theme";
+import { smarthydro } from "../../theme/smarthydro.tokens";
 import moment from "moment";
 import { useAuth } from "../../contexts/AuthContext";
 import { MeasurementsDrawerContentMemo } from "./measurements/MeasurementDrawer";
@@ -64,6 +65,36 @@ const ControlCenter = () => {
     navigate(tab === "compliance" ? "/control_center/compliance" : "/control_center/telemetry");
   }, [activeTab, navigate]);
 
+  // ── Zustand Store ──
+  const store = useControlCenterStore();
+  const selectedDate = store.selectedDate;
+  const setSelectedDate = store.setSelectedDate;
+  const warningsDrawerOpen = store.warningsDrawerOpen;
+  const setWarningsDrawerOpen = store.setWarningsDrawerOpen;
+  const selectedWarningPoint = store.selectedWarningPoint;
+  const setSelectedWarningPoint = store.setSelectedWarningPoint;
+  const voucherModalOpen = store.voucherModalOpen;
+  const setVoucherModalOpen = store.setVoucherModalOpen;
+  const measurementsDrawerOpen = store.measurementsDrawerOpen;
+  const setMeasurementsDrawerOpen = store.setMeasurementsDrawerOpen;
+  const flowAnalysisDrawerOpen = store.flowAnalysisDrawerOpen;
+  const setFlowAnalysisDrawerOpen = store.setFlowAnalysisDrawerOpen;
+  const complianceDetailDrawerOpen = store.complianceDetailDrawerOpen;
+  const setComplianceDetailDrawerOpen = store.setComplianceDetailDrawerOpen;
+  const pointConfigOpen = store.pointConfigDrawerOpen;
+  const setPointConfigOpen = store.setPointConfigDrawerOpen;
+  const stopTelemetryOpen = store.stopTelemetryModalOpen;
+  const setStopTelemetryOpen = store.setStopTelemetryModalOpen;
+  const stopComplianceOpen = store.stopComplianceModalOpen;
+  const setStopComplianceOpen = store.setStopComplianceModalOpen;
+  const supportOpen = store.supportModalOpen;
+  const setSupportOpen = store.setSupportModalOpen;
+
+  // Sync URL tab with store
+  useEffect(() => {
+    store.setActiveTab(activeTab);
+  }, [activeTab]);
+
   // Ref para estabilizar callbacks sin depender de data?.points
   const pointsRef = useRef(data?.points || []);
   const last7Ref = useRef(data?.last_7 || {});
@@ -75,11 +106,7 @@ const ControlCenter = () => {
   useEffect(() => {
     last7Ref.current = data?.last_7 || {};
   }, [data?.last_7]);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [warningsDrawerOpen, setWarningsDrawerOpen] = useState(false);
-  const [selectedWarningPoint, setSelectedWarningPoint] = useState(null);
   const [wellConfig, setWellConfig] = useState(null);
-  const [voucherModalOpen, setVoucherModalOpen] = useState(false);
   const [selectedVoucher, setSelectedVoucher] = useState(null);
   const [voucherCopied, setVoucherCopied] = useState(false);
 
@@ -89,21 +116,18 @@ const ControlCenter = () => {
   const [dgaConsole, setDgaConsole] = useState([]);
 
   // ── Drawer de Mediciones ──
-  const [measurementsDrawerOpen, setMeasurementsDrawerOpen] = useState(false);
   const [selectedMeasurementPoint, setSelectedMeasurementPoint] = useState(null);
   const [measurementsData, setMeasurementsData] = useState(null);
   const [measurementsLoading, setMeasurementsLoading] = useState(false);
   const [measurementsViewMode, setMeasurementsViewMode] = useState("chart");
   const [measurementsTab, setMeasurementsTab] = useState("1");
 
-  // ── Drawer de Análisis de Caudal ──
-  const [flowAnalysisDrawerOpen, setFlowAnalysisDrawerOpen] = useState(false);
+  // ─ Drawer de Análisis de Caudal ─
   const [selectedFlowPoint, setSelectedFlowPoint] = useState(null);
   const [flowAnalysisData, setFlowAnalysisData] = useState(null);
   const [flowAnalysisLoading, setFlowAnalysisLoading] = useState(false);
   
   // ── Drawer de Detalle de Cumplimiento ──
-  const [complianceDetailDrawerOpen, setComplianceDetailDrawerOpen] = useState(false);
   const [selectedCompliancePoint, setSelectedCompliancePoint] = useState(null);
   // ── Consumo total del día (para mostrar en header del drawer) ──
   const totalDayConsumo = useMemo(() => {
