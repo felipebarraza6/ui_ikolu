@@ -110,7 +110,7 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
             </Text>
           </Flex>
           
-          <div style={{ background: levelCfg.bg, borderRadius: 12, padding: 16, border: `1px solid ${levelCfg.border}`, backdropFilter: 'blur(10px)' }}>
+          <div style={{ background: levelCfg.bg, border: `1px solid ${levelCfg.border}` }} className="ocean-panel">
             {warning.messages && warning.messages.length > 0 && (
               <Flex vertical gap={8} style={{ marginBottom: 12 }}>
                 {warning.messages.map((msg, i) => (
@@ -184,9 +184,9 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
           </Flex>
           
           {flowHistory.count === 0 ? (
-            <div style={{ background: "rgba(42, 157, 143, 0.1)", borderRadius: 12, padding: 24, textAlign: "center", border: "1px solid rgba(42, 157, 143, 0.3)", backdropFilter: 'blur(10px)' }}>
+            <div className="ocean-panel ocean-success-card ocean-text-center" style={{ padding: 24 }}>
               <FaCheckCircle style={{ fontSize: 24, color: "#2A9D8F", marginBottom: 8 }} />
-              <Text style={{ fontSize: 13, color: "#2A9D8F" }}>Sin excedencias registradas este año</Text>
+              <Text className="ocean-text-base ocean-text-teal">Sin excedencias registradas este año</Text>
             </div>
           ) : (
             <Table
@@ -267,8 +267,8 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
           </Flex>
           
           {nearLimitHistory.count === 0 ? (
-            <div style={{ background: "rgba(255, 255, 255, 0.05)", borderRadius: 12, padding: 24, textAlign: "center", border: "1px solid rgba(255, 255, 255, 0.1)", backdropFilter: 'blur(10px)' }}>
-              <Text style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.5)' }}>Sin eventos cercanos al límite este año</Text>
+            <div className="ocean-panel ocean-text-center" style={{ padding: 24 }}>
+              <Text className="ocean-text-base ocean-text-muted">Sin eventos cercanos al límite este año</Text>
             </div>
           ) : (
             <Table
@@ -334,7 +334,7 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
               <Text strong style={{ fontSize: 14 }}>Último envío a DGA/SMA</Text>
             </Flex>
             
-            <div style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: 12, padding: 16, border: `1px solid rgba(0, 180, 216, 0.15)`, backdropFilter: 'blur(10px)' }}>
+            <div className="ocean-panel" style={{ padding: 16 }}>
               <Flex gap={24} wrap="wrap">
                 <Flex vertical>
                   <Text style={{ fontSize: 10, color: token.colorTextSecondary, textTransform: "uppercase" }}>Fecha</Text>

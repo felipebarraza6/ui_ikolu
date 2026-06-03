@@ -92,33 +92,7 @@ const ControlCenterChat = ({ points, chatQuota }) => {
     return (
       <div
         onClick={handleToggleDrawer}
-        style={{
-          position: "fixed",
-          bottom: 24,
-          right: 24,
-          width: 60,
-          height: 60,
-          borderRadius: "50%",
-          background: `linear-gradient(135deg, ${OCEAN_DEEP} 0%, ${OCEAN_BLUE} 50%, ${OCEAN_CYAN} 100%)`,
-          backgroundSize: "400% 400%",
-          animation: "gradient-flow 8s ease infinite",
-          border: "2px solid rgba(0, 180, 216, 0.3)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer",
-          zIndex: 1000,
-          boxShadow: `0 4px 20px rgba(0, 180, 216, 0.4)`,
-          transition: "transform 0.3s ease, box-shadow 0.3s ease",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "scale(1.1)";
-          e.currentTarget.style.boxShadow = "0 6px 30px rgba(0, 180, 216, 0.6)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "scale(1)";
-          e.currentTarget.style.boxShadow = "0 4px 20px rgba(0, 180, 216, 0.4)";
-        }}
+        className="chat-fab"
       >
         <FaRobot style={{ color: "#fff", fontSize: 24 }} />
       </div>
@@ -135,46 +109,16 @@ const ControlCenterChat = ({ points, chatQuota }) => {
     <>
       <Card
         size="small"
-        style={{
-          position: "fixed",
-          bottom: 90,
-          right: 24,
-          width: 400,
-          height: 550,
-          borderRadius: 24,
-          zIndex: 1000,
-          boxShadow: `0 12px 48px rgba(0, 0, 0, 0.4)`,
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-          animation: "fade-in-up 0.25s ease",
-          background: "rgba(5, 10, 20, 0.95)",
-          backdropFilter: "blur(20px)",
-          border: "1px solid rgba(0, 180, 216, 0.2)",
-        }}
+        className="chat-card"
         bodyStyle={{ padding: 0, height: "100%", display: "flex", flexDirection: "column" }}
       >
-        <Flex align="center" gap={10} style={{ 
-          padding: "16px 20px", 
-          borderBottom: `1px solid rgba(0, 180, 216, 0.15)`, 
-          flexShrink: 0,
-          background: "rgba(0, 180, 216, 0.05)",
-        }}>
-          <div style={{ 
-            width: 36, 
-            height: 36, 
-            borderRadius: "50%", 
-            background: `linear-gradient(135deg, ${OCEAN_BLUE} 0%, ${OCEAN_CYAN} 100%)`, 
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "center",
-            boxShadow: "0 0 15px rgba(0, 180, 216, 0.3)",
-          }}>
+        <Flex align="center" gap={10} className="chat-header">
+          <div className="chat-avatar-header">
             <FaRobot style={{ color: "#fff", fontSize: 16 }} />
           </div>
           <div>
-            <Text strong style={{ fontSize: 14, display: "block", color: "#fff" }}>Experto en Telemetria</Text>
-            <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Smart Hydro - Consultas en tiempo real</Text>
+            <Text strong className="ocean-text-lg ocean-text-primary" style={{ display: "block" }}>Experto en Telemetria</Text>
+            <Text className="ocean-text-sm ocean-text-muted">Smart Hydro - Consultas en tiempo real</Text>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
             <Button
@@ -196,31 +140,15 @@ const ControlCenterChat = ({ points, chatQuota }) => {
           </div>
         </Flex>
 
-        <div style={{ 
-          padding: "12px 16px", 
-          background: "rgba(0, 180, 216, 0.03)", 
-          borderBottom: `1px solid rgba(0, 180, 216, 0.1)`, 
-          flexShrink: 0 
-        }}>
-          <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.4, display: "block" }}>
+        <div className="chat-objective">
+          <Text className="ocean-text-sm ocean-text-muted" style={{ lineHeight: 1.4, display: "block" }}>
             <FaLightbulb style={{ color: OCEAN_CYAN, fontSize: 11, marginRight: 6 }} /> 
-            <span style={{ color: OCEAN_LIGHT, fontWeight: 600 }}>Objetivo:</span> 
+            <span className="ocean-text-cyan-light ocean-font-semibold">Objetivo:</span> 
             Ayudarte a interpretar tus datos de telemetria, consumo, caudal y cumplimiento normativo en tiempo real.
           </Text>
         </div>
 
-        <div
-          style={{
-            flex: 1,
-            minHeight: 0,
-            overflowY: "auto",
-            padding: "16px 20px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 12,
-          }}
-          className="ocean-scrollbar"
-        >
+        <div className="chat-messages ocean-scrollbar">
           {chatMessages.map((msg, i) => (
             <Flex
               key={i}

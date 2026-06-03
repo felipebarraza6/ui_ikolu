@@ -73,7 +73,7 @@ const MemoizedMeasurementsTable = React.memo(({ allMeasurements, measurementColu
   const components = useMemo(() => ({
     header: {
       cell: (props) => (
-        <th {...props} style={{ ...props.style, fontSize: 10, padding: "10px 8px", fontWeight: 600, color: 'rgba(255, 255, 255, 0.5)', textTransform: "uppercase", letterSpacing: 0.5, background: 'rgba(0, 180, 216, 0.05)' }} />
+        <th {...props} className="ocean-table-header-cell" style={{ ...props.style }} />
       ),
     },
   }), [token.colorTextSecondary, token.colorBgLayout]);
@@ -392,9 +392,9 @@ export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, ac
     onFilter: (value, record) => value === "error" ? record.is_error : !record.is_error,
     render: (_, m) => {
       if (m.is_error) {
-        return <Tag style={{ fontSize: 9, margin: 0, padding: "0 6px", lineHeight: "18px", background: 'rgba(231, 111, 81, 0.15)', border: '1px solid rgba(231, 111, 81, 0.3)', color: '#E76F51' }}>Error</Tag>;
+        return <Tag className="ocean-tag ocean-tag-error">Error</Tag>;
       }
-      return <Tag style={{ fontSize: 9, margin: 0, padding: "0 6px", lineHeight: "18px", background: 'rgba(42, 157, 143, 0.15)', border: '1px solid rgba(42, 157, 143, 0.3)', color: '#2A9D8F' }}>Confirmado</Tag>;
+      return <Tag className="ocean-tag ocean-tag-success">Confirmado</Tag>;
     },
   };
 
@@ -415,11 +415,11 @@ export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, ac
 
   if (measurements.length === 0) {
     return (
-      <Flex justify="center" align="center" style={{ height: 200 }} vertical gap={12}>
-        <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(0, 180, 216, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Flex justify="center" align="center" className="ocean-empty-state">
+        <div className="ocean-empty-icon">
           <FaDownload style={{ fontSize: 20, color: 'rgba(0, 180, 216, 0.4)' }} />
         </div>
-        <Text style={{ fontSize: 14, color: 'rgba(255, 255, 255, 0.5)' }}>Sin mediciones para este día</Text>
+        <Text className="ocean-text-lg ocean-text-muted">Sin mediciones para este día</Text>
       </Flex>
     );
   }

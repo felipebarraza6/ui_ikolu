@@ -91,7 +91,7 @@ const PointConfigDrawer = ({ open, onClose, pointName, configData, loading }) =>
       }
     >
       {loading ? (
-        <Flex justify="center" align="center" style={{ height: 300 }}>
+        <Flex justify="center" align="center" className="ocean-empty-state">
           <Spin size="large" tip="Cargando configuración..." />
         </Flex>
       ) : (
@@ -111,23 +111,15 @@ const PointConfigDrawer = ({ open, onClose, pointName, configData, loading }) =>
                 size="small"
                 bodyStyle={{ padding: "12px 16px" }}
                 style={{
-                  borderRadius: 12,
                   border: `1px solid ${hasValue ? 'rgba(0, 180, 216, 0.3)' : 'rgba(255, 255, 255, 0.1)'}`,
                   background: hasValue ? 'rgba(0, 180, 216, 0.08)' : 'rgba(255, 255, 255, 0.03)',
-                  backdropFilter: 'blur(10px)',
                 }}
+                className="ocean-panel"
               >
                 <Flex align="center" gap={12}>
                     <div
+                    className={hasValue ? "ocean-icon-badge" : "ocean-icon-badge-muted"}
                     style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 10,
-                      background: hasValue ? 'rgba(0, 180, 216, 0.15)' : 'rgba(255, 255, 255, 0.05)',
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
                       border: `1px solid ${hasValue ? 'rgba(0, 180, 216, 0.2)' : 'rgba(255, 255, 255, 0.05)'}`,
                     }}
                   >
@@ -148,7 +140,7 @@ const PointConfigDrawer = ({ open, onClose, pointName, configData, loading }) =>
                     >
                       {field.label}
                     </Text>
-                    <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.5)' }}>
+                    <Text className="ocean-text-sm ocean-text-muted">
                       {field.description}
                     </Text>
                   </Flex>

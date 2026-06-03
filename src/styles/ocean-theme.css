@@ -915,3 +915,577 @@
   transform: scale(0.98);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
+
+/* =====================================================
+   Utility Classes - Control Center Inline Style Replacement
+   ===================================================== */
+
+/* --- Text Utilities --- */
+
+.ocean-text-xs { font-size: 10px; }
+.ocean-text-sm { font-size: 11px; }
+.ocean-text-md { font-size: 12px; }
+.ocean-text-base { font-size: 13px; }
+.ocean-text-lg { font-size: 14px; }
+.ocean-text-xl { font-size: 16px; }
+.ocean-text-2xl { font-size: 20px; }
+
+.ocean-text-primary { color: rgba(255, 255, 255, 0.9); }
+.ocean-text-secondary { color: rgba(255, 255, 255, 0.7); }
+.ocean-text-muted { color: rgba(255, 255, 255, 0.5); }
+.ocean-text-disabled { color: rgba(255, 255, 255, 0.3); }
+
+.ocean-text-cyan { color: #00B4D8; }
+.ocean-text-cyan-light { color: #90E0EF; }
+.ocean-text-blue { color: #0077B6; }
+.ocean-text-teal { color: #2A9D8F; }
+.ocean-text-coral { color: #E76F51; }
+.ocean-text-orange { color: #F4A261; }
+
+.ocean-font-semibold { font-weight: 600; }
+.ocean-font-bold { font-weight: 700; }
+.ocean-font-mono { font-family: monospace; }
+
+.ocean-uppercase { text-transform: uppercase; }
+.ocean-letter-spacing { letter-spacing: 0.5px; }
+.ocean-text-center { text-align: center; }
+.ocean-text-right { text-align: right; }
+
+/* --- Glass Panels --- */
+
+.ocean-glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 180, 216, 0.15);
+}
+
+.ocean-glass-hover:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(0, 180, 216, 0.25);
+}
+
+.ocean-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 180, 216, 0.15);
+  border-radius: 12px;
+}
+
+.ocean-panel-lg {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 180, 216, 0.15);
+  border-radius: 16px;
+}
+
+.ocean-panel-sm {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 180, 216, 0.15);
+  border-radius: 8px;
+}
+
+/* --- Info / Accent Cards --- */
+
+.ocean-info-card {
+  background: rgba(0, 180, 216, 0.08);
+  border: 1px solid rgba(0, 180, 216, 0.2);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.ocean-info-card-sm {
+  background: rgba(0, 180, 216, 0.08);
+  border: 1px solid rgba(0, 180, 216, 0.2);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.ocean-success-card {
+  background: rgba(42, 157, 143, 0.1);
+  border: 1px solid rgba(42, 157, 143, 0.3);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.ocean-error-card {
+  background: rgba(231, 111, 81, 0.1);
+  border: 1px solid rgba(231, 111, 81, 0.3);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.ocean-warning-card {
+  background: rgba(244, 162, 97, 0.1);
+  border: 1px solid rgba(244, 162, 97, 0.3);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+/* --- Tags / Badges --- */
+
+.ocean-tag {
+  font-size: 10px;
+  margin: 0;
+  padding: 1px 6px;
+  line-height: 18px;
+  border-radius: 4px;
+}
+
+.ocean-tag-info {
+  background: rgba(0, 180, 216, 0.1);
+  border: 1px solid rgba(0, 180, 216, 0.2);
+  color: #90E0EF;
+}
+
+.ocean-tag-success {
+  background: rgba(42, 157, 143, 0.15);
+  border: 1px solid rgba(42, 157, 143, 0.3);
+  color: #2A9D8F;
+}
+
+.ocean-tag-error {
+  background: rgba(231, 111, 81, 0.15);
+  border: 1px solid rgba(231, 111, 81, 0.3);
+  color: #E76F51;
+}
+
+.ocean-tag-warning {
+  background: rgba(244, 162, 97, 0.15);
+  border: 1px solid rgba(244, 162, 97, 0.3);
+  color: #F4A261;
+}
+
+.ocean-tag-default {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* --- Icon Badges --- */
+
+.ocean-icon-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(0, 180, 216, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 180, 216, 0.2);
+}
+
+.ocean-icon-badge-sm {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(0, 180, 216, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ocean-icon-badge-muted {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* --- Empty States --- */
+
+.ocean-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  height: 200px;
+  gap: 12px;
+}
+
+.ocean-empty-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(0, 180, 216, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- Stat Pills --- */
+
+.ocean-stat-pill {
+  text-align: center;
+  min-width: 90px;
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(0, 180, 216, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+/* --- Metric Cards --- */
+
+.ocean-metric-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 180, 216, 0.15);
+  overflow: visible;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+
+.ocean-metric-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(0, 180, 216, 0.1);
+  background: linear-gradient(90deg, rgba(0, 180, 216, 0.08) 0%, transparent 100%);
+}
+
+.ocean-metric-kpis {
+  padding: 10px 8px;
+  border-bottom: 1px solid rgba(0, 180, 216, 0.1);
+  background: rgba(0, 180, 216, 0.03);
+}
+
+/* --- Table Utilities --- */
+
+.ocean-table-header-cell {
+  font-size: 10px !important;
+  padding: 10px 8px !important;
+  font-weight: 600 !important;
+  color: rgba(255, 255, 255, 0.5) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  background: rgba(0, 180, 216, 0.05) !important;
+}
+
+/* --- Section Headers --- */
+
+.ocean-section-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(0, 180, 216, 0.1);
+  background: linear-gradient(90deg, rgba(0, 180, 216, 0.08) 0%, transparent 100%);
+}
+
+/* --- Layout Utilities --- */
+
+.ocean-flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ocean-flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ocean-flex-end {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.ocean-flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.ocean-flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* --- Data Cards (for DGA results etc) --- */
+
+.ocean-data-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 12px 14px;
+  text-align: center;
+  border: 1px solid rgba(0, 180, 216, 0.15);
+  backdrop-filter: blur(10px);
+}
+
+.ocean-data-card-sm {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 8px 12px;
+  border: 1px solid rgba(0, 180, 216, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+/* --- Console / Terminal --- */
+
+.ocean-console {
+  background: rgba(5, 10, 20, 0.95);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-family: monospace;
+  font-size: 11px;
+  color: #d4d4d4;
+  border: 1px solid rgba(0, 180, 216, 0.15);
+}
+
+/* --- Gradient Backgrounds --- */
+
+.ocean-bg-gradient-cyan {
+  background: linear-gradient(135deg, #0077B6 0%, #00B4D8 100%);
+}
+
+.ocean-bg-gradient-teal {
+  background: linear-gradient(135deg, #2A9D8F 0%, #00B4D8 100%);
+}
+
+.ocean-bg-gradient-coral {
+  background: linear-gradient(135deg, #E76F51 0%, #F4A261 100%);
+}
+
+/* --- Cursor --- */
+
+.ocean-cursor-pointer {
+  cursor: pointer;
+}
+
+/* --- Form Inputs (read-only) --- */
+
+.ocean-input-readonly {
+  border-radius: 8px;
+  font-size: 13px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 180, 216, 0.15);
+}
+
+/* --- Skeleton placeholders --- */
+
+.ocean-skeleton-box {
+  border-radius: 12px;
+  border: 1px solid rgba(0, 180, 216, 0.15);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+}
+
+.ocean-skeleton-bar {
+  background: rgba(0, 180, 216, 0.08);
+}
+
+.ocean-skeleton-fill {
+  background: rgba(0, 180, 216, 0.05);
+}
+
+/* --- Drawer / Modal content wrappers --- */
+
+.ocean-drawer-content {
+  background: rgba(5, 10, 20, 0.95);
+  backdrop-filter: blur(20px);
+}
+
+.ocean-modal-content {
+  background: rgba(5, 10, 20, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 180, 216, 0.2);
+  border-radius: 24px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+}
+
+/* =====================================================
+   Chat Component Utilities
+   ===================================================== */
+
+.chat-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0A2540 0%, #0077B6 50%, #00B4D8 100%);
+  background-size: 400% 400%;
+  animation: gradient-flow 8s ease infinite;
+  border: 2px solid rgba(0, 180, 216, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0, 180, 216, 0.4);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.chat-fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 30px rgba(0, 180, 216, 0.6);
+}
+
+.chat-card {
+  position: fixed;
+  bottom: 90px;
+  right: 24px;
+  width: 400px;
+  height: 550px;
+  border-radius: 24px;
+  z-index: 1000;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: fade-in-ocean 0.25s ease;
+  background: rgba(5, 10, 20, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 180, 216, 0.2);
+}
+
+.chat-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(0, 180, 216, 0.15);
+  flex-shrink: 0;
+  background: rgba(0, 180, 216, 0.05);
+}
+
+.chat-objective {
+  padding: 12px 16px;
+  background: rgba(0, 180, 216, 0.03);
+  border-bottom: 1px solid rgba(0, 180, 216, 0.1);
+  flex-shrink: 0;
+}
+
+.chat-messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chat-avatar-bot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0077B6 0%, #00B4D8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.chat-avatar-header {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0077B6 0%, #00B4D8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 15px rgba(0, 180, 216, 0.3);
+}
+
+.chat-bubble-user {
+  max-width: 85%;
+  padding: 12px 16px;
+  border-radius: 18px 18px 4px 18px;
+  background: linear-gradient(135deg, #0077B6 0%, #00B4D8 100%);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.chat-bubble-bot {
+  max-width: 85%;
+  padding: 12px 16px;
+  border-radius: 18px 18px 18px 4px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  line-height: 1.5;
+  word-break: break-word;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.chat-typing {
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.chat-typing-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #00B4D8;
+  animation: chat-bounce 1.4s infinite ease-in-out both;
+}
+
+.chat-suggestions {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(0, 180, 216, 0.1);
+  background: rgba(0, 180, 216, 0.03);
+  flex-shrink: 0;
+}
+
+.chat-input-area {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(0, 180, 216, 0.1);
+  background: rgba(5, 10, 20, 0.9);
+  flex-shrink: 0;
+}
+
+.chat-input {
+  flex: 1;
+  border-radius: 16px;
+  border: 1.5px solid rgba(0, 180, 216, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 13px;
+  padding: 10px 14px;
+  color: #fff;
+}
+
+.chat-btn-suggestions {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 180, 216, 0.1);
+  border: 1px solid rgba(0, 180, 216, 0.2);
+}
+
+.chat-btn-send {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0077B6 0%, #00B4D8 100%);
+  border: none;
+  box-shadow: 0 0 15px rgba(0, 180, 216, 0.3);
+}
+
+.chat-tag-suggestion {
+  font-size: 11px;
+  margin: 0;
+  cursor: pointer;
+  line-height: 22px;
+  background: rgba(0, 180, 216, 0.1);
+  border: 1px solid rgba(0, 180, 216, 0.2);
+  color: #90E0EF;
+  border-radius: 12px;
+  padding: 2px 12px;
+}

@@ -90,12 +90,12 @@ const CCSupportDrawer = ({ open, onClose, point, form, loading, setLoading, cont
     >
       {point && (
         <Flex vertical gap={12} style={{ marginBottom: 16 }}>
-          <Card size="small" bodyStyle={{ padding: 12 }} style={{ background: 'rgba(0, 180, 216, 0.08)', border: '1px solid rgba(0, 180, 216, 0.2)', borderRadius: 12, backdropFilter: 'blur(10px)' }}>
-            <Text strong style={{ fontSize: 13, display: "block", color: 'rgba(255, 255, 255, 0.9)' }}>{point.name}</Text>
+          <Card size="small" bodyStyle={{ padding: 12 }} className="ocean-info-card">
+            <Text className="ocean-text-base ocean-text-primary ocean-font-semibold" style={{ display: "block" }}>{point.name}</Text>
             {point.code ? (
-              <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.5)' }}>Código: {point.code}</Text>
+              <Text className="ocean-text-sm ocean-text-muted">Código: {point.code}</Text>
             ) : point.client ? (
-              <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.5)' }}>Cliente: {point.client}</Text>
+              <Text className="ocean-text-sm ocean-text-muted">Cliente: {point.client}</Text>
             ) : null}
           </Card>
         </Flex>
@@ -125,7 +125,7 @@ const CCSupportDrawer = ({ open, onClose, point, form, loading, setLoading, cont
             placeholder="Describe el problema o solicitud de soporte..."
             maxLength={1000}
             showCount
-            style={{ borderRadius: 8, fontSize: 13 }}
+            className="ocean-input-readonly"
           />
         </Form.Item>
       </Form>

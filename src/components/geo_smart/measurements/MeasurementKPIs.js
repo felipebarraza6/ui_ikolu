@@ -19,47 +19,27 @@ export const TrendArrow = ({ current, previous }) => {
 };
 
 export const StatPill = ({ label, value, sub, color, valueColor }) => (
-  <div style={{
-    textAlign: "center",
-    minWidth: 90,
-    flex: "0 0 auto",
-    padding: "8px 12px",
-    background: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 10,
-    border: `1px solid ${color}30`,
-    backdropFilter: 'blur(10px)',
-  }}>
+  <div className="ocean-stat-pill" style={{ border: `1px solid ${color}30` }}>
     {typeof label === 'string' ? (
-      <Text style={{ fontSize: 9, color: "rgba(255, 255, 255, 0.5)", display: "block", lineHeight: 1.2, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2, fontWeight: 500 }}>{label}</Text>
+      <Text className="ocean-text-xs ocean-text-muted ocean-uppercase ocean-letter-spacing" style={{ display: "block", lineHeight: 1.2, marginBottom: 2, fontWeight: 500 }}>{label}</Text>
     ) : label}
     <Text strong style={{ fontSize: 15, color: valueColor || color, display: "block", lineHeight: 1.2 }}>{value}</Text>
-    {sub && <Text style={{ fontSize: 10, color: "rgba(255, 255, 255, 0.4)", lineHeight: 1.2, marginTop: 2, fontWeight: sub === 'TOTAL' ? 700 : 400, textTransform: sub === 'TOTAL' ? 'uppercase' : 'none' }}>{sub}</Text>}
+    {sub && <Text style={{ fontSize: 11, color: "rgba(255, 255, 255, 0.4)", lineHeight: 1.2, marginTop: 2, fontWeight: sub === 'TOTAL' ? 700 : 400, textTransform: sub === 'TOTAL' ? 'uppercase' : 'none' }}>{sub}</Text>}
   </div>
 );
 
 export const MetricCard = ({ title, icon, kpis, children }) => {
   const { token } = useToken();
   return (
-    <div style={{
-      background: 'rgba(255, 255, 255, 0.03)',
-      borderRadius: 16,
-      border: '1px solid rgba(0, 180, 216, 0.15)',
-      overflow: "visible",
-      backdropFilter: 'blur(10px)',
-      boxShadow: '0 4px 24px rgba(0, 0, 0, 0.2)',
-    }}>
-      <div style={{
-        padding: "12px 16px",
-        borderBottom: '1px solid rgba(0, 180, 216, 0.1)',
-        background: 'linear-gradient(90deg, rgba(0, 180, 216, 0.08) 0%, transparent 100%)',
-      }}>
+    <div className="ocean-metric-card">
+      <div className="ocean-metric-header">
         <Flex align="center" gap={8}>
           {icon}
-          <Text strong style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.9)' }}>{title}</Text>
+          <Text className="ocean-text-base ocean-text-primary ocean-font-semibold">{title}</Text>
         </Flex>
       </div>
       {kpis && (
-        <div style={{ padding: "10px 8px", borderBottom: '1px solid rgba(0, 180, 216, 0.1)', background: 'rgba(0, 180, 216, 0.03)' }}>
+        <div className="ocean-metric-kpis">
           <Flex gap={8} wrap="nowrap" justify="center">
             {kpis}
           </Flex>
