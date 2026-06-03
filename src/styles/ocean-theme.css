@@ -1489,3 +1489,42 @@
   border-radius: 12px;
   padding: 2px 12px;
 }
+
+/* =====================================================
+   Layout Utilities - ControlCenterLayout
+   ===================================================== */
+
+.ocean-layout {
+  margin-bottom: 24px;
+  padding: 0 8px;
+}
+
+.ocean-kpi-row {
+  margin-bottom: 24px;
+}
+
+.ocean-tabs-container {
+  margin-top: 24px;
+  padding: 24px;
+  border-radius: 24px;
+}
+
+.ocean-tabs-header {
+  margin-bottom: 16px;
+}
+
+.ocean-icon-cyan {
+  font-size: 14px;
+  color: #90E0EF;
+}
+
+.ocean-tab-label {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.ocean-segmented {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 4px;
+}

@@ -27,12 +27,9 @@ const ControlCenterLayout = memo(({
   const { token } = useToken();
 
   return (
-    <div style={{ 
-      marginBottom: 24,
-      padding: "0 8px",
-    }}>
+    <div className="ocean-layout">
       {/* KPIs */}
-      <Row id="cc-kpi-cards" gutter={[16, 16]} style={{ marginBottom: 24 }} className="fade-in">
+      <Row id="cc-kpi-cards" gutter={[16, 16]} className="ocean-kpi-row fade-in">
         <Col xs={12} sm={6} md={6}>
           <div className="card-lift">
             <SmartKPICard
@@ -88,23 +85,16 @@ const ControlCenterLayout = memo(({
       <ControlCenterChat points={points} chatQuota={chatQuota} />
 
       {/* Tabs + Children (Outlet) */}
-      <div 
-        className="glass"
-        style={{ 
-          marginTop: 24,
-          padding: 24,
-          borderRadius: 24,
-        }}
-      >
-        <Flex justify="flex-end" style={{ marginBottom: 16 }}>
+      <div className="glass ocean-tabs-container">
+        <Flex justify="flex-end" className="ocean-tabs-header">
           <Segmented
             options={[
               {
                 value: "telemetry",
                 label: (
                   <Flex align="center" gap={8}>
-                    <FaBroadcastTower style={{ fontSize: 14, color: "#90E0EF" }} />
-                    <span style={{ color: "rgba(255,255,255,0.9)", fontWeight: 500 }}>Telemetría</span>
+                    <FaBroadcastTower className="ocean-icon-cyan" />
+                    <span className="ocean-tab-label">Telemetría</span>
                   </Flex>
                 ),
               },
@@ -112,19 +102,15 @@ const ControlCenterLayout = memo(({
                 value: "compliance",
                 label: (
                   <Flex align="center" gap={8}>
-                    <FaClipboardCheck style={{ fontSize: 14, color: "#90E0EF" }} />
-                    <span style={{ color: "rgba(255,255,255,0.9)", fontWeight: 500 }}>Cumplimiento</span>
+                    <FaClipboardCheck className="ocean-icon-cyan" />
+                    <span className="ocean-tab-label">Cumplimiento</span>
                   </Flex>
                 ),
               },
             ]}
             value={activeTab}
             onChange={onTabChange}
-            style={{ 
-              background: "rgba(255, 255, 255, 0.05)",
-              borderRadius: 12,
-              padding: 4,
-            }}
+            className="ocean-segmented"
           />
         </Flex>
 
