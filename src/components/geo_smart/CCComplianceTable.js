@@ -48,10 +48,10 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
     responsive: ["md"],
     render: (_, record) => (
       <Flex vertical gap={2} align="center">
-        <Tag className="ocean-tag ocean-tag-default" style={{ fontFamily: smarthydro.typography.body }}>
+        <Tag className="ocean-tag ocean-tag-default ocean-font-body">
           {typeDgaLabels[record.standard] || record.standard}
         </Tag>
-        <Text className="ocean-text-xs ocean-text-secondary" style={{ fontFamily: smarthydro.typography.body }}>
+        <Text className="ocean-text-xs ocean-text-secondary ocean-font-body">
           {typeDgaLabels[record.type_dga] || record.type_dga}
         </Text>
       </Flex>
@@ -92,20 +92,20 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
         <Flex vertical gap={2} align="center">
           {currentFlow != null && authorizedFlow > 0 ? (
             <>
-              <Text strong className="ocean-text-lg" style={{ color: flowColor, fontFamily: smarthydro.typography.heading }}>
+              <Text strong className="ocean-text-lg ocean-font-heading" style={{ color: flowColor }}>
                 {Number(currentFlow).toFixed(1)}
-                <span className="ocean-text-xs ocean-font-normal" style={{ marginLeft: 2, fontFamily: smarthydro.typography.body }}>L/s</span>
+                <span className="ocean-text-xs ocean-font-normal ocean-ml-xs ocean-font-body">L/s</span>
               </Text>
-              <Text className="ocean-text-xs ocean-text-secondary" style={{ fontFamily: smarthydro.typography.body }}>
+              <Text className="ocean-text-xs ocean-text-secondary ocean-font-body">
                 / {Number(authorizedFlow).toFixed(1)} L/s
               </Text>
             </>
           ) : currentFlow != null ? (
-            <Text strong className="ocean-text-base ocean-text-primary" style={{ fontFamily: smarthydro.typography.heading }}>
+            <Text strong className="ocean-text-base ocean-text-primary ocean-font-heading">
               {Number(currentFlow).toFixed(1)} L/s
             </Text>
           ) : (
-            <Text className="ocean-text-sm ocean-text-disabled" style={{ fontFamily: smarthydro.typography.body }}>—</Text>
+            <Text className="ocean-text-sm ocean-text-disabled ocean-font-body">—</Text>
           )}
         </Flex>
       );
@@ -124,12 +124,12 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
     render: (_, record) => {
       const v = record.water_table_m;
       return v != null ? (
-        <Text className="ocean-text-base" style={{ color: smarthydro.colors.supporting.blue, fontFamily: smarthydro.typography.heading }}>
+        <Text className="ocean-text-base ocean-text-blue ocean-font-heading">
           {Number(v).toFixed(2)}
-          <span className="ocean-text-xs" style={{ marginLeft: 2, fontFamily: smarthydro.typography.body }}>m</span>
+          <span className="ocean-text-xs ocean-ml-xs ocean-font-body">m</span>
         </Text>
       ) : (
-        <Text className="ocean-text-sm ocean-text-disabled" style={{ fontFamily: smarthydro.typography.body }}>—</Text>
+        <Text className="ocean-text-sm ocean-text-disabled ocean-font-body">—</Text>
       );
     },
   },
@@ -170,25 +170,12 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
                     onViewComplianceDetail?.(record, "exceeded");
                   }
                 }}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 4,
-                  background: "rgba(231, 111, 81, 0.1)",
-                  borderRadius: 6,
-                  padding: "2px 6px",
-                  border: "1px solid rgba(231, 111, 81, 0.3)",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  minWidth: 40,
-                  height: 24
-                }}
+                className="ocean-audit-badge ocean-audit-badge-error"
                 onMouseEnter={(e) => { e.currentTarget.style.opacity = 0.85; }}
                 onMouseLeave={(e) => { e.currentTarget.style.opacity = 1; }}
               >
-                <FaExclamationTriangle style={{ fontSize: 9, color: "#E76F51" }} />
-                <Text className="ocean-text-xs ocean-font-semibold" style={{ color: "#E76F51", fontFamily: smarthydro.typography.body }}>
+                <FaExclamationTriangle className="ocean-audit-icon-error" />
+                <Text className="ocean-text-xs ocean-font-semibold ocean-text-coral ocean-font-body">
                   {exceededHasMore ? "20+" : exceededCount}
                 </Text>
               </div>
@@ -211,25 +198,12 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
                     onViewComplianceDetail?.(record, "near_limit");
                   }
                 }}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 4,
-                  background: "rgba(244, 162, 97, 0.1)",
-                  borderRadius: 6,
-                  padding: "2px 6px",
-                  border: "1px solid rgba(244, 162, 97, 0.3)",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  minWidth: 40,
-                  height: 24
-                }}
+                className="ocean-audit-badge ocean-audit-badge-warning"
                 onMouseEnter={(e) => { e.currentTarget.style.opacity = 0.85; }}
                 onMouseLeave={(e) => { e.currentTarget.style.opacity = 1; }}
               >
-                <FaChartLine style={{ fontSize: 9, color: "#F4A261" }} />
-                <Text className="ocean-text-xs ocean-font-semibold" style={{ color: "#F4A261", fontFamily: smarthydro.typography.body }}>
+                <FaChartLine className="ocean-audit-icon-warning" />
+                <Text className="ocean-text-xs ocean-font-semibold ocean-text-orange ocean-font-body">
                   {nearLimitHasMore ? "20+" : nearLimitCount}
                 </Text>
               </div>
@@ -288,17 +262,11 @@ const CCComplianceTable = ({ points, last7, onViewVoucher, onOpenStopCompliance,
         scroll={{ x: "max-content" }}
         pagination={{ pageSize: 10, hideOnSinglePage: true }}
         locale={{ emptyText: "No hay puntos disponibles" }}
-        className="ocean-table"
-        style={{
-          background: "transparent",
-          borderRadius: 16,
-          overflow: "hidden",
-        }}
+        className="ocean-table ocean-table-transparent"
       onRow={(record) => ({
+        className: "ocean-table-row",
         style: {
-          borderBottom: `1px solid rgba(255, 255, 255, 0.05)`,
-          borderLeft: `4px solid ${levelColorMap[record.compliance_warning?.level || "safe"]}?.color || levelColorMap.safe.color}`,
-          background: "transparent",
+          borderLeft: `4px solid ${levelColorMap[record.compliance_warning?.level || "safe"]?.color || levelColorMap.safe.color}`,
         },
       })}
     />

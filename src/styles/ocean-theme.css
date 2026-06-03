@@ -1614,3 +1614,67 @@
   line-height: 1.2;
   margin-top: 2px;
 }
+
+/* =====================================================
+   CCComplianceTable Utilities
+   ===================================================== */
+
+.ocean-font-body {
+  font-family: var(--font-body, 'Roboto', sans-serif);
+}
+
+.ocean-font-heading {
+  font-family: var(--font-heading, 'Lato', sans-serif);
+}
+
+.ocean-ml-xs {
+  margin-left: 2px;
+}
+
+.ocean-text-blue {
+  color: #0077B6;
+}
+
+.ocean-audit-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 6px;
+  padding: 2px 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 40px;
+  height: 24px;
+}
+
+.ocean-audit-badge-error {
+  background: rgba(231, 111, 81, 0.1);
+  border: 1px solid rgba(231, 111, 81, 0.3);
+}
+
+.ocean-audit-badge-warning {
+  background: rgba(244, 162, 97, 0.1);
+  border: 1px solid rgba(244, 162, 97, 0.3);
+}
+
+.ocean-audit-icon-error {
+  font-size: 9px;
+  color: #E76F51;
+}
+
+.ocean-audit-icon-warning {
+  font-size: 9px;
+  color: #F4A261;
+}
+
+.ocean-table-transparent {
+  background: transparent;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.ocean-table-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: transparent;
+}
