@@ -49,7 +49,7 @@ export const MeasurementsLineChart = ({ data, metric, token, title, minInfo, max
 
 /* ── Dual Column Chart (Nivel + Nivel Freático) ── */
 export const MeasurementsDualColumnChart = ({ data, token, showOnly, wellConfig, pointName, date, metric, avgInfo }) => {
-  if (!data || data.length === 0) return <Flex justify="center" align="center" style={{ height: 220 }} vertical><Text type="secondary" style={{ fontSize: 12 }}>Sin datos</Text></Flex>;
+  if (!data || data.length === 0) return <Flex justify="center" align="center" className="ocean-empty-state" vertical><Text className="ocean-text-md ocean-text-secondary">Sin datos</Text></Flex>;
 
   const wellDepth = wellConfig?.d1 || null;
   const sensorPos = wellConfig?.d3 || null;
@@ -226,7 +226,7 @@ export const MeasurementsDualColumnChart = ({ data, token, showOnly, wellConfig,
 
 /* ── Combined Level Chart (Pozo: 4 zonas dinámicas con rangeArea) ── */
 export const MeasurementsCombinedLevelChart = ({ data, token, wellConfig, pointName, date, onExportCSV, onExportPNG }) => {
-  if (!data || data.length === 0) return <Flex justify="center" align="center" style={{ height: 220 }} vertical><Text type="secondary" style={{ fontSize: 12 }}>Sin datos</Text></Flex>;
+  if (!data || data.length === 0) return <Flex justify="center" align="center" className="ocean-empty-state" vertical><Text className="ocean-text-md ocean-text-secondary">Sin datos</Text></Flex>;
 
   const wellDepth = wellConfig?.d1 || 100;
   const sensorPos = wellConfig?.d3 || null;
