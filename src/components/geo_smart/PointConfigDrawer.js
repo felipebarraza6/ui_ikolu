@@ -65,8 +65,8 @@ const PointConfigDrawer = ({ open, onClose, pointName, configData, loading }) =>
     <Drawer
       title={
         <Flex align="center" gap={8}>
-          <FaInfoCircle style={{ color: token.colorPrimary, fontSize: 16 }} />
-          <Text strong style={{ fontSize: 16 }}>
+          <FaInfoCircle className="ocean-icon-cyan" />
+          <Text strong className="ocean-text-xl ocean-text-primary">
             {pointName || "Configuración del punto"}
           </Text>
         </Flex>
@@ -77,12 +77,12 @@ const PointConfigDrawer = ({ open, onClose, pointName, configData, loading }) =>
       styles={{ body: { padding: 20 } }}
       footer={
         <Flex justify="space-between" align="center">
-          <Text type="secondary" style={{ fontSize: 12 }}>
+          <Text className="ocean-text-md ocean-text-secondary">
             Ficha técnica rápida
           </Text>
           <Button
             type="primary"
-            icon={<FaArrowRight style={{ fontSize: 12 }} />}
+            icon={<FaArrowRight className="ocean-text-sm" />}
             onClick={handleNavigateToTelemetry}
           >
             Ver más en Telemetría
@@ -96,7 +96,7 @@ const PointConfigDrawer = ({ open, onClose, pointName, configData, loading }) =>
         </Flex>
       ) : (
         <Flex vertical gap={12}>
-          <Text type="secondary" style={{ fontSize: 13, marginBottom: 8 }}>
+          <Text className="ocean-text-base ocean-text-secondary ocean-mb-sm">
             Parámetros técnicos configurados para este punto de captación.
           </Text>
 
@@ -130,13 +130,10 @@ const PointConfigDrawer = ({ open, onClose, pointName, configData, loading }) =>
                       }}
                     />
                   </div>
-                  <Flex vertical gap={2} style={{ flex: 1 }}>
+                  <Flex vertical gap={2} className="ocean-config-field">
                     <Text
                       strong
-                      style={{
-                        fontSize: 13,
-                        color: hasValue ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.3)',
-                      }}
+                      className={hasValue ? "ocean-text-base ocean-text-primary" : "ocean-text-base ocean-text-disabled"}
                     >
                       {field.label}
                     </Text>
@@ -146,11 +143,8 @@ const PointConfigDrawer = ({ open, onClose, pointName, configData, loading }) =>
                   </Flex>
                   <Text
                     strong
-                    style={{
-                      fontSize: 16,
-                      color: hasValue ? '#90E0EF' : 'rgba(255, 255, 255, 0.3)',
-                      whiteSpace: "nowrap",
-                    }}
+                    className={hasValue ? "ocean-text-xl ocean-text-cyan-light" : "ocean-text-xl ocean-text-disabled"}
+                    style={{ whiteSpace: "nowrap" }}
                   >
                     {hasValue ? `${value} ${field.unit}` : "No configurado"}
                   </Text>

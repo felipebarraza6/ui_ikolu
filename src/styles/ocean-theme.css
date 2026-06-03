@@ -1554,3 +1554,15 @@
   align-items: center;
   gap: 6px;
 }
+
+/* =====================================================
+   PointConfigDrawer Utilities
+   ===================================================== */
+
+.ocean-mb-sm {
+  margin-bottom: 8px;
+}
+
+.ocean-config-field {
+  flex: 1;
+}
