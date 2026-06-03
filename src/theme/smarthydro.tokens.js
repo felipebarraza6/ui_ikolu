@@ -4,77 +4,84 @@
 // Accent: #CCCF07 (Yellow-Green / Lime)
 
 export const smarthydroColors = {
-  // Primary palette - Corporate Blue
+  // Ocean Deep palette - Ultra modern water theme
   primary: {
-    25: '#F5F6FA',
-    50: '#E8EBF2',
-    100: '#D1D6E5',
-    200: '#A3ADCB',
-    300: '#7584B1',
-    400: '#4D6399',
-    500: '#203562',  // PRIMARY BRAND COLOR
-    600: '#1B2D54',
-    700: '#152447',
-    800: '#0F1B3A',
-    900: '#0A1228',
+    25: '#E8F4F8',
+    50: '#D0E9F2',
+    100: '#A8D8E8',
+    200: '#6BBFD9',
+    300: '#3BA3C9',
+    400: '#1A7A9E',
+    500: '#0A2540',  // Deep ocean
+    600: '#081E35',
+    700: '#06182A',
+    800: '#041220',
+    900: '#020C16',
   },
   
-  // Accent palette - Yellow-Green (CTAs, highlights)
+  // Cyan/Water accent
   accent: {
-    50: '#F9F9E6',
-    100: '#F0F0CC',
-    200: '#E6E699',
-    300: '#D9D966',
-    400: '#CCCF07',  // ACCENT BRAND COLOR
-    500: '#BDC00C',
-    600: '#9BA00A',
-    700: '#7A8008',
-    800: '#596006',
-    900: '#3D4204',
+    50: '#E0FBFC',
+    100: '#C1F4F8',
+    200: '#90E0EF',
+    300: '#60C6E0',
+    400: '#00B4D8',
+    500: '#0096C7',
+    600: '#0077B6',
+    700: '#005F8C',
+    800: '#004A6E',
+    900: '#003852',
   },
   
-  // Secondary backgrounds
-  secondary: '#F0EFF4',
-  secondaryLight: '#F9F9FF',
+  // Surface colors - glassmorphism
+  surface: {
+    light: 'rgba(255, 255, 255, 0.03)',
+    medium: 'rgba(255, 255, 255, 0.06)',
+    strong: 'rgba(255, 255, 255, 0.10)',
+    border: 'rgba(255, 255, 255, 0.08)',
+    glow: 'rgba(0, 180, 216, 0.15)',
+  },
   
   // Supporting colors
   supporting: {
-    blue: '#3A68AA',    // Gradients, depth
-    olive: '#69812A',   // Nature/water connection
-    yellow: '#FCE921',  // Bright highlights
+    blue: '#0077B6',
+    cyan: '#00B4D8',
+    teal: '#2A9D8F',
+    coral: '#F4A261',
+    warm: '#E76F51',
   },
   
-  // Semantic colors (mapped to brand identity)
+  // Semantic colors - Water themed
   semantic: {
-    success: '#69812A',  // Olive (naturaleza/agua)
-    successBg: '#F4F7E8',
-    successBorder: '#D4E0A8',
+    success: '#2A9D8F',  // Clean water teal
+    successBg: 'rgba(42, 157, 143, 0.15)',
+    successBorder: 'rgba(42, 157, 143, 0.3)',
     
-    warning: '#CCCF07',  // Yellow-green (coincide con marca)
-    warningBg: '#F9F9E6',
-    warningBorder: '#E6E699',
+    warning: '#F4A261',  // Warm coral
+    warningBg: 'rgba(244, 162, 97, 0.15)',
+    warningBorder: 'rgba(244, 162, 97, 0.3)',
     
-    error: '#DC2626',    // Rojo estándar
-    errorBg: '#FEF2F2',
-    errorBorder: '#FECACA',
+    error: '#E76F51',    // Deep coral
+    errorBg: 'rgba(231, 111, 81, 0.15)',
+    errorBorder: 'rgba(231, 111, 81, 0.3)',
     
-    info: '#3A68AA',     // Supporting blue
-    infoBg: '#EBF0F8',
-    infoBorder: '#B8CCE8',
+    info: '#00B4D8',     // Cyan water
+    infoBg: 'rgba(0, 180, 216, 0.15)',
+    infoBorder: 'rgba(0, 180, 216, 0.3)',
   },
   
-  // Neutral palette
+  // Neutral palette - Cool grays for dark theme
   neutral: {
-    50: '#FAFAFA',
-    100: '#F5F5F5',
-    200: '#E8E8E8',
-    300: '#D9D9D9',
-    400: '#BFBFBF',
-    500: '#8C8C8C',
-    600: '#595959',
-    700: '#434343',
-    800: '#262626',
-    900: '#141414',
+    50: '#F8F9FA',
+    100: '#E9ECEF',
+    200: '#DEE2E6',
+    300: '#CED4DA',
+    400: '#ADB5BD',
+    500: '#6C757D',
+    600: '#495057',
+    700: '#343A40',
+    800: '#212529',
+    900: '#050A14',  // Deep ocean background
   },
 };
 
@@ -123,41 +130,51 @@ export const smarthydroSpacing = {
 
 export const smarthydroRadii = {
   none: 0,
-  xs: 2,
-  sm: 4,
-  md: 8,
-  lg: 12,
-  xl: 16,
-  '2xl': 20,
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  '2xl': 24,
   full: 9999,
 };
 
 export const smarthydroShadows = {
   none: 'none',
-  sm: '0 1px 2px rgba(32, 53, 98, 0.05)',
-  md: '0 4px 12px rgba(32, 53, 98, 0.08)',
-  lg: '0 8px 24px rgba(32, 53, 98, 0.12)',
-  xl: '0 12px 36px rgba(32, 53, 98, 0.16)',
-  inner: 'inset 0 2px 4px rgba(32, 53, 98, 0.06)',
-  focus: '0 0 0 3px rgba(32, 53, 98, 0.15)',
+  sm: '0 1px 3px rgba(0, 180, 216, 0.1)',
+  md: '0 4px 16px rgba(0, 180, 216, 0.12)',
+  lg: '0 8px 32px rgba(0, 180, 216, 0.15)',
+  xl: '0 12px 48px rgba(0, 180, 216, 0.2)',
+  glow: '0 0 20px rgba(0, 180, 216, 0.3)',
+  inner: 'inset 0 2px 4px rgba(0, 0, 0, 0.2)',
+  focus: '0 0 0 3px rgba(0, 180, 216, 0.25)',
 };
 
 export const smarthydroGradients = {
-  // Primary gradient for KPIs, headers
-  primary: 'linear-gradient(135deg, #203562 0%, #3A68AA 100%)',
-  primaryReverse: 'linear-gradient(135deg, #3A68AA 0%, #203562 100%)',
+  // Ocean deep gradient - Animated living water
+  ocean: 'linear-gradient(-45deg, #0A2540, #0077B6, #00B4D8, #90E0EF)',
+  oceanDeep: 'linear-gradient(180deg, #050A14 0%, #0A2540 50%, #0D3B4C 100%)',
   
-  // Accent gradient for CTAs, highlights
-  accent: 'linear-gradient(135deg, #CCCF07 0%, #BDC00C 100%)',
+  // Surface gradient - Glassmorphism base
+  surface: 'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)',
+  surfaceHover: 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%)',
   
-  // Subtle gradient for cards, backgrounds
-  subtle: 'linear-gradient(135deg, #F0EFF4 0%, #E8EBF2 100%)',
+  // Primary gradient for KPIs
+  primary: 'linear-gradient(135deg, #0A2540 0%, #0077B6 100%)',
+  primaryReverse: 'linear-gradient(135deg, #0077B6 0%, #0A2540 100%)',
   
-  // Success gradient (olive-based)
-  success: 'linear-gradient(135deg, #69812A 0%, #7A9A32 100%)',
+  // Cyan accent gradient
+  accent: 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)',
+  accentGlow: 'linear-gradient(135deg, #90E0EF 0%, #00B4D8 50%, #0077B6 100%)',
   
-  // Info gradient (supporting blue)
-  info: 'linear-gradient(135deg, #3A68AA 0%, #4D7FBD 100%)',
+  // Teal success gradient
+  success: 'linear-gradient(135deg, #2A9D8F 0%, #3DB8A8 100%)',
+  
+  // Coral warning gradient
+  warning: 'linear-gradient(135deg, #F4A261 0%, #E76F51 100%)',
+  
+  // Info gradient
+  info: 'linear-gradient(135deg, #00B4D8 0%, #3BA3C9 100%)',
 };
 
 export const smarthydroTransitions = {

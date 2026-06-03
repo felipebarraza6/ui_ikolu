@@ -1,8 +1,11 @@
 @import "./shared/ui/SmartSkeleton/skeleton.css";
+@import "./styles/ocean-theme.css";
 
 body {
   margin: 0;
-  background-color: rgb(32, 53, 98);
+  background: linear-gradient(180deg, #050A14 0%, #0A2540 50%, #0D3B4C 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
   font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;

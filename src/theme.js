@@ -1,38 +1,30 @@
-const CORPORATE_BLUE = "#203562";
-const CORPORATE_BLUE_LIGHT = "#3A68AA";
-const CORPORATE_BLUE_MID = "#4D7FBD";
-const CORPORATE_BLUE_BRIGHT = "#1976d2";
+// Ocean Theme - Ultra Modern Water/Fluid Design
+const OCEAN_DEEP = "#0A2540";
+const OCEAN_BLUE = "#0077B6";
+const OCEAN_CYAN = "#00B4D8";
+const OCEAN_LIGHT = "#90E0EF";
+const OCEAN_TEAL = "#2A9D8F";
+const OCEAN_CORAL = "#F4A261";
+const OCEAN_WARM = "#E76F51";
 
-const ACCENT_YELLOW_GREEN = "#CCCF07";
-
-const BACKGROUND_LIGHT = "#F0EFF4";
-const BORDER_LIGHT = "#E8E8E8";
-
-const GREY_TEXT = "#8C8C8C";
-const GREY_TEXT_MID = "#595959";
-const GREY_TEXT_LIGHT = "#BFBFBF";
-const GREY_TEXT_DISABLED = "#BDBDBD";
-
-const BLUE_TINT = "#EBF0F8";
-const BLUE_BG = "#F0F5FF";
-const RED_BG = "#FEF2F2";
-const GREEN_TEXT = "#69812A";
-const GREEN_DARK_TEXT = "#5A7024";
+const BACKGROUND_DEEP = "#050A14";
+const SURFACE_LIGHT = "rgba(255, 255, 255, 0.03)";
+const BORDER_GLASS = "rgba(255, 255, 255, 0.08)";
 
 export const createIkoluTheme = (algorithm = null) => ({
   algorithm,
   token: {
-    colorPrimary: CORPORATE_BLUE,
-    colorLink: CORPORATE_BLUE,
-    colorLinkHover: CORPORATE_BLUE_LIGHT,
-    colorLinkActive: CORPORATE_BLUE,
-    colorSuccess: "#69812A",
-    colorWarning: "#CCCF07",
-    colorError: "#DC2626",
-    colorInfo: "#3A68AA",
-    borderRadius: 8,
-    borderRadiusLG: 12,
-    borderRadiusSM: 6,
+    colorPrimary: OCEAN_CYAN,
+    colorLink: OCEAN_CYAN,
+    colorLinkHover: OCEAN_LIGHT,
+    colorLinkActive: OCEAN_BLUE,
+    colorSuccess: OCEAN_TEAL,
+    colorWarning: OCEAN_CORAL,
+    colorError: OCEAN_WARM,
+    colorInfo: OCEAN_BLUE,
+    borderRadius: 12,
+    borderRadiusLG: 20,
+    borderRadiusSM: 8,
     borderRadiusXS: 4,
     fontSize: 14,
     fontSizeSM: 12,
@@ -40,36 +32,49 @@ export const createIkoluTheme = (algorithm = null) => ({
   },
   components: {
     Button: {
-      colorPrimary: CORPORATE_BLUE,
-    },
-    Card: {
-      borderRadiusLG: 16,
+      colorPrimary: OCEAN_CYAN,
       borderRadius: 12,
     },
+    Card: {
+      borderRadiusLG: 24,
+      borderRadius: 20,
+      colorBgContainer: SURFACE_LIGHT,
+    },
     Layout: {
-      colorBgHeader: CORPORATE_BLUE,
+      colorBgHeader: BACKGROUND_DEEP,
+      colorBgBody: BACKGROUND_DEEP,
     },
     Table: {
-      headerBg: CORPORATE_BLUE,
-      headerColor: "white",
-      headerSortActiveBg: CORPORATE_BLUE,
-      headerSortHoverBg: CORPORATE_BLUE_LIGHT,
-      headerBgDark: "#1A2A4A",
-      headerColorDark: "#fff",
-      headerSortHoverBgDark: "#2A3A5A",
-      headerSortActiveBgDark: "#1A2A4A",
-      borderColor: "#E8E8E8",
-      borderColorDark: "#303030",
-      rowHoverBg: "#F0EFF4",
-      rowHoverBgDark: "#1F2937",
+      headerBg: "rgba(10, 37, 64, 0.9)",
+      headerColor: OCEAN_LIGHT,
+      headerSortActiveBg: "rgba(10, 37, 64, 0.95)",
+      headerSortHoverBg: "rgba(0, 119, 182, 0.3)",
+      borderColor: BORDER_GLASS,
+      rowHoverBg: "rgba(0, 180, 216, 0.05)",
+      colorBgContainer: "transparent",
     },
     Progress: {
-      defaultColor: CORPORATE_BLUE,
+      defaultColor: OCEAN_CYAN,
     },
     Menu: {
-      darkItemBg: CORPORATE_BLUE,
-      darkSubMenuItemBg: "#16264a",
-      darkItemSelectedBg: "rgba(255,255,255,0.15)",
+      darkItemBg: BACKGROUND_DEEP,
+      darkSubMenuItemBg: "rgba(10, 37, 64, 0.8)",
+      darkItemSelectedBg: "rgba(0, 180, 216, 0.2)",
+      darkItemColor: "rgba(255, 255, 255, 0.7)",
+    },
+    Drawer: {
+      colorBgElevated: "rgba(5, 10, 20, 0.95)",
+    },
+    Modal: {
+      colorBgElevated: "rgba(5, 10, 20, 0.95)",
+    },
+    Tag: {
+      borderRadius: 8,
+    },
+    Segmented: {
+      borderRadius: 12,
+      itemSelectedBg: "rgba(0, 180, 216, 0.2)",
+      itemSelectedColor: OCEAN_LIGHT,
     },
   },
 });
@@ -77,41 +82,33 @@ export const createIkoluTheme = (algorithm = null) => ({
 export const ikoluTheme = createIkoluTheme();
 
 export const ikoluTokens = {
-  colorCorporateBlue: CORPORATE_BLUE,
-  colorSuccess: "#69812A",
-  colorWarning: "#CCCF07",
-  colorError: "#DC2626",
-  colorInfo: "#3A68AA",
-  colorText: "rgba(0, 0, 0, 0.88)",
-  colorTextSecondary: GREY_TEXT,
-  colorBgLayout: "#f5f5f5",
-  colorBgContainer: "#ffffff",
-  colorCorporateBlueLight: CORPORATE_BLUE_LIGHT,
-  colorCorporateBlueMid: CORPORATE_BLUE_MID,
-  colorCorporateBlueBright: CORPORATE_BLUE_BRIGHT,
-  colorAccentYellowGreen: ACCENT_YELLOW_GREEN,
-  colorBackgroundLight: BACKGROUND_LIGHT,
-  colorBorderLight: BORDER_LIGHT,
-  colorGreyText: GREY_TEXT,
-  colorGreyTextMid: GREY_TEXT_MID,
-  colorGreyTextLight: GREY_TEXT_LIGHT,
-  colorGreyTextDisabled: GREY_TEXT_DISABLED,
-  colorBlueTint: BLUE_TINT,
-  colorBlueBg: BLUE_BG,
-  colorRedBg: RED_BG,
-  colorGreenText: GREEN_TEXT,
-  colorGreenDarkText: GREEN_DARK_TEXT,
-  colorWhite: "#ffffff",
-  colorBlack: "#000000",
-  shadowCard: "0 4px 12px rgba(32, 53, 98, 0.08)",
-  shadowCardHover: "0 8px 24px rgba(32, 53, 98, 0.12)",
-  shadowNav: "0 -2px 8px rgba(0, 0, 0, 0.06)",
-  shadowPrimary: "0 2px 6px rgba(32, 53, 98, 0.25)",
+  colorPrimary: OCEAN_DEEP,
+  colorCyan: OCEAN_CYAN,
+  colorBlue: OCEAN_BLUE,
+  colorTeal: OCEAN_TEAL,
+  colorCoral: OCEAN_CORAL,
+  colorWarm: OCEAN_WARM,
+  colorSuccess: OCEAN_TEAL,
+  colorWarning: OCEAN_CORAL,
+  colorError: OCEAN_WARM,
+  colorInfo: OCEAN_BLUE,
+  colorText: "rgba(255, 255, 255, 0.9)",
+  colorTextSecondary: "rgba(255, 255, 255, 0.7)",
+  colorBgLayout: BACKGROUND_DEEP,
+  colorBgContainer: SURFACE_LIGHT,
+  colorBgElevated: "rgba(10, 37, 64, 0.8)",
+  colorBorderGlass: BORDER_GLASS,
+  colorCyanLight: OCEAN_LIGHT,
+  colorCyanBright: "#48CAE4",
+  shadowCard: "0 4px 16px rgba(0, 180, 216, 0.12)",
+  shadowCardHover: "0 8px 32px rgba(0, 180, 216, 0.2)",
+  shadowGlow: "0 0 20px rgba(0, 180, 216, 0.3)",
+  shadowGlowStrong: "0 0 30px rgba(0, 180, 216, 0.5)",
   radiusXS: 4,
-  radiusSmall: 6,
-  radiusDefault: 8,
-  radiusLarge: 12,
-  radiusXL: 16,
+  radiusSmall: 8,
+  radiusDefault: 12,
+  radiusLarge: 20,
+  radiusXL: 24,
   fontSizeSmall: 11,
   fontSizeBase: 12,
   fontSizeMid: 13,
@@ -123,10 +120,12 @@ export const ikoluTokens = {
 };
 
 export const kpiGradients = {
-  primary: `linear-gradient(135deg, ${CORPORATE_BLUE} 0%, ${CORPORATE_BLUE_LIGHT} 100%)`,
-  secondary: `linear-gradient(135deg, ${CORPORATE_BLUE_LIGHT} 0%, ${CORPORATE_BLUE_MID} 100%)`,
-  info: `linear-gradient(135deg, ${CORPORATE_BLUE_BRIGHT} 0%, #42a5f5 100%)`,
-  accent: `linear-gradient(135deg, ${ACCENT_YELLOW_GREEN} 0%, #BDC00C 100%)`,
+  ocean: `linear-gradient(-45deg, ${OCEAN_DEEP}, ${OCEAN_BLUE}, ${OCEAN_CYAN}, ${OCEAN_LIGHT})`,
+  oceanDeep: `linear-gradient(135deg, ${BACKGROUND_DEEP} 0%, ${OCEAN_DEEP} 100%)`,
+  cyan: `linear-gradient(135deg, ${OCEAN_BLUE} 0%, ${OCEAN_CYAN} 100%)`,
+  teal: `linear-gradient(135deg, ${OCEAN_TEAL} 0%, #3DB8A8 100%)`,
+  coral: `linear-gradient(135deg, ${OCEAN_CORAL} 0%, ${OCEAN_WARM} 100%)`,
+  surface: `linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)`,
 };
 
 export const styles = {
@@ -138,48 +137,51 @@ export const styles = {
 };
 
 export const CHART_COLORS = {
-  primary: CORPORATE_BLUE,
-  primaryLight: CORPORATE_BLUE_LIGHT,
-  primaryMid: CORPORATE_BLUE_MID,
-  success: "#69812A",
-  warning: "#CCCF07",
-  error: "#DC2626",
-  info: "#3A68AA",
-  orange: "#fa8c16",
-  purple: "#722ed1",
-  cyan: "#13c2c2",
-  pink: "#eb2f96",
-  lime: "#a0d911",
-  volcano: "#fa541c",
-  geekblue: "#2f54eb",
-  magenta: "#eb2f96",
-  gold: "#faad14",
+  primary: OCEAN_DEEP,
+  primaryLight: OCEAN_BLUE,
+  primaryMid: OCEAN_CYAN,
+  success: OCEAN_TEAL,
+  warning: OCEAN_CORAL,
+  error: OCEAN_WARM,
+  info: OCEAN_BLUE,
+  cyan: "#48CAE4",
+  teal: "#2A9D8F",
+  coral: "#F4A261",
+  warm: "#E76F51",
+  purple: "#a855f7",
+  pink: "#ec4899",
+  lime: "#84cc16",
+  volcano: "#f97316",
+  geekblue: "#3b82f6",
+  magenta: "#d946ef",
+  gold: "#fbbf24",
 };
 
 export const CHART_CONFIG = {
   line: {
     lineWidth: 2,
     point: { size: 2, state: { active: { size: 5 } } },
-    area: { style: { fillOpacity: 0.1 } },
+    area: { style: { fillOpacity: 0.15 } },
     animation: { appear: { animation: "fade-in", duration: 400 } },
   },
   grid: {
-    line: { style: { stroke: "rgba(0, 0, 0, 0.08)", lineDash: [4, 4] } },
+    line: { style: { stroke: "rgba(255, 255, 255, 0.06)", lineDash: [4, 4] } },
   },
   tooltip: {
     domStyles: {
       "g2-tooltip": {
-        borderRadius: "10px",
-        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-        padding: "12px",
-        background: "rgba(255, 255, 255, 0.98)",
-        backdropFilter: "blur(8px)",
+        borderRadius: "16px",
+        boxShadow: "0 8px 32px rgba(0, 180, 216, 0.2)",
+        padding: "16px",
+        background: "rgba(5, 10, 20, 0.95)",
+        backdropFilter: "blur(20px)",
+        border: "1px solid rgba(255, 255, 255, 0.08)",
       },
     },
   },
   axis: {
     gridLine: {
-      line: { style: { stroke: "rgba(0, 0, 0, 0.06)", lineDash: [4, 4] } },
+      line: { style: { stroke: "rgba(255, 255, 255, 0.04)", lineDash: [4, 4] } },
     },
   },
 };
