@@ -32,47 +32,55 @@ const ControlCenterLayout = memo(({
       padding: "0 8px",
     }}>
       {/* KPIs */}
-      <Row id="cc-kpi-cards" gutter={[16, 16]} style={{ marginBottom: 24 }}>
+      <Row id="cc-kpi-cards" gutter={[16, 16]} style={{ marginBottom: 24 }} className="fade-in">
         <Col xs={12} sm={6} md={6}>
-          <SmartKPICard
-            icon={<FaMapMarkerAlt style={{ fontSize: 18, color: "#90E0EF" }} />}
-            label="Total Puntos"
-            value={overview.total_points || 0}
-            gradient={smarthydro.gradients.oceanDeep}
-          />
+          <div className="card-lift">
+            <SmartKPICard
+              icon={<FaMapMarkerAlt style={{ fontSize: 18, color: "#90E0EF" }} />}
+              label="Total Puntos"
+              value={overview.total_points || 0}
+              gradient={smarthydro.gradients.oceanDeep}
+            />
+          </div>
         </Col>
         <Col xs={12} sm={6} md={6}>
-          <SmartKPICard
-            icon={<FaBroadcastTower style={{ fontSize: 18, color: "#90E0EF" }} />}
-            label="Telemetría Activa"
-            value={`${overview.points_with_telemetry || 0}`}
-            suffix={`/${overview.total_points || 0}`}
-            gradient={smarthydro.gradients.cyan}
-          />
+          <div className="card-lift">
+            <SmartKPICard
+              icon={<FaBroadcastTower style={{ fontSize: 18, color: "#90E0EF" }} />}
+              label="Telemetría Activa"
+              value={`${overview.points_with_telemetry || 0}`}
+              suffix={`/${overview.total_points || 0}`}
+              gradient={smarthydro.gradients.cyan}
+            />
+          </div>
         </Col>
         <Col xs={12} sm={6} md={6}>
-          <SmartKPICard
-            icon={<FaClipboardCheck style={{ fontSize: 18, color: "#90E0EF" }} />}
-            label="Cumplimiento Normativo"
-            value={overview.points_with_compliance || 0}
-            gradient={smarthydro.gradients.teal}
-          />
+          <div className="card-lift">
+            <SmartKPICard
+              icon={<FaClipboardCheck style={{ fontSize: 18, color: "#90E0EF" }} />}
+              label="Cumplimiento Normativo"
+              value={overview.points_with_compliance || 0}
+              gradient={smarthydro.gradients.teal}
+            />
+          </div>
         </Col>
         <Col xs={12} sm={6} md={6}>
-          <SmartKPICard
-            icon={<FaExclamationTriangle style={{ fontSize: 18, color: "#90E0EF" }} />}
-            label="Warnings"
-            value={warningsList.length}
-            gradient={smarthydro.gradients.coral}
-            onClick={
-              warningsList.length > 0
-                ? () => {
-                    const firstPoint = Object.keys(warningsRaw)[0];
-                    if (firstPoint) onWarningClick(firstPoint);
-                  }
-                : undefined
-            }
-          />
+          <div className="card-lift">
+            <SmartKPICard
+              icon={<FaExclamationTriangle style={{ fontSize: 18, color: "#90E0EF" }} />}
+              label="Warnings"
+              value={warningsList.length}
+              gradient={smarthydro.gradients.coral}
+              onClick={
+                warningsList.length > 0
+                  ? () => {
+                      const firstPoint = Object.keys(warningsRaw)[0];
+                      if (firstPoint) onWarningClick(firstPoint);
+                    }
+                  : undefined
+              }
+            />
+          </div>
         </Col>
       </Row>
 
