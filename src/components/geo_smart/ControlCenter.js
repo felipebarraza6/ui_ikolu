@@ -820,13 +820,13 @@ const ControlCenter = () => {
             <Row gutter={[16, 16]}>
               {[1, 2].map(i => (
                 <Col xs={24} md={12} key={i}>
-                  <div style={{ borderRadius: 12, border: `1px solid ${token.colorBorderSecondary}`, overflow: "hidden" }}>
-                    <div style={{ height: 40, background: token.colorBgLayout }} />
+                  <div style={{ borderRadius: 16, border: '1px solid rgba(0, 180, 216, 0.15)', overflow: "hidden", background: 'rgba(255, 255, 255, 0.03)', backdropFilter: 'blur(10px)' }}>
+                    <div style={{ height: 40, background: 'rgba(0, 180, 216, 0.08)' }} />
                     <div style={{ height: 50, padding: "10px 16px", display: "flex", gap: 8, justifyContent: "center" }}>
-                      {[1, 2, 3].map(j => <div key={j} style={{ flex: 1, height: 40, borderRadius: 6, background: "#f5f5f5" }} />)}
+                      {[1, 2, 3].map(j => <div key={j} style={{ flex: 1, height: 40, borderRadius: 10, background: 'rgba(0, 180, 216, 0.05)' }} />)}
                     </div>
                     <div style={{ height: 220, padding: 16 }}>
-                      <div style={{ height: "100%", borderRadius: 8, background: "#f5f5f5" }} />
+                      <div style={{ height: "100%", borderRadius: 12, background: 'rgba(0, 180, 216, 0.05)' }} />
                     </div>
                   </div>
                 </Col>
@@ -854,12 +854,12 @@ const ControlCenter = () => {
       <Modal
         title={
           <Flex align="center" gap={8} wrap="wrap">
-            <FaClipboardCheck style={{ color: token.colorPrimary, fontSize: 16 }} />
-            <Text strong style={{ fontSize: 14 }}>{selectedVoucher?.title || "Voucher DGA"}</Text>
-            <Tag style={{ fontSize: 10, margin: 0, padding: "0 4px", lineHeight: "16px" }}>
+            <FaClipboardCheck style={{ color: '#00B4D8', fontSize: 16 }} />
+            <Text strong style={{ fontSize: 14, color: 'rgba(255, 255, 255, 0.9)' }}>{selectedVoucher?.title || "Voucher DGA"}</Text>
+            <Tag style={{ fontSize: 10, margin: 0, padding: "0 4px", lineHeight: "16px", background: 'rgba(0, 180, 216, 0.15)', border: 'none', color: '#90E0EF' }}>
               {selectedVoucher?.code || "—"}
             </Tag>
-            <Tag style={{ fontSize: 10, margin: 0, padding: "0 4px", lineHeight: "16px" }}>
+            <Tag style={{ fontSize: 10, margin: 0, padding: "0 4px", lineHeight: "16px", background: 'rgba(255, 255, 255, 0.05)', border: 'none', color: 'rgba(255, 255, 255, 0.6)' }}>
               {selectedVoucher?.type_dga || "SUPERFICIAL"}
             </Tag>
           </Flex>
@@ -922,8 +922,8 @@ const ControlCenter = () => {
             <Col xs={24} md={12} style={{ height: 400 }}>
               <div
                 style={{
-                  background: "#1e1e1e",
-                  borderRadius: 8,
+                  background: "rgba(5, 10, 20, 0.95)",
+                  borderRadius: 12,
                   padding: "12px 16px",
                   fontFamily: "monospace",
                   fontSize: 11,
@@ -931,6 +931,7 @@ const ControlCenter = () => {
                   height: "500px",
                   overflowY: "auto",
                   lineHeight: 1.6,
+                  border: '1px solid rgba(0, 180, 216, 0.15)',
                 }}
               >
                 {dgaConsole.length === 0 ? (
@@ -966,12 +967,12 @@ const ControlCenter = () => {
                 {/* Estado vacío */}
                 {!dgaResult && !dgaVerifying && (
                   <Flex vertical align="center" justify="center" style={{ height: "100%", textAlign: "center" }}>
-                    <FaClipboardCheck style={{ fontSize: 32, color: token.colorTextDisabled, marginBottom: 12 }} />
-                    <Text strong style={{ fontSize: 13, color: token.colorTextSecondary }}>
+                    <FaClipboardCheck style={{ fontSize: 32, color: 'rgba(255, 255, 255, 0.2)', marginBottom: 12 }} />
+                    <Text strong style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.5)' }}>
                       Sin validar
                     </Text>
-                    <Text style={{ fontSize: 11, color: token.colorTextTertiary, marginTop: 4 }}>
-                      Haz clic en <Text strong>Validar comprobante</Text> para verificar
+                    <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.3)', marginTop: 4 }}>
+                      Haz clic en <Text strong style={{ color: '#90E0EF' }}>Validar comprobante</Text> para verificar
                     </Text>
                   </Flex>
                 )}
@@ -980,7 +981,7 @@ const ControlCenter = () => {
                 {dgaVerifying && !dgaResult && (
                   <Flex vertical align="center" justify="center" style={{ height: "100%", textAlign: "center" }}>
                     <Spin size="large" style={{ marginBottom: 12 }} />
-                    <Text strong style={{ fontSize: 13, color: token.colorPrimary }}>
+                    <Text strong style={{ fontSize: 13, color: '#00B4D8' }}>
                       Consultando DGA...
                     </Text>
                   </Flex>
@@ -993,27 +994,27 @@ const ControlCenter = () => {
                       {/* Datos principales - grid 2x2 */}
                       <Row gutter={[10, 10]}>
                         <Col span={12}>
-                          <div style={{ background: token.colorBgLayout, borderRadius: 8, padding: "12px 14px", textAlign: "center" }}>
-                            <Text type="secondary" style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>Caudal</Text>
-                            <div><Text strong style={{ fontSize: 20, color: token.colorPrimary }}>{dgaResult.data.caudal}</Text> <Text style={{ fontSize: 12, color: token.colorTextSecondary }}>L/s</Text></div>
+                          <div style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: 12, padding: "12px 14px", textAlign: "center", border: '1px solid rgba(0, 180, 216, 0.15)', backdropFilter: 'blur(10px)' }}>
+                            <Text style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5, color: 'rgba(255, 255, 255, 0.5)' }}>Caudal</Text>
+                            <div><Text strong style={{ fontSize: 20, color: '#00B4D8' }}>{dgaResult.data.caudal}</Text> <Text style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.5)' }}>L/s</Text></div>
                           </div>
                         </Col>
                         <Col span={12}>
-                          <div style={{ background: token.colorBgLayout, borderRadius: 8, padding: "12px 14px", textAlign: "center" }}>
-                            <Text type="secondary" style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>Totalizador</Text>
-                            <div><Text strong style={{ fontSize: 20, color: token.colorPrimary }}>{dgaResult.data.totalizador}</Text> <Text style={{ fontSize: 12, color: token.colorTextSecondary }}>m³</Text></div>
+                          <div style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: 12, padding: "12px 14px", textAlign: "center", border: '1px solid rgba(0, 180, 216, 0.15)', backdropFilter: 'blur(10px)' }}>
+                            <Text style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5, color: 'rgba(255, 255, 255, 0.5)' }}>Totalizador</Text>
+                            <div><Text strong style={{ fontSize: 20, color: '#00B4D8' }}>{dgaResult.data.totalizador}</Text> <Text style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.5)' }}>m³</Text></div>
                           </div>
                         </Col>
                         <Col span={12}>
-                          <div style={{ background: token.colorBgLayout, borderRadius: 8, padding: "12px 14px", textAlign: "center" }}>
-                            <Text type="secondary" style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>Fecha</Text>
-                            <div><Text strong style={{ fontSize: 15 }}>{dgaResult.data.fechaMedicion}</Text></div>
+                          <div style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: 12, padding: "12px 14px", textAlign: "center", border: '1px solid rgba(0, 180, 216, 0.15)', backdropFilter: 'blur(10px)' }}>
+                            <Text style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5, color: 'rgba(255, 255, 255, 0.5)' }}>Fecha</Text>
+                            <div><Text strong style={{ fontSize: 15, color: 'rgba(255, 255, 255, 0.9)' }}>{dgaResult.data.fechaMedicion}</Text></div>
                           </div>
                         </Col>
                         <Col span={12}>
-                          <div style={{ background: token.colorBgLayout, borderRadius: 8, padding: "12px 14px", textAlign: "center" }}>
-                            <Text type="secondary" style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>Hora</Text>
-                            <div><Text strong style={{ fontSize: 15 }}>{dgaResult.data.horaMedicion}</Text></div>
+                          <div style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: 12, padding: "12px 14px", textAlign: "center", border: '1px solid rgba(0, 180, 216, 0.15)', backdropFilter: 'blur(10px)' }}>
+                            <Text style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5, color: 'rgba(255, 255, 255, 0.5)' }}>Hora</Text>
+                            <div><Text strong style={{ fontSize: 15, color: 'rgba(255, 255, 255, 0.9)' }}>{dgaResult.data.horaMedicion}</Text></div>
                           </div>
                         </Col>
                       </Row>
@@ -1021,29 +1022,29 @@ const ControlCenter = () => {
                       {/* Info punto - fila compacta */}
                       {dgaResult.meta && (
                         <Flex gap={8} wrap="wrap">
-                          <div style={{ background: token.colorBgLayout, borderRadius: 6, padding: "8px 12px", flex: 1, minWidth: 120 }}>
-                            <Text type="secondary" style={{ fontSize: 9, textTransform: "uppercase" }}>Punto</Text>
-                            <div><Text style={{ fontSize: 12 }}>{dgaResult.meta.punto}</Text></div>
+                          <div style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: 8, padding: "8px 12px", flex: 1, minWidth: 120, border: '1px solid rgba(0, 180, 216, 0.1)' }}>
+                            <Text style={{ fontSize: 9, textTransform: "uppercase", color: 'rgba(255, 255, 255, 0.5)' }}>Punto</Text>
+                            <div><Text style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.9)' }}>{dgaResult.meta.punto}</Text></div>
                           </div>
-                          <div style={{ background: token.colorBgLayout, borderRadius: 6, padding: "8px 12px", flex: 1, minWidth: 120 }}>
-                            <Text type="secondary" style={{ fontSize: 9, textTransform: "uppercase" }}>Código</Text>
-                            <div><Text style={{ fontSize: 12, fontFamily: "monospace" }}>{dgaResult.meta.codigo_obra}</Text></div>
+                          <div style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: 8, padding: "8px 12px", flex: 1, minWidth: 120, border: '1px solid rgba(0, 180, 216, 0.1)' }}>
+                            <Text style={{ fontSize: 9, textTransform: "uppercase", color: 'rgba(255, 255, 255, 0.5)' }}>Código</Text>
+                            <div><Text style={{ fontSize: 12, fontFamily: "monospace", color: 'rgba(255, 255, 255, 0.9)' }}>{dgaResult.meta.codigo_obra}</Text></div>
                           </div>
-                          <div style={{ background: token.colorBgLayout, borderRadius: 6, padding: "8px 12px", flex: 1, minWidth: 100 }}>
-                            <Text type="secondary" style={{ fontSize: 9, textTransform: "uppercase" }}>Tipo</Text>
-                            <div><Text style={{ fontSize: 12 }}>{dgaResult.meta.tipo_dga}</Text></div>
+                          <div style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: 8, padding: "8px 12px", flex: 1, minWidth: 100, border: '1px solid rgba(0, 180, 216, 0.1)' }}>
+                            <Text style={{ fontSize: 9, textTransform: "uppercase", color: 'rgba(255, 255, 255, 0.5)' }}>Tipo</Text>
+                            <div><Text style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.9)' }}>{dgaResult.meta.tipo_dga}</Text></div>
                           </div>
-                          <div style={{ background: dgaResult.meta.enviado_dga ? token.colorSuccessBg : token.colorErrorBg, borderRadius: 6, padding: "8px 12px", flex: 1, minWidth: 100 }}>
-                            <Text type="secondary" style={{ fontSize: 9, textTransform: "uppercase" }}>Enviado</Text>
-                            <div><Text style={{ fontSize: 12, color: dgaResult.meta.enviado_dga ? token.colorSuccess : token.colorError }}>{dgaResult.meta.enviado_dga ? "Sí" : "No"}</Text></div>
+                          <div style={{ background: dgaResult.meta.enviado_dga ? 'rgba(42, 157, 143, 0.1)' : 'rgba(231, 111, 81, 0.1)', borderRadius: 8, padding: "8px 12px", flex: 1, minWidth: 100, border: `1px solid ${dgaResult.meta.enviado_dga ? 'rgba(42, 157, 143, 0.2)' : 'rgba(231, 111, 81, 0.2)'}` }}>
+                            <Text style={{ fontSize: 9, textTransform: "uppercase", color: 'rgba(255, 255, 255, 0.5)' }}>Enviado</Text>
+                            <div><Text style={{ fontSize: 12, color: dgaResult.meta.enviado_dga ? '#2A9D8F' : '#E76F51' }}>{dgaResult.meta.enviado_dga ? "Sí" : "No"}</Text></div>
                           </div>
                         </Flex>
                       )}
 
                       {/* return_dga banner */}
                       {dgaResult.meta?.return_dga && (
-                        <div style={{ background: token.colorSuccessBg, borderRadius: 6, padding: "8px 12px" }}>
-                          <Text style={{ fontSize: 11, color: token.colorSuccess }}>{dgaResult.meta.return_dga}</Text>
+                        <div style={{ background: 'rgba(42, 157, 143, 0.1)', borderRadius: 8, padding: "8px 12px", border: '1px solid rgba(42, 157, 143, 0.2)' }}>
+                          <Text style={{ fontSize: 11, color: '#2A9D8F' }}>{dgaResult.meta.return_dga}</Text>
                         </div>
                       )}
                     </Flex>
@@ -1066,11 +1067,11 @@ const ControlCenter = () => {
                 {/* No encontrado - status 01 */}
                 {dgaResult && dgaResult.status === "01" && (
                   <Flex vertical align="center" justify="center" style={{ height: "100%", textAlign: "center" }}>
-                    <FaExclamationTriangle style={{ fontSize: 32, color: "#faad14", marginBottom: 12 }} />
-                    <Text strong style={{ fontSize: 13, color: token.colorTextSecondary }}>
+                    <FaExclamationTriangle style={{ fontSize: 32, color: "#F4A261", marginBottom: 12 }} />
+                    <Text strong style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.5)' }}>
                       Comprobante no encontrado
                     </Text>
-                    <Text style={{ fontSize: 11, color: token.colorTextTertiary, marginTop: 4 }}>
+                    <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.3)', marginTop: 4 }}>
                       Verifica el código y número de comprobante
                     </Text>
                   </Flex>
@@ -1079,11 +1080,11 @@ const ControlCenter = () => {
                 {/* Error de red */}
                 {dgaResult && !dgaResult.status && (
                   <Flex vertical align="center" justify="center" style={{ height: "100%", textAlign: "center" }}>
-                    <FaExclamationTriangle style={{ fontSize: 32, color: "#ff4d4f", marginBottom: 12 }} />
-                    <Text strong style={{ fontSize: 13, color: token.colorTextSecondary }}>
+                    <FaExclamationTriangle style={{ fontSize: 32, color: "#E76F51", marginBottom: 12 }} />
+                    <Text strong style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.5)' }}>
                       Error de conexión
                     </Text>
-                    <Text style={{ fontSize: 11, color: token.colorTextTertiary, marginTop: 4 }}>
+                    <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.3)', marginTop: 4 }}>
                       Revisa la consola para más detalles
                     </Text>
                   </Flex>
