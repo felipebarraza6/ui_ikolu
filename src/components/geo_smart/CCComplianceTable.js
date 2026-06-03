@@ -284,15 +284,21 @@ const CCComplianceTable = ({ points, last7, onViewVoucher, onOpenStopCompliance,
         dataSource={points}
         columns={columns}
         rowKey="id"
-        bordered
         size="small"
         scroll={{ x: "max-content" }}
         pagination={{ pageSize: 10, hideOnSinglePage: true }}
         locale={{ emptyText: "No hay puntos disponibles" }}
+        className="ocean-table"
+        style={{
+          background: "transparent",
+          borderRadius: 16,
+          overflow: "hidden",
+        }}
       onRow={(record) => ({
         style: {
-          borderBottom: `1px solid ${token.colorBorderSecondary}`,
-          borderLeft: `4px solid ${levelColorMap[record.compliance_warning?.level || "safe"]?.color || levelColorMap.safe.color}`,
+          borderBottom: `1px solid rgba(255, 255, 255, 0.05)`,
+          borderLeft: `4px solid ${levelColorMap[record.compliance_warning?.level || "safe"]}?.color || levelColorMap.safe.color}`,
+          background: "transparent",
         },
       })}
     />
