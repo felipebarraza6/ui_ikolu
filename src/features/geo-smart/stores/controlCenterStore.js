@@ -6,7 +6,7 @@ moment.locale("es");
 
 export const useControlCenterStore = create((set, get) => ({
   // ── UI State ──
-  selectedDate: moment(),
+  selectedDate: null,
   activeTab: "telemetry",
   loading: false,
   error: null,
