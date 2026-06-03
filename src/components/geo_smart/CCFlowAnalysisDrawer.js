@@ -44,18 +44,18 @@ const CCFlowAnalysisDrawer = ({
       title={
         <Flex justify="space-between" align="center">
           <div>
-            <Title level={5} style={{ margin: 0 }}>{pointName}</Title>
-            <Flex gap={8} align="center" style={{ marginTop: 4 }}>
-              <Text strong style={{ fontSize: 13, color: token.colorPrimary }}>
+            <Title level={5} style={{ margin: 0 }} className="ocean-text-xl ocean-text-primary">{pointName}</Title>
+            <Flex gap={8} align="center" className="ocean-drawer-subtitle">
+              <Text strong className="ocean-text-base ocean-text-cyan">
                 Autorizado: {authorizedFlow} L/s
               </Text>
-              <Text type="secondary" style={{ fontSize: 12 }}>
+              <Text className="ocean-text-md ocean-text-secondary">
                 • {measurements.length} mediciones
               </Text>
             </Flex>
           </div>
           <FaTimes 
-            style={{ cursor: "pointer", fontSize: 16, color: "#999" }} 
+            className="ocean-close-icon"
             onClick={onClose}
           />
         </Flex>
@@ -74,19 +74,13 @@ const CCFlowAnalysisDrawer = ({
         </Flex>
       ) : (
         <>
-          <Flex justify="flex-end" style={{ marginBottom: 16 }}>
+          <Flex justify="flex-end" className="ocean-drawer-actions">
             <Button 
               type="primary"
               size="small" 
               icon={<FaDownload size={12} />} 
               onClick={handleExportCSV}
-              style={{ 
-                borderRadius: 6,
-                fontWeight: 600,
-                display: "flex",
-                alignItems: "center",
-                gap: 6
-              }}
+              className="ocean-btn-export"
             >
               Descargar CSV
             </Button>
@@ -100,7 +94,7 @@ const CCFlowAnalysisDrawer = ({
                 title: "Fecha/Hora",
                 dataIndex: "date",
                 render: (date) => (
-                  <Text style={{ fontSize: 12 }}>
+                  <Text className="ocean-text-md ocean-text-secondary">
                     {moment(date).format("DD/MM/YYYY HH:mm")}
                   </Text>
                 ),
@@ -116,10 +110,7 @@ const CCFlowAnalysisDrawer = ({
                   return (
                     <Text 
                       strong 
-                      style={{ 
-                        fontSize: 13, 
-                        color: isExceeded ? token.colorError : token.colorSuccess 
-                      }}
+                      className={isExceeded ? "ocean-text-base ocean-text-coral" : "ocean-text-base ocean-text-teal"}
                     >
                       {Math.round(pct)}%
                     </Text>
@@ -131,7 +122,7 @@ const CCFlowAnalysisDrawer = ({
                 align: "right",
                 width: 100,
                 render: () => (
-                  <Text strong style={{ fontSize: 12, color: token.colorPrimary }}>
+                  <Text strong className="ocean-text-md ocean-text-cyan">
                     {Number(authorizedFlow).toFixed(1)} L/s
                   </Text>
                 ),
@@ -145,10 +136,7 @@ const CCFlowAnalysisDrawer = ({
                   return (
                     <Text 
                       strong 
-                      style={{ 
-                        fontSize: 13, 
-                        color: isExceeded ? token.colorError : token.colorText 
-                      }}
+                      className={isExceeded ? "ocean-text-base ocean-text-coral" : "ocean-text-base ocean-text-primary"}
                     >
                       {Number(flow).toFixed(1)} L/s
                     </Text>

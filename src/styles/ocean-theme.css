@@ -1528,3 +1528,29 @@
   border-radius: 12px;
   padding: 4px;
 }
+
+/* =====================================================
+   Drawer Utilities
+   ===================================================== */
+
+.ocean-drawer-subtitle {
+  margin-top: 4px;
+}
+
+.ocean-close-icon {
+  cursor: pointer;
+  font-size: 16px;
+  color: #999;
+}
+
+.ocean-drawer-actions {
+  margin-bottom: 16px;
+}
+
+.ocean-btn-export {
+  border-radius: 6px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
