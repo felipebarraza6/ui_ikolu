@@ -1,0 +1,270 @@
+# OpenCode Configuration for Ikolu UI (SmartHydro Frontend)
+# Frontend React 18 + Ant Design 5 + SmartHydro API
+# Version: 3.0 - Flujo Architect → Planner → Coder → Reviewer (Multi-Modelo)
+#
+# NOTA: Kimi CLI se usa por separado con su propia suscripcion.
+# OpenCode usa principalmente modelos de OpenCode Go/Zen.
+# Unico excepcion: @architect usa Kimi For Coding (k2p6) para razonamiento profundo.
+#
+# MODELS DISPONIBLES Y ASIGNACION:
+# =============================================================================
+# OpenCode Go (suscripcion $10/mes - limites: $12/5h, $30/semana, $60/mes)
+# -----------------------------------------------------------------------------
+# SOTA / Razonamiento:
+#   opencode-go/glm-5.1          -> fallback review
+#   opencode-go/deepseek-v4-pro  -> fallback review/architect (coding + long context)
+#   kimi-for-coding/k2p6         -> @planner, @architect, @reviewer, @test-engineer, @migrator
+#
+# Code Generation:
+#   opencode-go/deepseek-v4-pro  -> @frontend-coder (code generation, mas barato)
+#   opencode-go/mimo-v2.5-pro    -> fallback coder (especializado coding)
+#   opencode-go/qwen3.6-plus     -> fallback coder (code generation probado)
+#
+# Fast / Barato:
+#   opencode-go/deepseek-v4-flash-> @fast-coder (31,650 req/5h, ultra rapido)
+#   opencode-go/minimax-m2.5     -> tareas simples (6,300 req/5h)
+#   opencode-go/qwen3.6-plus     -> tareas simples (~3,300 req/5h)
+#
+# OpenCode Zen (pay-as-you-go - usar solo para casos criticos)
+# -----------------------------------------------------------------------------
+#   opencode/claude-sonnet-4-6   -> @reviewer-zen (revision elite, calidad maxima)
+#   opencode/claude-opus-4-6     -> arquitectura critica (si GLM no alcanza)
+#   opencode/gpt-5.4             -> fallback general
+#   opencode/gpt-5.1-codex-max   -> coding especifico
+#
+# =============================================================================
+
+# Context files that provide additional information
+context_files:
+  - path: AGENTS.md
+    description: "Guia principal para agentes de codigo en el proyecto frontend"
+  - path: .opencode/templates/plan.md
+    description: "Plantilla estandar para planes de implementacion"
+  - path: README.md
+    description: "Documentacion basica del proyecto"
+
+# Auto-execute settings
+auto_execute:
+  validate_on_component_create: true
+  suggest_tests: true
+  check_responsive: true
+
+# Project-specific shortcuts (invocar con @nombre)
+shortcuts:
+  # Los agentes se invocan directamente con @nombre gracias a opencode.json
+  # Shortcuts de comando utilitarios
+  start_dev:
+    command: "yarn start"
+    description: "Iniciar servidor de desarrollo"
+  build_prod:
+    command: "yarn build"
+    description: "Build de produccion"
+  run_tests:
+    command: "yarn test --watchAll=false"
+    description: "Ejecutar tests una vez"
+  run_linter:
+    command: "npx eslint src/ --ext .js,.jsx"
+    description: "Ejecutar ESLint"
+
+# Quick responses for common tasks
+quick_responses:
+  flujo_completo: |
+    FLUJO COMPLETO RECOMENDADO segun complejidad:
+
+    FEATURE SIMPLE (ej: nuevo componente, tabla, formulario):
+    1. @planner -> genera plan en .opencode/plans/
+    2. Revisas el plan
+    3. @coder -> ejecuta el plan
+    4. (Opcional) @reviewer -> valida
+
+    FEATURE COMPLEJA (ej: nuevo modulo, integracion API compleja, arquitectura nueva):
+    1. @architect -> genera spec tecnica de alto nivel
+    2. Revisas la spec
+    3. @planner -> desglosa la spec en plan ejecutable
+    4. Revisas el plan
+    5. @coder -> ejecuta el plan
+    6. @reviewer -> valida
+    7. (Si es critico) @reviewer-zen -> revision premium
+
+    TAREA MECANICA (ej: renombrar, mover, formatear, refactor simple):
+    1. @fast -> ejecuta directamente
+
+    MODELOS USADOS:
+    - @architect: kimi-for-coding/k2p6 (razonamiento profundo, contexto largo)
+    - @planner: kimi-for-coding/k2p6 (razonamiento profundo, contexto largo)
+    - @coder: deepseek-v4-pro (excelente code generation, bajo costo)
+    - @fast: deepseek-v4-flash (ultra rapido, 31,650 req/5h)
+    - @reviewer: kimi-for-coding/k2p6 (analisis profundo, contexto largo)
+    - @test-engineer: kimi-for-coding/k2p6 (comprension profunda de codigo)
+    - @migrator: kimi-for-coding/k2p6 (contexto largo para legacy)
+    - @reviewer-zen: claude-sonnet-4-6 (elite, pay-as-you-go)
+
+  architect_feature: |
+    Para features COMPLEJAS que requieren diseno arquitectonico:
+    1. Invoca: @architect
+    2. Describe la feature y sus requisitos
+    3. El arquitecto evaluara opciones, trade-offs y recomendara la mejor solucion
+    4. Genera spec en .opencode/plans/arch-<feature>.md
+    5. TU revisas la spec y la apruebas
+    6. Luego invocas @planner para desglosar en tareas
+
+    Usar @architect cuando:
+    - La feature involucra multiples componentes nuevos
+    - Necesitas decidir entre diferentes enfoques tecnicos
+    - Hay integracion compleja con backend
+    - Requiere diseno de estado global nuevo
+
+    Si necesitas razonamiento PASO A PASO profundo con Kimi:
+    - Usa Kimi CLI directamente (suscripcion aparte)
+    - El resultado lo pasas a @planner para desglosar en tareas
+
+  plan_feature: |
+    Para planificar una feature:
+    1. Invoca: @planner
+    2. Describe que necesitas
+    3. El planner analizara el codigo existente y la API
+    4. Generara un plan en .opencode/plans/<nombre-feature>.md
+    5. TU revisas el plan, lo apruebas o pides ajustes
+    6. Cuando este listo, invocas @coder para ejecutar
+
+    El plan incluira: analisis, especificacion tecnica, tareas atomicas,
+    dependencias y criterios de aceptacion.
+
+  execute_plan: |
+    Para ejecutar un plan aprobado:
+    1. Asegurate de que existe un plan en .opencode/plans/
+    2. Invoca: @coder
+    3. El codificador lee el plan y ejecuta TAREA POR TAREA
+    4. Al finalizar cada tarea, marca su checkbox como [x]
+    5. Ejecuta `yarn build` para verificar compilacion
+    6. Reporta tareas completadas y cualquier bloqueo
+
+    REGLA: El coder NO analiza ni planifica. Solo ejecuta lo que dice el plan.
+    Usa Qwen-3.7-Max: excelente generacion de codigo React.
+
+  fast_task: |
+    Para tareas mecanicas rapidas:
+    1. Invoca: @fast
+    2. Describe la tarea simple (ej: "renombra todos los archivos de PascalCase a camelCase en src/components/alerts/")
+    3. El fast-coder ejecuta INMEDIATAMENTE sin analisis
+    4. Reporta archivos modificados
+
+    Usa DeepSeek-V4-Flash: ultra rapido y barato (31,650 requests por 5 horas).
+    Ideal para: renombrados, movimientos, formateo, imports, tareas repetitivas.
+
+  review_code: |
+    Para revisar codigo implementado:
+    1. Invoca: @reviewer
+    2. El revisor compara contra: el plan, AGENTS.md y api.smarthydro.app/docs
+    3. Verifica: orchestrator, tokens, estado, skeletons, responsive, dark mode
+    4. Reporta: APROBADO, OBSERVACIONES o BLOQUEANTES
+
+    Para codigo CRITICO (produccion, seguridad, core del negocio):
+    1. Invoca: @reviewer-zen
+    2. Usa Claude Sonnet: maxima calidad de revision
+
+  review_premium: |
+    La revision premium (@reviewer-zen) usa Claude Sonnet via OpenCode Zen.
+    Es pay-as-you-go, mas costoso que Go.
+
+    Tambien puedes usar Kimi CLI directamente para revisiones profundas
+    (suscripcion aparte, no consume cuota de OpenCode).
+
+    Usar SOLO cuando:
+    - Es codigo que va a produccion critica
+    - Maneja datos sensibles (auth, tokens, pagos)
+    - El @reviewer normal encontro problemas graves
+    - Es arquitectura core que afecta todo el sistema
+
+  test_engineer: |
+    Para agregar tests a una feature:
+    1. @test-engineer -> "Escribe tests para src/features/..."
+    2. El agente genera tests con React Testing Library
+    3. Verifica que pasen con `yarn test --watchAll=false`
+
+    Cubre: renderizado, interacciones (user-event), estados de carga/error,
+    mocks de API, y casos edge.
+
+  api_validator: |
+    Para validar integracion con API:
+    1. @api-validator -> "Valida endpoints del plan .opencode/plans/..."
+    2. El agente revisa cada endpoint contra api.smarthydro.app/docs
+    3. Reporta discrepancias: endpoints legacy, parametros incorrectos,
+       axios directo en lugar de orchestrator.
+
+    Usar ANTES de que @coder ejecute el plan.
+
+  ui_auditor: |
+    Para auditar consistencia visual:
+    1. @ui-auditor -> "Audita src/features/..."
+    2. El agente revisa: Smart Components, CSS variables, responsive,
+       dark mode, skeletons, inline styles.
+    3. Reporta problemas con archivo y linea.
+
+    Usar DESPUES de @coder, antes de @reviewer.
+
+  performance_review: |
+    Para revisar performance:
+    1. @performance -> "Revisa performance de src/components/..."
+    2. El agente detecta: re-renders, falta de memoizacion,
+       imports pesados, fetch en render.
+    3. Sugiere optimizaciones concretas.
+
+  migrator_task: |
+    Para migrar codigo legacy:
+    1. @migrator -> "Migra src/components/legacy/ a patrones modernos"
+    2. El agente moderniza: AppContext -> Contexts especializados,
+       inline styles -> CSS variables, axios -> orchestrator.
+    3. Ejecuta `yarn build` y `yarn test` para verificar.
+
+    Migra UN patron a la vez para no romper nada.
+
+  git_task: |
+    Para commitear y subir cambios:
+    1. @git-agent -> "Commitea los cambios de src/features/..."
+    2. El agente muestra el diff, genera mensaje descriptivo,
+       hace add + commit, y pregunta antes de push.
+    3. Revisas el mensaje y confirmas push.
+
+    Seguro: nunca hace push a main/master sin confirmacion.
+    Nunca hace force push.
+
+  debug_react: |
+    Debugging React en este proyecto:
+    - Reinstalar: rm -rf node_modules && yarn install
+    - Limpiar cache: rm -rf node_modules/.cache
+    - API: verificar REACT_APP_API_URL en .env
+    - Errores 401: token expirado, redirigir a /login
+    - Errores 429: rate limit, el orchestrador maneja throttle
+    - Performance: usar React DevTools Profiler
+
+  setup_dev: |
+    Setup de desarrollo Ikolu UI:
+    1. yarn install
+    2. yarn start
+    3. Abrir http://localhost:3000
+    4. Login con credenciales de SmartHydro
+
+    Requisitos: Node.js 18+, Yarn
+
+# Agents configuration
+agents:
+  enabled: true
+  directory: ".opencode/agents"
+  builtin:
+    - "@plan"
+    - "@code"
+    - "@explore"
+    - "@test"
+  custom:
+    - "@architect"
+    - "@planner"
+    - "@frontend-coder"
+    - "@fast-coder"
+    - "@reviewer"
+    - "@reviewer-zen"
+    - "@test-engineer"
+    - "@api-validator"
+    - "@ui-auditor"
+    - "@performance"
+    - "@migrator"

@@ -1,36 +1,40 @@
 import React from "react";
-import { Flex } from "antd";
-import ShimmerBar from "./ShimmerBar";
-import ShimmerCircle from "./ShimmerCircle";
-import "./skeleton.css";
+import { Skeleton } from "antd";
+import { useAppTheme } from "../../../contexts/ThemeContext";
 
-const SkeletonKPI = ({ icon, label, style = {} }) => {
+const SkeletonKPI = ({ style = {} }) => {
+  const { isDark } = useAppTheme();
+
   return (
-    <div className="skeleton-kpi-card" style={style}>
-      <Flex vertical align="center" gap={8} style={{ position: "relative", zIndex: 1 }}>
-        {icon && (
-          <div style={{
-            width: 36,
-            height: 36,
-            borderRadius: "50%",
-            background: "rgba(255, 255, 255, 0.15)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginTop: 4,
-            marginBottom: 8,
-          }}>
-            {icon}
-          </div>
-        )}
-        <div style={{
-          width: 80,
-          height: 12,
-          background: "rgba(255, 255, 255, 0.3)",
-          borderRadius: 4,
-        }} />
-        <ShimmerBar width={40} height={24} style={{ background: "rgba(255, 255, 255, 0.4)" }} />
-      </Flex>
+    <div
+      style={{
+        background: isDark ? "#1a1a1a" : "#FFFFFF",
+        borderRadius: 8,
+        padding: "20px 16px",
+        border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "#F0F0F0"}`,
+        boxShadow: isDark ? "none" : "0 1px 3px rgba(0,0,0,0.04)",
+        minHeight: 120,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        ...style,
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div style={{ flex: 1 }}>
+          <Skeleton.Input
+            active
+            size="small"
+            style={{ width: 80, marginBottom: 16 }}
+          />
+          <Skeleton.Input
+            active
+            size="default"
+            style={{ width: 60, height: 32 }}
+          />
+        </div>
+        <Skeleton.Avatar active size={40} shape="square" />
+      </div>
     </div>
   );
 };

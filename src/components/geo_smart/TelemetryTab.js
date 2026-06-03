@@ -1,43 +1,30 @@
-import React, { useState, useEffect } from "react";
-import { useOutletContext } from "react-router-dom";
+import React from "react";
 import CCWeekConsumption from "./CCWeekConsumption";
 import SkeletonTelemetry from "./SkeletonTelemetry";
 
-const TelemetryTab = () => {
-  const {
-    last7,
-    selectedDate,
-    setSelectedDate,
-    handleViewMeasurements,
-    handleOpenStopTelemetry,
-    handleOpenSupport,
-    handleWarningPointClick,
-    handleViewPointConfig,
-    warningsRaw,
-    loading,
-  } = useOutletContext();
+const TelemetryTab = ({
+  last7,
+  selectedDate,
+  setSelectedDate,
+  handleViewMeasurements,
+  handleOpenStopTelemetry,
+  handleOpenSupport,
+  handleWarningPointClick,
+  handleViewPointConfig,
+  warningsRaw,
+  loading,
+}) => {
 
-  const [showSkeleton, setShowSkeleton] = useState(true);
-  const [showContent, setShowContent] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSkeleton(false);
-      setShowContent(true);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (showSkeleton || (loading && !last7)) {
+  if (loading && !last7) {
     return (
-      <div className="skeleton-fade-out" style={{ padding: "16px 0" }}>
+      <div style={{ padding: "16px 0" }}>
         <SkeletonTelemetry />
       </div>
     );
   }
 
   return (
-    <div className={showContent ? "content-fade-in" : undefined}>
+    <div>
       <CCWeekConsumption
         last7={last7}
         selectedDate={selectedDate}

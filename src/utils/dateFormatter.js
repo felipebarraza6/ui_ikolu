@@ -45,8 +45,10 @@ export const formatSafeDate = (date, format = "DD/MM/YYYY HH:mm", fallback = "â€
   return m.isValid() ? m.format(format) : fallback;
 };
 
-export default {
+const dateFormatter = {
   FLEXIBLE_DATE_FORMATS,
   parseSafeDate,
   formatSafeDate,
 };
+
+export default dateFormatter;

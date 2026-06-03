@@ -1,42 +1,29 @@
-import React, { useState, useEffect } from "react";
-import { useOutletContext } from "react-router-dom";
+import React from "react";
 import CCComplianceTable from "./CCComplianceTable";
 import SkeletonCompliance from "./SkeletonCompliance";
 
-const ComplianceTab = () => {
-  const {
-    points,
-    last7,
-    handleViewVoucher,
-    handleOpenStopCompliance,
-    handleOpenSupport,
-    handleViewPointConfig,
-    handleViewFlowAnalysis,
-    handleViewComplianceDetail,
-    loading,
-  } = useOutletContext();
+const ComplianceTab = ({
+  points,
+  last7,
+  handleViewVoucher,
+  handleOpenStopCompliance,
+  handleOpenSupport,
+  handleViewPointConfig,
+  handleViewFlowAnalysis,
+  handleViewComplianceDetail,
+  loading,
+}) => {
 
-  const [showSkeleton, setShowSkeleton] = useState(true);
-  const [showContent, setShowContent] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSkeleton(false);
-      setShowContent(true);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (showSkeleton || (loading && !points?.length)) {
+  if (loading && !points?.length) {
     return (
-      <div className="skeleton-fade-out" style={{ padding: "16px 0" }}>
+      <div style={{ padding: "16px 0" }}>
         <SkeletonCompliance />
       </div>
     );
   }
 
   return (
-    <div className={showContent ? "content-fade-in" : undefined}>
+    <div>
       <CCComplianceTable
         points={points}
         last7={last7}

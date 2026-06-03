@@ -166,7 +166,7 @@ class NumberFormatter {
 export const numberFormatter = new NumberFormatter();
 
 // Export por defecto para importación simple
-export default {
+const numberFormatterModule = {
   formatInteger,
   formatDecimal,
   formatNumber,
@@ -176,3 +176,5 @@ export default {
   formatPercentage,
   numberFormatter,
 };
+
+export default numberFormatterModule;

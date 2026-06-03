@@ -4,7 +4,7 @@ import "./index.css";
 import "./styles/mobile.css";
 import "./styles/components.css";
 import "./styles/global-animations.css";
-import { ConfigProvider, App, theme } from "antd";
+import { ConfigProvider, App } from "antd";
 import AppStore from "./App";
 import reportWebVitals from "./reportWebVitals";
 import es_ES from "antd/lib/locale/es_ES";
@@ -15,8 +15,8 @@ import IkoluEmotionProvider from "./theme/EmotionThemeProvider";
 import { ThemeProvider, useAppTheme } from "./contexts/ThemeContext";
 
 const ThemedApp = () => {
-  const { algorithm } = useAppTheme();
-  const themeConfig = createIkoluTheme(algorithm);
+  const { algorithm, isDark } = useAppTheme();
+  const themeConfig = createIkoluTheme(algorithm, isDark);
 
   return (
     <App>

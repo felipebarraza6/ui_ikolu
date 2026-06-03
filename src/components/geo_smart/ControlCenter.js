@@ -4,7 +4,7 @@ import { useData } from "../../contexts/DataContext";
 import { useControlCenter } from "../../hooks/useControlCenter";
 import { useControlCenterStore } from "../../features/geo-smart/stores/controlCenterStore";
 import sh from "../../api/sh/endpoints";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Row, Col, Card, Flex, Typography, Spin, Table, Tag, theme, Drawer, Modal, Button, Input, Space, Segmented, Form, message, DatePicker, Alert, Tabs, Select, Tooltip } from "antd";
 import {
   FaMapMarkerAlt,
@@ -26,6 +26,8 @@ import {
 
 
 import ControlCenterLayout from "./ControlCenterLayout";
+import TelemetryTab from "./TelemetryTab";
+import ComplianceTab from "./ComplianceTab";
 import CCSupportDrawer from "./CCSupportDrawer";
 import PointConfigDrawer from "./PointConfigDrawer";
 import CCFlowAnalysisDrawer from "./CCFlowAnalysisDrawer";
@@ -506,7 +508,7 @@ const ControlCenter = () => {
   if (loading && !isReady) {
     return (
       <div style={{ padding: "0 16px" }}>
-        <SkeletonControlCenter />
+        <SkeletonControlCenter activeTab={activeTab} />
       </div>
     );
   }
@@ -543,28 +545,36 @@ const ControlCenter = () => {
           setWarningsDrawerOpen(true);
         }}
       >
-        <Outlet
-          context={{
-            last7: data?.last_7,
-            selectedDate,
-            setSelectedDate,
-            handleViewMeasurements,
-            handleOpenStopTelemetry,
-            handleOpenSupport,
-            handleWarningPointClick: (pointName) => {
+        <div style={{ display: activeTab === 'telemetry' ? '' : 'none' }}>
+          <TelemetryTab
+            last7={data?.last_7}
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            handleViewMeasurements={handleViewMeasurements}
+            handleOpenStopTelemetry={handleOpenStopTelemetry}
+            handleOpenSupport={handleOpenSupport}
+            handleWarningPointClick={(pointName) => {
               setSelectedWarningPoint(pointName);
               setWarningsDrawerOpen(true);
-            },
-            warningsRaw,
-            points,
-            handleViewVoucher,
-            handleOpenStopCompliance,
-            handleViewPointConfig,
-            handleViewFlowAnalysis,
-            handleViewComplianceDetail,
-            loading,
-          }}
-        />
+            }}
+            warningsRaw={warningsRaw}
+            handleViewPointConfig={handleViewPointConfig}
+            loading={loading}
+          />
+        </div>
+        <div style={{ display: activeTab === 'compliance' ? '' : 'none' }}>
+          <ComplianceTab
+            points={points}
+            last7={data?.last_7}
+            handleViewVoucher={handleViewVoucher}
+            handleOpenStopCompliance={handleOpenStopCompliance}
+            handleOpenSupport={handleOpenSupport}
+            handleViewPointConfig={handleViewPointConfig}
+            handleViewFlowAnalysis={handleViewFlowAnalysis}
+            handleViewComplianceDetail={handleViewComplianceDetail}
+            loading={loading}
+          />
+        </div>
       </ControlCenterLayout>
 
       {/* ════════════════════════════════════════
@@ -573,9 +583,9 @@ const ControlCenter = () => {
       <Drawer
         title={
           <Flex align="center" gap={8}>
-            <FaExclamationTriangle style={{ color: '#F4A261', fontSize: 16 }} />
-            <Text strong style={{ fontSize: 16, color: 'rgba(255, 255, 255, 0.9)' }}>Warnings</Text>
-            <Tag className="ocean-tag ocean-tag-warning">
+            <FaExclamationTriangle style={{ color: token.colorWarning, fontSize: 16 }} />
+            <Text strong style={{ fontSize: 16 }}>Warnings</Text>
+            <Tag color="warning" style={{ margin: 0 }}>
               {warningsList.length} total
             </Tag>
           </Flex>
@@ -597,15 +607,8 @@ const ControlCenter = () => {
             return (
               <Tag
                 key={pointName}
-                style={{
-                  cursor: "pointer",
-                  fontSize: 12,
-                  padding: "4px 10px",
-                  margin: 0,
-                  background: isActive ? 'rgba(244, 162, 97, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-                  border: `1px solid ${isActive ? 'rgba(244, 162, 97, 0.4)' : 'rgba(255, 255, 255, 0.1)'}`,
-                  color: isActive ? '#F4A261' : 'rgba(255, 255, 255, 0.7)',
-                }}
+                color={isActive ? "warning" : "default"}
+                style={{ cursor: "pointer", fontSize: 12, padding: "4px 10px", margin: 0 }}
                 onClick={() => setSelectedWarningPoint(pointName)}
               >
                 {pointName} ({arr.length})
@@ -626,7 +629,7 @@ const ControlCenter = () => {
                 key: "time",
                 width: 110,
                 render: (time) => (
-                  <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.5)', whiteSpace: "nowrap" }}>
+                  <Text style={{ fontSize: 11, color: token.colorTextSecondary, whiteSpace: "nowrap" }}>
                     {time ? moment(time).format("DD/MM HH:mm") : "—"}
                   </Text>
                 ),
@@ -636,7 +639,7 @@ const ControlCenter = () => {
                 dataIndex: "type",
                 key: "type",
                 width: 80,
-                render: (type) => <Tag className="ocean-tag ocean-tag-info">{type}</Tag>,
+                render: (type) => <Tag style={{ fontSize: 10, margin: 0 }}>{type}</Tag>,
               },
               {
                 title: "Severidad",
@@ -644,8 +647,8 @@ const ControlCenter = () => {
                 key: "severity",
                 width: 90,
                 render: (sev) => {
-                  const color = sev === "ERROR" ? "#E76F51" : sev === "WARNING" ? "#F4A261" : "#00B4D8";
-                  return <Tag style={{ fontSize: 10, margin: 0, background: `${color}15`, border: `1px solid ${color}30`, color }}>{sev}</Tag>;
+                  const color = sev === "ERROR" ? "red" : sev === "WARNING" ? "orange" : "blue";
+                  return <Tag color={color} style={{ fontSize: 10, margin: 0 }}>{sev}</Tag>;
                 },
               },
               {
@@ -653,7 +656,7 @@ const ControlCenter = () => {
                 dataIndex: "message",
                 key: "message",
                 render: (msg) => (
-                  <Text style={{ fontSize: 12, whiteSpace: "normal", wordBreak: "break-word", lineHeight: 1.4, color: 'rgba(255, 255, 255, 0.8)' }}>
+                  <Text style={{ fontSize: 12, whiteSpace: "normal", wordBreak: "break-word", lineHeight: 1.4 }}>
                     {msg}
                   </Text>
                 ),
@@ -820,13 +823,13 @@ const ControlCenter = () => {
             <Row gutter={[16, 16]}>
               {[1, 2].map(i => (
                 <Col xs={24} md={12} key={i}>
-                  <div className="ocean-skeleton-box">
-                    <div className="ocean-skeleton-bar" style={{ height: 40 }} />
+                  <div style={{ borderRadius: 12, border: `1px solid ${token.colorBorderSecondary}`, overflow: "hidden" }}>
+                    <div style={{ height: 40, background: token.colorBgLayout }} />
                     <div style={{ height: 50, padding: "10px 16px", display: "flex", gap: 8, justifyContent: "center" }}>
-                      {[1, 2, 3].map(j => <div key={j} className="ocean-skeleton-fill" style={{ flex: 1, height: 40, borderRadius: 10 }} />)}
+                      {[1, 2, 3].map(j => <div key={j} style={{ flex: 1, height: 40, borderRadius: 6, background: token.colorFillQuaternary }} />)}
                     </div>
                     <div style={{ height: 220, padding: 16 }}>
-                      <div className="ocean-skeleton-fill" style={{ height: "100%", borderRadius: 12 }} />
+                      <div style={{ height: "100%", borderRadius: 8, background: token.colorFillQuaternary }} />
                     </div>
                   </div>
                 </Col>
@@ -854,12 +857,12 @@ const ControlCenter = () => {
       <Modal
         title={
           <Flex align="center" gap={8} wrap="wrap">
-            <FaClipboardCheck style={{ color: '#00B4D8', fontSize: 16 }} />
-            <Text strong style={{ fontSize: 14, color: 'rgba(255, 255, 255, 0.9)' }}>{selectedVoucher?.title || "Voucher DGA"}</Text>
-            <Tag className="ocean-tag ocean-tag-info">
+            <FaClipboardCheck style={{ color: token.colorPrimary, fontSize: 16 }} />
+            <Text strong style={{ fontSize: 14 }}>{selectedVoucher?.title || "Voucher DGA"}</Text>
+            <Tag style={{ fontSize: 10, margin: 0, padding: "0 4px", lineHeight: "16px" }}>
               {selectedVoucher?.code || "—"}
             </Tag>
-            <Tag className="ocean-tag ocean-tag-default">
+            <Tag style={{ fontSize: 10, margin: 0, padding: "0 4px", lineHeight: "16px" }}>
               {selectedVoucher?.type_dga || "SUPERFICIAL"}
             </Tag>
           </Flex>
@@ -885,7 +888,7 @@ const ControlCenter = () => {
                   <Input
                     value={selectedVoucher?.voucher || ""}
                     readOnly
-                    className="ocean-input-readonly ocean-font-mono"
+                    style={{ fontSize: 13, fontFamily: "monospace" }}
                   />
                   <Button
                     type={voucherCopied ? "default" : "primary"}
@@ -921,8 +924,13 @@ const ControlCenter = () => {
             {/* ── Consola (izquierda) ── */}
             <Col xs={24} md={12} style={{ height: 400 }}>
               <div
-                className="ocean-console"
                 style={{
+                  background: "#1e1e1e",
+                  borderRadius: 8,
+                  padding: "12px 16px",
+                  fontFamily: "monospace",
+                  fontSize: 11,
+                  color: "#d4d4d4",
                   height: "500px",
                   overflowY: "auto",
                   lineHeight: 1.6,
@@ -960,22 +968,22 @@ const ControlCenter = () => {
               <Flex vertical gap={12} style={{ height: "100%" }}>
                 {/* Estado vacío */}
                 {!dgaResult && !dgaVerifying && (
-                  <Flex vertical align="center" justify="center" className="ocean-empty-state">
-                    <FaClipboardCheck style={{ fontSize: 32, color: 'rgba(255, 255, 255, 0.2)', marginBottom: 12 }} />
-                    <Text className="ocean-text-base ocean-text-muted ocean-font-semibold">
+                  <Flex vertical align="center" justify="center" style={{ height: "100%", textAlign: "center" }}>
+                    <FaClipboardCheck style={{ fontSize: 32, color: token.colorTextDisabled, marginBottom: 12 }} />
+                    <Text strong style={{ fontSize: 13, color: token.colorTextSecondary }}>
                       Sin validar
                     </Text>
-                    <Text className="ocean-text-sm ocean-text-disabled" style={{ marginTop: 4 }}>
-                      Haz clic en <Text strong className="ocean-text-cyan-light">Validar comprobante</Text> para verificar
+                    <Text style={{ fontSize: 11, color: token.colorTextTertiary, marginTop: 4 }}>
+                      Haz clic en <Text strong>Validar comprobante</Text> para verificar
                     </Text>
                   </Flex>
                 )}
 
                 {/* Validando */}
                 {dgaVerifying && !dgaResult && (
-                  <Flex vertical align="center" justify="center" className="ocean-empty-state">
+                  <Flex vertical align="center" justify="center" style={{ height: "100%", textAlign: "center" }}>
                     <Spin size="large" style={{ marginBottom: 12 }} />
-                    <Text className="ocean-text-base ocean-text-cyan ocean-font-semibold">
+                    <Text strong style={{ fontSize: 13, color: token.colorPrimary }}>
                       Consultando DGA...
                     </Text>
                   </Flex>
@@ -988,57 +996,57 @@ const ControlCenter = () => {
                       {/* Datos principales - grid 2x2 */}
                       <Row gutter={[10, 10]}>
                         <Col span={12}>
-                          <div className="ocean-data-card">
-                            <Text className="ocean-text-xs ocean-text-muted ocean-uppercase ocean-letter-spacing">Caudal</Text>
-                            <div><Text strong className="ocean-text-2xl ocean-text-cyan">{dgaResult.data.caudal}</Text> <Text className="ocean-text-md ocean-text-muted">L/s</Text></div>
+                          <div style={{ background: token.colorBgLayout, borderRadius: 8, padding: "12px 14px", textAlign: "center" }}>
+                            <Text type="secondary" style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>Caudal</Text>
+                            <div><Text strong style={{ fontSize: 20, color: token.colorPrimary }}>{dgaResult.data.caudal}</Text> <Text style={{ fontSize: 12, color: token.colorTextSecondary }}>L/s</Text></div>
                           </div>
                         </Col>
                         <Col span={12}>
-                          <div className="ocean-data-card">
-                            <Text className="ocean-text-xs ocean-text-muted ocean-uppercase ocean-letter-spacing">Totalizador</Text>
-                            <div><Text strong className="ocean-text-2xl ocean-text-cyan">{dgaResult.data.totalizador}</Text> <Text className="ocean-text-md ocean-text-muted">m³</Text></div>
+                          <div style={{ background: token.colorBgLayout, borderRadius: 8, padding: "12px 14px", textAlign: "center" }}>
+                            <Text type="secondary" style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>Totalizador</Text>
+                            <div><Text strong style={{ fontSize: 20, color: token.colorPrimary }}>{dgaResult.data.totalizador}</Text> <Text style={{ fontSize: 12, color: token.colorTextSecondary }}>m³</Text></div>
                           </div>
                         </Col>
                         <Col span={12}>
-                          <div className="ocean-data-card">
-                            <Text className="ocean-text-xs ocean-text-muted ocean-uppercase ocean-letter-spacing">Fecha</Text>
-                            <div><Text strong className="ocean-text-xl ocean-text-primary">{dgaResult.data.fechaMedicion}</Text></div>
+                          <div style={{ background: token.colorBgLayout, borderRadius: 8, padding: "12px 14px", textAlign: "center" }}>
+                            <Text type="secondary" style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>Fecha</Text>
+                            <div><Text strong style={{ fontSize: 15 }}>{dgaResult.data.fechaMedicion}</Text></div>
                           </div>
                         </Col>
                         <Col span={12}>
-                          <div className="ocean-data-card">
-                            <Text className="ocean-text-xs ocean-text-muted ocean-uppercase ocean-letter-spacing">Hora</Text>
-                            <div><Text strong className="ocean-text-xl ocean-text-primary">{dgaResult.data.horaMedicion}</Text></div>
+                          <div style={{ background: token.colorBgLayout, borderRadius: 8, padding: "12px 14px", textAlign: "center" }}>
+                            <Text type="secondary" style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>Hora</Text>
+                            <div><Text strong style={{ fontSize: 15 }}>{dgaResult.data.horaMedicion}</Text></div>
                           </div>
                         </Col>
                       </Row>
 
                       {/* Info punto - fila compacta */}
-                        {dgaResult.meta && (
-                          <Flex gap={8} wrap="wrap">
-                            <div className="ocean-data-card-sm" style={{ flex: 1, minWidth: 120 }}>
-                              <Text className="ocean-text-xs ocean-text-muted ocean-uppercase">Punto</Text>
-                              <div><Text className="ocean-text-md ocean-text-primary">{dgaResult.meta.punto}</Text></div>
-                            </div>
-                            <div className="ocean-data-card-sm" style={{ flex: 1, minWidth: 120 }}>
-                              <Text className="ocean-text-xs ocean-text-muted ocean-uppercase">Código</Text>
-                              <div><Text className="ocean-text-md ocean-font-mono ocean-text-primary">{dgaResult.meta.codigo_obra}</Text></div>
-                            </div>
-                            <div className="ocean-data-card-sm" style={{ flex: 1, minWidth: 100 }}>
-                              <Text className="ocean-text-xs ocean-text-muted ocean-uppercase">Tipo</Text>
-                              <div><Text className="ocean-text-md ocean-text-primary">{dgaResult.meta.tipo_dga}</Text></div>
-                            </div>
-                            <div style={{ background: dgaResult.meta.enviado_dga ? 'rgba(42, 157, 143, 0.1)' : 'rgba(231, 111, 81, 0.1)', borderRadius: 8, padding: "8px 12px", flex: 1, minWidth: 100, border: `1px solid ${dgaResult.meta.enviado_dga ? 'rgba(42, 157, 143, 0.2)' : 'rgba(231, 111, 81, 0.2)'}` }}>
-                              <Text className="ocean-text-xs ocean-text-muted ocean-uppercase">Enviado</Text>
-                              <div><Text className="ocean-text-md" style={{ color: dgaResult.meta.enviado_dga ? '#2A9D8F' : '#E76F51' }}>{dgaResult.meta.enviado_dga ? "Sí" : "No"}</Text></div>
-                            </div>
-                          </Flex>
-                        )}
+                      {dgaResult.meta && (
+                        <Flex gap={8} wrap="wrap">
+                          <div style={{ background: token.colorBgLayout, borderRadius: 6, padding: "8px 12px", flex: 1, minWidth: 120 }}>
+                            <Text type="secondary" style={{ fontSize: 9, textTransform: "uppercase" }}>Punto</Text>
+                            <div><Text style={{ fontSize: 12 }}>{dgaResult.meta.punto}</Text></div>
+                          </div>
+                          <div style={{ background: token.colorBgLayout, borderRadius: 6, padding: "8px 12px", flex: 1, minWidth: 120 }}>
+                            <Text type="secondary" style={{ fontSize: 9, textTransform: "uppercase" }}>Código</Text>
+                            <div><Text style={{ fontSize: 12, fontFamily: "monospace" }}>{dgaResult.meta.codigo_obra}</Text></div>
+                          </div>
+                          <div style={{ background: token.colorBgLayout, borderRadius: 6, padding: "8px 12px", flex: 1, minWidth: 100 }}>
+                            <Text type="secondary" style={{ fontSize: 9, textTransform: "uppercase" }}>Tipo</Text>
+                            <div><Text style={{ fontSize: 12 }}>{dgaResult.meta.tipo_dga}</Text></div>
+                          </div>
+                          <div style={{ background: dgaResult.meta.enviado_dga ? token.colorSuccessBg : token.colorErrorBg, borderRadius: 6, padding: "8px 12px", flex: 1, minWidth: 100 }}>
+                            <Text type="secondary" style={{ fontSize: 9, textTransform: "uppercase" }}>Enviado</Text>
+                            <div><Text style={{ fontSize: 12, color: dgaResult.meta.enviado_dga ? token.colorSuccess : token.colorError }}>{dgaResult.meta.enviado_dga ? "Sí" : "No"}</Text></div>
+                          </div>
+                        </Flex>
+                      )}
 
                       {/* return_dga banner */}
                       {dgaResult.meta?.return_dga && (
-                        <div className="ocean-success-card" style={{ padding: "8px 12px" }}>
-                          <Text className="ocean-text-sm ocean-text-teal">{dgaResult.meta.return_dga}</Text>
+                        <div style={{ background: token.colorSuccessBg, borderRadius: 6, padding: "8px 12px" }}>
+                          <Text style={{ fontSize: 11, color: token.colorSuccess }}>{dgaResult.meta.return_dga}</Text>
                         </div>
                       )}
                     </Flex>
@@ -1060,12 +1068,12 @@ const ControlCenter = () => {
 
                 {/* No encontrado - status 01 */}
                 {dgaResult && dgaResult.status === "01" && (
-                  <Flex vertical align="center" justify="center" className="ocean-empty-state">
-                    <FaExclamationTriangle style={{ fontSize: 32, color: "#F4A261", marginBottom: 12 }} />
-                    <Text className="ocean-text-base ocean-text-muted ocean-font-semibold">
+                  <Flex vertical align="center" justify="center" style={{ height: "100%", textAlign: "center" }}>
+                    <FaExclamationTriangle style={{ fontSize: 32, color: token.colorWarning, marginBottom: 12 }} />
+                    <Text strong style={{ fontSize: 13, color: token.colorTextSecondary }}>
                       Comprobante no encontrado
                     </Text>
-                    <Text className="ocean-text-sm ocean-text-disabled" style={{ marginTop: 4 }}>
+                    <Text style={{ fontSize: 11, color: token.colorTextTertiary, marginTop: 4 }}>
                       Verifica el código y número de comprobante
                     </Text>
                   </Flex>
@@ -1073,12 +1081,12 @@ const ControlCenter = () => {
 
                 {/* Error de red */}
                 {dgaResult && !dgaResult.status && (
-                  <Flex vertical align="center" justify="center" className="ocean-empty-state">
-                    <FaExclamationTriangle style={{ fontSize: 32, color: "#E76F51", marginBottom: 12 }} />
-                    <Text className="ocean-text-base ocean-text-muted ocean-font-semibold">
+                  <Flex vertical align="center" justify="center" style={{ height: "100%", textAlign: "center" }}>
+                    <FaExclamationTriangle style={{ fontSize: 32, color: token.colorError, marginBottom: 12 }} />
+                    <Text strong style={{ fontSize: 13, color: token.colorTextSecondary }}>
                       Error de conexión
                     </Text>
-                    <Text className="ocean-text-sm ocean-text-disabled" style={{ marginTop: 4 }}>
+                    <Text style={{ fontSize: 11, color: token.colorTextTertiary, marginTop: 4 }}>
                       Revisa la consola para más detalles
                     </Text>
                   </Flex>
@@ -1109,8 +1117,8 @@ const ControlCenter = () => {
       <Drawer
         title={
           <Flex align="center" gap={8}>
-            <FaHandPaper style={{ color: '#00B4D8', fontSize: 16 }} />
-            <Text strong style={{ fontSize: 16, color: 'rgba(255, 255, 255, 0.9)' }}>Solicitud para detener telemetría</Text>
+            <FaHandPaper style={{ color: token.colorPrimary, fontSize: 16 }} />
+            <Text strong style={{ fontSize: 16 }}>Solicitud para detener telemetría</Text>
           </Flex>
         }
         open={stopTelemetryOpen}
@@ -1120,7 +1128,7 @@ const ControlCenter = () => {
           stopTelemetryForm.resetFields();
         }}
         width={420}
-        styles={{ body: { padding: 20 } }}
+        bodyStyle={{ padding: 20 }}
         footer={
           <Flex justify="flex-end" gap={8}>
             <Button onClick={() => { setStopTelemetryOpen(false); setStopTelemetryPoint(null); stopTelemetryForm.resetFields(); }}>
@@ -1133,20 +1141,17 @@ const ControlCenter = () => {
         }
       >
         {stopTelemetryPoint && (
-          <Flex vertical gap={12} style={{ marginBottom: 16 }}>
-            <Card size="small" bodyStyle={{ padding: 12 }} className="ocean-info-card">
-              <Text className="ocean-text-base ocean-text-primary ocean-font-semibold" style={{ display: "block" }}>{stopTelemetryPoint.name}</Text>
-              <Text className="ocean-text-sm ocean-text-muted">Cliente: {stopTelemetryPoint.client}</Text>
-            </Card>
+          <Flex vertical style={{ marginBottom: 16 }}>
+            <Text strong style={{ fontSize: 14 }}>{stopTelemetryPoint.name}</Text>
           </Flex>
         )}
         <Form form={stopTelemetryForm} layout="vertical" onFinish={handleSubmitStopTelemetry}>
           {/* Quién crea */}
-          <Form.Item label={<span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Solicitado por</span>}>
+          <Form.Item label="Solicitado por">
             <Input
               value={user ? `${user.first_name || user.username} (${user.email})` : "—"}
               readOnly
-              className="ocean-input-readonly"
+              style={{ borderRadius: 8, fontSize: 13, background: token.colorBgContainerDisabled }}
             />
           </Form.Item>
           {/* Fechas */}
@@ -1154,7 +1159,7 @@ const ControlCenter = () => {
             <Col span={12}>
               <Form.Item
                 name="start_date"
-                label={<span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Fecha inicio</span>}
+                label="Fecha inicio"
                 rules={[{ required: true, message: "Selecciona fecha" }]}
               >
                 <DatePicker style={{ width: "100%", borderRadius: 8 }} format="DD/MM/YYYY" placeholder="Inicio" />
@@ -1163,7 +1168,7 @@ const ControlCenter = () => {
             <Col span={12}>
               <Form.Item
                 name="end_date"
-                label={<span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Fecha fin</span>}
+                label="Fecha fin"
                 rules={[{ required: true, message: "Selecciona fecha" }]}
               >
                 <DatePicker style={{ width: "100%", borderRadius: 8 }} format="DD/MM/YYYY" placeholder="Fin" />
@@ -1172,7 +1177,7 @@ const ControlCenter = () => {
           </Row>
           <Form.Item
             name="reason"
-            label={<span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Razón de la solicitud</span>}
+            label="Razón de la solicitud"
             rules={[{ required: true, message: "Ingresa la razón" }]}
           >
             <Input.TextArea
@@ -1180,7 +1185,7 @@ const ControlCenter = () => {
               placeholder="Ej: Mantenimiento programado del sensor..."
               maxLength={500}
               showCount
-              className="ocean-input-readonly"
+              style={{ borderRadius: 8, fontSize: 13 }}
             />
           </Form.Item>
           <Form.Item hidden name="pointId" initialValue={stopTelemetryPoint?.id}>
@@ -1195,8 +1200,8 @@ const ControlCenter = () => {
       <Drawer
         title={
           <Flex align="center" gap={8}>
-            <FaPauseCircle style={{ color: '#00B4D8', fontSize: 16 }} />
-            <Text strong style={{ fontSize: 16, color: 'rgba(255, 255, 255, 0.9)' }}>Solicitud para detener cumplimiento</Text>
+            <FaPauseCircle style={{ color: token.colorPrimary, fontSize: 16 }} />
+            <Text strong style={{ fontSize: 16 }}>Solicitud para detener cumplimiento</Text>
           </Flex>
         }
         open={stopComplianceOpen}
@@ -1206,7 +1211,7 @@ const ControlCenter = () => {
           stopComplianceForm.resetFields();
         }}
         width={420}
-        styles={{ body: { padding: 20 } }}
+        bodyStyle={{ padding: 20 }}
         footer={
           <Flex justify="flex-end" gap={8}>
             <Button onClick={() => { setStopComplianceOpen(false); setStopCompliancePoint(null); stopComplianceForm.resetFields(); }}>
@@ -1220,19 +1225,19 @@ const ControlCenter = () => {
       >
         {stopCompliancePoint && (
           <Flex vertical gap={12} style={{ marginBottom: 16 }}>
-            <Card size="small" bodyStyle={{ padding: 12 }} className="ocean-info-card">
-              <Text className="ocean-text-base ocean-text-primary ocean-font-semibold" style={{ display: "block" }}>{stopCompliancePoint.name}</Text>
-              <Text className="ocean-text-sm ocean-text-muted">Código: {stopCompliancePoint.code}</Text>
+            <Card size="small" bodyStyle={{ padding: 10 }} style={{ background: `${token.colorPrimary}06`, border: `1px solid ${token.colorPrimary}15` }}>
+              <Text strong style={{ fontSize: 13, display: "block" }}>{stopCompliancePoint.name}</Text>
+              <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>Código: {stopCompliancePoint.code}</Text>
             </Card>
           </Flex>
         )}
         <Form form={stopComplianceForm} layout="vertical" onFinish={handleSubmitStopCompliance}>
           {/* Quién crea */}
-          <Form.Item label={<span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Solicitado por</span>}>
+          <Form.Item label="Solicitado por">
             <Input
               value={user ? `${user.first_name || user.username} (${user.email})` : "—"}
               readOnly
-              className="ocean-input-readonly"
+              style={{ borderRadius: 8, fontSize: 13, background: token.colorBgContainerDisabled }}
             />
           </Form.Item>
           {/* Fechas */}
@@ -1240,7 +1245,7 @@ const ControlCenter = () => {
             <Col span={12}>
               <Form.Item
                 name="start_date"
-                label={<span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Fecha inicio</span>}
+                label="Fecha inicio"
                 rules={[{ required: true, message: "Selecciona fecha" }]}
               >
                 <DatePicker style={{ width: "100%", borderRadius: 8 }} format="DD/MM/YYYY" placeholder="Inicio" />
@@ -1249,7 +1254,7 @@ const ControlCenter = () => {
             <Col span={12}>
               <Form.Item
                 name="end_date"
-                label={<span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Fecha fin</span>}
+                label="Fecha fin"
                 rules={[{ required: true, message: "Selecciona fecha" }]}
               >
                 <DatePicker style={{ width: "100%", borderRadius: 8 }} format="DD/MM/YYYY" placeholder="Fin" />
@@ -1260,10 +1265,10 @@ const ControlCenter = () => {
             <Alert
               type="warning"
               showIcon
-              style={{ marginBottom: 12, fontSize: 12, background: 'rgba(244, 162, 97, 0.1)', border: '1px solid rgba(244, 162, 97, 0.2)' }}
-              message={<span style={{ color: '#F4A261' }}>Informe Técnico requerido</span>}
+              style={{ marginBottom: 12, fontSize: 12 }}
+              message="Informe Técnico requerido"
               description={
-                <Text style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
+                <Text style={{ fontSize: 12 }}>
                   La detención supera los 5 días. Se debe enviar el <strong>Informe Técnico</strong> (formato libre) que cumpla con los fundamentos principales y cuyo objetivo sea evidenciar las actividades realizadas en terreno.
                 </Text>
               }
@@ -1273,10 +1278,10 @@ const ControlCenter = () => {
             <Alert
               type="error"
               showIcon
-              style={{ marginBottom: 12, fontSize: 12, background: 'rgba(231, 111, 81, 0.1)', border: '1px solid rgba(231, 111, 81, 0.2)' }}
-              message={<span style={{ color: '#E76F51' }}>Informe Detallado Obligatorio</span>}
+              style={{ marginBottom: 12, fontSize: 12 }}
+              message="Informe Detallado Obligatorio"
               description={
-                <Text style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
+                <Text style={{ fontSize: 12 }}>
                   La detención supera los 10 días. Se debe confeccionar un <strong>informe detallado de las actividades realizadas en terreno</strong>, evidenciando cada una de las labores ejecutadas.
                 </Text>
               }
@@ -1284,7 +1289,7 @@ const ControlCenter = () => {
           )}
           <Form.Item
             name="reason"
-            label={<span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Razón de la solicitud</span>}
+            label="Razón de la solicitud"
             rules={[{ required: true, message: "Ingresa la razón" }]}
           >
             <Input.TextArea
@@ -1292,7 +1297,7 @@ const ControlCenter = () => {
               placeholder="Ej: Pausa temporal por reconfiguración normativa..."
               maxLength={500}
               showCount
-              className="ocean-input-readonly"
+              style={{ borderRadius: 8, fontSize: 13 }}
             />
           </Form.Item>
           <Form.Item hidden name="pointId" initialValue={stopCompliancePoint?.id}>

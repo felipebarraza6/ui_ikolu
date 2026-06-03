@@ -1,0 +1,157 @@
+/* =====================================================
+   Theme Variables - Light & Dark
+   Centro de Control Smart Hydro
+   ===================================================== */
+
+:root {
+  /* ═══════════════════════════════════════════════════
+     Light Mode (default)
+     ═══════════════════════════════════════════════════ */
+  
+  /* Fondos */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-glass: rgba(255, 255, 255, 0.85);
+  --bg-hover: rgba(0, 180, 216, 0.04);
+  --bg-active: rgba(0, 180, 216, 0.08);
+  --bg-overlay: rgba(255, 255, 255, 0.95);
+  
+  /* Textos */
+  --text-primary: #1a1a2e;
+  --text-secondary: #4a5568;
+  --text-muted: #718096;
+  --text-disabled: #a0aec0;
+  
+  /* Bordes */
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-medium: rgba(0, 0, 0, 0.12);
+  --border-strong: rgba(0, 0, 0, 0.18);
+  
+  /* Ocean Accents */
+  --ocean-deep: #0A2540;
+  --ocean-primary: #0077B6;
+  --ocean-cyan: #00B4D8;
+  --ocean-light: #90E0EF;
+  
+  /* Status Colors */
+  --color-success: #2A9D8F;
+  --color-warning: #F4A261;
+  --color-error: #E76F51;
+  --color-info: #00B4D8;
+  
+  /* Status Backgrounds */
+  --bg-success: rgba(42, 157, 143, 0.08);
+  --bg-warning: rgba(244, 162, 97, 0.08);
+  --bg-error: rgba(231, 111, 81, 0.08);
+  --bg-info: rgba(0, 180, 216, 0.08);
+  
+  /* Status Borders */
+  --border-success: rgba(42, 157, 143, 0.3);
+  --border-warning: rgba(244, 162, 97, 0.3);
+  --border-error: rgba(231, 111, 81, 0.3);
+  --border-info: rgba(0, 180, 216, 0.3);
+  
+  /* Sombras */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.08);
+  --shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.12);
+  --shadow-glow: 0 0 20px rgba(0, 180, 216, 0.15);
+  
+  /* Gradientes KPI Light */
+  --kpi-gradient-1: linear-gradient(135deg, #e8f4f8 0%, #ffffff 50%, #f0f9ff 100%);
+  --kpi-gradient-2: linear-gradient(135deg, #e0f2fe 0%, #ffffff 50%, #ecfeff 100%);
+  --kpi-gradient-3: linear-gradient(135deg, #f0fdfa 0%, #ffffff 50%, #f0fdf4 100%);
+  --kpi-gradient-4: linear-gradient(135deg, #fff7ed 0%, #ffffff 50%, #fef2f2 100%);
+  
+  /* Skeleton */
+  --skeleton-bg: #e2e8f0;
+  --skeleton-shimmer: #f7fafc;
+  
+  /* Transición tema */
+  --theme-transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] {
+  /* ═══════════════════════════════════════════════════
+     Dark Mode
+     ═══════════════════════════════════════════════════ */
+  
+  /* Fondos */
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #0f1629;
+  --bg-tertiary: #1a1f3a;
+  --bg-card: rgba(255, 255, 255, 0.03);
+  --bg-glass: rgba(5, 10, 20, 0.95);
+  --bg-hover: rgba(0, 180, 216, 0.08);
+  --bg-active: rgba(0, 180, 216, 0.15);
+  --bg-overlay: rgba(5, 10, 20, 0.98);
+  
+  /* Textos */
+  --text-primary: rgba(255, 255, 255, 0.92);
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.5);
+  --text-disabled: rgba(255, 255, 255, 0.3);
+  
+  /* Bordes */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  
+  /* Sombras */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 20px rgba(0, 180, 216, 0.3);
+  
+  /* Gradientes KPI Dark (glassmorphism - SmartHydro) */
+  --kpi-gradient-1: linear-gradient(-45deg, #0A2540, #203562, #2A4A8A, #3B6CA8);
+  --kpi-gradient-2: linear-gradient(-45deg, #1a1f3a, #0A2540, #203562, #2A4A8A);
+  --kpi-gradient-3: linear-gradient(-45deg, #0f1629, #1a1f3a, #203562, #2A4A8A);
+  --kpi-gradient-4: linear-gradient(-45deg, #2a1a3a, #1a1f3a, #F4A261, #E76F51);
+  
+  /* Skeleton */
+  --skeleton-bg: rgba(255, 255, 255, 0.05);
+  --skeleton-shimmer: rgba(255, 255, 255, 0.1);
+}
+
+/* ═══════════════════════════════════════════════════
+   Transiciones suaves de tema
+   ═══════════════════════════════════════════════════ */
+
+html {
+  transition: background-color var(--theme-transition);
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color var(--theme-transition), color var(--theme-transition);
+}
+
+body, div, span, p, h1, h2, h3, h4, h5, h6,
+section, article, aside, header, footer, main,
+nav, ul, ol, li, table, tr, td, th,
+.ant-card, .ant-btn, .ant-input, .ant-select,
+.ant-tag, .ant-badge, .ant-drawer, .ant-modal,
+.ocean-panel, .ocean-card, .ocean-kpi-card,
+.glass, .ocean-glass {
+  transition: background-color var(--theme-transition),
+              color var(--theme-transition),
+              border-color var(--theme-transition),
+              box-shadow var(--theme-transition);
+}
+
+.ocean-no-transition,
+.ocean-no-transition *,
+canvas, svg, img,
+.ant-spin-dot,
+.ant-progress-circle,
+.shimmer-ocean,
+.smart-shimmer-bar,
+.smart-shimmer-circle {
+  transition: none !important;
+}

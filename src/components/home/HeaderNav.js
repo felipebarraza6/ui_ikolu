@@ -133,7 +133,9 @@ const HeaderNav = ({ onMenuClick }) => {
   // Detectar si es módulo global (no depende del punto seleccionado)
   const isGlobalModule = useMemo(() => {
     const globalPaths = ["/", "/control_center", "/geo"];
-    return globalPaths.includes(location.pathname);
+    return globalPaths.some(path => 
+      path === "/" ? location.pathname === "/" : location.pathname.startsWith(path)
+    );
   }, [location.pathname]);
 
   // Determinar si mostrar tuerca de configuración según la ruta
