@@ -81,10 +81,10 @@ const MemoizedMeasurementsTable = React.memo(({ allMeasurements, measurementColu
   return (
     <Flex vertical gap={12}>
       <Flex align="center" justify="flex-end" gap={8}>
-        <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.5)' }}>
+        <Text className="ocean-text-sm ocean-text-muted">
           {allMeasurements.length} registros
         </Text>
-        <Button size="small" icon={<FaDownload size={11} />} onClick={handleExportCSV}>
+        <Button size="small" icon={<FaDownload className="ocean-icon-xs" />} onClick={handleExportCSV}>
           Exportar CSV
         </Button>
       </Flex>
@@ -96,9 +96,9 @@ const MemoizedMeasurementsTable = React.memo(({ allMeasurements, measurementColu
         pagination={{ pageSize: 15, showSizeChanger: false, showQuickJumper: true }}
         bordered={false}
         showHeader={true}
-        locale={{ emptyText: <span style={{ color: 'rgba(255, 255, 255, 0.5)' }}>Sin mediciones para este día</span> }}
+        locale={{ emptyText: <span className="ocean-text-muted">Sin mediciones para este día</span> }}
         scroll={{ x: "max-content", y: 500 }}
-        style={{ borderRadius: 12, overflow: "hidden" }}
+        className="ocean-table-rounded"
         components={components}
       />
     </Flex>
@@ -417,7 +417,7 @@ export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, ac
     return (
       <Flex justify="center" align="center" className="ocean-empty-state">
         <div className="ocean-empty-icon">
-          <FaDownload style={{ fontSize: 20, color: 'rgba(0, 180, 216, 0.4)' }} />
+          <FaDownload className="ocean-empty-icon-download" />
         </div>
         <Text className="ocean-text-lg ocean-text-muted">Sin mediciones para este día</Text>
       </Flex>
@@ -434,7 +434,7 @@ export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, ac
                 <Col xs={24} md={12}>
                   <MetricCard
                     title="Consumo"
-                    icon={<div style={{ width: 8, height: 8, borderRadius: 4, background: "#00B4D8" }} />}
+                    icon={<div className="ocean-metric-dot ocean-metric-dot-cyan" />}
                     kpis={
                       <>
                         {totalDayConsumo > 0 && (
@@ -464,7 +464,7 @@ export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, ac
                 <Col xs={24} md={12}>
                   <MetricCard
                     title="Caudal"
-                    icon={<div style={{ width: 8, height: 8, borderRadius: 4, background: "#00B4D8" }} />}
+                    icon={<div className="ocean-metric-dot ocean-metric-dot-cyan" />}
                     kpis={
                       <>
                         <StatPill label="Máx" value={formatKPI(kpis.maxCaudal, 1, " L/s")} sub={kpis.maxCaudal ? `${kpis.maxCaudal.time} hrs` : null} color="#00B4D8" valueColor="#E76F51" />
@@ -497,8 +497,8 @@ export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, ac
                   title="Niveles"
                   icon={
                     <Flex gap={4}>
-                      <div style={{ width: 8, height: 8, borderRadius: 4, background: '#0077B6' }} />
-                      <div style={{ width: 8, height: 8, borderRadius: 4, background: 'rgba(255, 255, 255, 0.5)' }} />
+                      <div className="ocean-metric-dot ocean-metric-dot-blue" />
+                      <div className="ocean-metric-dot ocean-metric-dot-muted" />
                     </Flex>
                   }
                   kpis={

@@ -1805,3 +1805,35 @@
   border: 1.5px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.03);
 }
+
+/* =====================================================
+   MeasurementDrawer Utilities
+   ===================================================== */
+
+.ocean-table-rounded {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ocean-empty-icon-download {
+  font-size: 20px;
+  color: rgba(0, 180, 216, 0.4);
+}
+
+.ocean-metric-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+}
+
+.ocean-metric-dot-cyan {
+  background: #00B4D8;
+}
+
+.ocean-metric-dot-blue {
+  background: #0077B6;
+}
+
+.ocean-metric-dot-muted {
+  background: rgba(255, 255, 255, 0.5);
+}
