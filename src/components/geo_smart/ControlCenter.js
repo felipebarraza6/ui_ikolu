@@ -573,9 +573,9 @@ const ControlCenter = () => {
       <Drawer
         title={
           <Flex align="center" gap={8}>
-            <FaExclamationTriangle style={{ color: token.colorWarning, fontSize: 16 }} />
-            <Text strong style={{ fontSize: 16 }}>Warnings</Text>
-            <Tag color="warning" style={{ margin: 0 }}>
+            <FaExclamationTriangle style={{ color: '#F4A261', fontSize: 16 }} />
+            <Text strong style={{ fontSize: 16, color: 'rgba(255, 255, 255, 0.9)' }}>Warnings</Text>
+            <Tag style={{ margin: 0, background: 'rgba(244, 162, 97, 0.15)', border: 'none', color: '#F4A261' }}>
               {warningsList.length} total
             </Tag>
           </Flex>
@@ -597,8 +597,15 @@ const ControlCenter = () => {
             return (
               <Tag
                 key={pointName}
-                color={isActive ? "warning" : "default"}
-                style={{ cursor: "pointer", fontSize: 12, padding: "4px 10px", margin: 0 }}
+                style={{
+                  cursor: "pointer",
+                  fontSize: 12,
+                  padding: "4px 10px",
+                  margin: 0,
+                  background: isActive ? 'rgba(244, 162, 97, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                  border: `1px solid ${isActive ? 'rgba(244, 162, 97, 0.4)' : 'rgba(255, 255, 255, 0.1)'}`,
+                  color: isActive ? '#F4A261' : 'rgba(255, 255, 255, 0.7)',
+                }}
                 onClick={() => setSelectedWarningPoint(pointName)}
               >
                 {pointName} ({arr.length})
@@ -619,7 +626,7 @@ const ControlCenter = () => {
                 key: "time",
                 width: 110,
                 render: (time) => (
-                  <Text style={{ fontSize: 11, color: token.colorTextSecondary, whiteSpace: "nowrap" }}>
+                  <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.5)', whiteSpace: "nowrap" }}>
                     {time ? moment(time).format("DD/MM HH:mm") : "—"}
                   </Text>
                 ),
@@ -629,7 +636,7 @@ const ControlCenter = () => {
                 dataIndex: "type",
                 key: "type",
                 width: 80,
-                render: (type) => <Tag style={{ fontSize: 10, margin: 0 }}>{type}</Tag>,
+                render: (type) => <Tag style={{ fontSize: 10, margin: 0, background: 'rgba(0, 180, 216, 0.1)', border: '1px solid rgba(0, 180, 216, 0.2)', color: '#90E0EF' }}>{type}</Tag>,
               },
               {
                 title: "Severidad",
@@ -637,8 +644,8 @@ const ControlCenter = () => {
                 key: "severity",
                 width: 90,
                 render: (sev) => {
-                  const color = sev === "ERROR" ? "red" : sev === "WARNING" ? "orange" : "blue";
-                  return <Tag color={color} style={{ fontSize: 10, margin: 0 }}>{sev}</Tag>;
+                  const color = sev === "ERROR" ? "#E76F51" : sev === "WARNING" ? "#F4A261" : "#00B4D8";
+                  return <Tag style={{ fontSize: 10, margin: 0, background: `${color}15`, border: `1px solid ${color}30`, color }}>{sev}</Tag>;
                 },
               },
               {
@@ -646,7 +653,7 @@ const ControlCenter = () => {
                 dataIndex: "message",
                 key: "message",
                 render: (msg) => (
-                  <Text style={{ fontSize: 12, whiteSpace: "normal", wordBreak: "break-word", lineHeight: 1.4 }}>
+                  <Text style={{ fontSize: 12, whiteSpace: "normal", wordBreak: "break-word", lineHeight: 1.4, color: 'rgba(255, 255, 255, 0.8)' }}>
                     {msg}
                   </Text>
                 ),
