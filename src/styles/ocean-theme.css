@@ -1678,3 +1678,130 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   background: transparent;
 }
+
+/* =====================================================
+   CCWeekConsumption Utilities
+   ===================================================== */
+
+.ocean-w-full {
+  width: 100%;
+}
+
+.ocean-info-icon {
+  font-size: 11px;
+  color: #0077B6;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.ocean-icon-sm {
+  font-size: 10px;
+}
+
+.ocean-icon-xs {
+  font-size: 9px;
+}
+
+.ocean-px-0 {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.ocean-pb-md {
+  padding-bottom: 16px;
+}
+
+.ocean-capitalize {
+  text-transform: capitalize;
+}
+
+.ocean-nowrap {
+  white-space: nowrap;
+}
+
+.ocean-lh-1 {
+  line-height: 1;
+}
+
+.ocean-status-icon {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.ocean-status-icon-form {
+  background: rgba(0, 119, 182, 0.13);
+}
+
+.ocean-status-icon-form-icon {
+  font-size: 10px;
+  color: #0077B6;
+}
+
+.ocean-status-icon-telemetry {
+  background: rgba(0, 119, 182, 0.13);
+  overflow: hidden;
+}
+
+.ocean-status-icon-error {
+  background: rgba(231, 111, 81, 0.13);
+  overflow: hidden;
+}
+
+.ocean-status-dot {
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  min-height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ocean-status-dot-active {
+  background: #0077B6;
+  animation: pulse-badge 2s ease-in-out infinite;
+}
+
+.ocean-status-dot-error {
+  background: #E76F51;
+}
+
+.ocean-status-icon-none {
+  background: rgba(153, 153, 153, 0.13);
+}
+
+.ocean-status-icon-none-icon {
+  font-size: 10px;
+  color: #999;
+}
+
+.ocean-calendar-day {
+  flex: 1;
+  min-height: 90px;
+  padding: 10px 8px;
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.ocean-calendar-day-active {
+  border: 1.5px solid rgba(0, 180, 216, 0.5);
+  background: linear-gradient(135deg, rgba(0, 180, 216, 0.3) 0%, rgba(0, 119, 182, 0.2) 100%);
+  box-shadow: 0 0 20px rgba(0, 180, 216, 0.3);
+}
+
+.ocean-calendar-day-inactive {
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+}

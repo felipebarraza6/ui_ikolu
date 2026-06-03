@@ -36,12 +36,7 @@ const TableMemo = React.memo(({ data, columns, loading }) => {
       showHeader={true}
       columns={columns}
       locale={{ emptyText: "Sin datos" }}
-      className="ocean-table"
-      style={{
-        background: "transparent",
-        borderRadius: 16,
-        overflow: "hidden",
-      }}
+      className="ocean-table ocean-table-transparent"
     />
   );
 });
@@ -125,8 +120,8 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
           if (isForm) {
             return (
               <Tooltip title="Formulario">
-                <div style={{ width: 20, height: 20, minWidth: 20, minHeight: 20, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", background: `${smarthydro.colors.primary[500]}20` }}>
-                  <FormOutlined style={{ fontSize: 10, color: smarthydro.colors.primary[500] }} />
+                <div className="ocean-status-icon ocean-status-icon-form">
+                  <FormOutlined className="ocean-status-icon-form-icon" />
                 </div>
               </Tooltip>
             );
@@ -134,26 +129,17 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
           
           if (isTelemetry) {
             return (
-              <div style={{ width: 20, height: 20, minWidth: 20, minHeight: 20, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", background: isConnected ? `${smarthydro.colors.primary[500]}20` : `${smarthydro.colors.semantic.error}20`, overflow: "hidden" }}>
+              <div className={`ocean-status-icon ${isConnected ? 'ocean-status-icon-telemetry' : 'ocean-status-icon-error'}`}>
                 <div
-                  style={{
-                    width: 8,
-                    height: 8,
-                    minWidth: 8,
-                    minHeight: 8,
-                    borderRadius: "50%",
-                    background: isConnected ? smarthydro.colors.primary[500] : smarthydro.colors.semantic.error,
-                    animation: isConnected ? "pulse-badge 2s ease-in-out infinite" : "none",
-                    flexShrink: 0,
-                  }}
+                  className={`ocean-status-dot ${isConnected ? 'ocean-status-dot-active' : 'ocean-status-dot-error'}`}
                 />
               </div>
             );
           }
           
           return (
-            <div style={{ width: 20, height: 20, minWidth: 20, minHeight: 20, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", background: `${smarthydro.colors.neutral[400]}20` }}>
-              <MinusCircleOutlined style={{ fontSize: 10, color: smarthydro.colors.neutral[400] }} />
+            <div className="ocean-status-icon ocean-status-icon-none">
+              <MinusCircleOutlined className="ocean-status-icon-none-icon" />
             </div>
           );
         },
@@ -168,11 +154,11 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
           const allWarnings = record.warnings || [];
           const warningCount = allWarnings.length;
           return (
-            <Flex align="center" justify="space-between" style={{ width: "100%" }}>
+            <Flex align="center" justify="space-between" className="ocean-w-full">
               <Flex align="center" gap={6}>
-                <Text strong className="ocean-text-md" style={{ fontFamily: smarthydro.typography.heading }}>{text}</Text>
+                <Text strong className="ocean-text-md ocean-font-heading">{text}</Text>
                 <FaInfoCircle
-                  style={{ fontSize: 11, color: smarthydro.colors.primary[500], cursor: "pointer", opacity: 0.7 }}
+                  className="ocean-info-icon"
                   onClick={(e) => {
                     e.stopPropagation();
                     onViewPointConfig(text);
@@ -202,13 +188,13 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
     ];
 
     if (activeVars.hasConsumption) {
-      cols.push({ title: "Consumo (m³)", dataIndex: "consumption", key: "consumption", width: 130, align: "right", sorter: (a, b) => (a.consumption || 0) - (b.consumption || 0), render: (v) => <Text strong className="ocean-text-md ocean-text-primary" style={{ fontFamily: smarthydro.typography.heading }}>{formatInteger(v || 0)}</Text> });
+      cols.push({ title: "Consumo (m³)", dataIndex: "consumption", key: "consumption", width: 130, align: "right", sorter: (a, b) => (a.consumption || 0) - (b.consumption || 0), render: (v) => <Text strong className="ocean-text-md ocean-text-primary ocean-font-heading">{formatInteger(v || 0)}</Text> });
     }
     if (activeVars.hasFlow) {
-      cols.push({ title: "Caudal prom. (L/s)", dataIndex: "avg_flow", key: "avg_flow", width: 120, align: "right", sorter: (a, b) => (a.avg_flow || 0) - (b.avg_flow || 0), render: (v) => <Text className="ocean-text-sm ocean-text-secondary" style={{ fontFamily: smarthydro.typography.body }}>{v != null ? Number(v).toFixed(1) : "—"}</Text> });
+      cols.push({ title: "Caudal prom. (L/s)", dataIndex: "avg_flow", key: "avg_flow", width: 120, align: "right", sorter: (a, b) => (a.avg_flow || 0) - (b.avg_flow || 0), render: (v) => <Text className="ocean-text-sm ocean-text-secondary ocean-font-body">{v != null ? Number(v).toFixed(1) : "—"}</Text> });
     }
     if (activeVars.hasLevel) {
-      cols.push({ title: "Nivel prom. (m)", dataIndex: "avg_level", key: "avg_level", width: 100, align: "right", sorter: (a, b) => (a.avg_level || 0) - (b.avg_level || 0), render: (v) => <Text className="ocean-text-sm ocean-text-secondary" style={{ fontFamily: smarthydro.typography.body }}>{v != null ? Number(v).toFixed(2) : "—"}</Text> });
+      cols.push({ title: "Nivel prom. (m)", dataIndex: "avg_level", key: "avg_level", width: 100, align: "right", sorter: (a, b) => (a.avg_level || 0) - (b.avg_level || 0), render: (v) => <Text className="ocean-text-sm ocean-text-secondary ocean-font-body">{v != null ? Number(v).toFixed(2) : "—"}</Text> });
     }
 
     cols.push({ title: "", dataIndex: "measurements_count", key: "measurements_count", width: 120, align: "center", sorter: (a, b) => (a.measurements_count || 0) - (b.measurements_count || 0), render: (v, record) => (
@@ -216,7 +202,7 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
         <SmartIconButton
           variant="ghost"
           size="sm"
-          icon={<FaEye style={{ fontSize: 10 }} />}
+          icon={<FaEye className="ocean-icon-sm" />}
           tooltip={`Ver ${v || 0} mediciones`}
           onClick={() => handleViewMeasurements(record)}
         />
@@ -224,7 +210,7 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
           <SmartIconButton
             variant="primary"
             size="sm"
-            icon={<FaHandPaper style={{ fontSize: 9 }} />}
+            icon={<FaHandPaper className="ocean-icon-xs" />}
             tooltip="Detener telemetría"
             onClick={() => handleOpenStopTelemetry(record)}
           />
@@ -232,7 +218,7 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
         <SmartIconButton
           variant="primary"
           size="sm"
-          icon={<FaHeadset style={{ fontSize: 9 }} />}
+          icon={<FaHeadset className="ocean-icon-xs" />}
           tooltip="Solicitar soporte"
           onClick={() => handleOpenSupport(record)}
         />
@@ -245,14 +231,14 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
 
   if (sortedDays.length === 0) {
     return (
-      <div style={{ padding: "0 0 16px" }}>
+      <div className="ocean-px-0 ocean-pb-md">
         <Text className="ocean-text-base ocean-text-muted">Sin datos</Text>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: "0 0 16px" }}>
+    <div className="ocean-px-0 ocean-pb-md">
       <Flex vertical gap={16}>
         <Flex gap={12}>
           {sortedDays.map(([date, { points }]) => {
@@ -263,33 +249,15 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
               <div
                 key={date}
                 onClick={() => handleDateClick(date)}
-                style={{
-                  flex: 1,
-                  minHeight: 90,
-                  padding: "10px 8px",
-                  border: `1.5px solid ${isActive ? "rgba(0, 180, 216, 0.5)" : "rgba(255, 255, 255, 0.1)"}`,
-                  background: isActive 
-                    ? "linear-gradient(135deg, rgba(0, 180, 216, 0.3) 0%, rgba(0, 119, 182, 0.2) 100%)" 
-                    : "rgba(255, 255, 255, 0.03)",
-                  backdropFilter: "blur(10px)",
-                  cursor: "pointer",
-                  transition: "all 0.3s ease",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 4,
-                  boxShadow: isActive ? "0 0 20px rgba(0, 180, 216, 0.3)" : "none",
-                }}
-                className="ocean-panel"
+                className={`ocean-calendar-day ${isActive ? 'ocean-calendar-day-active' : 'ocean-calendar-day-inactive'}`}
               >
-                <Text className="ocean-text-xs ocean-text-secondary" style={{ textTransform: "capitalize", letterSpacing: 0.5, whiteSpace: "nowrap", fontFamily: smarthydro.typography.body }}>
+                <Text className={`ocean-text-xs ${isActive ? 'ocean-text-cyan-light' : 'ocean-text-secondary'} ocean-capitalize ocean-letter-spacing ocean-nowrap ocean-font-body`}>
                   {moment(date).format("dddd")}
                 </Text>
-                <Text strong className="ocean-text-2xl ocean-text-primary" style={{ lineHeight: 1, fontFamily: smarthydro.typography.heading }}>
+                <Text strong className={`ocean-text-2xl ${isActive ? 'ocean-text-primary' : 'ocean-text-primary'} ocean-lh-1 ocean-font-heading`}>
                   {moment(date).format("DD")}
                 </Text>
-                <Text className="ocean-text-xs ocean-text-muted" style={{ fontFamily: smarthydro.typography.body }}>
+                <Text className={`ocean-text-xs ${isActive ? 'ocean-text-cyan-light' : 'ocean-text-muted'} ocean-font-body`}>
                   {formatInteger(total)} m³
                 </Text>
               </div>
