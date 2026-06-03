@@ -70,12 +70,12 @@ export const MeasurementsDualColumnChart = ({ data, token, showOnly, wellConfig,
     if (showOnly === 'nivel' && wellDepth != null && wellDepth >= yMin && wellDepth <= yMax) {
       annotations.push({
         y: wellDepth,
-        borderColor: '#ff4d4f',
+        borderColor: '#E76F51',
         strokeDashArray: 8,
         borderWidth: 3,
         label: {
-          borderColor: '#ff4d4f',
-          style: { color: '#fff', background: '#ff4d4f', fontSize: '11px', fontWeight: 700 },
+          borderColor: '#E76F51',
+          style: { color: '#fff', background: '#E76F51', fontSize: '11px', fontWeight: 700 },
           text: ` Límite pozo: ${wellDepth}m`,
           position: 'right',
           offsetX: 0,
@@ -86,12 +86,12 @@ export const MeasurementsDualColumnChart = ({ data, token, showOnly, wellConfig,
     if (showOnly === 'water_table' && sensorPos != null && sensorPos >= yMin && sensorPos <= yMax) {
       annotations.push({
         y: sensorPos,
-        borderColor: '#ff6b35',
+        borderColor: '#F4A261',
         strokeDashArray: 6,
         borderWidth: 2,
         label: {
-          borderColor: '#ff6b35',
-          style: { color: '#fff', background: '#ff6b35', fontSize: '10px', fontWeight: 600 },
+          borderColor: '#F4A261',
+          style: { color: '#fff', background: '#F4A261', fontSize: '10px', fontWeight: 600 },
           text: ` Sensor: ${sensorPos}m`,
           position: 'right',
           offsetX: 0,
@@ -123,7 +123,7 @@ export const MeasurementsDualColumnChart = ({ data, token, showOnly, wellConfig,
       let html = `<div style="padding: 8px 12px; background: ${token.colorBgElevated}; border-radius: 8px; box-shadow: ${token.boxShadowSecondary}; min-width: 200px;">`;
       html += `<div style="font-size: 11px; color: ${token.colorTextSecondary}; margin-bottom: 6px; font-weight: 600;">${time} hrs</div>`;
       html += `<div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">`;
-      html += `<div style="width: 8px; height: 8px; border-radius: 50%; background: ${isMax ? '#ff4d4f' : isMin ? '#52c41a' : color};"></div>`;
+      html += `<div style="width: 8px; height: 8px; border-radius: 50%; background: ${isMax ? '#E76F51' : isMin ? '#2A9D8F' : color};"></div>`;
       html += `<span style="font-size: 12px; color: ${token.colorText};">${label}: <strong>${Number(val).toFixed(2)} m</strong>${suffix}</span>`;
       html += `</div>`;
       
@@ -134,11 +134,11 @@ export const MeasurementsDualColumnChart = ({ data, token, showOnly, wellConfig,
         const exceedsDepth = val > wellDepth;
         html += `<div style="font-size: 9px; color: ${token.colorTextSecondary}; margin-bottom: 4px; font-weight: 600; text-transform: uppercase;">Referencia: Profundidad del pozo</div>`;
         html += `<div style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;">`;
-        html += `<div style="width: 6px; height: 6px; border-radius: 50%; background: #ff4d4f;"></div>`;
-        html += `<span style="font-size: 10px; color: ${exceedsDepth ? '#ff4d4f' : token.colorTextSecondary};">Límite pozo: ${wellDepth}m</span>`;
+        html += `<div style="width: 6px; height: 6px; border-radius: 50%; background: #E76F51;"></div>`;
+        html += `<span style="font-size: 10px; color: ${exceedsDepth ? '#E76F51' : token.colorTextSecondary};">Límite pozo: ${wellDepth}m</span>`;
         html += `</div>`;
         html += `<div style="font-size: 10px; color: ${token.colorTextSecondary}; margin-left: 12px;">`;
-        html += `Diferencia: <strong>${diff}m</strong> ${exceedsDepth ? '<span style="color:#ff4d4f">▲ EXCEDIDO</span>' : 'bajo límite'}`;
+        html += `Diferencia: <strong>${diff}m</strong> ${exceedsDepth ? '<span style="color:#E76F51">▲ EXCEDIDO</span>' : 'bajo límite'}`;
         html += `</div>`;
       }
       
@@ -147,7 +147,7 @@ export const MeasurementsDualColumnChart = ({ data, token, showOnly, wellConfig,
         const aboveSensor = val < sensorPos;
         html += `<div style="font-size: 9px; color: ${token.colorTextSecondary}; margin-bottom: 4px; font-weight: 600; text-transform: uppercase;">Referencia: Sensor de nivel</div>`;
         html += `<div style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;">`;
-        html += `<div style="width: 6px; height: 6px; border-radius: 50%; background: #ff6b35;"></div>`;
+        html += `<div style="width: 6px; height: 6px; border-radius: 50%; background: #F4A261;"></div>`;
         html += `<span style="font-size: 10px; color: ${token.colorTextSecondary};">Posición sensor: ${sensorPos}m</span>`;
         html += `</div>`;
         html += `<div style="font-size: 10px; color: ${token.colorTextSecondary}; margin-left: 12px;">`;
@@ -159,11 +159,11 @@ export const MeasurementsDualColumnChart = ({ data, token, showOnly, wellConfig,
         const exceedsAvg = val > avgValue;
         const avgDiff = (val - avgValue).toFixed(2);
         html += `<div style="border-top: 1px solid ${token.colorBorderSecondary}; padding-top: 6px; margin-top: 4px;">`;
-        html += `<div style="font-size: 9px; color: #000000; margin-bottom: 4px; font-weight: 600; text-transform: uppercase;">Promedio</div>`;
+        html += `<div style="font-size: 9px; color: #90E0EF; margin-bottom: 4px; font-weight: 600; text-transform: uppercase;">Promedio</div>`;
         html += `<div style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;">`;
-        html += `<div style="width: 6px; height: 6px; border-radius: 50%; background: #000000;"></div>`;
-        html += `<span style="font-size: 10px; color: ${exceedsAvg ? '#ff4d4f' : '#000000'};">`;
-        html += `${exceedsAvg ? '<span style="color:#ff4d4f">▲ Supera</span>' : 'Bajo'} promedio: ${avgValue.toFixed(2)}m (${avgDiff > 0 ? '+' : ''}${avgDiff})`;
+        html += `<div style="width: 6px; height: 6px; border-radius: 50%; background: #90E0EF;"></div>`;
+        html += `<span style="font-size: 10px; color: ${exceedsAvg ? '#E76F51' : '#90E0EF'};">`;
+        html += `${exceedsAvg ? '<span style="color:#E76F51">▲ Supera</span>' : 'Bajo'} promedio: ${avgValue.toFixed(2)}m (${avgDiff > 0 ? '+' : ''}${avgDiff})`;
         html += `</span>`;
         html += `</div>`;
         html += `</div>`;
@@ -296,12 +296,12 @@ export const MeasurementsCombinedLevelChart = ({ data, token, wellConfig, pointN
   if (sensorPos != null) {
     yAnnotations.push({
       y: sensorPos,
-      borderColor: '#ff6b35',
+      borderColor: '#F4A261',
       strokeDashArray: 6,
       borderWidth: 2,
       label: {
-        borderColor: '#ff6b35',
-        style: { color: '#fff', background: '#ff6b35', fontSize: '10px', fontWeight: 600 },
+        borderColor: '#F4A261',
+        style: { color: '#fff', background: '#F4A261', fontSize: '10px', fontWeight: 600 },
         text: ` Posicionamiento Sensor: ${sensorPos}m`,
         position: 'right',
       }
@@ -311,12 +311,12 @@ export const MeasurementsCombinedLevelChart = ({ data, token, wellConfig, pointN
   if (wellDepth != null) {
     yAnnotations.push({
       y: wellDepth,
-      borderColor: '#ff4d4f',
+      borderColor: '#E76F51',
       strokeDashArray: 8,
       borderWidth: 3,
       label: {
-        borderColor: '#ff4d4f',
-        style: { color: '#fff', background: '#ff4d4f', fontSize: '11px', fontWeight: 700 },
+        borderColor: '#E76F51',
+        style: { color: '#fff', background: '#E76F51', fontSize: '11px', fontWeight: 700 },
         text: ` Profundidad: ${wellDepth}m`,
         position: 'right',
       }
@@ -376,7 +376,7 @@ export const MeasurementsCombinedLevelChart = ({ data, token, wellConfig, pointN
       // Tercero: Posicionamiento
       if (sensorPos != null) {
         html += `<div style="display: flex; align-items: center; gap: 6px;">`;
-        html += `<div style="width: 8px; height: 8px; border-radius: 50%; background: #ff6b35;"></div>`;
+        html += `<div style="width: 8px; height: 8px; border-radius: 50%; background: #F4A261;"></div>`;
         html += `<div style="font-size: 11px; color: ${token.colorTextSecondary};">Posicionamiento: ${sensorPos} m</div>`;
         html += `</div>`;
       }
@@ -408,25 +408,25 @@ export const MeasurementsCombinedLevelChart = ({ data, token, wellConfig, pointN
 
       // Zona de aire
       if (pctA > 0) {
-        html += `<div style="height: ${Math.max(pctA, 10)}%; min-height: 18px; background: rgba(230, 247, 255, 0.6); display: flex; align-items: center; justify-content: center; font-size: 11px; color: #000000; font-weight: 700; position: relative;">`;
+        html += `<div style="height: ${Math.max(pctA, 10)}%; min-height: 18px; background: rgba(230, 247, 255, 0.6); display: flex; align-items: center; justify-content: center; font-size: 11px; color: #90E0EF; font-weight: 700; position: relative;">`;
         html += `<span style="z-index: 2;">ZONA DE AIRE</span>`;
-        html += `<div style="position: absolute; bottom: 4px; right: 6px; font-size: 10px; color: #000000; font-weight: 700;">${zonaA.toFixed(1)}m</div>`;
+        html += `<div style="position: absolute; bottom: 4px; right: 6px; font-size: 10px; color: #90E0EF; font-weight: 700;">${zonaA.toFixed(1)}m</div>`;
         html += `</div>`;
       }
 
       // Capa saturada (zona de agua)
       if (pctB > 0) {
-        html += `<div style="height: ${Math.max(pctB, 10)}%; min-height: 18px; background: rgba(0, 80, 179, 0.25); display: flex; align-items: center; justify-content: center; font-size: 11px; color: #000000; font-weight: 700; position: relative;">`;
+        html += `<div style="height: ${Math.max(pctB, 10)}%; min-height: 18px; background: rgba(0, 80, 179, 0.25); display: flex; align-items: center; justify-content: center; font-size: 11px; color: #90E0EF; font-weight: 700; position: relative;">`;
         html += `<span style="z-index: 2;">ZONA DINÁMICA</span>`;
-        html += `<div style="position: absolute; bottom: 4px; right: 6px; font-size: 10px; color: #000000; font-weight: 700;">${zonaB.toFixed(1)}m</div>`;
+        html += `<div style="position: absolute; bottom: 4px; right: 6px; font-size: 10px; color: #90E0EF; font-weight: 700;">${zonaB.toFixed(1)}m</div>`;
         html += `</div>`;
       }
 
       // Zona estática
       if (pctC > 0) {
-        html += `<div style="height: ${Math.max(pctC, 10)}%; min-height: 18px; background: rgba(0, 39, 102, 0.35); display: flex; align-items: center; justify-content: center; font-size: 11px; color: #000000; font-weight: 700; position: relative;">`;
+        html += `<div style="height: ${Math.max(pctC, 10)}%; min-height: 18px; background: rgba(0, 39, 102, 0.35); display: flex; align-items: center; justify-content: center; font-size: 11px; color: #90E0EF; font-weight: 700; position: relative;">`;
         html += `<span style="z-index: 2;">ZONA ESTÁTICA</span>`;
-        html += `<div style="position: absolute; bottom: 4px; right: 6px; font-size: 10px; color: #000000; font-weight: 700;">${zonaC.toFixed(1)}m</div>`;
+        html += `<div style="position: absolute; bottom: 4px; right: 6px; font-size: 10px; color: #90E0EF; font-weight: 700;">${zonaC.toFixed(1)}m</div>`;
         html += `</div>`;
       }
 
