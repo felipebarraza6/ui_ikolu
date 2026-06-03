@@ -312,6 +312,317 @@
 }
 
 /* =====================================================
+   Ant Design Overrides - Drawer & Modal
+   ===================================================== */
+
+.ant-drawer-content {
+  background: rgba(5, 10, 20, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+}
+
+.ant-drawer-header {
+  background: rgba(10, 37, 64, 0.8) !important;
+  border-bottom: 1px solid rgba(0, 180, 216, 0.2) !important;
+}
+
+.ant-drawer-header-title {
+  color: #90E0EF !important;
+}
+
+.ant-drawer-close {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.ant-drawer-close:hover {
+  color: #00B4D8 !important;
+  background: rgba(0, 180, 216, 0.1) !important;
+}
+
+.ant-drawer-body {
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.ant-drawer-mask {
+  background: rgba(5, 10, 20, 0.7) !important;
+  backdrop-filter: blur(5px) !important;
+}
+
+.ant-modal-content {
+  background: rgba(5, 10, 20, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(0, 180, 216, 0.2) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4) !important;
+}
+
+.ant-modal-header {
+  background: rgba(10, 37, 64, 0.8) !important;
+  border-bottom: 1px solid rgba(0, 180, 216, 0.2) !important;
+  border-radius: 24px 24px 0 0 !important;
+}
+
+.ant-modal-title {
+  color: #90E0EF !important;
+}
+
+.ant-modal-close {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.ant-modal-close:hover {
+  color: #00B4D8 !important;
+  background: rgba(0, 180, 216, 0.1) !important;
+}
+
+.ant-modal-body {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.ant-modal-mask {
+  background: rgba(5, 10, 20, 0.7) !important;
+  backdrop-filter: blur(5px) !important;
+}
+
+/* =====================================================
+   Ant Design Buttons - Ocean Theme
+   ===================================================== */
+
+.ant-btn-primary {
+  background: linear-gradient(135deg, #0077B6 0%, #00B4D8 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(0, 180, 216, 0.3) !important;
+}
+
+.ant-btn-primary:hover {
+  background: linear-gradient(135deg, #0088C8 0%, #00C5E8 100%) !important;
+  box-shadow: 0 6px 20px rgba(0, 180, 216, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+.ant-btn-default {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(0, 180, 216, 0.2) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.ant-btn-default:hover {
+  background: rgba(0, 180, 216, 0.1) !important;
+  border-color: rgba(0, 180, 216, 0.4) !important;
+  color: #90E0EF !important;
+}
+
+.ant-btn-text {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.ant-btn-text:hover {
+  background: rgba(0, 180, 216, 0.1) !important;
+  color: #90E0EF !important;
+}
+
+/* =====================================================
+   Ant Design Input - Ocean Theme
+   ===================================================== */
+
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-input-textarea {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(0, 180, 216, 0.15) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.ant-input::placeholder,
+.ant-input-affix-wrapper::placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.ant-input:hover,
+.ant-input-affix-wrapper:hover,
+.ant-input-textarea:hover {
+  border-color: rgba(0, 180, 216, 0.3) !important;
+}
+
+.ant-input:focus,
+.ant-input-affix-wrapper:focus,
+.ant-input-textarea:focus,
+.ant-input-focused {
+  border-color: #00B4D8 !important;
+  box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.15) !important;
+}
+
+/* =====================================================
+   Ant Design Select - Ocean Theme
+   ===================================================== */
+
+.ant-select-selector {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(0, 180, 216, 0.15) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.ant-select:hover .ant-select-selector {
+  border-color: rgba(0, 180, 216, 0.3) !important;
+}
+
+.ant-select-focused .ant-select-selector {
+  border-color: #00B4D8 !important;
+  box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.15) !important;
+}
+
+.ant-select-dropdown {
+  background: rgba(5, 10, 20, 0.95) !important;
+  border: 1px solid rgba(0, 180, 216, 0.2) !important;
+  backdrop-filter: blur(20px) !important;
+}
+
+.ant-select-item {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.ant-select-item:hover {
+  background: rgba(0, 180, 216, 0.1) !important;
+}
+
+.ant-select-item-option-selected {
+  background: rgba(0, 180, 216, 0.15) !important;
+  color: #90E0EF !important;
+}
+
+/* =====================================================
+   Ant Design DatePicker - Ocean Theme
+   ===================================================== */
+
+.ant-picker {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(0, 180, 216, 0.15) !important;
+}
+
+.ant-picker-input > input {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.ant-picker-suffix {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.ant-picker-panel-container {
+  background: rgba(5, 10, 20, 0.95) !important;
+  border: 1px solid rgba(0, 180, 216, 0.2) !important;
+  backdrop-filter: blur(20px) !important;
+}
+
+.ant-picker-cell-in-view {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.ant-picker-cell:hover .ant-picker-cell-inner {
+  background: rgba(0, 180, 216, 0.1) !important;
+}
+
+.ant-picker-cell-selected .ant-picker-cell-inner {
+  background: linear-gradient(135deg, #0077B6 0%, #00B4D8 100%) !important;
+}
+
+/* =====================================================
+   Ant Design Form - Ocean Theme
+   ===================================================== */
+
+.ant-form-item-label > label {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.ant-form-item-explain-error {
+  color: #E76F51 !important;
+}
+
+/* =====================================================
+   Ant Design Tabs - Ocean Theme
+   ===================================================== */
+
+.ant-tabs-tab {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.ant-tabs-tab:hover {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #90E0EF !important;
+  text-shadow: 0 0 10px rgba(0, 180, 216, 0.3);
+}
+
+.ant-tabs-ink-bar {
+  background: linear-gradient(90deg, #0077B6 0%, #00B4D8 100%) !important;
+  box-shadow: 0 0 10px rgba(0, 180, 216, 0.5);
+}
+
+/* =====================================================
+   Ant Design Tag - Ocean Theme
+   ===================================================== */
+
+.ant-tag {
+  background: rgba(0, 180, 216, 0.1) !important;
+  border: 1px solid rgba(0, 180, 216, 0.2) !important;
+  color: #90E0EF !important;
+}
+
+/* =====================================================
+   Ant Design Alert - Ocean Theme
+   ===================================================== */
+
+.ant-alert-info {
+  background: rgba(0, 180, 216, 0.1) !important;
+  border: 1px solid rgba(0, 180, 216, 0.2) !important;
+}
+
+.ant-alert-info .ant-alert-message {
+  color: #90E0EF !important;
+}
+
+.ant-alert-success {
+  background: rgba(42, 157, 143, 0.1) !important;
+  border: 1px solid rgba(42, 157, 143, 0.2) !important;
+}
+
+.ant-alert-warning {
+  background: rgba(244, 162, 97, 0.1) !important;
+  border: 1px solid rgba(244, 162, 97, 0.2) !important;
+}
+
+.ant-alert-error {
+  background: rgba(231, 111, 81, 0.1) !important;
+  border: 1px solid rgba(231, 111, 81, 0.2) !important;
+}
+
+/* =====================================================
+   Ant Design Segmented - Ocean Theme
+   ===================================================== */
+
+.ant-segmented {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.ant-segmented-item-selected {
+  background: linear-gradient(135deg, rgba(0, 119, 182, 0.3) 0%, rgba(0, 180, 216, 0.3) 100%) !important;
+  color: #90E0EF !important;
+  box-shadow: 0 0 15px rgba(0, 180, 216, 0.2) !important;
+}
+
+.ant-segmented-item:hover:not(.ant-segmented-item-selected) {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.ant-segmented-thumb {
+  background: linear-gradient(135deg, rgba(0, 119, 182, 0.3) 0%, rgba(0, 180, 216, 0.3) 100%) !important;
+  box-shadow: 0 0 15px rgba(0, 180, 216, 0.2) !important;
+}
+
+/* =====================================================
    Scrollbar Styles
    ===================================================== */
 

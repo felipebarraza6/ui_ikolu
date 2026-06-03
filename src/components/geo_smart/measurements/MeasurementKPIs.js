@@ -12,7 +12,7 @@ export const TrendArrow = ({ current, previous }) => {
   if (cur == null || prev == null || cur === prev) return null;
   const up = cur > prev;
   return (
-    <span style={{ fontSize: 9, marginLeft: 4, color: up ? "#1890ff" : "#52c41a" }}>
+    <span style={{ fontSize: 9, marginLeft: 4, color: up ? "#00B4D8" : "#2A9D8F" }}>
       {up ? "▲" : "▼"}
     </span>
   );
@@ -24,15 +24,16 @@ export const StatPill = ({ label, value, sub, color, valueColor }) => (
     minWidth: 90,
     flex: "0 0 auto",
     padding: "8px 12px",
-    background: `linear-gradient(180deg, ${color}08 0%, ${color}03 100%)`,
-    borderRadius: 8,
-    border: `1px solid ${color}20`,
+    background: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 10,
+    border: `1px solid ${color}30`,
+    backdropFilter: 'blur(10px)',
   }}>
     {typeof label === 'string' ? (
-      <Text style={{ fontSize: 9, color: "#8c8c8c", display: "block", lineHeight: 1.2, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2, fontWeight: 500 }}>{label}</Text>
+      <Text style={{ fontSize: 9, color: "rgba(255, 255, 255, 0.5)", display: "block", lineHeight: 1.2, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2, fontWeight: 500 }}>{label}</Text>
     ) : label}
     <Text strong style={{ fontSize: 15, color: valueColor || color, display: "block", lineHeight: 1.2 }}>{value}</Text>
-    {sub && <Text style={{ fontSize: 10, color: "#8c8c8c", lineHeight: 1.2, marginTop: 2, fontWeight: sub === 'TOTAL' ? 700 : 400, textTransform: sub === 'TOTAL' ? 'uppercase' : 'none' }}>{sub}</Text>}
+    {sub && <Text style={{ fontSize: 10, color: "rgba(255, 255, 255, 0.4)", lineHeight: 1.2, marginTop: 2, fontWeight: sub === 'TOTAL' ? 700 : 400, textTransform: sub === 'TOTAL' ? 'uppercase' : 'none' }}>{sub}</Text>}
   </div>
 );
 
@@ -40,24 +41,25 @@ export const MetricCard = ({ title, icon, kpis, children }) => {
   const { token } = useToken();
   return (
     <div style={{
-      background: `linear-gradient(180deg, ${token.colorBgContainer} 0%, #f0f7ff 100%)`,
-      borderRadius: 12,
-      border: `1px solid ${token.colorBorderSecondary}`,
+      background: 'rgba(255, 255, 255, 0.03)',
+      borderRadius: 16,
+      border: '1px solid rgba(0, 180, 216, 0.15)',
       overflow: "visible",
-      boxShadow: `0 2px 8px ${token.colorBorderSecondary}20`,
+      backdropFilter: 'blur(10px)',
+      boxShadow: '0 4px 24px rgba(0, 0, 0, 0.2)',
     }}>
       <div style={{
-        padding: "12px 12px",
-        borderBottom: `1px solid ${token.colorBorderSecondary}`,
-        background: `linear-gradient(90deg, ${token.colorPrimary}08 0%, transparent 100%)`,
+        padding: "12px 16px",
+        borderBottom: '1px solid rgba(0, 180, 216, 0.1)',
+        background: 'linear-gradient(90deg, rgba(0, 180, 216, 0.08) 0%, transparent 100%)',
       }}>
         <Flex align="center" gap={8}>
           {icon}
-          <Text strong style={{ fontSize: 13, color: token.colorText }}>{title}</Text>
+          <Text strong style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.9)' }}>{title}</Text>
         </Flex>
       </div>
       {kpis && (
-        <div style={{ padding: "10px 8px", borderBottom: `1px solid ${token.colorBorderSecondary}`, background: `${token.colorPrimary}03` }}>
+        <div style={{ padding: "10px 8px", borderBottom: '1px solid rgba(0, 180, 216, 0.1)', background: 'rgba(0, 180, 216, 0.03)' }}>
           <Flex gap={8} wrap="nowrap" justify="center">
             {kpis}
           </Flex>

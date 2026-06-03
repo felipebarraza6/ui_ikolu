@@ -1107,8 +1107,8 @@ const ControlCenter = () => {
       <Drawer
         title={
           <Flex align="center" gap={8}>
-            <FaHandPaper style={{ color: token.colorPrimary, fontSize: 16 }} />
-            <Text strong style={{ fontSize: 16 }}>Solicitud para detener telemetría</Text>
+            <FaHandPaper style={{ color: '#00B4D8', fontSize: 16 }} />
+            <Text strong style={{ fontSize: 16, color: 'rgba(255, 255, 255, 0.9)' }}>Solicitud para detener telemetría</Text>
           </Flex>
         }
         open={stopTelemetryOpen}
@@ -1118,7 +1118,7 @@ const ControlCenter = () => {
           stopTelemetryForm.resetFields();
         }}
         width={420}
-        bodyStyle={{ padding: 20 }}
+        styles={{ body: { padding: 20 } }}
         footer={
           <Flex justify="flex-end" gap={8}>
             <Button onClick={() => { setStopTelemetryOpen(false); setStopTelemetryPoint(null); stopTelemetryForm.resetFields(); }}>
@@ -1131,17 +1131,20 @@ const ControlCenter = () => {
         }
       >
         {stopTelemetryPoint && (
-          <Flex vertical style={{ marginBottom: 16 }}>
-            <Text strong style={{ fontSize: 14 }}>{stopTelemetryPoint.name}</Text>
+          <Flex vertical gap={12} style={{ marginBottom: 16 }}>
+            <Card size="small" bodyStyle={{ padding: 12 }} style={{ background: 'rgba(0, 180, 216, 0.08)', border: '1px solid rgba(0, 180, 216, 0.2)', borderRadius: 12, backdropFilter: 'blur(10px)' }}>
+              <Text strong style={{ fontSize: 13, display: "block", color: 'rgba(255, 255, 255, 0.9)' }}>{stopTelemetryPoint.name}</Text>
+              <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.5)' }}>Cliente: {stopTelemetryPoint.client}</Text>
+            </Card>
           </Flex>
         )}
         <Form form={stopTelemetryForm} layout="vertical" onFinish={handleSubmitStopTelemetry}>
           {/* Quién crea */}
-          <Form.Item label="Solicitado por">
+          <Form.Item label={<span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Solicitado por</span>}>
             <Input
               value={user ? `${user.first_name || user.username} (${user.email})` : "—"}
               readOnly
-              style={{ borderRadius: 8, fontSize: 13, background: token.colorBgContainerDisabled }}
+              style={{ borderRadius: 8, fontSize: 13, background: 'rgba(255, 255, 255, 0.05)', color: 'rgba(255, 255, 255, 0.7)', border: '1px solid rgba(0, 180, 216, 0.15)' }}
             />
           </Form.Item>
           {/* Fechas */}
@@ -1149,7 +1152,7 @@ const ControlCenter = () => {
             <Col span={12}>
               <Form.Item
                 name="start_date"
-                label="Fecha inicio"
+                label={<span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Fecha inicio</span>}
                 rules={[{ required: true, message: "Selecciona fecha" }]}
               >
                 <DatePicker style={{ width: "100%", borderRadius: 8 }} format="DD/MM/YYYY" placeholder="Inicio" />
@@ -1158,7 +1161,7 @@ const ControlCenter = () => {
             <Col span={12}>
               <Form.Item
                 name="end_date"
-                label="Fecha fin"
+                label={<span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Fecha fin</span>}
                 rules={[{ required: true, message: "Selecciona fecha" }]}
               >
                 <DatePicker style={{ width: "100%", borderRadius: 8 }} format="DD/MM/YYYY" placeholder="Fin" />
@@ -1167,7 +1170,7 @@ const ControlCenter = () => {
           </Row>
           <Form.Item
             name="reason"
-            label="Razón de la solicitud"
+            label={<span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Razón de la solicitud</span>}
             rules={[{ required: true, message: "Ingresa la razón" }]}
           >
             <Input.TextArea
@@ -1190,8 +1193,8 @@ const ControlCenter = () => {
       <Drawer
         title={
           <Flex align="center" gap={8}>
-            <FaPauseCircle style={{ color: token.colorPrimary, fontSize: 16 }} />
-            <Text strong style={{ fontSize: 16 }}>Solicitud para detener cumplimiento</Text>
+            <FaPauseCircle style={{ color: '#00B4D8', fontSize: 16 }} />
+            <Text strong style={{ fontSize: 16, color: 'rgba(255, 255, 255, 0.9)' }}>Solicitud para detener cumplimiento</Text>
           </Flex>
         }
         open={stopComplianceOpen}
@@ -1201,7 +1204,7 @@ const ControlCenter = () => {
           stopComplianceForm.resetFields();
         }}
         width={420}
-        bodyStyle={{ padding: 20 }}
+        styles={{ body: { padding: 20 } }}
         footer={
           <Flex justify="flex-end" gap={8}>
             <Button onClick={() => { setStopComplianceOpen(false); setStopCompliancePoint(null); stopComplianceForm.resetFields(); }}>
@@ -1215,19 +1218,19 @@ const ControlCenter = () => {
       >
         {stopCompliancePoint && (
           <Flex vertical gap={12} style={{ marginBottom: 16 }}>
-            <Card size="small" bodyStyle={{ padding: 10 }} style={{ background: `${token.colorPrimary}06`, border: `1px solid ${token.colorPrimary}15` }}>
-              <Text strong style={{ fontSize: 13, display: "block" }}>{stopCompliancePoint.name}</Text>
-              <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>Código: {stopCompliancePoint.code}</Text>
+            <Card size="small" bodyStyle={{ padding: 12 }} style={{ background: 'rgba(0, 180, 216, 0.08)', border: '1px solid rgba(0, 180, 216, 0.2)', borderRadius: 12, backdropFilter: 'blur(10px)' }}>
+              <Text strong style={{ fontSize: 13, display: "block", color: 'rgba(255, 255, 255, 0.9)' }}>{stopCompliancePoint.name}</Text>
+              <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.5)' }}>Código: {stopCompliancePoint.code}</Text>
             </Card>
           </Flex>
         )}
         <Form form={stopComplianceForm} layout="vertical" onFinish={handleSubmitStopCompliance}>
           {/* Quién crea */}
-          <Form.Item label="Solicitado por">
+          <Form.Item label={<span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Solicitado por</span>}>
             <Input
               value={user ? `${user.first_name || user.username} (${user.email})` : "—"}
               readOnly
-              style={{ borderRadius: 8, fontSize: 13, background: token.colorBgContainerDisabled }}
+              style={{ borderRadius: 8, fontSize: 13, background: 'rgba(255, 255, 255, 0.05)', color: 'rgba(255, 255, 255, 0.7)', border: '1px solid rgba(0, 180, 216, 0.15)' }}
             />
           </Form.Item>
           {/* Fechas */}
@@ -1235,7 +1238,7 @@ const ControlCenter = () => {
             <Col span={12}>
               <Form.Item
                 name="start_date"
-                label="Fecha inicio"
+                label={<span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Fecha inicio</span>}
                 rules={[{ required: true, message: "Selecciona fecha" }]}
               >
                 <DatePicker style={{ width: "100%", borderRadius: 8 }} format="DD/MM/YYYY" placeholder="Inicio" />
@@ -1244,7 +1247,7 @@ const ControlCenter = () => {
             <Col span={12}>
               <Form.Item
                 name="end_date"
-                label="Fecha fin"
+                label={<span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Fecha fin</span>}
                 rules={[{ required: true, message: "Selecciona fecha" }]}
               >
                 <DatePicker style={{ width: "100%", borderRadius: 8 }} format="DD/MM/YYYY" placeholder="Fin" />
@@ -1255,10 +1258,10 @@ const ControlCenter = () => {
             <Alert
               type="warning"
               showIcon
-              style={{ marginBottom: 12, fontSize: 12 }}
-              message="Informe Técnico requerido"
+              style={{ marginBottom: 12, fontSize: 12, background: 'rgba(244, 162, 97, 0.1)', border: '1px solid rgba(244, 162, 97, 0.2)' }}
+              message={<span style={{ color: '#F4A261' }}>Informe Técnico requerido</span>}
               description={
-                <Text style={{ fontSize: 12 }}>
+                <Text style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
                   La detención supera los 5 días. Se debe enviar el <strong>Informe Técnico</strong> (formato libre) que cumpla con los fundamentos principales y cuyo objetivo sea evidenciar las actividades realizadas en terreno.
                 </Text>
               }
@@ -1268,10 +1271,10 @@ const ControlCenter = () => {
             <Alert
               type="error"
               showIcon
-              style={{ marginBottom: 12, fontSize: 12 }}
-              message="Informe Detallado Obligatorio"
+              style={{ marginBottom: 12, fontSize: 12, background: 'rgba(231, 111, 81, 0.1)', border: '1px solid rgba(231, 111, 81, 0.2)' }}
+              message={<span style={{ color: '#E76F51' }}>Informe Detallado Obligatorio</span>}
               description={
-                <Text style={{ fontSize: 12 }}>
+                <Text style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
                   La detención supera los 10 días. Se debe confeccionar un <strong>informe detallado de las actividades realizadas en terreno</strong>, evidenciando cada una de las labores ejecutadas.
                 </Text>
               }
@@ -1279,7 +1282,7 @@ const ControlCenter = () => {
           )}
           <Form.Item
             name="reason"
-            label="Razón de la solicitud"
+            label={<span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Razón de la solicitud</span>}
             rules={[{ required: true, message: "Ingresa la razón" }]}
           >
             <Input.TextArea

@@ -66,8 +66,11 @@ const CCFlowAnalysisDrawer = ({
       styles={{ body: { padding: 16 } }}
     >
       {measurements.length === 0 ? (
-        <Flex justify="center" align="center" style={{ height: 200 }}>
-          <Text type="secondary">No hay mediciones disponibles</Text>
+        <Flex justify="center" align="center" style={{ height: 200 }} vertical gap={12}>
+          <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(0, 180, 216, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <FaDownload style={{ fontSize: 20, color: 'rgba(0, 180, 216, 0.4)' }} />
+          </div>
+          <Text style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: 14 }}>No hay mediciones disponibles</Text>
         </Flex>
       ) : (
         <>

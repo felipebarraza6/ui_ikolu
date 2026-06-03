@@ -111,28 +111,30 @@ const PointConfigDrawer = ({ open, onClose, pointName, configData, loading }) =>
                 size="small"
                 bodyStyle={{ padding: "12px 16px" }}
                 style={{
-                  borderRadius: 8,
-                  border: `1px solid ${hasValue ? token.colorPrimary + "20" : token.colorBorderSecondary}`,
-                  background: hasValue ? token.colorPrimary + "06" : token.colorBgContainer,
+                  borderRadius: 12,
+                  border: `1px solid ${hasValue ? 'rgba(0, 180, 216, 0.3)' : 'rgba(255, 255, 255, 0.1)'}`,
+                  background: hasValue ? 'rgba(0, 180, 216, 0.08)' : 'rgba(255, 255, 255, 0.03)',
+                  backdropFilter: 'blur(10px)',
                 }}
               >
                 <Flex align="center" gap={12}>
-                  <div
+                    <div
                     style={{
                       width: 36,
                       height: 36,
-                      borderRadius: 8,
-                      background: hasValue ? token.colorPrimary + "15" : token.colorBgLayout,
+                      borderRadius: 10,
+                      background: hasValue ? 'rgba(0, 180, 216, 0.15)' : 'rgba(255, 255, 255, 0.05)',
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       flexShrink: 0,
+                      border: `1px solid ${hasValue ? 'rgba(0, 180, 216, 0.2)' : 'rgba(255, 255, 255, 0.05)'}`,
                     }}
                   >
                     <Icon
                       style={{
                         fontSize: 14,
-                        color: hasValue ? token.colorPrimary : token.colorTextDisabled,
+                        color: hasValue ? '#00B4D8' : 'rgba(255, 255, 255, 0.3)',
                       }}
                     />
                   </div>
@@ -141,12 +143,12 @@ const PointConfigDrawer = ({ open, onClose, pointName, configData, loading }) =>
                       strong
                       style={{
                         fontSize: 13,
-                        color: hasValue ? token.colorText : token.colorTextDisabled,
+                        color: hasValue ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.3)',
                       }}
                     >
                       {field.label}
                     </Text>
-                    <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>
+                    <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.5)' }}>
                       {field.description}
                     </Text>
                   </Flex>
@@ -154,7 +156,7 @@ const PointConfigDrawer = ({ open, onClose, pointName, configData, loading }) =>
                     strong
                     style={{
                       fontSize: 16,
-                      color: hasValue ? token.colorPrimary : token.colorTextDisabled,
+                      color: hasValue ? '#90E0EF' : 'rgba(255, 255, 255, 0.3)',
                       whiteSpace: "nowrap",
                     }}
                   >

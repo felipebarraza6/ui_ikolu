@@ -7,10 +7,10 @@ const { Text, Title } = Typography;
 const { useToken } = theme;
 
 const levelColorMap = {
-  safe: { color: "#52c41a", bg: "#f6ffed", border: "#b7eb8f", icon: FaCheckCircle, label: "Dentro de límites" },
-  warning: { color: "#fa8c16", bg: "#fff7e6", border: "#ffd591", icon: FaExclamationTriangle, label: "Cerca de superar límite" },
-  critical: { color: "#ff4d4f", bg: "#fff2f0", border: "#ffccc7", icon: FaExclamationTriangle, label: "Incumplimiento detectado" },
-  unknown: { color: "#8c8c8c", bg: "#fafafa", border: "#d9d9d9", icon: FaShieldAlt, label: "Sin límites configurados" },
+  safe: { color: "#2A9D8F", bg: "rgba(42, 157, 143, 0.1)", border: "rgba(42, 157, 143, 0.3)", icon: FaCheckCircle, label: "Dentro de límites" },
+  warning: { color: "#F4A261", bg: "rgba(244, 162, 97, 0.1)", border: "rgba(244, 162, 97, 0.3)", icon: FaExclamationTriangle, label: "Cerca de superar límite" },
+  critical: { color: "#E76F51", bg: "rgba(231, 111, 81, 0.1)", border: "rgba(231, 111, 81, 0.3)", icon: FaExclamationTriangle, label: "Incumplimiento detectado" },
+  unknown: { color: "rgba(255, 255, 255, 0.4)", bg: "rgba(255, 255, 255, 0.05)", border: "rgba(255, 255, 255, 0.1)", icon: FaShieldAlt, label: "Sin límites configurados" },
 };
 
 const exportToCSV = (headers, rows, filename) => {
@@ -78,12 +78,12 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
             </Flex>
             <Flex gap={8} align="center">
               {point.compliance_type?.includes("DGA") && (
-                <Tag style={{ fontSize: 10, margin: 0, padding: "1px 5px", background: token.colorPrimaryBg, border: "none", color: token.colorPrimary, fontWeight: 600 }}>
+                <Tag style={{ fontSize: 10, margin: 0, padding: "1px 5px", background: "rgba(0, 180, 216, 0.15)", border: "none", color: "#90E0EF", fontWeight: 600 }}>
                   DGA
                 </Tag>
               )}
               {point.compliance_type?.includes("SMA") && (
-                <Tag style={{ fontSize: 10, margin: 0, padding: "1px 5px", background: "#f6ffed", border: "none", color: "#52c41a", fontWeight: 600 }}>
+                <Tag style={{ fontSize: 10, margin: 0, padding: "1px 5px", background: "rgba(42, 157, 143, 0.15)", border: "none", color: "#2A9D8F", fontWeight: 600 }}>
                   SMA
                 </Tag>
               )}
@@ -110,7 +110,7 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
             </Text>
           </Flex>
           
-          <div style={{ background: levelCfg.bg, borderRadius: 8, padding: 16, border: `1px solid ${levelCfg.border}` }}>
+          <div style={{ background: levelCfg.bg, borderRadius: 12, padding: 16, border: `1px solid ${levelCfg.border}`, backdropFilter: 'blur(10px)' }}>
             {warning.messages && warning.messages.length > 0 && (
               <Flex vertical gap={8} style={{ marginBottom: 12 }}>
                 {warning.messages.map((msg, i) => (
@@ -184,9 +184,9 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
           </Flex>
           
           {flowHistory.count === 0 ? (
-            <div style={{ background: "#f6ffed", borderRadius: 8, padding: 24, textAlign: "center", border: "1px solid #b7eb8f" }}>
-              <FaCheckCircle style={{ fontSize: 24, color: "#52c41a", marginBottom: 8 }} />
-              <Text style={{ fontSize: 13, color: "#52c41a" }}>Sin excedencias registradas este año</Text>
+            <div style={{ background: "rgba(42, 157, 143, 0.1)", borderRadius: 12, padding: 24, textAlign: "center", border: "1px solid rgba(42, 157, 143, 0.3)", backdropFilter: 'blur(10px)' }}>
+              <FaCheckCircle style={{ fontSize: 24, color: "#2A9D8F", marginBottom: 8 }} />
+              <Text style={{ fontSize: 13, color: "#2A9D8F" }}>Sin excedencias registradas este año</Text>
             </div>
           ) : (
             <Table
@@ -267,8 +267,8 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
           </Flex>
           
           {nearLimitHistory.count === 0 ? (
-            <div style={{ background: "#fafafa", borderRadius: 8, padding: 24, textAlign: "center", border: "1px solid #d9d9d9" }}>
-              <Text style={{ fontSize: 13, color: token.colorTextSecondary }}>Sin eventos cercanos al límite este año</Text>
+            <div style={{ background: "rgba(255, 255, 255, 0.05)", borderRadius: 12, padding: 24, textAlign: "center", border: "1px solid rgba(255, 255, 255, 0.1)", backdropFilter: 'blur(10px)' }}>
+              <Text style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.5)' }}>Sin eventos cercanos al límite este año</Text>
             </div>
           ) : (
             <Table
@@ -334,7 +334,7 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
               <Text strong style={{ fontSize: 14 }}>Último envío a DGA/SMA</Text>
             </Flex>
             
-            <div style={{ background: token.colorBgLayout, borderRadius: 8, padding: 16, border: `1px solid ${token.colorBorder}` }}>
+            <div style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: 12, padding: 16, border: `1px solid rgba(0, 180, 216, 0.15)`, backdropFilter: 'blur(10px)' }}>
               <Flex gap={24} wrap="wrap">
                 <Flex vertical>
                   <Text style={{ fontSize: 10, color: token.colorTextSecondary, textTransform: "uppercase" }}>Fecha</Text>

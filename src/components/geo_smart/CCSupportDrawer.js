@@ -90,12 +90,12 @@ const CCSupportDrawer = ({ open, onClose, point, form, loading, setLoading, cont
     >
       {point && (
         <Flex vertical gap={12} style={{ marginBottom: 16 }}>
-          <Card size="small" bodyStyle={{ padding: 10 }} style={{ background: `${token.colorPrimary}06`, border: `1px solid ${token.colorPrimary}15` }}>
-            <Text strong style={{ fontSize: 13, display: "block" }}>{point.name}</Text>
+          <Card size="small" bodyStyle={{ padding: 12 }} style={{ background: 'rgba(0, 180, 216, 0.08)', border: '1px solid rgba(0, 180, 216, 0.2)', borderRadius: 12, backdropFilter: 'blur(10px)' }}>
+            <Text strong style={{ fontSize: 13, display: "block", color: 'rgba(255, 255, 255, 0.9)' }}>{point.name}</Text>
             {point.code ? (
-              <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>Código: {point.code}</Text>
+              <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.5)' }}>Código: {point.code}</Text>
             ) : point.client ? (
-              <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>Cliente: {point.client}</Text>
+              <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.5)' }}>Cliente: {point.client}</Text>
             ) : null}
           </Card>
         </Flex>
