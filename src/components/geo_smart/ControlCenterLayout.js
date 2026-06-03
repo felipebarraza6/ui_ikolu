@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { Row, Col, Flex, Typography, Tag, theme, Segmented } from "antd";
+import { Row, Col, Flex, Typography, theme, Segmented } from "antd";
 import {
   FaMapMarkerAlt,
   FaBroadcastTower,
@@ -27,40 +27,43 @@ const ControlCenterLayout = memo(({
   const { token } = useToken();
 
   return (
-    <div style={{ marginBottom: 24 }}>
+    <div style={{ 
+      marginBottom: 24,
+      padding: "0 8px",
+    }}>
       {/* KPIs */}
-      <Row id="cc-kpi-cards" gutter={[12, 12]} style={{ marginBottom: 12 }}>
+      <Row id="cc-kpi-cards" gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={12} sm={6} md={6}>
           <SmartKPICard
-            icon={<FaMapMarkerAlt style={{ fontSize: 18, color: "#fff" }} />}
+            icon={<FaMapMarkerAlt style={{ fontSize: 18, color: "#90E0EF" }} />}
             label="Total Puntos"
             value={overview.total_points || 0}
-            gradient={smarthydro.gradients.primary}
+            gradient={smarthydro.gradients.oceanDeep}
           />
         </Col>
         <Col xs={12} sm={6} md={6}>
           <SmartKPICard
-            icon={<FaBroadcastTower style={{ fontSize: 18, color: "#fff" }} />}
+            icon={<FaBroadcastTower style={{ fontSize: 18, color: "#90E0EF" }} />}
             label="Telemetría Activa"
             value={`${overview.points_with_telemetry || 0}`}
             suffix={`/${overview.total_points || 0}`}
-            gradient={smarthydro.gradients.info}
+            gradient={smarthydro.gradients.cyan}
           />
         </Col>
         <Col xs={12} sm={6} md={6}>
           <SmartKPICard
-            icon={<FaClipboardCheck style={{ fontSize: 18, color: "#fff" }} />}
+            icon={<FaClipboardCheck style={{ fontSize: 18, color: "#90E0EF" }} />}
             label="Cumplimiento Normativo"
             value={overview.points_with_compliance || 0}
-            gradient={smarthydro.gradients.success}
+            gradient={smarthydro.gradients.teal}
           />
         </Col>
         <Col xs={12} sm={6} md={6}>
           <SmartKPICard
-            icon={<FaExclamationTriangle style={{ fontSize: 18, color: "#fff" }} />}
+            icon={<FaExclamationTriangle style={{ fontSize: 18, color: "#90E0EF" }} />}
             label="Warnings"
             value={warningsList.length}
-            gradient={smarthydro.gradients.accent}
+            gradient={smarthydro.gradients.coral}
             onClick={
               warningsList.length > 0
                 ? () => {
@@ -77,32 +80,43 @@ const ControlCenterLayout = memo(({
       <ControlCenterChat points={points} chatQuota={chatQuota} />
 
       {/* Tabs + Children (Outlet) */}
-      <div style={{ marginTop: 10 }}>
-        <Flex justify="flex-end" style={{ marginBottom: 8 }}>
+      <div 
+        className="glass"
+        style={{ 
+          marginTop: 24,
+          padding: 24,
+          borderRadius: 24,
+        }}
+      >
+        <Flex justify="flex-end" style={{ marginBottom: 16 }}>
           <Segmented
             options={[
               {
                 value: "telemetry",
                 label: (
-                  <Flex align="center" gap={6}>
-                    <FaBroadcastTower style={{ fontSize: 14 }} />
-                    <span>Telemetría</span>
+                  <Flex align="center" gap={8}>
+                    <FaBroadcastTower style={{ fontSize: 14, color: "#90E0EF" }} />
+                    <span style={{ color: "rgba(255,255,255,0.9)", fontWeight: 500 }}>Telemetría</span>
                   </Flex>
                 ),
               },
               {
                 value: "compliance",
                 label: (
-                  <Flex align="center" gap={6}>
-                    <FaClipboardCheck style={{ fontSize: 14 }} />
-                    <span>Cumplimiento</span>
+                  <Flex align="center" gap={8}>
+                    <FaClipboardCheck style={{ fontSize: 14, color: "#90E0EF" }} />
+                    <span style={{ color: "rgba(255,255,255,0.9)", fontWeight: 500 }}>Cumplimiento</span>
                   </Flex>
                 ),
               },
             ]}
             value={activeTab}
             onChange={onTabChange}
-            style={{ background: token.colorBgLayout }}
+            style={{ 
+              background: "rgba(255, 255, 255, 0.05)",
+              borderRadius: 12,
+              padding: 4,
+            }}
           />
         </Flex>
 
