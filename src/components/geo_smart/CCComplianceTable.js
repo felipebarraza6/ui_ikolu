@@ -48,10 +48,10 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
     responsive: ["md"],
     render: (_, record) => (
       <Flex vertical gap={2} align="center">
-        <Tag style={{ fontSize: 10, margin: 0, padding: "1px 6px", lineHeight: "15px", background: token.colorBgLayout, border: `1px solid ${token.colorBorder}`, color: token.colorTextSecondary, fontFamily: smarthydro.typography.body }}>
+        <Tag className="ocean-tag ocean-tag-default" style={{ fontFamily: smarthydro.typography.body }}>
           {typeDgaLabels[record.standard] || record.standard}
         </Tag>
-        <Text style={{ fontSize: 10, color: token.colorTextSecondary, fontFamily: smarthydro.typography.body }}>
+        <Text className="ocean-text-xs ocean-text-secondary" style={{ fontFamily: smarthydro.typography.body }}>
           {typeDgaLabels[record.type_dga] || record.type_dga}
         </Text>
       </Flex>
@@ -92,20 +92,20 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
         <Flex vertical gap={2} align="center">
           {currentFlow != null && authorizedFlow > 0 ? (
             <>
-              <Text strong style={{ fontSize: 14, color: flowColor, fontFamily: smarthydro.typography.heading }}>
+              <Text strong className="ocean-text-lg" style={{ color: flowColor, fontFamily: smarthydro.typography.heading }}>
                 {Number(currentFlow).toFixed(1)}
-                <span style={{ fontSize: 10, fontWeight: 400, marginLeft: 2, fontFamily: smarthydro.typography.body }}>L/s</span>
+                <span className="ocean-text-xs ocean-font-normal" style={{ marginLeft: 2, fontFamily: smarthydro.typography.body }}>L/s</span>
               </Text>
-              <Text style={{ fontSize: 9, color: token.colorTextSecondary, fontFamily: smarthydro.typography.body }}>
+              <Text className="ocean-text-xs ocean-text-secondary" style={{ fontFamily: smarthydro.typography.body }}>
                 / {Number(authorizedFlow).toFixed(1)} L/s
               </Text>
             </>
           ) : currentFlow != null ? (
-            <Text strong style={{ fontSize: 13, color: token.colorText, fontFamily: smarthydro.typography.heading }}>
+            <Text strong className="ocean-text-base ocean-text-primary" style={{ fontFamily: smarthydro.typography.heading }}>
               {Number(currentFlow).toFixed(1)} L/s
             </Text>
           ) : (
-            <Text style={{ fontSize: 12, color: token.colorTextDisabled, fontFamily: smarthydro.typography.body }}>—</Text>
+            <Text className="ocean-text-sm ocean-text-disabled" style={{ fontFamily: smarthydro.typography.body }}>—</Text>
           )}
         </Flex>
       );
@@ -124,12 +124,12 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
     render: (_, record) => {
       const v = record.water_table_m;
       return v != null ? (
-        <Text style={{ fontSize: 13, color: smarthydro.colors.supporting.blue, fontFamily: smarthydro.typography.heading }}>
+        <Text className="ocean-text-base" style={{ color: smarthydro.colors.supporting.blue, fontFamily: smarthydro.typography.heading }}>
           {Number(v).toFixed(2)}
-          <span style={{ fontSize: 10, marginLeft: 2, fontFamily: smarthydro.typography.body }}>m</span>
+          <span className="ocean-text-xs" style={{ marginLeft: 2, fontFamily: smarthydro.typography.body }}>m</span>
         </Text>
       ) : (
-        <Text style={{ fontSize: 12, color: token.colorTextDisabled, fontFamily: smarthydro.typography.body }}>—</Text>
+        <Text className="ocean-text-sm ocean-text-disabled" style={{ fontFamily: smarthydro.typography.body }}>—</Text>
       );
     },
   },
@@ -175,20 +175,20 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
                   alignItems: "center",
                   justifyContent: "center",
                   gap: 4,
-                  background: smarthydro.colors.semantic.errorBg,
-                  borderRadius: smarthydro.radii.sm,
+                  background: "rgba(231, 111, 81, 0.1)",
+                  borderRadius: 6,
                   padding: "2px 6px",
-                  border: `1px solid ${smarthydro.colors.semantic.errorBorder}`,
+                  border: "1px solid rgba(231, 111, 81, 0.3)",
                   cursor: "pointer",
-                  transition: smarthydro.transitions.base,
+                  transition: "all 0.2s ease",
                   minWidth: 40,
                   height: 24
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = smarthydro.colors.semantic.errorBg; e.currentTarget.style.opacity = 0.85; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = smarthydro.colors.semantic.errorBg; e.currentTarget.style.opacity = 1; }}
+                onMouseEnter={(e) => { e.currentTarget.style.opacity = 0.85; }}
+                onMouseLeave={(e) => { e.currentTarget.style.opacity = 1; }}
               >
-                <FaExclamationTriangle style={{ fontSize: 9, color: smarthydro.colors.semantic.error }} />
-                <Text style={{ fontSize: 10, color: smarthydro.colors.semantic.error, fontWeight: smarthydro.typography.weights.semibold, fontFamily: smarthydro.typography.body }}>
+                <FaExclamationTriangle style={{ fontSize: 9, color: "#E76F51" }} />
+                <Text className="ocean-text-xs ocean-font-semibold" style={{ color: "#E76F51", fontFamily: smarthydro.typography.body }}>
                   {exceededHasMore ? "20+" : exceededCount}
                 </Text>
               </div>
@@ -216,20 +216,20 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
                   alignItems: "center",
                   justifyContent: "center",
                   gap: 4,
-                  background: smarthydro.colors.semantic.warningBg,
-                  borderRadius: smarthydro.radii.sm,
+                  background: "rgba(244, 162, 97, 0.1)",
+                  borderRadius: 6,
                   padding: "2px 6px",
-                  border: `1px solid ${smarthydro.colors.semantic.warningBorder}`,
+                  border: "1px solid rgba(244, 162, 97, 0.3)",
                   cursor: "pointer",
-                  transition: smarthydro.transitions.base,
+                  transition: "all 0.2s ease",
                   minWidth: 40,
                   height: 24
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = smarthydro.colors.semantic.warningBg; e.currentTarget.style.opacity = 0.85; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = smarthydro.colors.semantic.warningBg; e.currentTarget.style.opacity = 1; }}
+                onMouseEnter={(e) => { e.currentTarget.style.opacity = 0.85; }}
+                onMouseLeave={(e) => { e.currentTarget.style.opacity = 1; }}
               >
-                <FaChartLine style={{ fontSize: 9, color: smarthydro.colors.semantic.warning }} />
-                <Text style={{ fontSize: 10, color: smarthydro.colors.semantic.warning, fontWeight: smarthydro.typography.weights.semibold, fontFamily: smarthydro.typography.body }}>
+                <FaChartLine style={{ fontSize: 9, color: "#F4A261" }} />
+                <Text className="ocean-text-xs ocean-font-semibold" style={{ color: "#F4A261", fontFamily: smarthydro.typography.body }}>
                   {nearLimitHasMore ? "20+" : nearLimitCount}
                 </Text>
               </div>
