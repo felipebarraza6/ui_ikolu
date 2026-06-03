@@ -32,11 +32,16 @@ const TableMemo = React.memo(({ data, columns, loading }) => {
       loading={loading}
       dataSource={dataSource}
       size="small"
-      bordered
       pagination={false}
       showHeader={true}
       columns={columns}
       locale={{ emptyText: "Sin datos" }}
+      className="ocean-table"
+      style={{
+        background: "transparent",
+        borderRadius: 16,
+        overflow: "hidden",
+      }}
     />
   );
 });
@@ -262,25 +267,29 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
                   flex: 1,
                   minHeight: 90,
                   padding: "10px 8px",
-                  borderRadius: smarthydro.radii.md,
-                  border: `1.5px solid ${isActive ? smarthydro.colors.primary[500] : isToday ? `${smarthydro.colors.primary[500]}40` : token.colorBorder}`,
-                  background: isActive ? smarthydro.colors.primary[500] : isToday ? `${smarthydro.colors.primary[500]}08` : token.colorBgContainer,
+                  borderRadius: 16,
+                  border: `1.5px solid ${isActive ? "rgba(0, 180, 216, 0.5)" : "rgba(255, 255, 255, 0.1)"}`,
+                  background: isActive 
+                    ? "linear-gradient(135deg, rgba(0, 180, 216, 0.3) 0%, rgba(0, 119, 182, 0.2) 100%)" 
+                    : "rgba(255, 255, 255, 0.03)",
+                  backdropFilter: "blur(10px)",
                   cursor: "pointer",
-                  transition: smarthydro.transitions.base,
+                  transition: "all 0.3s ease",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
                   gap: 4,
+                  boxShadow: isActive ? "0 0 20px rgba(0, 180, 216, 0.3)" : "none",
                 }}
               >
-                <Text style={{ fontSize: 10, color: isActive ? "#fff" : token.colorTextSecondary, textTransform: "capitalize", letterSpacing: 0.5, whiteSpace: "nowrap", fontFamily: smarthydro.typography.body }}>
+                <Text style={{ fontSize: 10, color: isActive ? "#90E0EF" : "rgba(255,255,255,0.6)", textTransform: "capitalize", letterSpacing: 0.5, whiteSpace: "nowrap", fontFamily: smarthydro.typography.body }}>
                   {moment(date).format("dddd")}
                 </Text>
-                <Text strong style={{ fontSize: 22, color: isActive ? "#fff" : token.colorText, lineHeight: 1, fontFamily: smarthydro.typography.heading }}>
+                <Text strong style={{ fontSize: 22, color: isActive ? "#fff" : "rgba(255,255,255,0.9)", lineHeight: 1, fontFamily: smarthydro.typography.heading }}>
                   {moment(date).format("DD")}
                 </Text>
-                <Text style={{ fontSize: 10, color: isActive ? "#fff" : token.colorTextSecondary, fontFamily: smarthydro.typography.body }}>
+                <Text style={{ fontSize: 10, color: isActive ? "#90E0EF" : "rgba(255,255,255,0.5)", fontFamily: smarthydro.typography.body }}>
                   {formatInteger(total)} m³
                 </Text>
               </div>
