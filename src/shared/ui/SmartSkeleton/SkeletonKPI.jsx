@@ -7,7 +7,7 @@ import "./skeleton.css";
 const SkeletonKPI = ({ icon, label, style = {} }) => {
   return (
     <div className="skeleton-kpi-card" style={style}>
-      <Flex vertical align="center" gap={8}>
+      <Flex vertical align="center" gap={8} style={{ position: "relative", zIndex: 1 }}>
         {icon && (
           <div style={{
             width: 36,

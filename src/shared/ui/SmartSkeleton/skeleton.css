@@ -89,6 +89,26 @@
 .skeleton-table-row {
   height: 48px;
   border-bottom: 1px solid var(--skeleton-border);
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-table-row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 25%,
+    var(--skeleton-highlight) 37%,
+    transparent 63%
+  );
+  background-size: 200% 100%;
+  animation: smart-shimmer 1.4s ease-in-out infinite;
+  pointer-events: none;
 }
 
 /* Skeleton KPI Card */
@@ -102,6 +122,26 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-kpi-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.05) 25%,
+    rgba(255,255,255,0.15) 37%,
+    rgba(255,255,255,0.05) 63%
+  );
+  background-size: 200% 100%;
+  animation: smart-shimmer 1.4s ease-in-out infinite;
+  pointer-events: none;
 }
 
 /* Skeleton Calendar Day */
@@ -117,9 +157,39 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-calendar-day::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 25%,
+    var(--skeleton-highlight) 37%,
+    transparent 63%
+  );
+  background-size: 200% 100%;
+  animation: smart-shimmer 1.4s ease-in-out infinite;
+  pointer-events: none;
 }
 
 .skeleton-calendar-day.active {
   background: var(--skeleton-primary);
   border-color: var(--skeleton-primary);
+}
+
+.skeleton-calendar-day.active::before {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.05) 25%,
+    rgba(255,255,255,0.15) 37%,
+    rgba(255,255,255,0.05) 63%
+  );
+  background-size: 200% 100%;
 }
