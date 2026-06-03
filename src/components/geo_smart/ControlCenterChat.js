@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect } from "react";
-import { Flex, Typography, Button, Input, Tag, theme, Card } from "antd";
+import { Flex, Typography, Button, Input, Tag, Card } from "antd";
 import {
   FaRobot,
   FaPaperPlane,
@@ -10,11 +10,13 @@ import {
 import sh from "../../api/sh/endpoints";
 
 const { Text } = Typography;
-const { useToken } = theme;
+
+const OCEAN_CYAN = "#00B4D8";
+const OCEAN_DEEP = "#0A2540";
+const OCEAN_BLUE = "#0077B6";
+const OCEAN_LIGHT = "#90E0EF";
 
 const ControlCenterChat = ({ points, chatQuota }) => {
-  const { token } = useToken();
-
   const [chatMessages, setChatMessages] = useState([
     { role: "bot", text: "Hola! Soy tu asistente de telemetria. En que puedo ayudarte?", time: Date.now() },
   ]);
@@ -94,20 +96,31 @@ const ControlCenterChat = ({ points, chatQuota }) => {
           position: "fixed",
           bottom: 24,
           right: 24,
-          width: 56,
-          height: 56,
+          width: 60,
+          height: 60,
           borderRadius: "50%",
-          background: "linear-gradient(135deg, #1F3461 0%, #2A4A8A 100%)",
-          border: "2px solid #1F346150",
+          background: `linear-gradient(135deg, ${OCEAN_DEEP} 0%, ${OCEAN_BLUE} 50%, ${OCEAN_CYAN} 100%)`,
+          backgroundSize: "400% 400%",
+          animation: "gradient-flow 8s ease infinite",
+          border: "2px solid rgba(0, 180, 216, 0.3)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           cursor: "pointer",
           zIndex: 1000,
-          boxShadow: `0 4px 16px rgba(31,52,97,0.35)`,
+          boxShadow: `0 4px 20px rgba(0, 180, 216, 0.4)`,
+          transition: "transform 0.3s ease, box-shadow 0.3s ease",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.1)";
+          e.currentTarget.style.boxShadow = "0 6px 30px rgba(0, 180, 216, 0.6)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+          e.currentTarget.style.boxShadow = "0 4px 20px rgba(0, 180, 216, 0.4)";
         }}
       >
-        <FaRobot style={{ color: "#fff", fontSize: 22 }} />
+        <FaRobot style={{ color: "#fff", fontSize: 24 }} />
       </div>
     );
   }
@@ -126,31 +139,48 @@ const ControlCenterChat = ({ points, chatQuota }) => {
           position: "fixed",
           bottom: 90,
           right: 24,
-          width: 380,
-          height: 520,
-          borderRadius: token.borderRadiusLG,
+          width: 400,
+          height: 550,
+          borderRadius: 24,
           zIndex: 1000,
-          boxShadow: `0 8px 32px rgba(0,0,0,0.25)`,
+          boxShadow: `0 12px 48px rgba(0, 0, 0, 0.4)`,
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
           animation: "fade-in-up 0.25s ease",
+          background: "rgba(5, 10, 20, 0.95)",
+          backdropFilter: "blur(20px)",
+          border: "1px solid rgba(0, 180, 216, 0.2)",
         }}
         bodyStyle={{ padding: 0, height: "100%", display: "flex", flexDirection: "column" }}
       >
-        <Flex align="center" gap={10} style={{ padding: "12px 16px", borderBottom: `1px solid ${token.colorBorderSecondary}`, flexShrink: 0 }}>
-          <div style={{ width: 32, height: 32, borderRadius: "50%", background: `${token.colorPrimary}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <FaRobot style={{ color: token.colorPrimary, fontSize: 14 }} />
+        <Flex align="center" gap={10} style={{ 
+          padding: "16px 20px", 
+          borderBottom: `1px solid rgba(0, 180, 216, 0.15)`, 
+          flexShrink: 0,
+          background: "rgba(0, 180, 216, 0.05)",
+        }}>
+          <div style={{ 
+            width: 36, 
+            height: 36, 
+            borderRadius: "50%", 
+            background: `linear-gradient(135deg, ${OCEAN_BLUE} 0%, ${OCEAN_CYAN} 100%)`, 
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "center",
+            boxShadow: "0 0 15px rgba(0, 180, 216, 0.3)",
+          }}>
+            <FaRobot style={{ color: "#fff", fontSize: 16 }} />
           </div>
           <div>
-            <Text strong style={{ fontSize: 13, display: "block" }}>Experto en Telemetria</Text>
-            <Text style={{ fontSize: 10, color: token.colorTextSecondary }}>Smart Hydro - Consultas en tiempo real</Text>
+            <Text strong style={{ fontSize: 14, display: "block", color: "#fff" }}>Experto en Telemetria</Text>
+            <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Smart Hydro - Consultas en tiempo real</Text>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
             <Button
               type="text"
               size="small"
-              icon={<FaTrash style={{ fontSize: 11, color: token.colorTextSecondary }} />}
+              icon={<FaTrash style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }} />}
               onClick={handleClearChat}
               style={{ padding: "0 4px" }}
               title="Limpiar chat"
@@ -159,16 +189,23 @@ const ControlCenterChat = ({ points, chatQuota }) => {
               type="text"
               size="small"
               onClick={handleToggleDrawer}
-              style={{ padding: "0 4px", color: token.colorTextSecondary, fontSize: 16 }}
+              style={{ padding: "0 4px", color: "rgba(255,255,255,0.5)", fontSize: 18 }}
             >
-              x
+              ×
             </Button>
           </div>
         </Flex>
 
-        <div style={{ padding: "8px 12px", background: `${token.colorPrimary}08`, borderBottom: `1px solid ${token.colorBorderSecondary}`, flexShrink: 0 }}>
-          <Text style={{ fontSize: 10, color: token.colorTextSecondary, lineHeight: 1.4, display: "block" }}>
-            <FaLightbulb style={{ color: token.colorPrimary, fontSize: 10, marginRight: 4 }} /> <span style={{ color: token.colorPrimary, fontWeight: 600 }}>Objetivo:</span> Ayudarte a interpretar tus datos de telemetria, consumo, caudal y cumplimiento normativo en tiempo real.
+        <div style={{ 
+          padding: "12px 16px", 
+          background: "rgba(0, 180, 216, 0.03)", 
+          borderBottom: `1px solid rgba(0, 180, 216, 0.1)`, 
+          flexShrink: 0 
+        }}>
+          <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.4, display: "block" }}>
+            <FaLightbulb style={{ color: OCEAN_CYAN, fontSize: 11, marginRight: 6 }} /> 
+            <span style={{ color: OCEAN_LIGHT, fontWeight: 600 }}>Objetivo:</span> 
+            Ayudarte a interpretar tus datos de telemetria, consumo, caudal y cumplimiento normativo en tiempo real.
           </Text>
         </div>
 
@@ -177,11 +214,12 @@ const ControlCenterChat = ({ points, chatQuota }) => {
             flex: 1,
             minHeight: 0,
             overflowY: "auto",
-            padding: "12px 16px",
+            padding: "16px 20px",
             display: "flex",
             flexDirection: "column",
-            gap: 10,
+            gap: 12,
           }}
+          className="ocean-scrollbar"
         >
           {chatMessages.map((msg, i) => (
             <Flex
@@ -192,21 +230,34 @@ const ControlCenterChat = ({ points, chatQuota }) => {
               style={{ animation: "fade-in-up 0.3s ease" }}
             >
               {msg.role === "bot" && (
-                <div style={{ width: 24, height: 24, borderRadius: "50%", background: `${token.colorPrimary}15`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
-                  <FaRobot style={{ color: token.colorPrimary, fontSize: 10 }} />
+                <div style={{ 
+                  width: 28, 
+                  height: 28, 
+                  borderRadius: "50%", 
+                  background: `linear-gradient(135deg, ${OCEAN_BLUE} 0%, ${OCEAN_CYAN} 100%)`, 
+                  display: "flex", 
+                  alignItems: "center", 
+                  justifyContent: "center", 
+                  flexShrink: 0, 
+                  marginTop: 2 
+                }}>
+                  <FaRobot style={{ color: "#fff", fontSize: 12 }} />
                 </div>
               )}
               <div
                 style={{
                   maxWidth: "85%",
-                  padding: "10px 14px",
-                  borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
-                  background: msg.role === "user" ? token.colorPrimary : token.colorBgLayout,
-                  color: msg.role === "user" ? "#fff" : token.colorText,
+                  padding: "12px 16px",
+                  borderRadius: msg.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+                  background: msg.role === "user" 
+                    ? `linear-gradient(135deg, ${OCEAN_BLUE} 0%, ${OCEAN_CYAN} 100%)` 
+                    : "rgba(255, 255, 255, 0.05)",
+                  color: msg.role === "user" ? "#fff" : "rgba(255,255,255,0.85)",
                   fontSize: 13,
                   lineHeight: 1.5,
                   wordBreak: "break-word",
-                  boxShadow: `0 1px 4px ${token.colorBorder}`,
+                  border: msg.role === "user" ? "none" : "1px solid rgba(255, 255, 255, 0.08)",
+                  backdropFilter: msg.role === "user" ? "none" : "blur(10px)",
                 }}
               >
                 {msg.text}
@@ -215,14 +266,28 @@ const ControlCenterChat = ({ points, chatQuota }) => {
           ))}
           {chatLoading && (
             <Flex align="center" gap={8} style={{ animation: "fade-in-up 0.3s ease" }}>
-              <div style={{ width: 24, height: 24, borderRadius: "50%", background: `${token.colorPrimary}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <FaRobot style={{ color: token.colorPrimary, fontSize: 10 }} />
+              <div style={{ 
+                width: 28, 
+                height: 28, 
+                borderRadius: "50%", 
+                background: `linear-gradient(135deg, ${OCEAN_BLUE} 0%, ${OCEAN_CYAN} 100%)`, 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "center" 
+              }}>
+                <FaRobot style={{ color: "#fff", fontSize: 12 }} />
               </div>
-              <div style={{ padding: "8px 12px", borderRadius: 12, background: token.colorBgLayout, border: `1px solid ${token.colorBorderSecondary}` }}>
-                <Flex gap={3} align="center" style={{ height: 16 }}>
-                  <span className="chat-dot" style={{ width: 6, height: 6, borderRadius: "50%", background: token.colorPrimary, animation: "chat-bounce 1.4s infinite ease-in-out both", animationDelay: "0s" }} />
-                  <span className="chat-dot" style={{ width: 6, height: 6, borderRadius: "50%", background: token.colorPrimary, animation: "chat-bounce 1.4s infinite ease-in-out both", animationDelay: "0.2s" }} />
-                  <span className="chat-dot" style={{ width: 6, height: 6, borderRadius: "50%", background: token.colorPrimary, animation: "chat-bounce 1.4s infinite ease-in-out both", animationDelay: "0.4s" }} />
+              <div style={{ 
+                padding: "10px 14px", 
+                borderRadius: 16, 
+                background: "rgba(255, 255, 255, 0.05)", 
+                border: `1px solid rgba(255, 255, 255, 0.08)`,
+                backdropFilter: "blur(10px)",
+              }}>
+                <Flex gap={4} align="center" style={{ height: 16 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: OCEAN_CYAN, animation: "chat-bounce 1.4s infinite ease-in-out both", animationDelay: "0s" }} />
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: OCEAN_CYAN, animation: "chat-bounce 1.4s infinite ease-in-out both", animationDelay: "0.2s" }} />
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: OCEAN_CYAN, animation: "chat-bounce 1.4s infinite ease-in-out both", animationDelay: "0.4s" }} />
                 </Flex>
               </div>
             </Flex>
@@ -230,13 +295,27 @@ const ControlCenterChat = ({ points, chatQuota }) => {
         </div>
 
         {showSuggestions && (
-          <div style={{ padding: "8px 12px", borderTop: `1px solid ${token.colorBorderSecondary}`, background: token.colorBgLayout, flexShrink: 0 }}>
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <div style={{ 
+            padding: "12px 16px", 
+            borderTop: `1px solid rgba(0, 180, 216, 0.1)`, 
+            background: "rgba(0, 180, 216, 0.03)", 
+            flexShrink: 0 
+          }}>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {suggestionTags.map((q) => (
                 <Tag
                   key={q}
-                  color="primary"
-                  style={{ fontSize: 10, margin: 0, cursor: "pointer", lineHeight: "20px" }}
+                  style={{ 
+                    fontSize: 11, 
+                    margin: 0, 
+                    cursor: "pointer", 
+                    lineHeight: "22px",
+                    background: "rgba(0, 180, 216, 0.1)",
+                    border: "1px solid rgba(0, 180, 216, 0.2)",
+                    color: OCEAN_LIGHT,
+                    borderRadius: 12,
+                    padding: "2px 12px",
+                  }}
                   onClick={() => handleSuggestionClick(q)}
                 >
                   {q}
@@ -246,8 +325,13 @@ const ControlCenterChat = ({ points, chatQuota }) => {
           </div>
         )}
 
-        <div style={{ padding: "8px 12px", borderTop: `1px solid ${token.colorBorderSecondary}`, background: token.colorBgContainer, flexShrink: 0 }}>
-          <Flex gap={8} align="flex-end">
+        <div style={{ 
+          padding: "12px 16px", 
+          borderTop: `1px solid rgba(0, 180, 216, 0.1)`, 
+          background: "rgba(5, 10, 20, 0.9)", 
+          flexShrink: 0 
+        }}>
+          <Flex gap={10} align="flex-end">
             <Input.TextArea
               value={chatInput}
               onChange={handleInputChange}
@@ -257,46 +341,52 @@ const ControlCenterChat = ({ points, chatQuota }) => {
               autoSize={{ minRows: 1, maxRows: 3 }}
               style={{
                 flex: 1,
-                borderRadius: 12,
-                border: `1.5px solid ${token.colorBorder}`,
-                background: token.colorBgElevated,
+                borderRadius: 16,
+                border: `1.5px solid rgba(0, 180, 216, 0.2)`,
+                background: "rgba(255, 255, 255, 0.05)",
                 fontSize: 13,
-                padding: "8px 12px",
+                padding: "10px 14px",
+                color: "#fff",
               }}
             />
             <Button
               type="default"
               shape="circle"
-              icon={<FaQuestionCircle style={{ fontSize: 14, color: token.colorTextSecondary }} />}
+              icon={<FaQuestionCircle style={{ fontSize: 16, color: OCEAN_CYAN }} />}
               onClick={handleToggleSuggestions}
               style={{
-                width: 32,
-                height: 32,
+                width: 36,
+                height: 36,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                background: "rgba(0, 180, 216, 0.1)",
+                border: "1px solid rgba(0, 180, 216, 0.2)",
               }}
             />
             <Button
               type="primary"
               shape="circle"
-              icon={<FaPaperPlane style={{ fontSize: 12, color: "#fff" }} />}
+              icon={<FaPaperPlane style={{ fontSize: 14, color: "#fff" }} />}
               onClick={sendChatMessage}
               loading={chatLoading}
               style={{
-                width: 32,
-                height: 32,
+                width: 36,
+                height: 36,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                background: `linear-gradient(135deg, ${OCEAN_BLUE} 0%, ${OCEAN_CYAN} 100%)`,
+                border: "none",
+                boxShadow: "0 0 15px rgba(0, 180, 216, 0.3)",
               }}
             />
           </Flex>
-          <Flex justify="space-between" align="center" style={{ marginTop: 6 }}>
-            <Text style={{ fontSize: 11, color: chatMeta.remainingToday === 0 ? token.colorError : token.colorTextSecondary, fontWeight: 500 }}>
+          <Flex justify="space-between" align="center" style={{ marginTop: 8 }}>
+            <Text style={{ fontSize: 11, color: chatMeta.remainingToday === 0 ? "#E76F51" : "rgba(255,255,255,0.4)", fontWeight: 500 }}>
               {chatMeta.dailyLimit != null ? `Preguntas usadas: ${chatMeta.usedToday} de ${chatMeta.dailyLimit} disponibles` : ""}
             </Text>
-            <Text strong style={{ fontSize: 11, color: chatInput.length >= 50 ? token.colorError : token.colorTextSecondary }}>
+            <Text strong style={{ fontSize: 11, color: chatInput.length >= 50 ? "#E76F51" : "rgba(255,255,255,0.4)" }}>
               {chatInput.length}/50
             </Text>
           </Flex>
@@ -309,20 +399,31 @@ const ControlCenterChat = ({ points, chatQuota }) => {
           position: "fixed",
           bottom: 24,
           right: 24,
-          width: 56,
-          height: 56,
+          width: 60,
+          height: 60,
           borderRadius: "50%",
-          background: "linear-gradient(135deg, #1F3461 0%, #2A4A8A 100%)",
-          border: "2px solid #1F346150",
+          background: `linear-gradient(135deg, ${OCEAN_DEEP} 0%, ${OCEAN_BLUE} 50%, ${OCEAN_CYAN} 100%)`,
+          backgroundSize: "400% 400%",
+          animation: "gradient-flow 8s ease infinite",
+          border: "2px solid rgba(0, 180, 216, 0.3)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           cursor: "pointer",
           zIndex: 1000,
-          boxShadow: `0 4px 16px rgba(31,52,97,0.35)`,
+          boxShadow: `0 4px 20px rgba(0, 180, 216, 0.4)`,
+          transition: "transform 0.3s ease, box-shadow 0.3s ease",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.1)";
+          e.currentTarget.style.boxShadow = "0 6px 30px rgba(0, 180, 216, 0.6)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+          e.currentTarget.style.boxShadow = "0 4px 20px rgba(0, 180, 216, 0.4)";
         }}
       >
-        <FaRobot style={{ color: "#fff", fontSize: 22 }} />
+        <FaRobot style={{ color: "#fff", fontSize: 24 }} />
       </div>
     </>
   );
