@@ -66,8 +66,8 @@ const CCSupportDrawer = ({ open, onClose, point, form, loading, setLoading, cont
     <Drawer
       title={
         <Flex align="center" gap={8}>
-          <FaHeadset style={{ color: token.colorPrimary, fontSize: 16 }} />
-          <Text strong style={{ fontSize: 16 }}>Solicitud de soporte</Text>
+          <FaHeadset className="ocean-icon-cyan" />
+          <Text strong className="ocean-text-xl ocean-text-primary">Solicitud de soporte</Text>
         </Flex>
       }
       open={open}
@@ -89,9 +89,9 @@ const CCSupportDrawer = ({ open, onClose, point, form, loading, setLoading, cont
       }
     >
       {point && (
-        <Flex vertical gap={12} style={{ marginBottom: 16 }}>
+        <Flex vertical gap={12} className="ocean-mb-md">
           <Card size="small" bodyStyle={{ padding: 12 }} className="ocean-info-card">
-            <Text className="ocean-text-base ocean-text-primary ocean-font-semibold" style={{ display: "block" }}>{point.name}</Text>
+            <Text className="ocean-text-base ocean-text-primary ocean-font-semibold ocean-display-block">{point.name}</Text>
             {point.code ? (
               <Text className="ocean-text-sm ocean-text-muted">Código: {point.code}</Text>
             ) : point.client ? (

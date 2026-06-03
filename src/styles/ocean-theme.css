@@ -1566,3 +1566,15 @@
 .ocean-config-field {
   flex: 1;
 }
+
+/* =====================================================
+   SupportDrawer Utilities
+   ===================================================== */
+
+.ocean-mb-md {
+  margin-bottom: 16px;
+}
+
+.ocean-display-block {
+  display: block;
+}
