@@ -84,7 +84,7 @@ const ControlCenterLayout = memo(({
           <Col xs={12} sm={6} md={6} className="fade-in-up" style={{ animationDelay: "0.05s" }}>
             <div className="card-lift">
               <Tooltip title="Cantidad total de puntos de captacion registrados" placement="top">
-                <div style={{ animation: "wave 4s ease-in-out infinite" }}>
+                <div>
                   <SmartKPICard
                     icon={<FaMapMarkerAlt style={{ fontSize: 18, color: '#ffffff' }} />}
                     label="Total Puntos"
