@@ -12,7 +12,7 @@ const AppLayout = ({ children }) => {
   const isMobile = !screens.md;
 
   return (
-    <Layout style={{ minHeight: "100vh", background: "#050A14" }}>
+    <Layout style={{ minHeight: "100vh", background: "var(--bg-primary)" }}>
       <Sidebar
         collapsed={collapsed}
         setCollapsed={setCollapsed}
@@ -20,7 +20,7 @@ const AppLayout = ({ children }) => {
         mobileOpen={mobileOpen}
         setMobileOpen={setMobileOpen}
       />
-      <Layout style={{ background: "#050A14" }}>
+      <Layout style={{ background: "var(--bg-primary)" }}>
         <HeaderNav
           collapsed={collapsed}
           setCollapsed={setCollapsed}
@@ -33,7 +33,7 @@ const AppLayout = ({ children }) => {
           style={{
             margin: "24px 16px",
             padding: 24,
-            background: "rgba(255, 255, 255, 0.02)",
+            background: "var(--bg-secondary)",
             borderRadius: 16,
             minHeight: 280,
             overflow: "auto",

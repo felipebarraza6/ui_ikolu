@@ -1,57 +1,19 @@
 /* =====================================================
-   Ocean Theme - Ultra Modern Water/Fluid Design System
+   Ocean Theme - Dark Mode Only
+   All styles wrapped in [data-theme="dark"]
    ===================================================== */
 
-/* CSS Variables for Smart Hydro Theme */
-:root {
-  /* Background layers */
-  --ocean-bg-deep: #050D1A;
-  --ocean-bg-mid: #203562;
-  --ocean-bg-surface: #2A4A8A;
-  
-  /* Corporate colors */
-  --ocean-cyan: #3A68AA;
-  --ocean-cyan-light: #85A2D1;
-  --ocean-blue: #203562;
-  --ocean-teal: #2A9D8F;
-  
-  /* Glassmorphism */
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  --glass-bg-hover: rgba(255, 255, 255, 0.06);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-hover: rgba(255, 255, 255, 0.12);
-  --glass-glow: rgba(32, 53, 98, 0.2);
-  
-  /* Text */
-  --text-primary: #FFFFFF;
-  --text-secondary: rgba(255, 255, 255, 0.7);
-  --text-muted: rgba(255, 255, 255, 0.45);
-  --text-disabled: rgba(255, 255, 255, 0.25);
-}
-
-/* =====================================================
-   Animaciones Base
-   ===================================================== */
-
-/* Gradient Flow - Living Water Effect */
 @keyframes gradient-flow {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
 
-.gradient-flow {
-  background-size: 400% 400%;
-  animation: gradient-flow 8s ease infinite;
-}
-
-/* Wave Animation */
 @keyframes wave {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
 }
 
-/* Ripple Effect */
 @keyframes ripple {
   0% {
     transform: scale(0);
@@ -63,7 +25,6 @@
   }
 }
 
-/* Float Up - Bubbles */
 @keyframes float-up {
   0% {
     transform: translateY(100%) scale(0);
@@ -78,7 +39,6 @@
   }
 }
 
-/* Glow Pulse */
 @keyframes glow-pulse {
   0%, 100% {
     box-shadow: 0 0 5px var(--ocean-cyan), 0 0 10px var(--ocean-cyan), 0 0 15px var(--ocean-cyan);
@@ -88,13 +48,11 @@
   }
 }
 
-/* Shimmer Slide */
 @keyframes shimmer-slide {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 
-/* Fade In Up Smooth */
 @keyframes fade-in-up-smooth {
   from {
     opacity: 0;
@@ -106,7 +64,6 @@
   }
 }
 
-/* Scale In */
 @keyframes scale-in {
   from {
     opacity: 0;
@@ -118,7 +75,6 @@
   }
 }
 
-/* Slide In Bottom */
 @keyframes slide-in-bottom {
   from {
     opacity: 0;
@@ -130,604 +86,6 @@
   }
 }
 
-/* =====================================================
-   Glassmorphism Utilities
-   ===================================================== */
-
-.glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border);
-  border-radius: 20px;
-}
-
-.glass-hover:hover {
-  background: var(--glass-bg-hover);
-  border-color: var(--glass-border-hover);
-  box-shadow: 0 8px 32px var(--glass-glow);
-}
-
-.glass-strong {
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* =====================================================
-   Ocean Card Styles
-   ===================================================== */
-
-.ocean-card {
-  background: linear-gradient(135deg, rgba(32, 53, 98, 0.8) 0%, rgba(42, 74, 138, 0.6) 100%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(58, 104, 170, 0.15);
-  border-radius: 24px;
-  padding: 24px;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.ocean-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(58, 104, 170, 0.05) 0%,
-    transparent 50%,
-    rgba(58, 104, 170, 0.02) 100%
-  );
-  pointer-events: none;
-}
-
-.ocean-card:hover {
-  border-color: rgba(58, 104, 170, 0.3);
-  box-shadow: 0 8px 32px rgba(32, 53, 98, 0.2);
-  transform: translateY(-2px);
-}
-
-/* =====================================================
-   Water Wave Decoration
-   ===================================================== */
-
-.wave-decoration {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 60px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%233A68AA' fill-opacity='0.1' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") no-repeat bottom;
-  background-size: cover;
-  opacity: 0.6;
-  animation: wave 6s ease-in-out infinite;
-}
-
-/* =====================================================
-   Glow Effects
-   ===================================================== */
-
-.glow-cyan {
-  box-shadow: 0 0 20px rgba(32, 53, 98, 0.3);
-}
-
-.glow-cyan-strong {
-  box-shadow: 0 0 30px rgba(32, 53, 98, 0.5), 0 0 60px rgba(32, 53, 98, 0.2);
-}
-
-.text-glow {
-  text-shadow: 0 0 10px rgba(58, 104, 170, 0.5);
-}
-
-/* =====================================================
-   Interactive Elements
-   ===================================================== */
-
-.water-button {
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(135deg, #203562 0%, #3A68AA 100%);
-  border: none;
-  border-radius: 12px;
-  padding: 12px 24px;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.water-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(58, 104, 170, 0.4);
-}
-
-.water-button::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition: width 0.6s ease, height 0.6s ease;
-}
-
-.water-button:hover::after {
-  width: 300px;
-  height: 300px;
-}
-
-/* =====================================================
-   Ripple Click Effect
-   ===================================================== */
-
-.ripple-container {
-  position: relative;
-  overflow: hidden;
-}
-
-.ripple {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(58, 104, 170, 0.3);
-  transform: scale(0);
-  animation: ripple 0.6s linear;
-  pointer-events: none;
-}
-
-/* =====================================================
-   Table Styles - Ocean Theme
-   ===================================================== */
-
-.ocean-table .ant-table-thead > tr > th {
-  background: rgba(32, 53, 98, 0.9) !important;
-  color: #85A2D1 !important;
-  border-bottom: 1px solid rgba(58, 104, 170, 0.2) !important;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  font-size: 11px;
-}
-
-.ocean-table .ant-table-tbody > tr {
-  background: rgba(255, 255, 255, 0.03) !important;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  transition: background 0.2s ease;
-}
-
-.ocean-table .ant-table-tbody > tr:hover {
-  background: rgba(58, 104, 170, 0.08) !important;
-}
-
-.ocean-table .ant-table-tbody > tr > td {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.ocean-table .ant-table {
-  background: rgba(255, 255, 255, 0.03) !important;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.ocean-table .ant-table-container {
-  background: transparent !important;
-}
-
-/* =====================================================
-   Ant Design Overrides - Drawer & Modal
-   ===================================================== */
-
-.ant-drawer-content {
-  background: rgba(5, 13, 26, 0.95) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-}
-
-.ant-drawer-header {
-  background: rgba(32, 53, 98, 0.8) !important;
-  border-bottom: 1px solid rgba(58, 104, 170, 0.2) !important;
-}
-
-.ant-drawer-header-title {
-  color: #85A2D1 !important;
-}
-
-.ant-drawer-close {
-  color: rgba(255, 255, 255, 0.5) !important;
-}
-
-.ant-drawer-close:hover {
-  color: #3A68AA !important;
-  background: rgba(58, 104, 170, 0.1) !important;
-}
-
-.ant-drawer-body {
-  background: transparent !important;
-  color: rgba(255, 255, 255, 0.85) !important;
-}
-
-.ant-drawer-mask {
-  background: rgba(5, 13, 26, 0.7) !important;
-  backdrop-filter: blur(5px) !important;
-}
-
-.ant-modal-content {
-  background: rgba(5, 13, 26, 0.95) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border: 1px solid rgba(58, 104, 170, 0.2) !important;
-  border-radius: 24px !important;
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4) !important;
-}
-
-.ant-modal-header {
-  background: rgba(32, 53, 98, 0.8) !important;
-  border-bottom: 1px solid rgba(58, 104, 170, 0.2) !important;
-  border-radius: 24px 24px 0 0 !important;
-}
-
-.ant-modal-title {
-  color: #85A2D1 !important;
-}
-
-.ant-modal-close {
-  color: rgba(255, 255, 255, 0.5) !important;
-}
-
-.ant-modal-close:hover {
-  color: #3A68AA !important;
-  background: rgba(58, 104, 170, 0.1) !important;
-}
-
-.ant-modal-body {
-  color: rgba(255, 255, 255, 0.85) !important;
-}
-
-.ant-modal-mask {
-  background: rgba(5, 13, 26, 0.7) !important;
-  backdrop-filter: blur(5px) !important;
-}
-
-/* =====================================================
-   Ant Design Buttons - Ocean Theme
-   ===================================================== */
-
-.ant-btn-primary {
-  background: linear-gradient(135deg, #203562 0%, #3A68AA 100%) !important;
-  border: none !important;
-  box-shadow: 0 4px 12px rgba(32, 53, 98, 0.3) !important;
-}
-
-.ant-btn-primary:hover {
-  background: linear-gradient(135deg, #2A4A8A 0%, #4D7FBD 100%) !important;
-  box-shadow: 0 6px 20px rgba(32, 53, 98, 0.4) !important;
-  transform: translateY(-1px);
-}
-
-.ant-btn-default {
-  background: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(58, 104, 170, 0.2) !important;
-  color: rgba(255, 255, 255, 0.8) !important;
-}
-
-.ant-btn-default:hover {
-  background: rgba(58, 104, 170, 0.1) !important;
-  border-color: rgba(58, 104, 170, 0.4) !important;
-  color: #85A2D1 !important;
-}
-
-.ant-btn-text {
-  color: rgba(255, 255, 255, 0.6) !important;
-}
-
-.ant-btn-text:hover {
-  background: rgba(58, 104, 170, 0.1) !important;
-  color: #85A2D1 !important;
-}
-
-/* =====================================================
-   Ant Design Input - Ocean Theme
-   ===================================================== */
-
-.ant-input,
-.ant-input-affix-wrapper,
-.ant-input-textarea {
-  background: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(58, 104, 170, 0.15) !important;
-  color: rgba(255, 255, 255, 0.9) !important;
-}
-
-.ant-input::placeholder,
-.ant-input-affix-wrapper::placeholder {
-  color: rgba(255, 255, 255, 0.4) !important;
-}
-
-.ant-input:hover,
-.ant-input-affix-wrapper:hover,
-.ant-input-textarea:hover {
-  border-color: rgba(58, 104, 170, 0.3) !important;
-}
-
-.ant-input:focus,
-.ant-input-affix-wrapper:focus,
-.ant-input-textarea:focus,
-.ant-input-focused {
-  border-color: #3A68AA !important;
-  box-shadow: 0 0 0 3px rgba(58, 104, 170, 0.15) !important;
-}
-
-/* =====================================================
-   Ant Design Select - Ocean Theme
-   ===================================================== */
-
-.ant-select-selector {
-  background: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(58, 104, 170, 0.15) !important;
-  color: rgba(255, 255, 255, 0.9) !important;
-}
-
-.ant-select:hover .ant-select-selector {
-  border-color: rgba(58, 104, 170, 0.3) !important;
-}
-
-.ant-select-focused .ant-select-selector {
-  border-color: #3A68AA !important;
-  box-shadow: 0 0 0 3px rgba(58, 104, 170, 0.15) !important;
-}
-
-.ant-select-dropdown {
-  background: rgba(5, 13, 26, 0.95) !important;
-  border: 1px solid rgba(58, 104, 170, 0.2) !important;
-  backdrop-filter: blur(20px) !important;
-}
-
-.ant-select-item {
-  color: rgba(255, 255, 255, 0.8) !important;
-}
-
-.ant-select-item:hover {
-  background: rgba(58, 104, 170, 0.1) !important;
-}
-
-.ant-select-item-option-selected {
-  background: rgba(58, 104, 170, 0.15) !important;
-  color: #85A2D1 !important;
-}
-
-/* =====================================================
-   Ant Design DatePicker - Ocean Theme
-   ===================================================== */
-
-.ant-picker {
-  background: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(58, 104, 170, 0.15) !important;
-}
-
-.ant-picker-input > input {
-  color: rgba(255, 255, 255, 0.9) !important;
-}
-
-.ant-picker-suffix {
-  color: rgba(255, 255, 255, 0.5) !important;
-}
-
-.ant-picker-panel-container {
-  background: rgba(5, 13, 26, 0.95) !important;
-  border: 1px solid rgba(58, 104, 170, 0.2) !important;
-  backdrop-filter: blur(20px) !important;
-}
-
-.ant-picker-cell-in-view {
-  color: rgba(255, 255, 255, 0.8) !important;
-}
-
-.ant-picker-cell:hover .ant-picker-cell-inner {
-  background: rgba(58, 104, 170, 0.1) !important;
-}
-
-.ant-picker-cell-selected .ant-picker-cell-inner {
-  background: linear-gradient(135deg, #203562 0%, #3A68AA 100%) !important;
-}
-
-/* =====================================================
-   Ant Design Form - Ocean Theme
-   ===================================================== */
-
-.ant-form-item-label > label {
-  color: rgba(255, 255, 255, 0.7) !important;
-}
-
-.ant-form-item-explain-error {
-  color: #E76F51 !important;
-}
-
-/* =====================================================
-   Ant Design Tabs - Ocean Theme
-   ===================================================== */
-
-.ant-tabs-tab {
-  color: rgba(255, 255, 255, 0.5) !important;
-}
-
-.ant-tabs-tab:hover {
-  color: rgba(255, 255, 255, 0.8) !important;
-}
-
-.ant-tabs-tab-active .ant-tabs-tab-btn {
-  color: #85A2D1 !important;
-  text-shadow: 0 0 10px rgba(58, 104, 170, 0.3);
-}
-
-.ant-tabs-ink-bar {
-  background: linear-gradient(90deg, #203562 0%, #3A68AA 100%) !important;
-  box-shadow: 0 0 10px rgba(58, 104, 170, 0.5);
-}
-
-/* =====================================================
-   Ant Design Tag - Ocean Theme
-   ===================================================== */
-
-.ant-tag {
-  background: rgba(58, 104, 170, 0.1) !important;
-  border: 1px solid rgba(58, 104, 170, 0.2) !important;
-  color: #85A2D1 !important;
-}
-
-/* =====================================================
-   Ant Design Alert - Ocean Theme
-   ===================================================== */
-
-.ant-alert-info {
-  background: rgba(58, 104, 170, 0.1) !important;
-  border: 1px solid rgba(58, 104, 170, 0.2) !important;
-}
-
-.ant-alert-info .ant-alert-message {
-  color: #85A2D1 !important;
-}
-
-.ant-alert-success {
-  background: rgba(42, 157, 143, 0.1) !important;
-  border: 1px solid rgba(42, 157, 143, 0.2) !important;
-}
-
-.ant-alert-warning {
-  background: rgba(244, 162, 97, 0.1) !important;
-  border: 1px solid rgba(244, 162, 97, 0.2) !important;
-}
-
-.ant-alert-error {
-  background: rgba(231, 111, 81, 0.1) !important;
-  border: 1px solid rgba(231, 111, 81, 0.2) !important;
-}
-
-/* =====================================================
-   Ant Design Segmented - Ocean Theme
-   ===================================================== */
-
-.ant-segmented {
-  background: rgba(255, 255, 255, 0.05) !important;
-}
-
-.ant-segmented-item-selected {
-  background: linear-gradient(135deg, rgba(32, 53, 98, 0.3) 0%, rgba(58, 104, 170, 0.3) 100%) !important;
-  color: #85A2D1 !important;
-  box-shadow: 0 0 15px rgba(32, 53, 98, 0.2) !important;
-}
-
-.ant-segmented-item:hover:not(.ant-segmented-item-selected) {
-  color: rgba(255, 255, 255, 0.8) !important;
-}
-
-.ant-segmented-thumb {
-  background: linear-gradient(135deg, rgba(32, 53, 98, 0.3) 0%, rgba(58, 104, 170, 0.3) 100%) !important;
-  box-shadow: 0 0 15px rgba(32, 53, 98, 0.2) !important;
-}
-
-/* =====================================================
-   Scrollbar Styles
-   ===================================================== */
-
-.ocean-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.ocean-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 3px;
-}
-
-.ocean-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(58, 104, 170, 0.3);
-  border-radius: 3px;
-}
-
-.ocean-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(58, 104, 170, 0.5);
-}
-
-/* =====================================================
-   Transitions
-   ===================================================== */
-
-.transition-ocean {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.transition-glow {
-  transition: box-shadow 0.3s ease, border-color 0.3s ease;
-}
-
-/* =====================================================
-   Background Utilities
-   ===================================================== */
-
-.bg-ocean-deep {
-  background: linear-gradient(180deg, #050D1A 0%, #203562 100%);
-}
-
-.bg-ocean-gradient {
-  background: linear-gradient(-45deg, #203562, #3A68AA, #4D7FBD, #85A2D1);
-  background-size: 400% 400%;
-  animation: gradient-flow 8s ease infinite;
-}
-
-/* =====================================================
-   Status Indicators
-   ===================================================== */
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  position: relative;
-}
-
-.status-dot::after {
-  content: '';
-  position: absolute;
-  top: -4px;
-  left: -4px;
-  right: -4px;
-  bottom: -4px;
-  border-radius: 50%;
-  border: 2px solid currentColor;
-  opacity: 0;
-  animation: ripple 2s ease-out infinite;
-}
-
-.status-online {
-  background: #2A9D8F;
-  color: #2A9D8F;
-}
-
-.status-warning {
-  background: #F4A261;
-  color: #F4A261;
-}
-
-.status-offline {
-  background: #E76F51;
-  color: #E76F51;
-}
-
-/* =====================================================
-   Micro-interactions
-   ===================================================== */
-
-/* Ripple Effect */
 @keyframes ripple-effect {
   0% {
     transform: scale(0);
@@ -739,41 +97,6 @@
   }
 }
 
-.ripple {
-  position: relative;
-  overflow: hidden;
-}
-
-.ripple::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100px;
-  height: 100px;
-  margin-left: -50px;
-  margin-top: -50px;
-  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 60%);
-  border-radius: 50%;
-  transform: scale(0);
-  pointer-events: none;
-}
-
-.ripple:active::after {
-  animation: ripple-effect 0.6s ease-out;
-}
-
-/* Glow Hover Effect */
-.glow-hover {
-  transition: all 0.3s ease;
-}
-
-.glow-hover:hover {
-  box-shadow: 0 0 20px rgba(58, 104, 170, 0.3), 0 0 40px rgba(58, 104, 170, 0.1);
-  transform: translateY(-2px);
-}
-
-/* Pulse Animation for Alerts */
 @keyframes pulse-ocean {
   0%, 100% {
     box-shadow: 0 0 0 0 rgba(58, 104, 170, 0.4);
@@ -783,11 +106,6 @@
   }
 }
 
-.pulse-alert {
-  animation: pulse-ocean 2s ease-in-out infinite;
-}
-
-/* Slide In Animation */
 @keyframes slide-in-right {
   0% {
     transform: translateX(30px);
@@ -799,11 +117,6 @@
   }
 }
 
-.slide-in {
-  animation: slide-in-right 0.4s ease-out;
-}
-
-/* Fade In Animation */
 @keyframes fade-in-ocean {
   0% {
     opacity: 0;
@@ -815,11 +128,6 @@
   }
 }
 
-.fade-in {
-  animation: fade-in-ocean 0.5s ease-out;
-}
-
-/* Number Count Animation */
 @keyframes count-up {
   0% {
     opacity: 0;
@@ -831,27 +139,6 @@
   }
 }
 
-.count-up {
-  animation: count-up 0.6s ease-out;
-}
-
-/* Hover Scale Effect */
-.hover-scale {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.hover-scale:hover {
-  transform: scale(1.02);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-}
-
-/* Focus Glow Effect */
-.focus-glow:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(58, 104, 170, 0.3);
-}
-
-/* Shimmer Loading Effect */
 @keyframes shimmer-ocean {
   0% {
     background-position: -200% 0;
@@ -861,13 +148,6 @@
   }
 }
 
-.shimmer-ocean {
-  background: linear-gradient(90deg, rgba(58, 104, 170, 0.05) 25%, rgba(58, 104, 170, 0.15) 50%, rgba(58, 104, 170, 0.05) 75%);
-  background-size: 200% 100%;
-  animation: shimmer-ocean 1.5s ease-in-out infinite;
-}
-
-/* Border Glow Animation */
 @keyframes border-glow {
   0%, 100% {
     border-color: rgba(58, 104, 170, 0.2);
@@ -877,11 +157,6 @@
   }
 }
 
-.border-glow {
-  animation: border-glow 2s ease-in-out infinite;
-}
-
-/* Float Animation */
 @keyframes float-ocean {
   0%, 100% {
     transform: translateY(0);
@@ -891,11 +166,6 @@
   }
 }
 
-.float-ocean {
-  animation: float-ocean 3s ease-in-out infinite;
-}
-
-/* Rotate Glow Animation */
 @keyframes rotate-glow {
   0% {
     transform: rotate(0deg);
@@ -905,949 +175,2150 @@
   }
 }
 
-.rotate-glow {
-  animation: rotate-glow 4s linear infinite;
-}
-
-/* Card Hover Lift */
-.card-lift {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.card-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(58, 104, 170, 0.1);
-}
-
-/* Text Glow Effect */
-.text-glow {
-  text-shadow: 0 0 10px rgba(58, 104, 170, 0.5), 0 0 20px rgba(58, 104, 170, 0.3);
-}
-
-/* Button Press Effect */
-.btn-press:active {
-  transform: scale(0.98);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* =====================================================
-   Utility Classes - Control Center Inline Style Replacement
-   ===================================================== */
-
-/* --- Text Utilities --- */
-
-.ocean-text-xs { font-size: 10px; }
-.ocean-text-sm { font-size: 11px; }
-.ocean-text-md { font-size: 12px; }
-.ocean-text-base { font-size: 13px; }
-.ocean-text-lg { font-size: 14px; }
-.ocean-text-xl { font-size: 16px; }
-.ocean-text-2xl { font-size: 20px; }
-
-.ocean-text-primary { color: rgba(255, 255, 255, 0.9); }
-.ocean-text-secondary { color: rgba(255, 255, 255, 0.7); }
-.ocean-text-muted { color: rgba(255, 255, 255, 0.5); }
-.ocean-text-disabled { color: rgba(255, 255, 255, 0.3); }
-
-.ocean-text-cyan { color: #3A68AA; }
-.ocean-text-cyan-light { color: #85A2D1; }
-.ocean-text-blue { color: #3A68AA; }
-.ocean-text-teal { color: #2A9D8F; }
-.ocean-text-coral { color: #E76F51; }
-.ocean-text-orange { color: #F4A261; }
-
-.ocean-font-semibold { font-weight: 600; }
-.ocean-font-bold { font-weight: 700; }
-.ocean-font-mono { font-family: monospace; }
-
-.ocean-uppercase { text-transform: uppercase; }
-.ocean-letter-spacing { letter-spacing: 0.5px; }
-.ocean-text-center { text-align: center; }
-.ocean-text-right { text-align: right; }
-
-/* --- Glass Panels --- */
-
-.ocean-glass {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(58, 104, 170, 0.15);
-}
-
-.ocean-glass-hover:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(58, 104, 170, 0.25);
-}
-
-.ocean-panel {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(58, 104, 170, 0.15);
-  border-radius: 12px;
-}
-
-.ocean-panel-lg {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(58, 104, 170, 0.15);
-  border-radius: 16px;
-}
-
-.ocean-panel-sm {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(58, 104, 170, 0.15);
-  border-radius: 8px;
-}
-
-/* --- Info / Accent Cards --- */
-
-.ocean-info-card {
-  background: rgba(58, 104, 170, 0.08);
-  border: 1px solid rgba(58, 104, 170, 0.2);
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-}
-
-.ocean-info-card-sm {
-  background: rgba(58, 104, 170, 0.08);
-  border: 1px solid rgba(58, 104, 170, 0.2);
-  border-radius: 8px;
-  backdrop-filter: blur(10px);
-}
-
-.ocean-success-card {
-  background: rgba(42, 157, 143, 0.1);
-  border: 1px solid rgba(42, 157, 143, 0.3);
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-}
-
-.ocean-error-card {
-  background: rgba(231, 111, 81, 0.1);
-  border: 1px solid rgba(231, 111, 81, 0.3);
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-}
-
-.ocean-warning-card {
-  background: rgba(244, 162, 97, 0.1);
-  border: 1px solid rgba(244, 162, 97, 0.3);
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-}
-
-/* --- Tags / Badges --- */
-
-.ocean-tag {
-  font-size: 10px;
-  margin: 0;
-  padding: 1px 6px;
-  line-height: 18px;
-  border-radius: 4px;
-}
-
-.ocean-tag-info {
-  background: rgba(58, 104, 170, 0.1);
-  border: 1px solid rgba(58, 104, 170, 0.2);
-  color: #85A2D1;
-}
-
-.ocean-tag-success {
-  background: rgba(42, 157, 143, 0.15);
-  border: 1px solid rgba(42, 157, 143, 0.3);
-  color: #2A9D8F;
-}
-
-.ocean-tag-error {
-  background: rgba(231, 111, 81, 0.15);
-  border: 1px solid rgba(231, 111, 81, 0.3);
-  color: #E76F51;
-}
-
-.ocean-tag-warning {
-  background: rgba(244, 162, 97, 0.15);
-  border: 1px solid rgba(244, 162, 97, 0.3);
-  color: #F4A261;
-}
-
-.ocean-tag-default {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.7);
-}
-
-/* --- Icon Badges --- */
-
-.ocean-icon-badge {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: rgba(204, 207, 7, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  border: 1px solid rgba(204, 207, 7, 0.2);
-}
-
-.ocean-icon-badge-sm {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: rgba(204, 207, 7, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.ocean-icon-badge-muted {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-/* --- Empty States --- */
-
-.ocean-empty-state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  height: 200px;
-  gap: 12px;
-}
-
-.ocean-empty-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: rgba(204, 207, 7, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* --- Stat Pills --- */
-
-.ocean-stat-pill {
-  text-align: center;
-  min-width: 90px;
-  flex: 0 0 auto;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-  border: 1px solid rgba(58, 104, 170, 0.1);
-  backdrop-filter: blur(10px);
-}
-
-/* --- Metric Cards --- */
-
-.ocean-metric-card {
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 16px;
-  border: 1px solid rgba(58, 104, 170, 0.15);
-  overflow: visible;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
-}
-
-.ocean-metric-header {
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(58, 104, 170, 0.1);
-  background: linear-gradient(90deg, rgba(58, 104, 170, 0.08) 0%, transparent 100%);
-}
-
-.ocean-metric-kpis {
-  padding: 10px 8px;
-  border-bottom: 1px solid rgba(58, 104, 170, 0.1);
-  background: rgba(58, 104, 170, 0.03);
-}
-
-/* --- Table Utilities --- */
-
-.ocean-table-header-cell {
-  font-size: 10px !important;
-  padding: 10px 8px !important;
-  font-weight: 600 !important;
-  color: rgba(255, 255, 255, 0.5) !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.5px !important;
-  background: rgba(58, 104, 170, 0.05) !important;
-}
-
-/* --- Section Headers --- */
-
-.ocean-section-header {
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(58, 104, 170, 0.1);
-  background: linear-gradient(90deg, rgba(58, 104, 170, 0.08) 0%, transparent 100%);
-}
-
-/* --- Layout Utilities --- */
-
-.ocean-flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.ocean-flex-between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.ocean-flex-end {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-}
-
-.ocean-flex-col {
-  display: flex;
-  flex-direction: column;
-}
-
-.ocean-flex-row {
-  display: flex;
-  flex-direction: row;
-}
-
-/* --- Data Cards (for DGA results etc) --- */
-
-.ocean-data-card {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  padding: 12px 14px;
-  text-align: center;
-  border: 1px solid rgba(58, 104, 170, 0.15);
-  backdrop-filter: blur(10px);
-}
-
-.ocean-data-card-sm {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  padding: 8px 12px;
-  border: 1px solid rgba(58, 104, 170, 0.1);
-  backdrop-filter: blur(10px);
-}
-
-/* --- Console / Terminal --- */
-
-.ocean-console {
-  background: rgba(5, 13, 26, 0.95);
-  border-radius: 12px;
-  padding: 12px 16px;
-  font-family: monospace;
-  font-size: 11px;
-  color: #d4d4d4;
-  border: 1px solid rgba(58, 104, 170, 0.15);
-}
-
-/* --- Gradient Backgrounds --- */
-
-.ocean-bg-gradient-cyan {
-  background: linear-gradient(135deg, #203562 0%, #3A68AA 100%);
-}
-
-.ocean-bg-gradient-teal {
-  background: linear-gradient(135deg, #2A9D8F 0%, #3A68AA 100%);
-}
-
-.ocean-bg-gradient-coral {
-  background: linear-gradient(135deg, #E76F51 0%, #F4A261 100%);
-}
-
-/* --- Cursor --- */
-
-.ocean-cursor-pointer {
-  cursor: pointer;
-}
-
-/* --- Form Inputs (read-only) --- */
-
-.ocean-input-readonly {
-  border-radius: 8px;
-  font-size: 13px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(58, 104, 170, 0.15);
-}
-
-/* --- Skeleton placeholders --- */
-
-.ocean-skeleton-box {
-  border-radius: 12px;
-  border: 1px solid rgba(58, 104, 170, 0.15);
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-}
-
-.ocean-skeleton-bar {
-  background: rgba(58, 104, 170, 0.08);
-}
-
-.ocean-skeleton-fill {
-  background: rgba(58, 104, 170, 0.05);
-}
-
-/* --- Drawer / Modal content wrappers --- */
-
-.ocean-drawer-content {
-  background: rgba(5, 13, 26, 0.95);
-  backdrop-filter: blur(20px);
-}
-
-.ocean-modal-content {
-  background: rgba(5, 13, 26, 0.95);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(58, 104, 170, 0.2);
-  border-radius: 24px;
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
-}
-
-/* =====================================================
-   Chat Component Utilities
-   ===================================================== */
-
-.chat-fab {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #203562 0%, #3A68AA 50%, #4D7FBD 100%);
-  background-size: 400% 400%;
-  animation: gradient-flow 8s ease infinite;
-  border: 2px solid rgba(204, 207, 7, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 1000;
-  box-shadow: 0 4px 20px rgba(204, 207, 7, 0.4);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.chat-fab:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 30px rgba(204, 207, 7, 0.6);
-}
-
-.chat-card {
-  position: fixed;
-  bottom: 90px;
-  right: 24px;
-  width: 400px;
-  height: 550px;
-  border-radius: 24px;
-  z-index: 1000;
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  animation: fade-in-ocean 0.25s ease;
-  background: rgba(5, 13, 26, 0.95);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(58, 104, 170, 0.2);
-}
-
-.chat-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid rgba(58, 104, 170, 0.15);
-  flex-shrink: 0;
-  background: rgba(58, 104, 170, 0.05);
-}
-
-.chat-objective {
-  padding: 12px 16px;
-  background: rgba(58, 104, 170, 0.03);
-  border-bottom: 1px solid rgba(58, 104, 170, 0.1);
-  flex-shrink: 0;
-}
-
-.chat-messages {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.chat-avatar-bot {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #203562 0%, #3A68AA 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.chat-avatar-header {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #203562 0%, #3A68AA 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 15px rgba(58, 104, 170, 0.3);
-}
-
-.chat-bubble-user {
-  max-width: 85%;
-  padding: 12px 16px;
-  border-radius: 18px 18px 4px 18px;
-  background: linear-gradient(135deg, #203562 0%, #3A68AA 100%);
-  color: #fff;
-  font-size: 13px;
-  line-height: 1.5;
-  word-break: break-word;
-}
-
-.chat-bubble-bot {
-  max-width: 85%;
-  padding: 12px 16px;
-  border-radius: 18px 18px 18px 4px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 13px;
-  line-height: 1.5;
-  word-break: break-word;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(10px);
-}
-
-.chat-typing {
-  padding: 10px 14px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(10px);
-}
-
-.chat-typing-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #CCCF07;
-  animation: chat-bounce 1.4s infinite ease-in-out both;
-}
-
-.chat-suggestions {
-  padding: 12px 16px;
-  border-top: 1px solid rgba(58, 104, 170, 0.1);
-  background: rgba(58, 104, 170, 0.03);
-  flex-shrink: 0;
-}
-
-.chat-input-area {
-  padding: 12px 16px;
-  border-top: 1px solid rgba(58, 104, 170, 0.1);
-  background: rgba(5, 13, 26, 0.9);
-  flex-shrink: 0;
-}
-
-.chat-input {
-  flex: 1;
-  border-radius: 16px;
-  border: 1.5px solid rgba(58, 104, 170, 0.2);
-  background: rgba(255, 255, 255, 0.05);
-  font-size: 13px;
-  padding: 10px 14px;
-  color: #fff;
-}
-
-.chat-btn-suggestions {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(204, 207, 7, 0.1);
-  border: 1px solid rgba(204, 207, 7, 0.2);
-}
-
-.chat-btn-send {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #203562 0%, #3A68AA 100%);
-  border: none;
-  box-shadow: 0 0 15px rgba(204, 207, 7, 0.3);
-}
-
-.chat-tag-suggestion {
-  font-size: 11px;
-  margin: 0;
-  cursor: pointer;
-  line-height: 22px;
-  background: rgba(58, 104, 170, 0.1);
-  border: 1px solid rgba(58, 104, 170, 0.2);
-  color: #85A2D1;
-  border-radius: 12px;
-  padding: 2px 12px;
-}
-
-/* =====================================================
-   Layout Utilities - ControlCenterLayout
-   ===================================================== */
-
-.ocean-layout {
-  margin-bottom: 24px;
-  padding: 0 8px;
-}
-
-.ocean-kpi-row {
-  margin-bottom: 24px;
-}
-
-.ocean-tabs-container {
-  margin-top: 24px;
-  padding: 24px;
-  border-radius: 24px;
-}
-
-.ocean-tabs-header {
-  margin-bottom: 16px;
-}
-
-.ocean-icon-cyan {
-  font-size: 14px;
-  color: #85A2D1;
-}
-
-.ocean-tab-label {
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
-}
-
-.ocean-segmented {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  padding: 4px;
-}
-
-/* =====================================================
-   Drawer Utilities
-   ===================================================== */
-
-.ocean-drawer-subtitle {
-  margin-top: 4px;
-}
-
-.ocean-close-icon {
-  cursor: pointer;
-  font-size: 16px;
-  color: #999;
-}
-
-.ocean-drawer-actions {
-  margin-bottom: 16px;
-}
-
-.ocean-btn-export {
-  border-radius: 6px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* =====================================================
-   PointConfigDrawer Utilities
-   ===================================================== */
-
-.ocean-mb-sm {
-  margin-bottom: 8px;
-}
-
-.ocean-config-field {
-  flex: 1;
-}
-
-/* =====================================================
-   SupportDrawer Utilities
-   ===================================================== */
-
-.ocean-mb-md {
-  margin-bottom: 16px;
-}
-
-.ocean-display-block {
-  display: block;
-}
-
-/* =====================================================
-   MeasurementKPIs Utilities
-   ===================================================== */
-
-.ocean-trend-up {
-  font-size: 9px;
-  margin-left: 4px;
-  color: #CCCF07;
-}
-
-.ocean-trend-down {
-  font-size: 9px;
-  margin-left: 4px;
-  color: #2A9D8F;
-}
-
-.ocean-stat-label {
-  display: block;
-  line-height: 1.2;
-  margin-bottom: 2px;
-  font-weight: 500;
-}
-
-.ocean-stat-value {
-  font-size: 15px;
-  display: block;
-  line-height: 1.2;
-}
-
-.ocean-stat-sub {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
-  line-height: 1.2;
-  margin-top: 2px;
-}
-
-/* =====================================================
-   CCComplianceTable Utilities
-   ===================================================== */
-
-.ocean-font-body {
-  font-family: var(--font-body, 'Roboto', sans-serif);
-}
-
-.ocean-font-heading {
-  font-family: var(--font-heading, 'Lato', sans-serif);
-}
-
-.ocean-ml-xs {
-  margin-left: 2px;
-}
-
-.ocean-text-blue {
-  color: #3A68AA;
-}
-
-.ocean-audit-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  border-radius: 6px;
-  padding: 2px 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 40px;
-  height: 24px;
-}
-
-.ocean-audit-badge-error {
-  background: rgba(231, 111, 81, 0.1);
-  border: 1px solid rgba(231, 111, 81, 0.3);
-}
-
-.ocean-audit-badge-warning {
-  background: rgba(244, 162, 97, 0.1);
-  border: 1px solid rgba(244, 162, 97, 0.3);
-}
-
-.ocean-audit-icon-error {
-  font-size: 9px;
-  color: #E76F51;
-}
-
-.ocean-audit-icon-warning {
-  font-size: 9px;
-  color: #F4A261;
-}
-
-.ocean-table-transparent {
-  background: transparent;
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-.ocean-table-row {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  background: transparent;
-}
-
-/* =====================================================
-   CCWeekConsumption Utilities
-   ===================================================== */
-
-.ocean-w-full {
-  width: 100%;
-}
-
-.ocean-info-icon {
-  font-size: 11px;
-  color: #3A68AA;
-  cursor: pointer;
-  opacity: 0.7;
-}
-
-.ocean-icon-sm {
-  font-size: 10px;
-}
-
-.ocean-icon-xs {
-  font-size: 9px;
-}
-
-.ocean-px-0 {
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.ocean-pb-md {
-  padding-bottom: 16px;
-}
-
-.ocean-capitalize {
-  text-transform: capitalize;
-}
-
-.ocean-nowrap {
-  white-space: nowrap;
-}
-
-.ocean-lh-1 {
-  line-height: 1;
-}
-
-.ocean-status-icon {
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
-  min-height: 20px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto;
-}
-
-.ocean-status-icon-form {
-  background: rgba(58, 104, 170, 0.13);
-}
-
-.ocean-status-icon-form-icon {
-  font-size: 10px;
-  color: #3A68AA;
-}
-
-.ocean-status-icon-telemetry {
-  background: rgba(58, 104, 170, 0.13);
-  overflow: hidden;
-}
-
-.ocean-status-icon-error {
-  background: rgba(231, 111, 81, 0.13);
-  overflow: hidden;
-}
-
-.ocean-status-dot {
-  width: 8px;
-  height: 8px;
-  min-width: 8px;
-  min-height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.ocean-status-dot-active {
-  background: #3A68AA;
-  animation: pulse-badge 2s ease-in-out infinite;
-}
-
-.ocean-status-dot-error {
-  background: #E76F51;
-}
-
-.ocean-status-icon-none {
-  background: rgba(153, 153, 153, 0.13);
-}
-
-.ocean-status-icon-none-icon {
-  font-size: 10px;
-  color: #999;
-}
-
-.ocean-calendar-day {
-  flex: 1;
-  min-height: 90px;
-  padding: 10px 8px;
-  backdrop-filter: blur(10px);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-
-.ocean-calendar-day-active {
-  border: 1.5px solid rgba(204, 207, 7, 0.5);
-  background: linear-gradient(135deg, rgba(204, 207, 7, 0.3) 0%, rgba(58, 104, 170, 0.2) 100%);
-  box-shadow: 0 0 20px rgba(204, 207, 7, 0.3);
-}
-
-.ocean-calendar-day-inactive {
-  border: 1.5px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-/* =====================================================
-   MeasurementDrawer Utilities
-   ===================================================== */
-
-.ocean-table-rounded {
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.ocean-empty-icon-download {
-  font-size: 20px;
-  color: rgba(204, 207, 7, 0.4);
-}
-
-.ocean-metric-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 4px;
-}
-
-.ocean-metric-dot-cyan {
-  background: #CCCF07;
-}
-
-.ocean-metric-dot-blue {
-  background: #3A68AA;
-}
-
-.ocean-metric-dot-muted {
-  background: rgba(255, 255, 255, 0.5);
+[data-theme="dark"] {
+  /* =====================================================
+     Ocean Theme - Ultra Modern Water/Fluid Design System
+     ===================================================== */
+  
+  /* CSS Variables for Smart Hydro Theme */
+
+
+    /* Background layers */
+    --ocean-bg-deep: #050D1A;
+    --ocean-bg-mid: #203562;
+    --ocean-bg-surface: #2A4A8A;
+    
+    /* Corporate colors */
+    --ocean-cyan: #3A68AA;
+    --ocean-cyan-light: #85A2D1;
+    --ocean-blue: #203562;
+    --ocean-teal: #2A9D8F;
+    
+    /* Glassmorphism */
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-bg-hover: rgba(255, 255, 255, 0.06);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-border-hover: rgba(255, 255, 255, 0.12);
+    --glass-glow: rgba(32, 53, 98, 0.2);
+    
+    /* Text */
+    --text-primary: #FFFFFF;
+    --text-secondary: rgba(255, 255, 255, 0.7);
+    --text-muted: rgba(255, 255, 255, 0.45);
+    --text-disabled: rgba(255, 255, 255, 0.25);
+
+  
+  .gradient-flow {
+    background-size: 400% 400%;
+    animation: gradient-flow 8s ease infinite;
+  }
+
+  
+  /* =====================================================
+     Glassmorphism Utilities
+     ===================================================== */
+  
+
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+  }
+
+  
+
+  .glass-hover:hover {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-hover);
+    box-shadow: 0 8px 32px var(--glass-glow);
+  }
+
+  
+
+  .glass-strong {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  
+  /* =====================================================
+     Ocean Card Styles
+     ===================================================== */
+  
+
+  .ocean-card {
+    background: linear-gradient(135deg, rgba(32, 53, 98, 0.8) 0%, rgba(42, 74, 138, 0.6) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(58, 104, 170, 0.15);
+    border-radius: 24px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  
+
+  .ocean-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(58, 104, 170, 0.05) 0%,
+      transparent 50%,
+      rgba(58, 104, 170, 0.02) 100%
+    );
+    pointer-events: none;
+  }
+
+  
+
+  .ocean-card:hover {
+    border-color: rgba(58, 104, 170, 0.3);
+    box-shadow: 0 8px 32px rgba(32, 53, 98, 0.2);
+    transform: translateY(-2px);
+  }
+
+  
+  /* =====================================================
+     Water Wave Decoration
+     ===================================================== */
+  
+
+  .wave-decoration {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%233A68AA' fill-opacity='0.1' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") no-repeat bottom;
+    background-size: cover;
+    opacity: 0.6;
+    animation: wave 6s ease-in-out infinite;
+  }
+
+  
+  /* =====================================================
+     Glow Effects
+     ===================================================== */
+  
+
+  .glow-cyan {
+    box-shadow: 0 0 20px rgba(32, 53, 98, 0.3);
+  }
+
+  
+
+  .glow-cyan-strong {
+    box-shadow: 0 0 30px rgba(32, 53, 98, 0.5), 0 0 60px rgba(32, 53, 98, 0.2);
+  }
+
+  
+
+  .text-glow {
+    text-shadow: 0 0 10px rgba(58, 104, 170, 0.5);
+  }
+
+  
+  /* =====================================================
+     Interactive Elements
+     ===================================================== */
+  
+
+  .water-button {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #203562 0%, #3A68AA 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  
+
+  .water-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(58, 104, 170, 0.4);
+  }
+
+  
+
+  .water-button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+  }
+
+  
+
+  .water-button:hover::after {
+    width: 300px;
+    height: 300px;
+  }
+
+  
+  /* =====================================================
+     Ripple Click Effect
+     ===================================================== */
+  
+
+  .ripple-container {
+    position: relative;
+    overflow: hidden;
+  }
+
+  
+
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(58, 104, 170, 0.3);
+    transform: scale(0);
+    animation: ripple 0.6s linear;
+    pointer-events: none;
+  }
+
+  
+  /* =====================================================
+     Table Styles - Ocean Theme
+     ===================================================== */
+  
+
+  .ocean-table .ant-table-thead > tr > th {
+    background: rgba(32, 53, 98, 0.9) !important;
+    color: #85A2D1 !important;
+    border-bottom: 1px solid rgba(58, 104, 170, 0.2) !important;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-size: 11px;
+  }
+
+  
+
+  .ocean-table .ant-table-tbody > tr {
+    background: rgba(255, 255, 255, 0.03) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: background 0.2s ease;
+  }
+
+  
+
+  .ocean-table .ant-table-tbody > tr:hover {
+    background: rgba(58, 104, 170, 0.08) !important;
+  }
+
+  
+
+  .ocean-table .ant-table-tbody > tr > td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  
+
+  .ocean-table .ant-table {
+    background: rgba(255, 255, 255, 0.03) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  
+
+  .ocean-table .ant-table-container {
+    background: transparent !important;
+  }
+
+  
+  /* =====================================================
+     Ant Design Overrides - Drawer & Modal
+     ===================================================== */
+  
+
+  .ant-drawer-content {
+    background: rgba(5, 13, 26, 0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+  }
+
+  
+
+  .ant-drawer-header {
+    background: rgba(32, 53, 98, 0.8) !important;
+    border-bottom: 1px solid rgba(58, 104, 170, 0.2) !important;
+  }
+
+  
+
+  .ant-drawer-header-title {
+    color: #85A2D1 !important;
+  }
+
+  
+
+  .ant-drawer-close {
+    color: rgba(255, 255, 255, 0.5) !important;
+  }
+
+  
+
+  .ant-drawer-close:hover {
+    color: #3A68AA !important;
+    background: rgba(58, 104, 170, 0.1) !important;
+  }
+
+  
+
+  .ant-drawer-body {
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+
+  
+
+  .ant-drawer-mask {
+    background: rgba(5, 13, 26, 0.7) !important;
+    backdrop-filter: blur(5px) !important;
+  }
+
+  
+
+  .ant-modal-content {
+    background: rgba(5, 13, 26, 0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(58, 104, 170, 0.2) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  
+
+  .ant-modal-header {
+    background: rgba(32, 53, 98, 0.8) !important;
+    border-bottom: 1px solid rgba(58, 104, 170, 0.2) !important;
+    border-radius: 24px 24px 0 0 !important;
+  }
+
+  
+
+  .ant-modal-title {
+    color: #85A2D1 !important;
+  }
+
+  
+
+  .ant-modal-close {
+    color: rgba(255, 255, 255, 0.5) !important;
+  }
+
+  
+
+  .ant-modal-close:hover {
+    color: #3A68AA !important;
+    background: rgba(58, 104, 170, 0.1) !important;
+  }
+
+  
+
+  .ant-modal-body {
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+
+  
+
+  .ant-modal-mask {
+    background: rgba(5, 13, 26, 0.7) !important;
+    backdrop-filter: blur(5px) !important;
+  }
+
+  
+  /* =====================================================
+     Ant Design Buttons - Ocean Theme
+     ===================================================== */
+  
+
+  .ant-btn-primary {
+    background: linear-gradient(135deg, #203562 0%, #3A68AA 100%) !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(32, 53, 98, 0.3) !important;
+  }
+
+  
+
+  .ant-btn-primary:hover {
+    background: linear-gradient(135deg, #2A4A8A 0%, #4D7FBD 100%) !important;
+    box-shadow: 0 6px 20px rgba(32, 53, 98, 0.4) !important;
+    transform: translateY(-1px);
+  }
+
+  
+
+  .ant-btn-default {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(58, 104, 170, 0.2) !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+  }
+
+  
+
+  .ant-btn-default:hover {
+    background: rgba(58, 104, 170, 0.1) !important;
+    border-color: rgba(58, 104, 170, 0.4) !important;
+    color: #85A2D1 !important;
+  }
+
+  
+
+  .ant-btn-text {
+    color: rgba(255, 255, 255, 0.6) !important;
+  }
+
+  
+
+  .ant-btn-text:hover {
+    background: rgba(58, 104, 170, 0.1) !important;
+    color: #85A2D1 !important;
+  }
+
+  
+  /* =====================================================
+     Ant Design Input - Ocean Theme
+     ===================================================== */
+  
+  .ant-input,
+  .ant-input-affix-wrapper,
+
+  .ant-input-textarea {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(58, 104, 170, 0.15) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+
+  
+  .ant-input::placeholder,
+
+  .ant-input-affix-wrapper::placeholder {
+    color: rgba(255, 255, 255, 0.4) !important;
+  }
+
+  
+  .ant-input:hover,
+  .ant-input-affix-wrapper:hover,
+
+  .ant-input-textarea:hover {
+    border-color: rgba(58, 104, 170, 0.3) !important;
+  }
+
+  
+  .ant-input:focus,
+  .ant-input-affix-wrapper:focus,
+  .ant-input-textarea:focus,
+
+  .ant-input-focused {
+    border-color: #3A68AA !important;
+    box-shadow: 0 0 0 3px rgba(58, 104, 170, 0.15) !important;
+  }
+
+  
+  /* =====================================================
+     Ant Design Select - Ocean Theme
+     ===================================================== */
+  
+
+  .ant-select-selector {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(58, 104, 170, 0.15) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+
+  
+
+  .ant-select:hover .ant-select-selector {
+    border-color: rgba(58, 104, 170, 0.3) !important;
+  }
+
+  
+
+  .ant-select-focused .ant-select-selector {
+    border-color: #3A68AA !important;
+    box-shadow: 0 0 0 3px rgba(58, 104, 170, 0.15) !important;
+  }
+
+  
+
+  .ant-select-dropdown {
+    background: rgba(5, 13, 26, 0.95) !important;
+    border: 1px solid rgba(58, 104, 170, 0.2) !important;
+    backdrop-filter: blur(20px) !important;
+  }
+
+  
+
+  .ant-select-item {
+    color: rgba(255, 255, 255, 0.8) !important;
+  }
+
+  
+
+  .ant-select-item:hover {
+    background: rgba(58, 104, 170, 0.1) !important;
+  }
+
+  
+
+  .ant-select-item-option-selected {
+    background: rgba(58, 104, 170, 0.15) !important;
+    color: #85A2D1 !important;
+  }
+
+  
+  /* =====================================================
+     Ant Design DatePicker - Ocean Theme
+     ===================================================== */
+  
+
+  .ant-picker {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(58, 104, 170, 0.15) !important;
+  }
+
+  
+
+  .ant-picker-input > input {
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+
+  
+
+  .ant-picker-suffix {
+    color: rgba(255, 255, 255, 0.5) !important;
+  }
+
+  
+
+  .ant-picker-panel-container {
+    background: rgba(5, 13, 26, 0.95) !important;
+    border: 1px solid rgba(58, 104, 170, 0.2) !important;
+    backdrop-filter: blur(20px) !important;
+  }
+
+  
+
+  .ant-picker-cell-in-view {
+    color: rgba(255, 255, 255, 0.8) !important;
+  }
+
+  
+
+  .ant-picker-cell:hover .ant-picker-cell-inner {
+    background: rgba(58, 104, 170, 0.1) !important;
+  }
+
+  
+
+  .ant-picker-cell-selected .ant-picker-cell-inner {
+    background: linear-gradient(135deg, #203562 0%, #3A68AA 100%) !important;
+  }
+
+  
+  /* =====================================================
+     Ant Design Form - Ocean Theme
+     ===================================================== */
+  
+
+  .ant-form-item-label > label {
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  
+
+  .ant-form-item-explain-error {
+    color: #E76F51 !important;
+  }
+
+  
+  /* =====================================================
+     Ant Design Tabs - Ocean Theme
+     ===================================================== */
+  
+
+  .ant-tabs-tab {
+    color: rgba(255, 255, 255, 0.5) !important;
+  }
+
+  
+
+  .ant-tabs-tab:hover {
+    color: rgba(255, 255, 255, 0.8) !important;
+  }
+
+  
+
+  .ant-tabs-tab-active .ant-tabs-tab-btn {
+    color: #85A2D1 !important;
+    text-shadow: 0 0 10px rgba(58, 104, 170, 0.3);
+  }
+
+  
+
+  .ant-tabs-ink-bar {
+    background: linear-gradient(90deg, #203562 0%, #3A68AA 100%) !important;
+    box-shadow: 0 0 10px rgba(58, 104, 170, 0.5);
+  }
+
+  
+  /* =====================================================
+     Ant Design Tag - Ocean Theme
+     ===================================================== */
+  
+
+  .ant-tag {
+    background: rgba(58, 104, 170, 0.1) !important;
+    border: 1px solid rgba(58, 104, 170, 0.2) !important;
+    color: #85A2D1 !important;
+  }
+
+  
+  /* =====================================================
+     Ant Design Alert - Ocean Theme
+     ===================================================== */
+  
+
+  .ant-alert-info {
+    background: rgba(58, 104, 170, 0.1) !important;
+    border: 1px solid rgba(58, 104, 170, 0.2) !important;
+  }
+
+  
+
+  .ant-alert-info .ant-alert-message {
+    color: #85A2D1 !important;
+  }
+
+  
+
+  .ant-alert-success {
+    background: rgba(42, 157, 143, 0.1) !important;
+    border: 1px solid rgba(42, 157, 143, 0.2) !important;
+  }
+
+  
+
+  .ant-alert-warning {
+    background: rgba(244, 162, 97, 0.1) !important;
+    border: 1px solid rgba(244, 162, 97, 0.2) !important;
+  }
+
+  
+
+  .ant-alert-error {
+    background: rgba(231, 111, 81, 0.1) !important;
+    border: 1px solid rgba(231, 111, 81, 0.2) !important;
+  }
+
+  
+  /* =====================================================
+     Ant Design Segmented - Ocean Theme
+     ===================================================== */
+  
+
+  .ant-segmented {
+    background: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  
+
+  .ant-segmented-item-selected {
+    background: linear-gradient(135deg, rgba(32, 53, 98, 0.3) 0%, rgba(58, 104, 170, 0.3) 100%) !important;
+    color: #85A2D1 !important;
+    box-shadow: 0 0 15px rgba(32, 53, 98, 0.2) !important;
+  }
+
+  
+
+  .ant-segmented-item:hover:not(.ant-segmented-item-selected) {
+    color: rgba(255, 255, 255, 0.8) !important;
+  }
+
+  
+
+  .ant-segmented-thumb {
+    background: linear-gradient(135deg, rgba(32, 53, 98, 0.3) 0%, rgba(58, 104, 170, 0.3) 100%) !important;
+    box-shadow: 0 0 15px rgba(32, 53, 98, 0.2) !important;
+  }
+
+  
+  /* =====================================================
+     Scrollbar Styles
+     ===================================================== */
+  
+
+  .ocean-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  
+
+  .ocean-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 3px;
+  }
+
+  
+
+  .ocean-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(58, 104, 170, 0.3);
+    border-radius: 3px;
+  }
+
+  
+
+  .ocean-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(58, 104, 170, 0.5);
+  }
+
+  
+  /* =====================================================
+     Transitions
+     ===================================================== */
+  
+
+  .transition-ocean {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  
+
+  .transition-glow {
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+
+  
+  /* =====================================================
+     Background Utilities
+     ===================================================== */
+  
+
+  .bg-ocean-deep {
+    background: linear-gradient(180deg, #050D1A 0%, #203562 100%);
+  }
+
+  
+
+  .bg-ocean-gradient {
+    background: linear-gradient(-45deg, #203562, #3A68AA, #4D7FBD, #85A2D1);
+    background-size: 400% 400%;
+    animation: gradient-flow 8s ease infinite;
+  }
+
+  
+  /* =====================================================
+     Status Indicators
+     ===================================================== */
+  
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    position: relative;
+  }
+
+  
+
+  .status-dot::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    opacity: 0;
+    animation: ripple 2s ease-out infinite;
+  }
+
+  
+
+  .status-online {
+    background: #2A9D8F;
+    color: #2A9D8F;
+  }
+
+  
+
+  .status-warning {
+    background: #F4A261;
+    color: #F4A261;
+  }
+
+  
+
+  .status-offline {
+    background: #E76F51;
+    color: #E76F51;
+  }
+
+  
+
+  .ripple {
+    position: relative;
+    overflow: hidden;
+  }
+
+  
+
+  .ripple::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100px;
+    height: 100px;
+    margin-left: -50px;
+    margin-top: -50px;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 60%);
+    border-radius: 50%;
+    transform: scale(0);
+    pointer-events: none;
+  }
+
+  
+
+  .ripple:active::after {
+    animation: ripple-effect 0.6s ease-out;
+  }
+
+  
+  /* Glow Hover Effect */
+
+  .glow-hover {
+    transition: all 0.3s ease;
+  }
+
+  
+
+  .glow-hover:hover {
+    box-shadow: 0 0 20px rgba(58, 104, 170, 0.3), 0 0 40px rgba(58, 104, 170, 0.1);
+    transform: translateY(-2px);
+  }
+
+  
+
+  .pulse-alert {
+    animation: pulse-ocean 2s ease-in-out infinite;
+  }
+
+  
+
+  .slide-in {
+    animation: slide-in-right 0.4s ease-out;
+  }
+
+  
+
+  .fade-in {
+    animation: fade-in-ocean 0.5s ease-out;
+  }
+
+  
+
+  .count-up {
+    animation: count-up 0.6s ease-out;
+  }
+
+  
+  /* Hover Scale Effect */
+
+  .hover-scale {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  
+
+  .hover-scale:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  
+  /* Focus Glow Effect */
+
+  .focus-glow:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(58, 104, 170, 0.3);
+  }
+
+  
+
+  .shimmer-ocean {
+    background: linear-gradient(90deg, rgba(58, 104, 170, 0.05) 25%, rgba(58, 104, 170, 0.15) 50%, rgba(58, 104, 170, 0.05) 75%);
+    background-size: 200% 100%;
+    animation: shimmer-ocean 1.5s ease-in-out infinite;
+  }
+
+  
+
+  .border-glow {
+    animation: border-glow 2s ease-in-out infinite;
+  }
+
+  
+
+  .float-ocean {
+    animation: float-ocean 3s ease-in-out infinite;
+  }
+
+  
+
+  .rotate-glow {
+    animation: rotate-glow 4s linear infinite;
+  }
+
+  
+  /* Card Hover Lift */
+
+  .card-lift {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  
+
+  .card-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(58, 104, 170, 0.1);
+  }
+
+  
+  /* Text Glow Effect */
+
+  .text-glow {
+    text-shadow: 0 0 10px rgba(58, 104, 170, 0.5), 0 0 20px rgba(58, 104, 170, 0.3);
+  }
+
+  
+  /* Button Press Effect */
+
+  .btn-press:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  
+  /* =====================================================
+     Utility Classes - Control Center Inline Style Replacement
+     ===================================================== */
+  
+  /* --- Text Utilities --- */
+  
+
+  .ocean-text-xs { font-size: 10px; }
+
+  .ocean-text-sm { font-size: 11px; }
+
+  .ocean-text-md { font-size: 12px; }
+
+  .ocean-text-base { font-size: 13px; }
+
+  .ocean-text-lg { font-size: 14px; }
+
+  .ocean-text-xl { font-size: 16px; }
+
+  .ocean-text-2xl { font-size: 20px; }
+  
+
+  .ocean-text-primary { color: rgba(255, 255, 255, 0.9); }
+
+  .ocean-text-secondary { color: rgba(255, 255, 255, 0.7); }
+
+  .ocean-text-muted { color: rgba(255, 255, 255, 0.5); }
+
+  .ocean-text-disabled { color: rgba(255, 255, 255, 0.3); }
+  
+
+  .ocean-text-cyan { color: #3A68AA; }
+
+  .ocean-text-cyan-light { color: #85A2D1; }
+
+  .ocean-text-blue { color: #3A68AA; }
+
+  .ocean-text-teal { color: #2A9D8F; }
+
+  .ocean-text-coral { color: #E76F51; }
+
+  .ocean-text-orange { color: #F4A261; }
+  
+
+  .ocean-font-semibold { font-weight: 600; }
+
+  .ocean-font-bold { font-weight: 700; }
+
+  .ocean-font-mono { font-family: monospace; }
+  
+
+  .ocean-uppercase { text-transform: uppercase; }
+
+  .ocean-letter-spacing { letter-spacing: 0.5px; }
+
+  .ocean-text-center { text-align: center; }
+
+  .ocean-text-right { text-align: right; }
+  
+  /* --- Glass Panels --- */
+  
+
+  .ocean-glass {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(58, 104, 170, 0.15);
+  }
+
+  
+
+  .ocean-glass-hover:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(58, 104, 170, 0.25);
+  }
+
+  
+
+  .ocean-panel {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(58, 104, 170, 0.15);
+    border-radius: 12px;
+  }
+
+  
+
+  .ocean-panel-lg {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(58, 104, 170, 0.15);
+    border-radius: 16px;
+  }
+
+  
+
+  .ocean-panel-sm {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(58, 104, 170, 0.15);
+    border-radius: 8px;
+  }
+
+  
+  /* --- Info / Accent Cards --- */
+  
+
+  .ocean-info-card {
+    background: rgba(58, 104, 170, 0.08);
+    border: 1px solid rgba(58, 104, 170, 0.2);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+  }
+
+  
+
+  .ocean-info-card-sm {
+    background: rgba(58, 104, 170, 0.08);
+    border: 1px solid rgba(58, 104, 170, 0.2);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+  }
+
+  
+
+  .ocean-success-card {
+    background: rgba(42, 157, 143, 0.1);
+    border: 1px solid rgba(42, 157, 143, 0.3);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+  }
+
+  
+
+  .ocean-error-card {
+    background: rgba(231, 111, 81, 0.1);
+    border: 1px solid rgba(231, 111, 81, 0.3);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+  }
+
+  
+
+  .ocean-warning-card {
+    background: rgba(244, 162, 97, 0.1);
+    border: 1px solid rgba(244, 162, 97, 0.3);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+  }
+
+  
+  /* --- Tags / Badges --- */
+  
+
+  .ocean-tag {
+    font-size: 10px;
+    margin: 0;
+    padding: 1px 6px;
+    line-height: 18px;
+    border-radius: 4px;
+  }
+
+  
+
+  .ocean-tag-info {
+    background: rgba(58, 104, 170, 0.1);
+    border: 1px solid rgba(58, 104, 170, 0.2);
+    color: #85A2D1;
+  }
+
+  
+
+  .ocean-tag-success {
+    background: rgba(42, 157, 143, 0.15);
+    border: 1px solid rgba(42, 157, 143, 0.3);
+    color: #2A9D8F;
+  }
+
+  
+
+  .ocean-tag-error {
+    background: rgba(231, 111, 81, 0.15);
+    border: 1px solid rgba(231, 111, 81, 0.3);
+    color: #E76F51;
+  }
+
+  
+
+  .ocean-tag-warning {
+    background: rgba(244, 162, 97, 0.15);
+    border: 1px solid rgba(244, 162, 97, 0.3);
+    color: #F4A261;
+  }
+
+  
+
+  .ocean-tag-default {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  
+  /* --- Icon Badges --- */
+  
+
+  .ocean-icon-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(204, 207, 7, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid rgba(204, 207, 7, 0.2);
+  }
+
+  
+
+  .ocean-icon-badge-sm {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: rgba(204, 207, 7, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  
+
+  .ocean-icon-badge-muted {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  
+  /* --- Empty States --- */
+  
+
+  .ocean-empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    height: 200px;
+    gap: 12px;
+  }
+
+  
+
+  .ocean-empty-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(204, 207, 7, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  
+  /* --- Stat Pills --- */
+  
+
+  .ocean-stat-pill {
+    text-align: center;
+    min-width: 90px;
+    flex: 0 0 auto;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    border: 1px solid rgba(58, 104, 170, 0.1);
+    backdrop-filter: blur(10px);
+  }
+
+  
+  /* --- Metric Cards --- */
+  
+
+  .ocean-metric-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    border: 1px solid rgba(58, 104, 170, 0.15);
+    overflow: visible;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  }
+
+  
+
+  .ocean-metric-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(58, 104, 170, 0.1);
+    background: linear-gradient(90deg, rgba(58, 104, 170, 0.08) 0%, transparent 100%);
+  }
+
+  
+
+  .ocean-metric-kpis {
+    padding: 10px 8px;
+    border-bottom: 1px solid rgba(58, 104, 170, 0.1);
+    background: rgba(58, 104, 170, 0.03);
+  }
+
+  
+  /* --- Table Utilities --- */
+  
+
+  .ocean-table-header-cell {
+    font-size: 10px !important;
+    padding: 10px 8px !important;
+    font-weight: 600 !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    background: rgba(58, 104, 170, 0.05) !important;
+  }
+
+  
+  /* --- Section Headers --- */
+  
+
+  .ocean-section-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(58, 104, 170, 0.1);
+    background: linear-gradient(90deg, rgba(58, 104, 170, 0.08) 0%, transparent 100%);
+  }
+
+  
+  /* --- Layout Utilities --- */
+  
+
+  .ocean-flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  
+
+  .ocean-flex-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  
+
+  .ocean-flex-end {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  
+
+  .ocean-flex-col {
+    display: flex;
+    flex-direction: column;
+  }
+
+  
+
+  .ocean-flex-row {
+    display: flex;
+    flex-direction: row;
+  }
+
+  
+  /* --- Data Cards (for DGA results etc) --- */
+  
+
+  .ocean-data-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 12px 14px;
+    text-align: center;
+    border: 1px solid rgba(58, 104, 170, 0.15);
+    backdrop-filter: blur(10px);
+  }
+
+  
+
+  .ocean-data-card-sm {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 8px 12px;
+    border: 1px solid rgba(58, 104, 170, 0.1);
+    backdrop-filter: blur(10px);
+  }
+
+  
+  /* --- Console / Terminal --- */
+  
+
+  .ocean-console {
+    background: rgba(5, 13, 26, 0.95);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-family: monospace;
+    font-size: 11px;
+    color: #d4d4d4;
+    border: 1px solid rgba(58, 104, 170, 0.15);
+  }
+
+  
+  /* --- Gradient Backgrounds --- */
+  
+
+  .ocean-bg-gradient-cyan {
+    background: linear-gradient(135deg, #203562 0%, #3A68AA 100%);
+  }
+
+  
+
+  .ocean-bg-gradient-teal {
+    background: linear-gradient(135deg, #2A9D8F 0%, #3A68AA 100%);
+  }
+
+  
+
+  .ocean-bg-gradient-coral {
+    background: linear-gradient(135deg, #E76F51 0%, #F4A261 100%);
+  }
+
+  
+  /* --- Cursor --- */
+  
+
+  .ocean-cursor-pointer {
+    cursor: pointer;
+  }
+
+  
+  /* --- Form Inputs (read-only) --- */
+  
+
+  .ocean-input-readonly {
+    border-radius: 8px;
+    font-size: 13px;
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(58, 104, 170, 0.15);
+  }
+
+  
+  /* --- Skeleton placeholders --- */
+  
+
+  .ocean-skeleton-box {
+    border-radius: 12px;
+    border: 1px solid rgba(58, 104, 170, 0.15);
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+  }
+
+  
+
+  .ocean-skeleton-bar {
+    background: rgba(58, 104, 170, 0.08);
+  }
+
+  
+
+  .ocean-skeleton-fill {
+    background: rgba(58, 104, 170, 0.05);
+  }
+
+  
+  /* --- Drawer / Modal content wrappers --- */
+  
+
+  .ocean-drawer-content {
+    background: rgba(5, 13, 26, 0.95);
+    backdrop-filter: blur(20px);
+  }
+
+  
+
+  .ocean-modal-content {
+    background: rgba(5, 13, 26, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(58, 104, 170, 0.2);
+    border-radius: 24px;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+  }
+
+  
+  /* =====================================================
+     Chat Component Utilities
+     ===================================================== */
+  
+
+  .chat-fab {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #203562 0%, #3A68AA 50%, #4D7FBD 100%);
+    background-size: 400% 400%;
+    animation: gradient-flow 8s ease infinite;
+    border: 2px solid rgba(204, 207, 7, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(204, 207, 7, 0.4);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  
+
+  .chat-fab:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 30px rgba(204, 207, 7, 0.6);
+  }
+
+  
+
+  .chat-card {
+    position: fixed;
+    bottom: 90px;
+    right: 24px;
+    width: 400px;
+    height: 550px;
+    border-radius: 24px;
+    z-index: 1000;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: fade-in-ocean 0.25s ease;
+    background: rgba(5, 13, 26, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(58, 104, 170, 0.2);
+  }
+
+  
+
+  .chat-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(58, 104, 170, 0.15);
+    flex-shrink: 0;
+    background: rgba(58, 104, 170, 0.05);
+  }
+
+  
+
+  .chat-objective {
+    padding: 12px 16px;
+    background: rgba(58, 104, 170, 0.03);
+    border-bottom: 1px solid rgba(58, 104, 170, 0.1);
+    flex-shrink: 0;
+  }
+
+  
+
+  .chat-messages {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  
+
+  .chat-avatar-bot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #203562 0%, #3A68AA 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  
+
+  .chat-avatar-header {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #203562 0%, #3A68AA 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 15px rgba(58, 104, 170, 0.3);
+  }
+
+  
+
+  .chat-bubble-user {
+    max-width: 85%;
+    padding: 12px 16px;
+    border-radius: 18px 18px 4px 18px;
+    background: linear-gradient(135deg, #203562 0%, #3A68AA 100%);
+    color: #fff;
+    font-size: 13px;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+
+  
+
+  .chat-bubble-bot {
+    max-width: 85%;
+    padding: 12px 16px;
+    border-radius: 18px 18px 18px 4px;
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 13px;
+    line-height: 1.5;
+    word-break: break-word;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+  }
+
+  
+
+  .chat-typing {
+    padding: 10px 14px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+  }
+
+  
+
+  .chat-typing-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #CCCF07;
+    animation: chat-bounce 1.4s infinite ease-in-out both;
+  }
+
+  
+
+  .chat-suggestions {
+    padding: 12px 16px;
+    border-top: 1px solid rgba(58, 104, 170, 0.1);
+    background: rgba(58, 104, 170, 0.03);
+    flex-shrink: 0;
+  }
+
+  
+
+  .chat-input-area {
+    padding: 12px 16px;
+    border-top: 1px solid rgba(58, 104, 170, 0.1);
+    background: rgba(5, 13, 26, 0.9);
+    flex-shrink: 0;
+  }
+
+  
+
+  .chat-input {
+    flex: 1;
+    border-radius: 16px;
+    border: 1.5px solid rgba(58, 104, 170, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    font-size: 13px;
+    padding: 10px 14px;
+    color: #fff;
+  }
+
+  
+
+  .chat-btn-suggestions {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(204, 207, 7, 0.1);
+    border: 1px solid rgba(204, 207, 7, 0.2);
+  }
+
+  
+
+  .chat-btn-send {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #203562 0%, #3A68AA 100%);
+    border: none;
+    box-shadow: 0 0 15px rgba(204, 207, 7, 0.3);
+  }
+
+  
+
+  .chat-tag-suggestion {
+    font-size: 11px;
+    margin: 0;
+    cursor: pointer;
+    line-height: 22px;
+    background: rgba(58, 104, 170, 0.1);
+    border: 1px solid rgba(58, 104, 170, 0.2);
+    color: #85A2D1;
+    border-radius: 12px;
+    padding: 2px 12px;
+  }
+
+  
+  /* =====================================================
+     Layout Utilities - ControlCenterLayout
+     ===================================================== */
+  
+
+  .ocean-layout {
+    margin-bottom: 24px;
+    padding: 0 8px;
+  }
+
+  
+
+  .ocean-kpi-row {
+    margin-bottom: 24px;
+  }
+
+  
+
+  .ocean-tabs-container {
+    margin-top: 24px;
+    padding: 24px;
+    border-radius: 24px;
+  }
+
+  
+
+  .ocean-tabs-header {
+    margin-bottom: 16px;
+  }
+
+  
+
+  .ocean-icon-cyan {
+    font-size: 14px;
+    color: #85A2D1;
+  }
+
+  
+
+  .ocean-tab-label {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+  }
+
+  
+
+  .ocean-segmented {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 4px;
+  }
+
+  
+  /* =====================================================
+     Drawer Utilities
+     ===================================================== */
+  
+
+  .ocean-drawer-subtitle {
+    margin-top: 4px;
+  }
+
+  
+
+  .ocean-close-icon {
+    cursor: pointer;
+    font-size: 16px;
+    color: #999;
+  }
+
+  
+
+  .ocean-drawer-actions {
+    margin-bottom: 16px;
+  }
+
+  
+
+  .ocean-btn-export {
+    border-radius: 6px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  
+  /* =====================================================
+     PointConfigDrawer Utilities
+     ===================================================== */
+  
+
+  .ocean-mb-sm {
+    margin-bottom: 8px;
+  }
+
+  
+
+  .ocean-config-field {
+    flex: 1;
+  }
+
+  
+  /* =====================================================
+     SupportDrawer Utilities
+     ===================================================== */
+  
+
+  .ocean-mb-md {
+    margin-bottom: 16px;
+  }
+
+  
+
+  .ocean-display-block {
+    display: block;
+  }
+
+  
+  /* =====================================================
+     MeasurementKPIs Utilities
+     ===================================================== */
+  
+
+  .ocean-trend-up {
+    font-size: 9px;
+    margin-left: 4px;
+    color: #CCCF07;
+  }
+
+  
+
+  .ocean-trend-down {
+    font-size: 9px;
+    margin-left: 4px;
+    color: #2A9D8F;
+  }
+
+  
+
+  .ocean-stat-label {
+    display: block;
+    line-height: 1.2;
+    margin-bottom: 2px;
+    font-weight: 500;
+  }
+
+  
+
+  .ocean-stat-value {
+    font-size: 15px;
+    display: block;
+    line-height: 1.2;
+  }
+
+  
+
+  .ocean-stat-sub {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+    line-height: 1.2;
+    margin-top: 2px;
+  }
+
+  
+  /* =====================================================
+     CCComplianceTable Utilities
+     ===================================================== */
+  
+
+  .ocean-font-body {
+    font-family: var(--font-body, 'Roboto', sans-serif);
+  }
+
+  
+
+  .ocean-font-heading {
+    font-family: var(--font-heading, 'Lato', sans-serif);
+  }
+
+  
+
+  .ocean-ml-xs {
+    margin-left: 2px;
+  }
+
+  
+
+  .ocean-text-blue {
+    color: #3A68AA;
+  }
+
+  
+
+  .ocean-audit-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border-radius: 6px;
+    padding: 2px 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 40px;
+    height: 24px;
+  }
+
+  
+
+  .ocean-audit-badge-error {
+    background: rgba(231, 111, 81, 0.1);
+    border: 1px solid rgba(231, 111, 81, 0.3);
+  }
+
+  
+
+  .ocean-audit-badge-warning {
+    background: rgba(244, 162, 97, 0.1);
+    border: 1px solid rgba(244, 162, 97, 0.3);
+  }
+
+  
+
+  .ocean-audit-icon-error {
+    font-size: 9px;
+    color: #E76F51;
+  }
+
+  
+
+  .ocean-audit-icon-warning {
+    font-size: 9px;
+    color: #F4A261;
+  }
+
+  
+
+  .ocean-table-transparent {
+    background: transparent;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  
+
+  .ocean-table-row {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: transparent;
+  }
+
+  
+  /* =====================================================
+     CCWeekConsumption Utilities
+     ===================================================== */
+  
+
+  .ocean-w-full {
+    width: 100%;
+  }
+
+  
+
+  .ocean-info-icon {
+    font-size: 11px;
+    color: #3A68AA;
+    cursor: pointer;
+    opacity: 0.7;
+  }
+
+  
+
+  .ocean-icon-sm {
+    font-size: 10px;
+  }
+
+  
+
+  .ocean-icon-xs {
+    font-size: 9px;
+  }
+
+  
+
+  .ocean-px-0 {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  
+
+  .ocean-pb-md {
+    padding-bottom: 16px;
+  }
+
+  
+
+  .ocean-capitalize {
+    text-transform: capitalize;
+  }
+
+  
+
+  .ocean-nowrap {
+    white-space: nowrap;
+  }
+
+  
+
+  .ocean-lh-1 {
+    line-height: 1;
+  }
+
+  
+
+  .ocean-status-icon {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    min-height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+  }
+
+  
+
+  .ocean-status-icon-form {
+    background: rgba(58, 104, 170, 0.13);
+  }
+
+  
+
+  .ocean-status-icon-form-icon {
+    font-size: 10px;
+    color: #3A68AA;
+  }
+
+  
+
+  .ocean-status-icon-telemetry {
+    background: rgba(58, 104, 170, 0.13);
+    overflow: hidden;
+  }
+
+  
+
+  .ocean-status-icon-error {
+    background: rgba(231, 111, 81, 0.13);
+    overflow: hidden;
+  }
+
+  
+
+  .ocean-status-dot {
+    width: 8px;
+    height: 8px;
+    min-width: 8px;
+    min-height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  
+
+  .ocean-status-dot-active {
+    background: #3A68AA;
+    animation: pulse-badge 2s ease-in-out infinite;
+  }
+
+  
+
+  .ocean-status-dot-error {
+    background: #E76F51;
+  }
+
+  
+
+  .ocean-status-icon-none {
+    background: rgba(153, 153, 153, 0.13);
+  }
+
+  
+
+  .ocean-status-icon-none-icon {
+    font-size: 10px;
+    color: #999;
+  }
+
+  
+
+  .ocean-calendar-day {
+    flex: 1;
+    min-height: 90px;
+    padding: 10px 8px;
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  
+
+  .ocean-calendar-day-active {
+    border: 1.5px solid rgba(204, 207, 7, 0.5);
+    background: linear-gradient(135deg, rgba(204, 207, 7, 0.3) 0%, rgba(58, 104, 170, 0.2) 100%);
+    box-shadow: 0 0 20px rgba(204, 207, 7, 0.3);
+  }
+
+  
+
+  .ocean-calendar-day-inactive {
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  
+  /* =====================================================
+     MeasurementDrawer Utilities
+     ===================================================== */
+  
+
+  .ocean-table-rounded {
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  
+
+  .ocean-empty-icon-download {
+    font-size: 20px;
+    color: rgba(204, 207, 7, 0.4);
+  }
+
+  
+
+  .ocean-metric-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+  }
+
+  
+
+  .ocean-metric-dot-cyan {
+    background: #CCCF07;
+  }
+
+  
+
+  .ocean-metric-dot-blue {
+    background: #3A68AA;
+  }
+
+  
+
+  .ocean-metric-dot-muted {
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  
+
 }
