@@ -113,7 +113,7 @@ const ControlCenterLayout = memo(({
           <Col xs={12} sm={6} md={6} className="fade-in-up" style={{ animationDelay: "0.15s" }}>
             <div className="card-lift">
               <Tooltip title="Puntos con configuracion DGA/SMA completa" placement="top">
-                <div style={{ animation: "wave 4s ease-in-out infinite" }}>
+                <div>
                   <SmartKPICard
                     icon={<FaClipboardCheck style={{ fontSize: 18, color: '#ffffff' }} />}
                     label="Cumplimiento Normativo"
