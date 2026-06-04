@@ -51,6 +51,8 @@ const StatusBadge = ({ record, onViewComplianceDetail }) => {
   const cfg = levelConfig[level] || levelConfig.safe;
   const Icon = cfg.icon;
 
+  const isAlert = (level === 'warning' || level === 'critical') && !hasBeenClicked;
+
   return (
     <Tooltip title={status}>
       <div
@@ -78,9 +80,6 @@ const StatusBadge = ({ record, onViewComplianceDetail }) => {
           padding: "3px 8px",
           border: `1px solid ${cfg.border}`,
           cursor: "pointer",
-          animation: (level === 'warning' || level === 'critical') && !hasBeenClicked
-            ? 'warning-double-blink 2s ease-in-out infinite'
-            : 'none',
           transition: "200ms ease",
           minWidth: 80,
         }}
@@ -91,7 +90,11 @@ const StatusBadge = ({ record, onViewComplianceDetail }) => {
           e.currentTarget.style.opacity = 1;
         }}
       >
-        <Icon style={{ fontSize: 10, color: cfg.color }} />
+        <Icon style={{
+          fontSize: 10,
+          color: cfg.color,
+          animation: isAlert ? 'warning-double-blink 2s ease-in-out infinite' : 'none',
+        }} />
         <Text
           style={{
             fontSize: 10,

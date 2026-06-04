@@ -73,6 +73,8 @@ const ControlCenterLayout = memo(({
     }
   }, [overview, points, warningsList]);
 
+  const hasWarnings = warningsList.length > 0;
+
   return (
     <div className="ocean-layout">
       {loading ? (
@@ -81,8 +83,8 @@ const ControlCenterLayout = memo(({
         <Row id="cc-kpi-cards" gutter={[16, 24]} className="ocean-kpi-row">
           <Col xs={12} sm={6} md={6} className="fade-in-up" style={{ animationDelay: "0.05s" }}>
             <div className="card-lift">
-              <Tooltip title="Cantidad total de puntos de captación registrados" placement="top">
-                <div>
+              <Tooltip title="Cantidad total de puntos de captacion registrados" placement="top">
+                <div style={{ animation: "wave 4s ease-in-out infinite" }}>
                   <SmartKPICard
                     icon={<FaMapMarkerAlt style={{ fontSize: 18, color: '#ffffff' }} />}
                     label="Total Puntos"
@@ -95,11 +97,11 @@ const ControlCenterLayout = memo(({
           </Col>
           <Col xs={12} sm={6} md={6} className="fade-in-up" style={{ animationDelay: "0.1s" }}>
             <div className="card-lift">
-              <Tooltip title="Puntos con telemetría funcionando en tiempo real" placement="top">
+              <Tooltip title="Puntos con telemetria funcionando en tiempo real" placement="top">
                 <div>
                   <SmartKPICard
-                    icon={<FaBroadcastTower style={{ fontSize: 18, color: '#ffffff' }} />}
-                    label="Telemetría Activa"
+                    icon={<FaBroadcastTower style={{ fontSize: 18, color: '#ffffff', animation: "telemetry-led-blink 1.5s ease-in-out infinite" }} />}
+                    label="Telemetria Activa"
                     value={`${overview.points_with_telemetry || 0}`}
                     suffix={`/${overview.total_points || 0}`}
                     gradient={`linear-gradient(135deg, ${token.colorInfo} 0%, ${token.colorInfo}dd 100%)`}
@@ -110,8 +112,8 @@ const ControlCenterLayout = memo(({
           </Col>
           <Col xs={12} sm={6} md={6} className="fade-in-up" style={{ animationDelay: "0.15s" }}>
             <div className="card-lift">
-              <Tooltip title="Puntos con configuración DGA/SMA completa" placement="top">
-                <div>
+              <Tooltip title="Puntos con configuracion DGA/SMA completa" placement="top">
+                <div style={{ animation: "wave 4s ease-in-out infinite" }}>
                   <SmartKPICard
                     icon={<FaClipboardCheck style={{ fontSize: 18, color: '#ffffff' }} />}
                     label="Cumplimiento Normativo"
@@ -125,16 +127,14 @@ const ControlCenterLayout = memo(({
           <Col xs={12} sm={6} md={6} className="fade-in-up" style={{ animationDelay: "0.2s" }}>
             <div className="card-lift">
               <Tooltip title="Alertas y advertencias detectadas recientemente" placement="top">
-                <div style={{
-                  animation: warningsList.length > 0 ? 'warning-double-blink 2s ease-in-out infinite' : 'none',
-                }}>
+                <div>
                   <SmartKPICard
-                    icon={<FaExclamationTriangle style={{ fontSize: 18, color: '#ffffff' }} />}
+                    icon={<FaExclamationTriangle style={{ fontSize: 18, color: '#ffffff', animation: hasWarnings ? 'warning-double-blink 2s ease-in-out infinite' : 'none' }} />}
                     label="Warnings"
                     value={warningsList.length}
                     gradient={`linear-gradient(135deg, ${token.colorWarning} 0%, ${token.colorError} 100%)`}
                     onClick={
-                      warningsList.length > 0
+                      hasWarnings
                         ? () => {
                             const firstPoint = Object.keys(warningsRaw)[0];
                             if (firstPoint) onWarningClick(firstPoint);
@@ -175,7 +175,7 @@ const ControlCenterLayout = memo(({
                 label: (
                   <Flex align="center" gap={8}>
                     <FaBroadcastTower className="ocean-icon-cyan" />
-                    <span className="ocean-tab-label">Telemetría</span>
+                    <span className="ocean-tab-label">Telemetria</span>
                   </Flex>
                 ),
               },

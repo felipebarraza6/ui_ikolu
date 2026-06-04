@@ -40,7 +40,7 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
   return (
     <div
       style={{
-        background: token.colorBgContainer,
+        background: token.colorPrimary,
         height: "100%",
         display: "flex",
         flexDirection: "column",
@@ -54,7 +54,7 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
           alignItems: "center",
           justifyContent: "center",
           gap: collapsed ? 0 : 12,
-          borderBottom: `1px solid ${token.colorBorder}`,
+          borderBottom: `1px solid rgba(255,255,255,0.15)`,
           padding: "0 16px",
         }}
       >
@@ -63,7 +63,7 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
           <div style={{ display: "flex", flexDirection: "column" }}>
             <Text
               style={{
-                color: token.colorTextLightSolid || "#fff",
+                color: "#ffffff",
                 fontSize: 18,
                 fontWeight: 700,
                 lineHeight: 1.2,
@@ -73,7 +73,7 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
             </Text>
             <Text
               style={{
-                color: "rgba(255,255,255,0.7)",
+                color: "rgba(255,255,255,0.65)",
                 fontSize: 10,
               }}
             >
@@ -84,6 +84,7 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
       </div>
 
       <Menu
+        theme="dark"
         mode="inline"
         selectedKeys={[location.pathname]}
         items={menuItems}
@@ -101,7 +102,7 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
           bottom: 0,
           width: "100%",
           padding: "16px",
-          borderTop: `1px solid ${token.colorBorder}`,
+          borderTop: "1px solid rgba(255,255,255,0.15)",
           textAlign: "center",
         }}
       >
@@ -147,8 +148,8 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpen 
       onCollapse={setCollapsed}
       theme="dark"
       style={{
-        background: token.colorBgContainer,
-        borderRight: `1px solid ${token.colorBorder}`,
+        background: token.colorPrimary,
+        borderRight: "1px solid rgba(0,0,0,0.2)",
       }}
       width={240}
     >

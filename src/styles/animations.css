@@ -93,11 +93,11 @@
 @keyframes telemetry-led-blink {
   0%, 100% {
     opacity: 1;
-    box-shadow: 0 0 0 0 rgba(42, 157, 143, 0.4);
+    box-shadow: 0 0 0 0 rgba(42, 157, 143, 0.7);
   }
   50% {
-    opacity: 0.4;
-    box-shadow: 0 0 8px 2px rgba(42, 157, 143, 0.6);
+    opacity: 0.25;
+    box-shadow: 0 0 12px 4px rgba(42, 157, 143, 0.9);
   }
 }
 
