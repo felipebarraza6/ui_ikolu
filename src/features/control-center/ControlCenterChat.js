@@ -249,7 +249,7 @@ const ControlCenterChat = ({ points, chatQuota }) => {
                   background: msg.role === "user" 
                     ? token.colorPrimary 
                     : token.colorBgContainer,
-                  color: msg.role === "user" ? #ffffff : token.colorText,
+                  color: msg.role === "user" ? "#ffffff" : token.colorText,
                   fontSize: 13,
                   lineHeight: 1.5,
                   wordBreak: "break-word",
