@@ -32,13 +32,12 @@ const AppLayout = ({ children }) => {
         <Content
           className="app-layout-content"
           style={{
-            margin: "24px 16px",
+            margin: 0,
             padding: 24,
             background: token.colorBgContainer,
             borderRadius: token.borderRadiusLG,
             minHeight: 280,
             overflow: "auto",
-            border: `1px solid ${token.colorBorder}`,
           }}
         >
           {children}

@@ -40,7 +40,7 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
   return (
     <div
       style={{
-        background: token.colorPrimary,
+        background: token.colorBgContainer,
         height: "100%",
         display: "flex",
         flexDirection: "column",
@@ -84,7 +84,6 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
       </div>
 
       <Menu
-        theme="dark"
         mode="inline"
         selectedKeys={[location.pathname]}
         items={menuItems}
@@ -148,8 +147,8 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpen 
       onCollapse={setCollapsed}
       theme="dark"
       style={{
-        background: token.colorPrimary,
-        boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+        background: token.colorBgContainer,
+        borderRight: `1px solid ${token.colorBorder}`,
       }}
       width={240}
     >

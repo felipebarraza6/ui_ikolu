@@ -55,7 +55,8 @@ const HeaderNav = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpe
     <Header
       style={{
         padding: isMobile ? "0 12px" : "0 24px",
-        background: token.colorBgHeader || token.colorBgContainer,
+        background: token.colorPrimary,
+        color: '#ffffff',
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
@@ -74,22 +75,22 @@ const HeaderNav = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpe
           fontSize: "16px",
           width: isMobile ? 48 : 64,
           height: isMobile ? 48 : 64,
-          color: token.colorTextSecondary,
+          color: 'rgba(255,255,255,0.85)',
         }}
       />
-
+ 
       <Space align="center" size={isMobile ? "small" : "middle"}>
         <Tooltip title={isDark ? "Modo Claro" : "Modo Oscuro"}>
           <Button
             type="text"
-            icon={<BulbOutlined style={{ color: isDark ? token.colorWarning : token.colorTextSecondary }} />}
+            icon={<BulbOutlined style={{ color: isDark ? token.colorWarning : 'rgba(255,255,255,0.85)' }} />}
             onClick={toggleTheme}
             style={{ width: isMobile ? 32 : 40, height: isMobile ? 32 : 40 }}
           />
         </Tooltip>
 
         {!isMobile && (
-          <Text style={{ color: token.colorTextSecondary }}>
+          <Text style={{ color: 'rgba(255,255,255,0.85)' }}>
             {user?.first_name || user?.username || "Usuario"}
           </Text>
         )}

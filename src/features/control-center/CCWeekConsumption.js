@@ -95,7 +95,7 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
 
   const dayCardStyle = {
     flex: 1,
-    minHeight: 90,
+    minHeight: 100,
     padding: "10px 8px",
     backdropFilter: "blur(10px)",
     cursor: "pointer",
@@ -105,6 +105,7 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
     alignItems: "center",
     justifyContent: "center",
     gap: 4,
+    margin: '0 4px',
     borderRadius: token.borderRadiusLG,
     background: token.colorBgContainer,
     border: `1.5px solid ${token.colorBorder}`,
@@ -170,7 +171,7 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
                   height: 8,
                   borderRadius: "50%",
                   background: isConnected ? token.colorInfo : token.colorError,
-                  animation: isConnected ? "pulse-ocean 2s ease-in-out infinite" : "none",
+                  animation: isConnected ? "telemetry-led-blink 2s ease-in-out infinite" : "none",
                 }} />
               </div>
             );

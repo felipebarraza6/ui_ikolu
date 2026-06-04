@@ -1,5 +1,5 @@
 /* =====================================================
-   Animaciones - Mantenidas de ocean-theme.css
+   Animaciones
    ===================================================== */
 
 @keyframes gradient-flow {
@@ -39,11 +39,6 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes pulse-ocean {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(58, 104, 170, 0.4); }
-  50% { box-shadow: 0 0 0 10px rgba(58, 104, 170, 0); }
-}
-
 @keyframes shimmer-ocean {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -60,7 +55,54 @@
 }
 
 /* =====================================================
-   Utilidades de animación
+   Warning - Parpadeo doble tipo alerta
+   ===================================================== */
+
+@keyframes warning-double-blink {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  20% {
+    opacity: 0.2;
+    transform: scale(1.3);
+    filter: brightness(2);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  60% {
+    opacity: 0.2;
+    transform: scale(1.3);
+    filter: brightness(2);
+  }
+  80% {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+/* =====================================================
+   Telemetria - Parpadeo LED tipo conexion activa
+   ===================================================== */
+
+@keyframes telemetry-led-blink {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(42, 157, 143, 0.4);
+  }
+  50% {
+    opacity: 0.4;
+    box-shadow: 0 0 8px 2px rgba(42, 157, 143, 0.6);
+  }
+}
+
+/* =====================================================
+   Utilidades de animacion
    ===================================================== */
 
 .fade-in { animation: fade-in-ocean 0.5s ease-out; }

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Flex, Typography, Tooltip, theme } from "antd";
 import { FaCheckCircle, FaExclamationTriangle, FaShieldAlt } from "react-icons/fa";
 
@@ -8,24 +8,24 @@ const { useToken } = theme;
 export const createLevelConfig = (token) => ({
   safe: {
     color: token.colorSuccess,
-    bg: 'rgba(42, 157, 143, 0.15)',
-    border: 'rgba(42, 157, 143, 0.3)',
+    bg: `${token.colorSuccess}15`,
+    border: `${token.colorSuccess}30`,
     label: "Dentro de límites",
     icon: FaCheckCircle,
     shortLabel: "OK",
   },
   warning: {
     color: token.colorWarning,
-    bg: 'rgba(244, 162, 97, 0.15)',
-    border: 'rgba(244, 162, 97, 0.3)',
+    bg: `${token.colorWarning}15`,
+    border: `${token.colorWarning}30`,
     label: "Cerca de superar límite",
     icon: FaExclamationTriangle,
     shortLabel: "Alerta",
   },
   critical: {
     color: token.colorError,
-    bg: 'rgba(231, 111, 81, 0.15)',
-    border: 'rgba(231, 111, 81, 0.3)',
+    bg: `${token.colorError}15`,
+    border: `${token.colorError}30`,
     label: "Incumplimiento detectado",
     icon: FaExclamationTriangle,
     shortLabel: "Crítico",
@@ -43,6 +43,7 @@ export const createLevelConfig = (token) => ({
 const StatusBadge = ({ record, onViewComplianceDetail }) => {
   const { token } = useToken();
 
+  const [hasBeenClicked, setHasBeenClicked] = useState(false);
   const levelConfig = useMemo(() => createLevelConfig(token), [token]);
 
   const level = record.compliance_warning?.level || "safe";
@@ -58,6 +59,7 @@ const StatusBadge = ({ record, onViewComplianceDetail }) => {
         aria-label={`Ver detalle de cumplimiento de ${record.title}`}
         onClick={(e) => {
           e.stopPropagation();
+          setHasBeenClicked(true);
           onViewComplianceDetail?.(record, "detail");
         }}
         onKeyDown={(e) => {
@@ -76,6 +78,9 @@ const StatusBadge = ({ record, onViewComplianceDetail }) => {
           padding: "3px 8px",
           border: `1px solid ${cfg.border}`,
           cursor: "pointer",
+          animation: (level === 'warning' || level === 'critical') && !hasBeenClicked
+            ? 'warning-double-blink 2s ease-in-out infinite'
+            : 'none',
           transition: "200ms ease",
           minWidth: 80,
         }}
