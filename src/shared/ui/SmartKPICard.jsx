@@ -1,5 +1,5 @@
 import React from "react";
-import { Flex, Typography } from "antd";
+import { Flex, Typography, Skeleton } from "antd";
 
 const { Text } = Typography;
 
@@ -11,6 +11,8 @@ const SmartKPICard = ({
   gradient = "linear-gradient(-45deg, #203562, #3A68AA, #4D7FBD, #85A2D1)",
   onClick,
   style = {},
+  wave = false,
+  loading = false,
 }) => {
   return (
     <div
@@ -51,6 +53,7 @@ const SmartKPICard = ({
       }}
     >
       {/* Wave decoration at bottom */}
+      {wave && (
       <div
         style={{
           position: "absolute",
@@ -58,13 +61,14 @@ const SmartKPICard = ({
           left: 0,
           right: 0,
           height: 40,
-          background: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%233A68AA' fill-opacity='0.15' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E\") no-repeat bottom",
-          backgroundSize: "cover",
-          opacity: 0.6,
-          animation: "wave 6s ease-in-out infinite",
+          background: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23ffffff' fill-opacity='0.12' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E\") no-repeat bottom",
+          backgroundSize: "100% auto",
+          transformOrigin: "bottom center",
+          animation: "wave-scale 4s ease-in-out infinite",
           pointerEvents: "none",
         }}
       />
+      )}
 
       <Flex vertical align="center" gap={8} style={{ position: "relative", zIndex: 1 }}>
         {icon && (
@@ -99,19 +103,23 @@ const SmartKPICard = ({
           {label}
         </Text>
         <Flex align="baseline" gap={2}>
-          <Text
-            style={{
-              fontSize: 28,
-              color: "#fff",
-              fontFamily: "'Lato', sans-serif",
-              fontWeight: 800,
-              lineHeight: 1.1,
-              textShadow: "0 0 20px rgba(32, 53, 98, 0.5)",
-            }}
-          >
-            {value}
-          </Text>
-          {suffix && (
+          {loading ? (
+            <Skeleton.Input active size="small" style={{ width: 40, height: 28 }} />
+          ) : (
+            <Text
+              style={{
+                fontSize: 28,
+                color: "#fff",
+                fontFamily: "'Lato', sans-serif",
+                fontWeight: 800,
+                lineHeight: 1.1,
+                textShadow: "0 0 20px rgba(32, 53, 98, 0.5)",
+              }}
+            >
+              {value}
+            </Text>
+          )}
+          {suffix && !loading && (
             <Text
               style={{
                 fontSize: 12,

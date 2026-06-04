@@ -10,7 +10,6 @@ import { SmartKPICard } from "../../../shared/ui";
 import { BlinkingDot } from "../components";
 
 import ControlCenterChat from "../components/Chat/ControlCenterChat";
-import SkeletonControlCenter from "./SkeletonControlCenter";
 import { format } from "date-fns";
 
 const { Text } = Typography;
@@ -77,78 +76,78 @@ const ControlCenterLayout = memo(({
 
   return (
     <div className="ocean-layout">
-      {loading ? (
-        <SkeletonControlCenter />
-      ) : (
-        <Row id="cc-kpi-cards" gutter={[16, 24]} className="ocean-kpi-row">
-          <Col xs={12} sm={6} md={6} className="fade-in-up" style={{ animationDelay: "0.05s" }}>
-            <div className="card-lift">
-              <Tooltip title="Cantidad total de puntos de captacion registrados" placement="top">
-                <div>
-                  <SmartKPICard
-                    icon={<FaMapMarkerAlt style={{ fontSize: 18, color: '#ffffff' }} />}
-                    label="Total Puntos"
-                    value={overview.total_points || 0}
-                    gradient={`linear-gradient(135deg, ${token.colorPrimary} 0%, ${token.colorPrimary}dd 100%)`}
-                    wave={true}
-                  />
-                </div>
-              </Tooltip>
-            </div>
-          </Col>
-          <Col xs={12} sm={6} md={6} className="fade-in-up" style={{ animationDelay: "0.1s" }}>
-            <div className="card-lift">
-              <Tooltip title="Puntos con telemetria funcionando en tiempo real" placement="top">
-                <div>
-                  <SmartKPICard
-                    icon={<BlinkingDot size={12} color="#ffffff" variant="telemetry" />}
-                    label="Telemetria Activa"
-                    value={`${overview.points_with_telemetry || 0}`}
-                    suffix={`/${overview.total_points || 0}`}
-                    gradient={`linear-gradient(135deg, ${token.colorInfo} 0%, ${token.colorInfo}dd 100%)`}
-                  />
-                </div>
-              </Tooltip>
-            </div>
-          </Col>
-          <Col xs={12} sm={6} md={6} className="fade-in-up" style={{ animationDelay: "0.15s" }}>
-            <div className="card-lift">
-              <Tooltip title="Puntos con configuracion DGA/SMA completa" placement="top">
-                <div>
-                  <SmartKPICard
-                    icon={<FaClipboardCheck style={{ fontSize: 18, color: '#ffffff' }} />}
-                    label="Cumplimiento Normativo"
-                    value={overview.points_with_compliance || 0}
-                    gradient={`linear-gradient(135deg, ${token.colorSuccess} 0%, ${token.colorSuccess}dd 100%)`}
-                  />
-                </div>
-              </Tooltip>
-            </div>
-          </Col>
-          <Col xs={12} sm={6} md={6} className="fade-in-up" style={{ animationDelay: "0.2s" }}>
-            <div className="card-lift">
-              <Tooltip title="Alertas y advertencias detectadas recientemente" placement="top">
-                <div>
-                  <SmartKPICard
-                    icon={<BlinkingDot size={12} color="#ffffff" variant="warning" active={hasWarnings} />}
-                    label="Warnings"
-                    value={warningsList.length}
-                    gradient={`linear-gradient(135deg, ${token.colorWarning} 0%, ${token.colorError} 100%)`}
-                    onClick={
-                      hasWarnings
-                        ? () => {
-                            const firstPoint = Object.keys(warningsRaw)[0];
-                            if (firstPoint) onWarningClick(firstPoint);
-                          }
-                        : undefined
-                    }
-                  />
-                </div>
-              </Tooltip>
-            </div>
-          </Col>
-        </Row>
-      )}
+      <Row id="cc-kpi-cards" gutter={[16, 24]} className="ocean-kpi-row">
+        <Col xs={12} sm={6} md={6} className="fade-in-up" style={{ animationDelay: "0.05s" }}>
+          <div className="card-lift">
+            <Tooltip title="Cantidad total de puntos de captacion registrados" placement="top">
+              <div>
+                <SmartKPICard
+                  icon={<FaMapMarkerAlt style={{ fontSize: 18, color: '#ffffff' }} />}
+                  label="Total Puntos"
+                  value={overview.total_points || 0}
+                  gradient={`linear-gradient(135deg, ${token.colorPrimary} 0%, ${token.colorPrimary}dd 100%)`}
+                  wave={true}
+                  loading={loading}
+                />
+              </div>
+            </Tooltip>
+          </div>
+        </Col>
+        <Col xs={12} sm={6} md={6} className="fade-in-up" style={{ animationDelay: "0.1s" }}>
+          <div className="card-lift">
+            <Tooltip title="Puntos con telemetria funcionando en tiempo real" placement="top">
+              <div>
+                <SmartKPICard
+                  icon={<BlinkingDot size={12} color="#ffffff" variant="telemetry" />}
+                  label="Telemetria Activa"
+                  value={`${overview.points_with_telemetry || 0}`}
+                  suffix={`/${overview.total_points || 0}`}
+                  gradient={`linear-gradient(135deg, ${token.colorInfo} 0%, ${token.colorInfo}dd 100%)`}
+                  loading={loading}
+                />
+              </div>
+            </Tooltip>
+          </div>
+        </Col>
+        <Col xs={12} sm={6} md={6} className="fade-in-up" style={{ animationDelay: "0.15s" }}>
+          <div className="card-lift">
+            <Tooltip title="Puntos con configuracion DGA/SMA completa" placement="top">
+              <div>
+                <SmartKPICard
+                  icon={<FaClipboardCheck style={{ fontSize: 18, color: '#ffffff' }} />}
+                  label="Cumplimiento Normativo"
+                  value={overview.points_with_compliance || 0}
+                  gradient={`linear-gradient(135deg, ${token.colorSuccess} 0%, ${token.colorSuccess}dd 100%)`}
+                  loading={loading}
+                />
+              </div>
+            </Tooltip>
+          </div>
+        </Col>
+        <Col xs={12} sm={6} md={6} className="fade-in-up" style={{ animationDelay: "0.2s" }}>
+          <div className="card-lift">
+            <Tooltip title="Alertas y advertencias detectadas recientemente" placement="top">
+              <div>
+                <SmartKPICard
+                  icon={<BlinkingDot size={12} color="#ffffff" variant="warning" active={hasWarnings} />}
+                  label="Warnings"
+                  value={warningsList.length}
+                  gradient={`linear-gradient(135deg, ${token.colorWarning} 0%, ${token.colorError} 100%)`}
+                  loading={loading}
+                  onClick={
+                    hasWarnings
+                      ? () => {
+                          const firstPoint = Object.keys(warningsRaw)[0];
+                          if (firstPoint) onWarningClick(firstPoint);
+                        }
+                      : undefined
+                  }
+                />
+              </div>
+            </Tooltip>
+          </div>
+        </Col>
+      </Row>
 
       {!loading && (
         <ControlCenterChat points={points} chatQuota={chatQuota} />
