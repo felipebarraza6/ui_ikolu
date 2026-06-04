@@ -7,9 +7,6 @@ import orchestrator from "../../api/orchestrator";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Flex, Typography, Form, theme, Drawer, message, Button } from "antd";
 import { ExclamationCircleOutlined, ReloadOutlined } from "@ant-design/icons";
-import { smarthydro } from "../../theme/smarthydro.tokens";
-
-
 import ControlCenterLayout from "./ControlCenterLayout";
 import TelemetryTab from "./TelemetryTab";
 import ComplianceTab from "./ComplianceTab";
@@ -523,9 +520,9 @@ const ControlCenter = () => {
   if (error && !isReady) {
     return (
       <Flex align="center" justify="center" style={{ minHeight: "50vh" }} vertical gap={16}>
-        <ExclamationCircleOutlined style={{ fontSize: 48, color: smarthydro.colors.semantic.error }} />
-        <Title level={4} style={{ color: smarthydro.colors.neutral[200] }}>No se pudieron cargar los datos</Title>
-        <Text style={{ color: smarthydro.colors.neutral[400] }}>{error.message}</Text>
+        <ExclamationCircleOutlined style={{ fontSize: 48, color: token.colorError }} />
+        <Title level={4} style={{ color: token.colorTextSecondary }}>No se pudieron cargar los datos</Title>
+        <Text style={{ color: token.colorTextDisabled }}>{error.message}</Text>
         <Button type="primary" onClick={refresh} icon={<ReloadOutlined />}>Reintentar</Button>
       </Flex>
     );

@@ -3,7 +3,6 @@ import { Flex, Typography, Table, Tag, Tooltip, theme, Input } from "antd";
 import { FaEye, FaPauseCircle, FaHeadset, FaInfoCircle, FaExternalLinkAlt, FaExclamationTriangle, FaChartLine, FaCheckCircle, FaShieldAlt, FaTint } from "react-icons/fa";
 import { formatInteger } from "../../utils/numberFormatter";
 import { PointHeader, ConsumptionCell, ActionButtons } from "./components";
-import { smarthydro } from "../../theme/smarthydro.tokens";
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -21,12 +20,7 @@ const typeDgaLabels = {
   "VOLUMEN": "Volumen",
 };
 
-const levelColorMap = {
-  safe: { color: smarthydro.colors.semantic.success, bg: smarthydro.colors.semantic.successBg, border: smarthydro.colors.semantic.successBorder, label: "Dentro de límites" },
-  warning: { color: smarthydro.colors.semantic.warning, bg: smarthydro.colors.semantic.warningBg, border: smarthydro.colors.semantic.warningBorder, label: "Cerca de superar límite" },
-  critical: { color: smarthydro.colors.semantic.error, bg: smarthydro.colors.semantic.errorBg, border: smarthydro.colors.semantic.errorBorder, label: "Incumplimiento detectado" },
-  unknown: { color: smarthydro.colors.neutral[500], bg: smarthydro.colors.neutral[100], border: smarthydro.colors.neutral[300], label: "Sin límites configurados" },
-};
+
 
 const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPointConfig, onViewComplianceDetail, last7, token) => [
   {
@@ -233,6 +227,12 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
 
 const CCComplianceTable = ({ points, last7, onViewVoucher, onOpenStopCompliance, onOpenSupport = () => {}, onViewPointConfig, onViewComplianceDetail, loading = false }) => {
   const { token } = useToken();
+  const levelColorMap = {
+    safe: { color: token.colorSuccess, label: "Dentro de límites" },
+    warning: { color: token.colorWarning, label: "Cerca de superar límite" },
+    critical: { color: token.colorError, label: "Incumplimiento detectado" },
+    unknown: { color: token.colorTextDisabled, label: "Sin límites configurados" },
+  };
   const [search, setSearch] = useState("");
 
   const filteredPoints = useMemo(() => {

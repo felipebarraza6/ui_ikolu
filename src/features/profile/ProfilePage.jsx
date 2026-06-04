@@ -1,12 +1,12 @@
 import React from "react";
-import { Card, Avatar, Typography, Descriptions, Button, Space, Divider, Row, Col, Tag } from "antd";
+import { Card, Avatar, Typography, Descriptions, Button, Space, Divider, Row, Col, Tag, theme } from "antd";
 import { UserOutlined, MailOutlined, PhoneOutlined, EditOutlined } from "@ant-design/icons";
 import { useAuth } from "../../contexts/AuthContext";
-import { smarthydro } from "../../theme/smarthydro.tokens";
 
 const { Title, Text } = Typography;
 
 const ProfilePage = () => {
+  const { token } = theme.useToken();
   const { user } = useAuth();
 
   if (!user) {
@@ -22,8 +22,8 @@ const ProfilePage = () => {
       <Title
         level={2}
         style={{
-          color: smarthydro.colors.accent[200],
-          fontFamily: smarthydro.typography.heading,
+          color: token.colorWarning,
+          
           marginBottom: 32,
         }}
       >
@@ -34,9 +34,9 @@ const ProfilePage = () => {
         <Col xs={24} lg={8}>
           <Card
             style={{
-              background: smarthydro.colors.surface.medium,
-              border: `1px solid ${smarthydro.colors.surface.border}`,
-              borderRadius: smarthydro.radii.lg,
+              background: token.colorBgElevated,
+              border: `1px solid ${token.colorBorder}`,
+              borderRadius: token.borderRadiusLG,
               textAlign: "center",
             }}
           >
@@ -44,18 +44,18 @@ const ProfilePage = () => {
               size={120}
               icon={<UserOutlined />}
               style={{
-                background: smarthydro.colors.accent[500],
+                background: token.colorWarning,
                 marginBottom: 16,
-                border: `3px solid ${smarthydro.colors.accent[300]}`,
+                border: `3px solid ${token.colorWarning}`,
               }}
             />
 
             <Title
               level={4}
               style={{
-                color: smarthydro.colors.accent[200],
+                color: token.colorWarning,
                 margin: "8px 0",
-                fontFamily: smarthydro.typography.heading,
+                
               }}
             >
               {user.first_name} {user.last_name}
@@ -63,9 +63,9 @@ const ProfilePage = () => {
 
             <Tag
               style={{
-                background: smarthydro.colors.semantic.infoBg,
-                color: smarthydro.colors.semantic.info,
-                border: `1px solid ${smarthydro.colors.semantic.infoBorder}`,
+                background: "rgba(58, 104, 170, 0.1)",
+                color: token.colorInfo,
+                border: `1px solid rgba(58, 104, 170, 0.3)`,
                 marginBottom: 16,
               }}
             >
@@ -78,8 +78,8 @@ const ProfilePage = () => {
                 icon={<EditOutlined />}
                 block
                 style={{
-                  background: smarthydro.colors.accent[500],
-                  borderColor: smarthydro.colors.accent[500],
+                  background: token.colorWarning,
+                  borderColor: token.colorWarning,
                 }}
               >
                 Editar Perfil
@@ -91,17 +91,17 @@ const ProfilePage = () => {
         <Col xs={24} lg={16}>
           <Card
             style={{
-              background: smarthydro.colors.surface.medium,
-              border: `1px solid ${smarthydro.colors.surface.border}`,
-              borderRadius: smarthydro.radii.lg,
+              background: token.colorBgElevated,
+              border: `1px solid ${token.colorBorder}`,
+              borderRadius: token.borderRadiusLG,
             }}
             title={
               <Text
                 strong
                 style={{
-                  color: smarthydro.colors.accent[200],
-                  fontFamily: smarthydro.typography.heading,
-                  fontSize: smarthydro.typography.sizes.lg,
+                  color: token.colorWarning,
+                  
+                  fontSize: 16,
                 }}
               >
                 Información de Contacto
@@ -111,13 +111,13 @@ const ProfilePage = () => {
             <Descriptions
               column={1}
               labelStyle={{
-                color: smarthydro.colors.neutral[400],
-                fontFamily: smarthydro.typography.body,
-                fontWeight: smarthydro.typography.weights.semibold,
+                color: token.colorTextDisabled,
+                
+                fontWeight: 600,
               }}
               contentStyle={{
-                color: smarthydro.colors.neutral[200],
-                fontFamily: smarthydro.typography.body,
+                color: token.colorTextSecondary,
+                
               }}
             >
               <Descriptions.Item label={<MailOutlined />}>
@@ -134,14 +134,14 @@ const ProfilePage = () => {
               </Descriptions.Item>
             </Descriptions>
 
-            <Divider style={{ borderColor: smarthydro.colors.surface.border }} />
+            <Divider style={{ borderColor: token.colorBorder }} />
 
             <Text
               strong
               style={{
-                color: smarthydro.colors.accent[200],
-                fontFamily: smarthydro.typography.heading,
-                fontSize: smarthydro.typography.sizes.lg,
+                color: token.colorWarning,
+                
+                fontSize: 16,
                 display: "block",
                 marginBottom: 16,
               }}
@@ -152,13 +152,13 @@ const ProfilePage = () => {
             <Descriptions
               column={1}
               labelStyle={{
-                color: smarthydro.colors.neutral[400],
-                fontFamily: smarthydro.typography.body,
-                fontWeight: smarthydro.typography.weights.semibold,
+                color: token.colorTextDisabled,
+                
+                fontWeight: 600,
               }}
               contentStyle={{
-                color: smarthydro.colors.neutral[200],
-                fontFamily: smarthydro.typography.body,
+                color: token.colorTextSecondary,
+                
               }}
             >
               <Descriptions.Item label="Idioma">Español</Descriptions.Item>
