@@ -1,18 +1,14 @@
 import React from "react";
 import { Skeleton } from "antd";
-import { useAppTheme } from "../../../contexts/ThemeContext";
 
-const SkeletonKPI = ({ style = {} }) => {
-  const { isDark } = useAppTheme();
-
+const SkeletonKPI = ({ gradient, style = {} }) => {
   return (
     <div
       style={{
-        background: isDark ? "#1a1a1a" : "#FFFFFF",
+        background: gradient || "#1a1a1a",
         borderRadius: 24,
         padding: "20px 16px 16px 16px",
-        border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "#F0F0F0"}`,
-        boxShadow: isDark ? "none" : "0 1px 3px rgba(0,0,0,0.04)",
+        border: "1px solid rgba(255,255,255,0.08)",
         minHeight: 88,
         display: "flex",
         flexDirection: "column",
@@ -24,7 +20,7 @@ const SkeletonKPI = ({ style = {} }) => {
     >
       <Skeleton.Avatar active size={40} shape="circle" />
       <Skeleton.Input active size="small" style={{ width: 80 }} />
-      <Skeleton.Input active size="default" style={{ width: 60, height: 28 }} />
+      <Skeleton.Input active size="small" style={{ width: 40, height: 22 }} />
     </div>
   );
 };
