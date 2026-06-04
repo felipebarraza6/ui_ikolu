@@ -1,385 +1,67 @@
 /* =====================================================
-   Animations - Centro de Control Smart Hydro
-   Sistema de animaciones unificado
+   Animaciones - Mantenidas de ocean-theme.css
    ===================================================== */
 
-/* ═══════════════════════════════════════════════════
-   Keyframes - Entradas
-   ═══════════════════════════════════════════════════ */
-
-@keyframes oceanFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes oceanFadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes oceanFadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes oceanScaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes oceanSlideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes oceanSlideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-24px);
-  }
- to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* ═══════════════════════════════════════════════════
-   Keyframes - Efectos
-   ═══════════════════════════════════════════════════ */
-
-@keyframes oceanShimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-@keyframes oceanGradientFlow {
-  0%, 100% { background-position: 0% 50%; }
+@keyframes gradient-flow {
+  0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
-@keyframes oceanWave {
+@keyframes wave {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
 }
 
-@keyframes oceanPulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 var(--shadow-glow);
-  }
-  50% {
-    box-shadow: 0 0 0 8px transparent;
-  }
+@keyframes ripple {
+  0% { transform: scale(0); opacity: 0.5; }
+  100% { transform: scale(4); opacity: 0; }
 }
 
-@keyframes oceanRipple {
-  to {
-    transform: scale(2.5);
-    opacity: 0;
-  }
+@keyframes float-up {
+  0% { transform: translateY(100%) scale(0); opacity: 0; }
+  20% { opacity: 0.6; }
+  100% { transform: translateY(-100vh) scale(1); opacity: 0; }
 }
 
-@keyframes oceanFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+@keyframes fade-in-up-smooth {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes oceanSpin {
-  to { transform: rotate(360deg); }
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
 }
 
-@keyframes oceanChatBounce {
-  0%, 80%, 100% {
-    transform: scale(0.6);
-    opacity: 0.5;
-  }
-  40% {
-    transform: scale(1);
-    opacity: 1;
-  }
+@keyframes slide-in-bottom {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes oceanGlow {
-  0%, 100% {
-    box-shadow: 0 0 12px var(--shadow-glow);
-  }
-  50% {
-    box-shadow: 0 0 24px var(--shadow-glow);
-  }
+@keyframes pulse-ocean {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(58, 104, 170, 0.4); }
+  50% { box-shadow: 0 0 0 10px rgba(58, 104, 170, 0); }
 }
 
-@keyframes oceanRotateGlow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+@keyframes shimmer-ocean {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
-@keyframes oceanBorderGlow {
-  0%, 100% { border-color: var(--ocean-cyan); }
-  50% { border-color: var(--ocean-primary); }
+@keyframes slide-in-right {
+  0% { transform: translateX(30px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
 }
 
-/* ═══════════════════════════════════════════════════
-   Clases de animación listas para usar
-   ═══════════════════════════════════════════════════ */
+@keyframes fade-in-ocean {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
 
-.ocean-animate-fade-in {
-  animation: oceanFadeIn 0.3s ease;
-}
+/* =====================================================
+   Utilidades de animación
+   ===================================================== */
 
-.ocean-animate-fade-in-up {
-  animation: oceanFadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ocean-animate-fade-in-down {
-  animation: oceanFadeInDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ocean-animate-scale-in {
-  animation: oceanScaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ocean-animate-slide-in-right {
-  animation: oceanSlideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ocean-animate-slide-in-left {
-  animation: oceanSlideInLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ocean-animate-float {
-  animation: oceanFloat 3s ease-in-out infinite;
-}
-
-.ocean-animate-glow {
-  animation: oceanGlow 2s ease-in-out infinite;
-}
-
-.ocean-animate-pulse {
-  animation: oceanPulse 2s ease-in-out infinite;
-}
-
-.ocean-animate-spin {
-  animation: oceanSpin 1s linear infinite;
-}
-
-.ocean-animate-gradient-flow {
-  background-size: 400% 400%;
-  animation: oceanGradientFlow 8s ease infinite;
-}
-
-.ocean-animate-shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--skeleton-bg) 25%,
-    var(--skeleton-shimmer) 50%,
-    var(--skeleton-bg) 75%
-  );
-  background-size: 200% 100%;
-  animation: oceanShimmer 1.4s infinite;
-}
-
-/* ═══════════════════════════════════════════════════
-   Stagger - Para listas
-   ═══════════════════════════════════════════════════ */
-
-.ocean-stagger > * {
-  animation: oceanFadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) backwards;
-}
-
-.ocean-stagger > *:nth-child(1)  { animation-delay: 0.05s; }
-.ocean-stagger > *:nth-child(2)  { animation-delay: 0.1s; }
-.ocean-stagger > *:nth-child(3)  { animation-delay: 0.15s; }
-.ocean-stagger > *:nth-child(4)  { animation-delay: 0.2s; }
-.ocean-stagger > *:nth-child(5)  { animation-delay: 0.25s; }
-.ocean-stagger > *:nth-child(6)  { animation-delay: 0.3s; }
-.ocean-stagger > *:nth-child(7)  { animation-delay: 0.35s; }
-.ocean-stagger > *:nth-child(8)  { animation-delay: 0.4s; }
-.ocean-stagger > *:nth-child(9)  { animation-delay: 0.45s; }
-.ocean-stagger > *:nth-child(10) { animation-delay: 0.5s; }
-
-/* ═══════════════════════════════════════════════════
-   Hover states
-   ═══════════════════════════════════════════════════ */
-
-.ocean-hover-lift {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 0.3s ease,
-              border-color 0.3s ease;
-}
-
-.ocean-hover-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-}
-
-.ocean-hover-scale {
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 0.2s ease;
-}
-
-.ocean-hover-scale:hover {
-  transform: scale(1.02);
-}
-
-.ocean-hover-glow {
-  transition: box-shadow 0.3s ease, border-color 0.3s ease;
-}
-
-.ocean-hover-glow:hover {
-  box-shadow: var(--shadow-glow);
-  border-color: var(--ocean-cyan);
-}
-
-/* ═══════════════════════════════════════════════════
-   Ripple effect
-   ═══════════════════════════════════════════════════ */
-
-.ocean-ripple {
-  position: relative;
-  overflow: hidden;
-}
-
-.ocean-ripple::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle, var(--ocean-cyan) 0%, transparent 70%);
-  opacity: 0;
-  transform: scale(0);
-  transition: opacity 0.3s, transform 0.5s;
-  pointer-events: none;
-}
-
-.ocean-ripple:active::after {
-  opacity: 0.2;
-  transform: scale(2.5);
-  transition: opacity 0.1s, transform 0.2s;
-}
-
-/* ═══════════════════════════════════════════════════
-   Transiciones globales
-   ═══════════════════════════════════════════════════ */
-
-.ocean-transition {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ocean-transition-fast {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ocean-transition-slow {
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* ═══════════════════════════════════════════════════
-   Card lift - Para cards de tabla
-   ═══════════════════════════════════════════════════ */
-
-.ocean-card-lift {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 0.3s ease,
-              background-color 0.3s ease,
-              border-color 0.3s ease;
-}
-
-.ocean-card-lift:hover {
-  transform: translateY(-6px);
-  box-shadow: var(--shadow-lg);
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes waveMove {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes chat-bounce {
-  0%, 80%, 100% {
-    transform: scale(0);
-    opacity: 0.5;
-  }
-  40% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(31, 52, 97, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 8px rgba(31, 52, 97, 0);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-.ikolu-shimmer {
-  background: linear-gradient(
-    90deg,
-    #f0f0f0 25%,
-    #e8e8e8 37%,
-    #f0f0f0 63%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.4s ease-in-out infinite;
-  border-radius: 4px;
-}
-
-.ikolu-shimmer-circle {
-  background: linear-gradient(
-    90deg,
-    #f0f0f0 25%,
-    #e8e8e8 37%,
-    #f0f0f0 63%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.4s ease-in-out infinite;
-  border-radius: 50%;
-}
+.fade-in { animation: fade-in-ocean 0.5s ease-out; }
+.slide-in { animation: slide-in-right 0.4s ease-out; }
+.scale-in { animation: scale-in 0.3s ease-out; }

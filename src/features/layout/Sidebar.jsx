@@ -1,8 +1,7 @@
 import React from "react";
-import { Layout, Menu, Typography, Drawer } from "antd";
+import { Layout, Menu, Typography, Drawer, theme } from "antd";
 import { DashboardOutlined } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
-import { smarthydro } from "../../theme/smarthydro.tokens";
 import logoSrc from "../../assets/images/ikolu.png";
 
 const { Sider } = Layout;
@@ -31,6 +30,7 @@ const menuItems = [
 const SidebarContent = ({ collapsed, onMenuClick }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { token } = theme.useToken();
 
   const handleClick = (e) => {
     navigate(e.key);
@@ -40,7 +40,7 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
   return (
     <div
       style={{
-        background: smarthydro.colors.primary[500],
+        background: token.colorPrimary,
         height: "100%",
         display: "flex",
         flexDirection: "column",
@@ -54,7 +54,7 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
           alignItems: "center",
           justifyContent: "center",
           gap: collapsed ? 0 : 12,
-          borderBottom: `1px solid ${smarthydro.colors.surface.border}`,
+          borderBottom: `1px solid ${token.colorBorderSecondary}`,
           padding: "0 16px",
         }}
       >
@@ -63,10 +63,9 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
           <div style={{ display: "flex", flexDirection: "column" }}>
             <Text
               style={{
-                color: smarthydro.colors.accent[200],
+                color: token.colorTextLightSolid || "#fff",
                 fontSize: 18,
-                fontWeight: smarthydro.typography.weights.bold,
-                fontFamily: smarthydro.typography.heading,
+                fontWeight: 700,
                 lineHeight: 1.2,
               }}
             >
@@ -74,9 +73,8 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
             </Text>
             <Text
               style={{
-                color: smarthydro.colors.neutral[500],
+                color: "rgba(255,255,255,0.7)",
                 fontSize: 10,
-                fontFamily: smarthydro.typography.body,
               }}
             >
               Centro de Control
@@ -104,7 +102,7 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
           bottom: 0,
           width: "100%",
           padding: "16px",
-          borderTop: `1px solid ${smarthydro.colors.surface.border}`,
+          borderTop: `1px solid ${token.colorBorderSecondary}`,
           textAlign: "center",
         }}
       >
@@ -124,6 +122,8 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
 };
 
 const Sidebar = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpen }) => {
+  const { token } = theme.useToken();
+
   if (isMobile) {
     return (
       <Drawer
@@ -133,7 +133,7 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpen 
         width={280}
         closable={false}
         styles={{ body: { padding: 0 } }}
-        className="ocean-mobile-drawer"
+        style={{ background: token.colorPrimary }}
       >
         <SidebarContent collapsed={false} onMenuClick={() => setMobileOpen(false)} />
       </Drawer>
@@ -148,8 +148,8 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpen 
       onCollapse={setCollapsed}
       theme="dark"
       style={{
-        background: smarthydro.colors.primary[500],
-        boxShadow: "2px 0 8px rgba(0,0,0,0.3)",
+        background: token.colorPrimary,
+        boxShadow: token.boxShadowSecondary,
       }}
       width={240}
     >

@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { theme } from "antd";
+import { createIkoluTheme } from "../theme";
 
 const THEME_KEY = "ikolu-theme";
 
@@ -33,8 +34,14 @@ export const ThemeProvider = ({ children }) => {
   const algorithm = isDark ? theme.darkAlgorithm : theme.defaultAlgorithm;
   const toggleTheme = useCallback(() => setIsDark((prev) => !prev), []);
 
+  // Generar config para consumo en componentes
+  const themeConfig = useMemo(
+    () => createIkoluTheme(algorithm, isDark),
+    [algorithm, isDark]
+  );
+
   return (
-    <ThemeContext.Provider value={{ isDark, toggleTheme, algorithm }}>
+    <ThemeContext.Provider value={{ isDark, toggleTheme, algorithm, themeConfig }}>
       {children}
     </ThemeContext.Provider>
   );

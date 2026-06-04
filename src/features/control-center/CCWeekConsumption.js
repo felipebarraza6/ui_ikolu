@@ -6,7 +6,6 @@ import { format, parseISO, isSameDay } from "date-fns";
 import { es } from "date-fns/locale/es";
 import { formatInteger } from "../../utils/numberFormatter";
 import { SmartIconButton, SmartBadge } from "../../shared/ui";
-import { smarthydro } from "../../theme/smarthydro.tokens";
 
 const typeDgaLabels = {
   "SUPERFICIAL": "Superficial",
@@ -20,7 +19,6 @@ const typeDgaLabels = {
 };
 
 const { Text } = Typography;
-const { useToken } = theme;
 
 const TableMemo = React.memo(({ data, columns, loading }) => {
   const dataSource = useMemo(() =>
@@ -38,13 +36,12 @@ const TableMemo = React.memo(({ data, columns, loading }) => {
       columns={columns}
       scroll={{ x: "max-content" }}
       locale={{ emptyText: "Sin datos" }}
-      className="ocean-table ocean-table-transparent"
     />
   );
 });
 
 const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasurements, onOpenStopTelemetry, onOpenSupport = () => {}, onWarningPointClick = () => {}, onViewPointConfig, warningsRaw = {}, loading = false }) => {
-  const { token } = useToken();
+  const { token } = theme.useToken();
 
   const dayMap = useMemo(() => {
     const map = {};
@@ -96,6 +93,30 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
     };
   }, [last7]);
 
+  const dayCardStyle = {
+    flex: 1,
+    minHeight: 90,
+    padding: "10px 8px",
+    backdropFilter: "blur(10px)",
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    borderRadius: token.borderRadiusLG,
+    background: token.colorBgContainer,
+    border: `1.5px solid ${token.colorBorder}`,
+  };
+
+  const dayCardActiveStyle = {
+    ...dayCardStyle,
+    borderColor: token.colorPrimary,
+    background: `${token.colorPrimary}15`,
+    boxShadow: `0 0 20px ${token.colorPrimary}30`,
+  };
+
   const columns = useMemo(() => {
     const cols = [
       {
@@ -120,11 +141,22 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
           const isTelemetry = record.is_telemetry === true;
           const isConnected = (record.measurements_count || 0) > 0;
           
+          const iconSize = 20;
+          const iconStyle = {
+            width: iconSize,
+            height: iconSize,
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            margin: "0 auto",
+          };
+          
           if (isForm) {
             return (
               <Tooltip title="Formulario">
-                <div className="ocean-status-icon ocean-status-icon-form">
-                  <FormOutlined className="ocean-status-icon-form-icon" />
+                <div style={{ ...iconStyle, background: `${token.colorInfo}20` }}>
+                  <FormOutlined style={{ fontSize: 10, color: token.colorInfo }} />
                 </div>
               </Tooltip>
             );
@@ -132,17 +164,21 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
           
           if (isTelemetry) {
             return (
-              <div className={`ocean-status-icon ${isConnected ? 'ocean-status-icon-telemetry' : 'ocean-status-icon-error'}`}>
-                <div
-                  className={`ocean-status-dot ${isConnected ? 'ocean-status-dot-active' : 'ocean-status-dot-error'}`}
-                />
+              <div style={{ ...iconStyle, background: isConnected ? `${token.colorInfo}20` : `${token.colorError}20` }}>
+                <div style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: isConnected ? token.colorInfo : token.colorError,
+                  animation: isConnected ? "pulse-ocean 2s ease-in-out infinite" : "none",
+                }} />
               </div>
             );
           }
           
           return (
-            <div className="ocean-status-icon ocean-status-icon-none">
-              <MinusCircleOutlined className="ocean-status-icon-none-icon" />
+            <div style={{ ...iconStyle, background: `${token.colorTextDisabled}20` }}>
+              <MinusCircleOutlined style={{ fontSize: 10, color: token.colorTextDisabled }} />
             </div>
           );
         },
@@ -157,11 +193,11 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
           const allWarnings = record.warnings || [];
           const warningCount = allWarnings.length;
           return (
-            <Flex align="center" justify="space-between" className="ocean-w-full">
+            <Flex align="center" justify="space-between" style={{ width: "100%" }}>
               <Flex align="center" gap={6}>
-                <Text strong className="ocean-text-md ocean-font-heading">{text}</Text>
+                <Text strong style={{ fontSize: token.fontSizeSM, color: token.colorText }}>{text}</Text>
                 <FaInfoCircle
-                  className="ocean-info-icon"
+                  style={{ fontSize: 11, color: token.colorPrimary, cursor: "pointer", opacity: 0.7 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     onViewPointConfig(text);
@@ -182,7 +218,7 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
                   {warningCount}
                 </SmartBadge>
               ) : (
-                <Text className="ocean-text-sm ocean-text-disabled">-</Text>
+                <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextDisabled }}>-</Text>
               )}
             </Flex>
           );
@@ -191,42 +227,88 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
     ];
 
     if (activeVars.hasConsumption) {
-      cols.push({ title: "Consumo (m³)", dataIndex: "consumption", key: "consumption", width: 130, align: "right", sorter: (a, b) => (a.consumption || 0) - (b.consumption || 0), render: (v) => <Text strong className="ocean-text-md ocean-text-primary ocean-font-heading">{formatInteger(v || 0)}</Text> });
+      cols.push({ 
+        title: "Consumo (m³)", 
+        dataIndex: "consumption", 
+        key: "consumption", 
+        width: 130, 
+        align: "right", 
+        sorter: (a, b) => (a.consumption || 0) - (b.consumption || 0), 
+        render: (v) => (
+          <Text strong style={{ fontSize: token.fontSizeSM, color: token.colorText }}>
+            {formatInteger(v || 0)}
+          </Text>
+        )
+      });
     }
     if (activeVars.hasFlow) {
-      cols.push({ title: "Caudal prom. (L/s)", dataIndex: "avg_flow", key: "avg_flow", width: 120, align: "right", sorter: (a, b) => (a.avg_flow || 0) - (b.avg_flow || 0), render: (v) => <Text className="ocean-text-sm ocean-text-secondary ocean-font-body">{v != null ? Number(v).toFixed(1) : "—"}</Text> });
+      cols.push({ 
+        title: "Caudal prom. (L/s)", 
+        dataIndex: "avg_flow", 
+        key: "avg_flow", 
+        width: 120, 
+        align: "right", 
+        sorter: (a, b) => (a.avg_flow || 0) - (b.avg_flow || 0), 
+        render: (v) => (
+          <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextSecondary }}>
+            {v != null ? Number(v).toFixed(1) : "—"}
+          </Text>
+        )
+      });
     }
     if (activeVars.hasLevel) {
-      cols.push({ title: "Nivel prom. (m)", dataIndex: "avg_level", key: "avg_level", width: 100, align: "right", responsive: ["md"], sorter: (a, b) => (a.avg_level || 0) - (b.avg_level || 0), render: (v) => <Text className="ocean-text-sm ocean-text-secondary ocean-font-body">{v != null ? Number(v).toFixed(2) : "—"}</Text> });
+      cols.push({ 
+        title: "Nivel prom. (m)", 
+        dataIndex: "avg_level", 
+        key: "avg_level", 
+        width: 100, 
+        align: "right", 
+        responsive: ["md"], 
+        sorter: (a, b) => (a.avg_level || 0) - (b.avg_level || 0), 
+        render: (v) => (
+          <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextSecondary }}>
+            {v != null ? Number(v).toFixed(2) : "—"}
+          </Text>
+        )
+      });
     }
 
-    cols.push({ title: "", dataIndex: "measurements_count", key: "measurements_count", width: 120, align: "center", responsive: ["md"], sorter: (a, b) => (a.measurements_count || 0) - (b.measurements_count || 0), render: (v, record) => (
-      <Flex align="center" justify="center" gap={4} onClick={(e) => e.stopPropagation()}>
-        <SmartIconButton
-          variant="ghost"
-          size="sm"
-          icon={<FaEye className="ocean-icon-sm" />}
-          tooltip={`Ver ${v || 0} mediciones`}
-          onClick={() => handleViewMeasurements(record)}
-        />
-        {(record.measurements_count || 0) > 0 && (
+    cols.push({ 
+      title: "", 
+      dataIndex: "measurements_count", 
+      key: "measurements_count", 
+      width: 120, 
+      align: "center", 
+      responsive: ["md"], 
+      sorter: (a, b) => (a.measurements_count || 0) - (b.measurements_count || 0), 
+      render: (v, record) => (
+        <Flex align="center" justify="center" gap={4} onClick={(e) => e.stopPropagation()}>
+          <SmartIconButton
+            variant="ghost"
+            size="sm"
+            icon={<FaEye style={{ fontSize: 10 }} />}
+            tooltip={`Ver ${v || 0} mediciones`}
+            onClick={() => handleViewMeasurements(record)}
+          />
+          {(record.measurements_count || 0) > 0 && (
+            <SmartIconButton
+              variant="primary"
+              size="sm"
+              icon={<FaHandPaper style={{ fontSize: 9 }} />}
+              tooltip="Detener telemetría"
+              onClick={() => handleOpenStopTelemetry(record)}
+            />
+          )}
           <SmartIconButton
             variant="primary"
             size="sm"
-            icon={<FaHandPaper className="ocean-icon-xs" />}
-            tooltip="Detener telemetría"
-            onClick={() => handleOpenStopTelemetry(record)}
+            icon={<FaHeadset style={{ fontSize: 9 }} />}
+            tooltip="Solicitar soporte"
+            onClick={() => handleOpenSupport(record)}
           />
-        )}
-        <SmartIconButton
-          variant="primary"
-          size="sm"
-          icon={<FaHeadset className="ocean-icon-xs" />}
-          tooltip="Solicitar soporte"
-          onClick={() => handleOpenSupport(record)}
-        />
-      </Flex>
-    ) });
+        </Flex>
+      ) 
+    });
 
     return cols;
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -234,33 +316,59 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
 
   if (sortedDays.length === 0) {
     return (
-      <div className="ocean-px-0 ocean-pb-md">
-        <Text className="ocean-text-base ocean-text-muted">Sin datos</Text>
+      <div style={{ paddingLeft: 0, paddingRight: 0, paddingBottom: token.paddingMD }}>
+        <Text style={{ fontSize: token.fontSize, color: token.colorTextSecondary }}>Sin datos</Text>
       </div>
     );
   }
 
   return (
-    <div className="ocean-px-0 ocean-pb-md">
+    <div style={{ paddingLeft: 0, paddingRight: 0, paddingBottom: token.paddingMD }}>
       <Flex vertical gap={16}>
         <Flex gap={12}>
           {sortedDays.map(([date, { points }]) => {
             const total = points.reduce((a, p) => a + (p.consumption || 0), 0);
             const isActive = activeDate === date;
             const isToday = isSameDay(parseISO(date), new Date());
+            
             return (
               <div
                 key={date}
                 onClick={() => handleDateClick(date)}
-                className={`ocean-calendar-day ${isActive ? 'ocean-calendar-day-active' : 'ocean-calendar-day-inactive'}`}
+                style={isActive ? dayCardActiveStyle : dayCardStyle}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.borderColor = token.colorPrimary;
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.borderColor = token.colorBorder;
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }
+                }}
               >
-                <Text className={`ocean-text-xs ${isActive ? 'ocean-text-cyan-light' : 'ocean-text-secondary'} ocean-capitalize ocean-letter-spacing ocean-nowrap ocean-font-body`}>
+                <Text style={{ 
+                  fontSize: token.fontSizeSM, 
+                  color: isActive ? token.colorPrimary : token.colorTextSecondary,
+                  textTransform: "capitalize",
+                  letterSpacing: 0.5,
+                  whiteSpace: "nowrap",
+                }}>
                   {format(parseISO(date), "EEEE", { locale: es })}
                 </Text>
-                <Text strong className={`ocean-text-2xl ${isActive ? 'ocean-text-primary' : 'ocean-text-primary'} ocean-lh-1 ocean-font-heading`}>
+                <Text strong style={{ 
+                  fontSize: token.fontSizeLG * 1.25, 
+                  color: token.colorText,
+                  lineHeight: 1,
+                }}>
                   {format(parseISO(date), "dd")}
                 </Text>
-                <Text className={`ocean-text-xs ${isActive ? 'ocean-text-cyan-light' : 'ocean-text-muted'} ocean-font-body`}>
+                <Text style={{ 
+                  fontSize: token.fontSizeSM, 
+                  color: isActive ? token.colorPrimary : token.colorTextTertiary,
+                }}>
                   {formatInteger(total)} m³
                 </Text>
               </div>

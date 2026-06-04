@@ -3,7 +3,6 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import "./styles/global-animations.css";
 import "./styles/theme-variables.css";
-import "./styles/ocean-theme.css";
 import "./styles/animations.css";
 import { ConfigProvider, App } from "antd";
 import AppStore from "./App";

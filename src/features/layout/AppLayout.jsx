@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Layout, Grid } from "antd";
+import { Layout, Grid, theme } from "antd";
 import Sidebar from "./Sidebar";
 import HeaderNav from "./HeaderNav";
 
@@ -10,9 +10,10 @@ const AppLayout = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const screens = Grid.useBreakpoint();
   const isMobile = !screens.md;
+  const { token } = theme.useToken();
 
   return (
-    <Layout style={{ minHeight: "100vh", background: "var(--bg-primary)" }}>
+    <Layout style={{ minHeight: "100vh", background: token.colorBgLayout }}>
       <Sidebar
         collapsed={collapsed}
         setCollapsed={setCollapsed}
@@ -20,7 +21,7 @@ const AppLayout = ({ children }) => {
         mobileOpen={mobileOpen}
         setMobileOpen={setMobileOpen}
       />
-      <Layout style={{ background: "var(--bg-primary)" }}>
+      <Layout style={{ background: token.colorBgLayout }}>
         <HeaderNav
           collapsed={collapsed}
           setCollapsed={setCollapsed}
@@ -33,10 +34,11 @@ const AppLayout = ({ children }) => {
           style={{
             margin: "24px 16px",
             padding: 24,
-            background: "var(--bg-secondary)",
-            borderRadius: 16,
+            background: token.colorBgContainer,
+            borderRadius: token.borderRadiusLG,
             minHeight: 280,
             overflow: "auto",
+            border: `1px solid ${token.colorBorderSecondary}`,
           }}
         >
           {children}

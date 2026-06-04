@@ -1,35 +1,38 @@
-const CORPORATE_BLUE = "#203562";
-const CORPORATE_BLUE_LIGHT = "#3A68AA";
-const CORPORATE_BLUE_MID = "#4D7FBD";
-const CORPORATE_BLUE_BRIGHT = "#1976d2";
+import { smarthydroColors as c } from "./theme/smarthydro.tokens";
 
-const ACCENT_YELLOW_GREEN = "#CCCF07";
+export const createIkoluTheme = (algorithm = null, isDark = false) => {
+  const token = {
+    // === Colores corporativos ===
+    colorPrimary: isDark ? c.primary[400] : c.primary[500],
+    colorPrimaryHover: isDark ? c.primary[300] : c.primary[400],
+    colorPrimaryActive: isDark ? c.primary[500] : c.primary[600],
+    colorLink: isDark ? c.primary[400] : c.primary[500],
+    colorLinkHover: isDark ? c.primary[300] : c.primary[400],
+    colorLinkActive: isDark ? c.primary[500] : c.primary[600],
 
-const BACKGROUND_LIGHT = "#F0EFF4";
-const BORDER_LIGHT = "#E8E8E8";
+    // === Colores semánticos ===
+    colorSuccess: c.semantic.success,
+    colorWarning: c.semantic.warning,
+    colorError: c.semantic.error,
+    colorInfo: c.semantic.info,
 
-const GREY_TEXT = "#8C8C8C";
-const GREY_TEXT_MID = "#595959";
-const GREY_TEXT_LIGHT = "#BFBFBF";
-const GREY_TEXT_DISABLED = "#BDBDBD";
+    // === Fondos y superficies ===
+    colorBgLayout: isDark ? c.primary[900] : c.neutral[50],
+    colorBgContainer: isDark ? "#0A0E1A" : "#ffffff",
+    colorBgElevated: isDark ? "#0F1629" : "#ffffff",
+    colorBgSpotlight: isDark ? c.primary[800] : c.neutral[100],
 
-const BLUE_TINT = "#EBF0F8";
-const BLUE_BG = "#F0F5FF";
-const RED_BG = "#FEF2F2";
-const GREEN_TEXT = "#69812A";
-const GREEN_DARK_TEXT = "#5A7024";
+    // === Textos ===
+    colorText: isDark ? c.neutral[50] : c.neutral[900],
+    colorTextSecondary: isDark ? c.neutral[300] : c.neutral[600],
+    colorTextTertiary: isDark ? c.neutral[400] : c.neutral[500],
+    colorTextQuaternary: isDark ? c.neutral[500] : c.neutral[400],
 
-export const createIkoluTheme = (algorithm = null, isDark = false) => ({
-  algorithm,
-  token: {
-    colorPrimary: isDark ? CORPORATE_BLUE_MID : CORPORATE_BLUE,
-    colorLink: isDark ? CORPORATE_BLUE_MID : CORPORATE_BLUE,
-    colorLinkHover: isDark ? "#5A8BC9" : CORPORATE_BLUE_LIGHT,
-    colorLinkActive: isDark ? CORPORATE_BLUE_MID : CORPORATE_BLUE,
-    colorSuccess: "#69812A",
-    colorWarning: "#CCCF07",
-    colorError: "#DC2626",
-    colorInfo: "#3A68AA",
+    // === Bordes ===
+    colorBorder: isDark ? "#1A1F3A" : c.neutral[200],
+    colorBorderSecondary: isDark ? "#162036" : c.neutral[100],
+
+    // === Otros ===
     borderRadius: 8,
     borderRadiusLG: 12,
     borderRadiusSM: 6,
@@ -37,70 +40,79 @@ export const createIkoluTheme = (algorithm = null, isDark = false) => ({
     fontSize: 14,
     fontSizeSM: 12,
     fontSizeLG: 16,
-  },
-  components: {
-    Button: {
-      colorPrimary: isDark ? CORPORATE_BLUE_MID : CORPORATE_BLUE,
+    wireframe: false,
+  };
+
+  return {
+    algorithm,
+    token,
+    components: {
+      Card: {
+        borderRadiusLG: 16,
+        borderRadius: 12,
+        colorBgContainer: token.colorBgContainer,
+      },
+      Layout: {
+        colorBgHeader: isDark ? c.primary[800] : c.primary[500],
+        colorBgBody: token.colorBgLayout,
+        colorBgTrigger: isDark ? c.primary[900] : c.primary[600],
+      },
+      Table: {
+        headerBg: isDark ? c.primary[800] : c.primary[500],
+        headerColor: "#ffffff",
+        headerSortActiveBg: isDark ? c.primary[800] : c.primary[500],
+        headerSortHoverBg: isDark ? c.primary[700] : c.primary[400],
+        rowHoverBg: isDark ? "#1A1F3A" : c.neutral[100],
+        colorBgContainer: token.colorBgContainer,
+      },
+      Menu: {
+        darkItemBg: c.primary[800],
+        darkSubMenuItemBg: c.primary[900],
+        darkItemSelectedBg: "rgba(255,255,255,0.15)",
+        darkItemColor: c.neutral[200],
+        darkItemSelectedColor: "#ffffff",
+      },
+      Input: {
+        colorBgContainer: isDark ? "#0F1629" : "#ffffff",
+        colorBorder: token.colorBorder,
+        colorText: token.colorText,
+      },
+      Select: {
+        colorBgContainer: isDark ? "#0F1629" : "#ffffff",
+        colorBorder: token.colorBorder,
+        colorText: token.colorText,
+      },
+      Modal: {
+        colorBgElevated: isDark ? "#0F1629" : "#ffffff",
+      },
+      Drawer: {
+        colorBgElevated: isDark ? "#0F1629" : "#ffffff",
+      },
+      Button: {
+        colorPrimary: token.colorPrimary,
+        colorPrimaryHover: token.colorPrimaryHover,
+        colorPrimaryActive: token.colorPrimaryActive,
+      },
     },
-    Card: {
-      borderRadiusLG: 16,
-      borderRadius: 12,
-    },
-    Layout: {
-      colorBgHeader: isDark ? "#1A2A4A" : CORPORATE_BLUE,
-    },
-    Table: {
-      headerBg: isDark ? "#1A2A4A" : CORPORATE_BLUE,
-      headerColor: "white",
-      headerSortActiveBg: isDark ? "#1A2A4A" : CORPORATE_BLUE,
-      headerSortHoverBg: isDark ? "#2A3A5A" : CORPORATE_BLUE_LIGHT,
-      headerBgDark: "#1A2A4A",
-      headerColorDark: "#fff",
-      headerSortHoverBgDark: "#2A3A5A",
-      headerSortActiveBgDark: "#1A2A4A",
-      borderColor: "#E8E8E8",
-      borderColorDark: "#303030",
-      rowHoverBg: "#F0EFF4",
-      rowHoverBgDark: "#1F2937",
-    },
-    Progress: {
-      defaultColor: isDark ? CORPORATE_BLUE_MID : CORPORATE_BLUE,
-    },
-    Menu: {
-      darkItemBg: isDark ? "#1A2A4A" : CORPORATE_BLUE,
-      darkSubMenuItemBg: isDark ? "#0F1B3A" : "#16264a",
-      darkItemSelectedBg: "rgba(255,255,255,0.15)",
-    },
-  },
-});
+  };
+};
 
 export const ikoluTheme = createIkoluTheme();
 
+// Legacy exports - deprecated, usar theme.useToken()
 export const ikoluTokens = {
-  colorCorporateBlue: CORPORATE_BLUE,
-  colorSuccess: "#69812A",
-  colorWarning: "#CCCF07",
-  colorError: "#DC2626",
-  colorInfo: "#3A68AA",
+  colorCorporateBlue: c.primary[500],
+  colorSuccess: c.semantic.success,
+  colorWarning: c.semantic.warning,
+  colorError: c.semantic.error,
+  colorInfo: c.semantic.info,
   colorText: "rgba(0, 0, 0, 0.88)",
-  colorTextSecondary: GREY_TEXT,
+  colorTextSecondary: c.neutral[500],
   colorBgLayout: "#f5f5f5",
   colorBgContainer: "#ffffff",
-  colorCorporateBlueLight: CORPORATE_BLUE_LIGHT,
-  colorCorporateBlueMid: CORPORATE_BLUE_MID,
-  colorCorporateBlueBright: CORPORATE_BLUE_BRIGHT,
-  colorAccentYellowGreen: ACCENT_YELLOW_GREEN,
-  colorBackgroundLight: BACKGROUND_LIGHT,
-  colorBorderLight: BORDER_LIGHT,
-  colorGreyText: GREY_TEXT,
-  colorGreyTextMid: GREY_TEXT_MID,
-  colorGreyTextLight: GREY_TEXT_LIGHT,
-  colorGreyTextDisabled: GREY_TEXT_DISABLED,
-  colorBlueTint: BLUE_TINT,
-  colorBlueBg: BLUE_BG,
-  colorRedBg: RED_BG,
-  colorGreenText: GREEN_TEXT,
-  colorGreenDarkText: GREEN_DARK_TEXT,
+  colorCorporateBlueLight: c.primary[400],
+  colorCorporateBlueMid: c.primary[300],
+  colorAccentYellowGreen: c.accent[400],
   colorWhite: "#ffffff",
   colorBlack: "#000000",
   shadowCard: "0 4px 12px rgba(32, 53, 98, 0.08)",
@@ -123,10 +135,10 @@ export const ikoluTokens = {
 };
 
 export const kpiGradients = {
-  primary: `linear-gradient(135deg, ${CORPORATE_BLUE} 0%, ${CORPORATE_BLUE_LIGHT} 100%)`,
-  secondary: `linear-gradient(135deg, ${CORPORATE_BLUE_LIGHT} 0%, ${CORPORATE_BLUE_MID} 100%)`,
-  info: `linear-gradient(135deg, ${CORPORATE_BLUE_BRIGHT} 0%, #42a5f5 100%)`,
-  accent: `linear-gradient(135deg, ${ACCENT_YELLOW_GREEN} 0%, #BDC00C 100%)`,
+  primary: `linear-gradient(135deg, ${c.primary[500]} 0%, ${c.primary[400]} 100%)`,
+  secondary: `linear-gradient(135deg, ${c.primary[400]} 0%, ${c.primary[300]} 100%)`,
+  info: `linear-gradient(135deg, ${c.primary[300]} 0%, ${c.primary[200]} 100%)`,
+  accent: `linear-gradient(135deg, ${c.accent[400]} 0%, ${c.accent[500]} 100%)`,
 };
 
 export const styles = {
@@ -137,14 +149,14 @@ export const styles = {
   absoluteBottomSvg: { position: "absolute", left: 0, bottom: 0, zIndex: 1 },
 };
 
-export const CHART_COLORS = {
-  primary: CORPORATE_BLUE,
-  primaryLight: CORPORATE_BLUE_LIGHT,
-  primaryMid: CORPORATE_BLUE_MID,
-  success: "#69812A",
-  warning: "#CCCF07",
-  error: "#DC2626",
-  info: "#3A68AA",
+export const getChartColors = (isDark = false) => ({
+  primary: c.primary[500],
+  primaryLight: c.primary[400],
+  primaryMid: c.primary[300],
+  success: c.semantic.success,
+  warning: c.semantic.warning,
+  error: c.semantic.error,
+  info: c.semantic.info,
   orange: "#fa8c16",
   purple: "#722ed1",
   cyan: "#13c2c2",
@@ -154,9 +166,9 @@ export const CHART_COLORS = {
   geekblue: "#2f54eb",
   magenta: "#eb2f96",
   gold: "#faad14",
-};
+});
 
-export const CHART_CONFIG = {
+export const getChartConfig = (isDark = false) => ({
   line: {
     lineWidth: 2,
     point: { size: 2, state: { active: { size: 5 } } },
@@ -164,7 +176,7 @@ export const CHART_CONFIG = {
     animation: { appear: { animation: "fade-in", duration: 400 } },
   },
   grid: {
-    line: { style: { stroke: "rgba(0, 0, 0, 0.08)", lineDash: [4, 4] } },
+    line: { style: { stroke: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)", lineDash: [4, 4] } },
   },
   tooltip: {
     domStyles: {
@@ -172,14 +184,19 @@ export const CHART_CONFIG = {
         borderRadius: "10px",
         boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
         padding: "12px",
-        background: "rgba(255, 255, 255, 0.98)",
+        background: isDark ? "rgba(15, 22, 41, 0.98)" : "rgba(255, 255, 255, 0.98)",
         backdropFilter: "blur(8px)",
+        color: isDark ? "#fff" : "#000",
       },
     },
   },
   axis: {
     gridLine: {
-      line: { style: { stroke: "rgba(0, 0, 0, 0.06)", lineDash: [4, 4] } },
+      line: { style: { stroke: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)", lineDash: [4, 4] } },
     },
   },
-};
+});
+
+// Legacy static exports
+export const CHART_COLORS = getChartColors(false);
+export const CHART_CONFIG = getChartConfig(false);
