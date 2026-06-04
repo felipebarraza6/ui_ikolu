@@ -3,7 +3,7 @@ import { Row, Col, Flex, Typography, Select, Tabs, Segmented, Tag, theme } from 
 import { FaMapMarkerAlt, FaArrowLeft, FaArrowRight, FaChartLine, FaTable } from "react-icons/fa";
 import { format, parseISO, subDays } from "date-fns";
 import { es } from "date-fns/locale/es";
-import { smarthydro } from "../../theme/smarthydro.tokens";
+
 import { MeasurementsDrawerContentMemo } from "./measurements/MeasurementDrawer";
 
 const { Text } = Typography;
@@ -74,11 +74,11 @@ const MeasurementsDrawerHeader = ({
                   </Flex>
                   <Flex gap={6}>
                     {hasGPS && (
-                      <Tag size="small" style={{ fontSize: 10, margin: 0, background: smarthydro.colors.semantic.infoBg, color: smarthydro.colors.accent[500], border: 'none' }}>
+                      <Tag size="small" style={{ fontSize: 10, margin: 0, background: 'rgba(58, 104, 170, 0.15)', color: token.colorWarning, border: 'none' }}>
                         GPS
                       </Tag>
                     )}
-                    <Tag size="small" style={{ fontSize: 10, margin: 0, background: typeDGA === 'SUBTERRANEO' ? smarthydro.colors.semantic.successBg : smarthydro.colors.semantic.warningBg, color: typeDGA === 'SUBTERRANEO' ? smarthydro.colors.semantic.success : smarthydro.colors.semantic.warning, border: 'none' }}>
+                    <Tag size="small" style={{ fontSize: 10, margin: 0, background: typeDGA === 'SUBTERRANEO' ? 'rgba(42, 157, 143, 0.15)' : 'rgba(244, 162, 97, 0.15)', color: typeDGA === 'SUBTERRANEO' ? token.colorSuccess : token.colorWarning, border: 'none' }}>
                       {typeDGA === 'SUBTERRANEO' ? 'SUB' : typeDGA === 'SUPERFICIAL' ? 'SUP' : typeDGA}
                     </Tag>
                   </Flex>

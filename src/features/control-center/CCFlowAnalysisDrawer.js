@@ -2,7 +2,7 @@ import React from "react";
 import { Drawer, Flex, Typography, Table, Button, theme } from "antd";
 import { FaDownload, FaTimes } from "react-icons/fa";
 import { format, parseISO } from "date-fns";
-import { smarthydro } from "../../theme/smarthydro.tokens";
+
 
 const { Text, Title } = Typography;
 const { useToken } = theme;
@@ -69,7 +69,7 @@ const CCFlowAnalysisDrawer = ({
       {measurements.length === 0 ? (
         <Flex justify="center" align="center" className="ocean-empty-state">
           <div className="ocean-empty-icon">
-            <FaDownload style={{ fontSize: 20, color: smarthydro.colors.accent[200] }} />
+            <FaDownload style={{ fontSize: 20, color: token.colorWarning }} />
           </div>
           <Text className="ocean-text-lg ocean-text-muted">No hay mediciones disponibles</Text>
         </Flex>

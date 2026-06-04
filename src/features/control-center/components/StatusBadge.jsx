@@ -1,46 +1,50 @@
-import React from "react";
-import { Flex, Typography, Tooltip } from "antd";
+import React, { useMemo } from "react";
+import { Flex, Typography, Tooltip, theme } from "antd";
 import { FaCheckCircle, FaExclamationTriangle, FaShieldAlt } from "react-icons/fa";
-import { smarthydro } from "../../../theme/smarthydro.tokens";
 
 const { Text } = Typography;
+const { useToken } = theme;
 
-const levelConfig = {
+export const createLevelConfig = (token) => ({
   safe: {
-    color: smarthydro.colors.semantic.success,
-    bg: smarthydro.colors.semantic.successBg,
-    border: smarthydro.colors.semantic.successBorder,
+    color: token.colorSuccess,
+    bg: 'rgba(42, 157, 143, 0.15)',
+    border: 'rgba(42, 157, 143, 0.3)',
     label: "Dentro de límites",
     icon: FaCheckCircle,
     shortLabel: "OK",
   },
   warning: {
-    color: smarthydro.colors.semantic.warning,
-    bg: smarthydro.colors.semantic.warningBg,
-    border: smarthydro.colors.semantic.warningBorder,
+    color: token.colorWarning,
+    bg: 'rgba(244, 162, 97, 0.15)',
+    border: 'rgba(244, 162, 97, 0.3)',
     label: "Cerca de superar límite",
     icon: FaExclamationTriangle,
     shortLabel: "Alerta",
   },
   critical: {
-    color: smarthydro.colors.semantic.error,
-    bg: smarthydro.colors.semantic.errorBg,
-    border: smarthydro.colors.semantic.errorBorder,
+    color: token.colorError,
+    bg: 'rgba(231, 111, 81, 0.15)',
+    border: 'rgba(231, 111, 81, 0.3)',
     label: "Incumplimiento detectado",
     icon: FaExclamationTriangle,
     shortLabel: "Crítico",
   },
   unknown: {
-    color: smarthydro.colors.neutral[500],
-    bg: smarthydro.colors.neutral[100],
-    border: smarthydro.colors.neutral[300],
+    color: token.colorTextDisabled,
+    bg: '#E9ECEF',
+    border: '#CED4DA',
     label: "Sin límites configurados",
     icon: FaShieldAlt,
     shortLabel: "N/A",
   },
-};
+});
 
 const StatusBadge = ({ record, onViewComplianceDetail }) => {
+  const { token } = useToken();
+
+  const levelConfig = useMemo(() => createLevelConfig(token), [token]);
+
   const level = record.compliance_warning?.level || "safe";
   const status = record.compliance_warning?.status || levelConfig[level]?.label || "—";
   const cfg = levelConfig[level] || levelConfig.safe;
@@ -68,11 +72,11 @@ const StatusBadge = ({ record, onViewComplianceDetail }) => {
           justifyContent: "center",
           gap: 4,
           background: cfg.bg,
-          borderRadius: smarthydro.radii.sm,
+          borderRadius: token.borderRadius,
           padding: "3px 8px",
           border: `1px solid ${cfg.border}`,
           cursor: "pointer",
-          transition: smarthydro.transitions.base,
+          transition: "200ms ease",
           minWidth: 80,
         }}
         onMouseEnter={(e) => {
@@ -87,8 +91,8 @@ const StatusBadge = ({ record, onViewComplianceDetail }) => {
           style={{
             fontSize: 10,
             color: cfg.color,
-            fontWeight: smarthydro.typography.weights.semibold,
-            fontFamily: smarthydro.typography.body,
+            fontWeight: 600,
+            fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
           }}
         >
           {cfg.shortLabel}
@@ -98,5 +102,4 @@ const StatusBadge = ({ record, onViewComplianceDetail }) => {
   );
 };
 
-export { levelConfig };
 export default StatusBadge;

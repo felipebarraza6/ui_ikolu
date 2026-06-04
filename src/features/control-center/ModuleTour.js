@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Tour } from "antd";
+import { Tour, theme } from "antd";
 import { useTours } from "../../contexts/TourContext";
-import { smarthydro } from "../../theme/smarthydro.tokens";
+
+const { useToken } = theme;
 
 /**
  * ModuleTour — Wrapper reutilizable para tours de capacitación por módulo.
@@ -24,6 +25,7 @@ const ModuleTour = ({
   delay = 800,
   children,
 }) => {
+  const { token } = useToken();
   const { isTourCompleted, completeTour, skipTour, activeTour, startTour } = useTours();
   const [open, setOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -175,7 +177,7 @@ const ModuleTour = ({
         onChange={handleChange}
         steps={steps}
         indicatorsRender={(current, total) => (
-          <span style={{ color: smarthydro.colors.primary[500], fontSize: 12 }}>
+          <span style={{ color: token.colorPrimary, fontSize: 12 }}>
             {isTransitioning ? "..." : `${current + 1} / ${total}`}
           </span>
         )}

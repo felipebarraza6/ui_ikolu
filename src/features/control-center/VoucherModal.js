@@ -1,7 +1,7 @@
 import React from "react";
 import { Row, Col, Flex, Typography, Spin, Tag, theme, Modal, Button, Input, Space, message } from "antd";
 import { FaClipboardCheck, FaCopy, FaSearch, FaExclamationTriangle } from "react-icons/fa";
-import { smarthydro } from "../../theme/smarthydro.tokens";
+
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -83,12 +83,12 @@ const VoucherModal = ({
           <Col xs={24} md={12} style={{ height: 400 }}>
             <div
               style={{
-                background: smarthydro.colors.neutral[900],
+                background: token.colorBgLayout,
                 borderRadius: 8,
                 padding: "12px 16px",
                 fontFamily: "monospace",
                 fontSize: 11,
-                color: smarthydro.colors.neutral[300],
+                color: token.colorTextTertiary,
                 height: "500px",
                 overflowY: "auto",
                 lineHeight: 1.6,

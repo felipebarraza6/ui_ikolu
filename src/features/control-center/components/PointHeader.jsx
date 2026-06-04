@@ -1,7 +1,7 @@
 import React from "react";
 import { Flex, Typography, Tag } from "antd";
 import { FaInfoCircle, FaExternalLinkAlt } from "react-icons/fa";
-import { smarthydro } from "../../../theme/smarthydro.tokens";
+
 
 const { Text } = Typography;
 
@@ -28,10 +28,10 @@ const PointHeader = ({ record, onViewPointConfig, token }) => {
         <Text
           strong
           style={{
-            fontSize: smarthydro.typography.sizes.sm,
-            color: token?.colorText || smarthydro.colors.neutral[800],
+            fontSize: 12,
+            color: token?.colorText || '#212529',
             lineHeight: 1.2,
-            fontFamily: smarthydro.typography.heading,
+            fontFamily: "'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
           }}
         >
           {record.title?.slice(0, 20) || "—"}
@@ -39,7 +39,7 @@ const PointHeader = ({ record, onViewPointConfig, token }) => {
         <FaInfoCircle
           style={{
             fontSize: 11,
-            color: token?.colorPrimary || smarthydro.colors.primary[500],
+            color: token?.colorPrimary || '#203562',
             cursor: "pointer",
             opacity: 0.7,
           }}
@@ -57,11 +57,11 @@ const PointHeader = ({ record, onViewPointConfig, token }) => {
               margin: 0,
               padding: "1px 5px",
               lineHeight: "15px",
-              background: `${smarthydro.colors.primary[500]}10`,
+              background: `${token?.colorPrimary || '#203562'}10`,
               border: "none",
-              color: smarthydro.colors.primary[500],
-              fontWeight: smarthydro.typography.weights.semibold,
-              fontFamily: smarthydro.typography.body,
+              color: token?.colorPrimary || '#203562',
+              fontWeight: 600,
+              fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
             }}
           >
             DGA
@@ -74,11 +74,11 @@ const PointHeader = ({ record, onViewPointConfig, token }) => {
               margin: 0,
               padding: "1px 5px",
               lineHeight: "15px",
-              background: smarthydro.colors.semantic.successBg,
+              background: 'rgba(42, 157, 143, 0.15)',
               border: "none",
-              color: smarthydro.colors.semantic.success,
-              fontWeight: smarthydro.typography.weights.semibold,
-              fontFamily: smarthydro.typography.body,
+              color: token?.colorSuccess || '#2A9D8F',
+              fontWeight: 600,
+              fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
             }}
           >
             SMA
@@ -91,14 +91,14 @@ const PointHeader = ({ record, onViewPointConfig, token }) => {
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                color: smarthydro.colors.primary[500],
+                color: token?.colorPrimary || '#203562',
                 fontSize: 11,
-                fontWeight: smarthydro.typography.weights.semibold,
+                fontWeight: 600,
                 whiteSpace: "nowrap",
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 4,
-                fontFamily: smarthydro.typography.body,
+                fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -109,8 +109,8 @@ const PointHeader = ({ record, onViewPointConfig, token }) => {
             <Text
               style={{
                 fontSize: 11,
-                color: token?.colorTextSecondary || smarthydro.colors.neutral[500],
-                fontFamily: smarthydro.typography.body,
+                color: token?.colorTextSecondary || '#6C757D',
+                fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
               }}
             >
               {record.code}

@@ -1,7 +1,7 @@
 import React from "react";
 import { Flex, Typography } from "antd";
 import { formatInteger } from "../../../utils/numberFormatter";
-import { smarthydro } from "../../../theme/smarthydro.tokens";
+
 
 const { Text } = Typography;
 
@@ -12,20 +12,20 @@ const ConsumptionCell = ({ record, token }) => {
   const isDark = token?.colorBgLayout === "#141414" || token?.colorBgLayout === "#000";
   
   const color = pctNum == null
-    ? token?.colorTextDisabled || smarthydro.colors.neutral[400]
+    ? token?.colorTextDisabled
     : pctNum > 100
-    ? smarthydro.colors.semantic.error
+    ? token?.colorError
     : pctNum > 80
-    ? smarthydro.colors.semantic.warning
-    : smarthydro.colors.semantic.success;
+    ? token?.colorWarning
+    : token?.colorSuccess;
 
   const bgColor = isDark
     ? "rgba(255, 255, 255, 0.08)"
-    : smarthydro.colors.neutral[100];
+    : '#E9ECEF';
 
   const trackColor = isDark
     ? "rgba(255, 255, 255, 0.04)"
-    : smarthydro.colors.neutral[50];
+    : '#F8F9FA';
 
   return (
     <Flex vertical gap={3} align="center">
@@ -34,9 +34,9 @@ const ConsumptionCell = ({ record, token }) => {
           <Text
             strong
             style={{
-              fontSize: smarthydro.typography.sizes.lg,
+              fontSize: 16,
               color,
-              fontFamily: smarthydro.typography.heading,
+              fontFamily: "'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
               lineHeight: 1.2,
             }}
           >
@@ -70,7 +70,7 @@ const ConsumptionCell = ({ record, token }) => {
                   left: `${Math.min(pctNum, 100)}%`,
                   width: `${Math.min(pctNum - 100, 20)}%`,
                   height: "100%",
-                  background: `linear-gradient(90deg, ${smarthydro.colors.semantic.error}dd 0%, ${smarthydro.colors.semantic.error} 100%)`,
+                  background: `linear-gradient(90deg, ${token?.colorError}dd 0%, ${token?.colorError} 100%)`,
                   borderRadius: "0 4px 4px 0",
                 }}
               />
@@ -80,8 +80,8 @@ const ConsumptionCell = ({ record, token }) => {
             <Text
               style={{
                 fontSize: 9,
-                color: token?.colorTextSecondary || smarthydro.colors.neutral[500],
-                fontFamily: smarthydro.typography.body,
+                color: token?.colorTextSecondary,
+                fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
                 lineHeight: 1.2,
               }}
             >
@@ -92,9 +92,9 @@ const ConsumptionCell = ({ record, token }) => {
       ) : (
         <Text
           style={{
-            fontSize: smarthydro.typography.sizes.sm,
-            color: token?.colorTextDisabled || smarthydro.colors.neutral[400],
-            fontFamily: smarthydro.typography.body,
+            fontSize: 12,
+            color: token?.colorTextDisabled,
+            fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
           }}
         >
           —

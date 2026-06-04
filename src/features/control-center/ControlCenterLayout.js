@@ -8,7 +8,7 @@ import {
   FaDownload,
 } from "react-icons/fa";
 import { SmartKPICard } from "../../shared/ui";
-import { smarthydro } from "../../theme/smarthydro.tokens";
+
 import ControlCenterChat from "./ControlCenterChat";
 import SkeletonControlCenter from "./SkeletonControlCenter";
 import { format } from "date-fns";
@@ -84,10 +84,10 @@ const ControlCenterLayout = memo(({
               <Tooltip title="Cantidad total de puntos de captación registrados" placement="top">
                 <div>
                   <SmartKPICard
-                    icon={<FaMapMarkerAlt style={{ fontSize: 18, color: smarthydro.colors.accent[200] }} />}
+                    icon={<FaMapMarkerAlt style={{ fontSize: 18, color: token.colorWarning }} />}
                     label="Total Puntos"
                     value={overview.total_points || 0}
-                    gradient={smarthydro.gradients.oceanDeep}
+                    gradient="linear-gradient(180deg, #050D1A 0%, #203562 50%, #2A4A8A 100%)"
                   />
                 </div>
               </Tooltip>
@@ -98,11 +98,11 @@ const ControlCenterLayout = memo(({
               <Tooltip title="Puntos con telemetría funcionando en tiempo real" placement="top">
                 <div>
                   <SmartKPICard
-                    icon={<FaBroadcastTower style={{ fontSize: 18, color: smarthydro.colors.accent[200] }} />}
+                    icon={<FaBroadcastTower style={{ fontSize: 18, color: token.colorWarning }} />}
                     label="Telemetría Activa"
                     value={`${overview.points_with_telemetry || 0}`}
                     suffix={`/${overview.total_points || 0}`}
-                    gradient={smarthydro.gradients.cyan}
+                    gradient="linear-gradient(135deg, #00BCD4 0%, #0097A7 100%)"
                   />
                 </div>
               </Tooltip>
@@ -113,10 +113,10 @@ const ControlCenterLayout = memo(({
               <Tooltip title="Puntos con configuración DGA/SMA completa" placement="top">
                 <div>
                   <SmartKPICard
-                    icon={<FaClipboardCheck style={{ fontSize: 18, color: smarthydro.colors.accent[200] }} />}
+                    icon={<FaClipboardCheck style={{ fontSize: 18, color: token.colorWarning }} />}
                     label="Cumplimiento Normativo"
                     value={overview.points_with_compliance || 0}
-                    gradient={smarthydro.gradients.teal}
+                    gradient="linear-gradient(135deg, #2A9D8F 0%, #3DB8A8 100%)"
                   />
                 </div>
               </Tooltip>
@@ -127,10 +127,10 @@ const ControlCenterLayout = memo(({
               <Tooltip title="Alertas y advertencias detectadas recientemente" placement="top">
                 <div>
                   <SmartKPICard
-                    icon={<FaExclamationTriangle style={{ fontSize: 18, color: smarthydro.colors.accent[200] }} />}
+                    icon={<FaExclamationTriangle style={{ fontSize: 18, color: token.colorWarning }} />}
                     label="Warnings"
                     value={warningsList.length}
-                    gradient={smarthydro.gradients.coral}
+                    gradient="linear-gradient(135deg, #F4A261 0%, #E76F51 100%)"
                     onClick={
                       warningsList.length > 0
                         ? () => {
