@@ -107,7 +107,7 @@ const ControlCenterChat = ({ points, chatQuota }) => {
         onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; }}
         onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
       >
-        <FaRobot style={{ color: #ffffff, fontSize: 24 }} />
+        <FaRobot style={{ color: "#ffffff", fontSize: 24 }} />
       </div>
     );
   }
@@ -183,7 +183,7 @@ const ControlCenterChat = ({ points, chatQuota }) => {
             alignItems: "center",
             justifyContent: "center",
           }}>
-            <FaRobot style={{ color: #ffffff, fontSize: 16 }} />
+            <FaRobot style={{ color: "#ffffff", fontSize: 16 }} />
           </div>
           <div>
             <Text strong style={{ display: "block", color: token.colorText }}>Experto en Telemetria</Text>
@@ -238,7 +238,7 @@ const ControlCenterChat = ({ points, chatQuota }) => {
                   flexShrink: 0, 
                   marginTop: 2 
                 }}>
-                  <FaRobot style={{ color: #ffffff, fontSize: 12 }} />
+                  <FaRobot style={{ color: "#ffffff", fontSize: 12 }} />
                 </div>
               )}
               <div
@@ -271,7 +271,7 @@ const ControlCenterChat = ({ points, chatQuota }) => {
                 alignItems: "center", 
                 justifyContent: "center" 
               }}>
-                <FaRobot style={{ color: #ffffff, fontSize: 12 }} />
+                <FaRobot style={{ color: "#ffffff", fontSize: 12 }} />
               </div>
               <div style={{ 
                 padding: "10px 14px", 
@@ -357,7 +357,7 @@ const ControlCenterChat = ({ points, chatQuota }) => {
             <Button
               type="primary"
               shape="circle"
-              icon={<FaPaperPlane style={{ fontSize: 14, color: #ffffff }} />}
+              icon={<FaPaperPlane style={{ fontSize: 14, color: "#ffffff" }} />}
               onClick={sendChatMessage}
               loading={chatLoading}
               style={{
@@ -401,7 +401,7 @@ const ControlCenterChat = ({ points, chatQuota }) => {
         onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; }}
         onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
       >
-        <FaRobot style={{ color: #ffffff, fontSize: 24 }} />
+        <FaRobot style={{ color: "#ffffff", fontSize: 24 }} />
       </div>
     </>
   );
