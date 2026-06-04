@@ -20,7 +20,8 @@ export const createIkoluTheme = (algorithm = null, isDark = false) => {
     colorBgLayout: isDark ? c.primary[900] : c.neutral[50],
     colorBgContainer: isDark ? "#0A0E1A" : "#ffffff",
     colorBgElevated: isDark ? "#0F1629" : "#ffffff",
-    colorBgSpotlight: isDark ? c.primary[800] : c.neutral[100],
+    colorBgSpotlight: isDark ? "#2c2c2c" : "#1f1f1f",
+    colorTextLightSolid: "#ffffff",
 
     // === Textos ===
     colorText: isDark ? c.neutral[50] : c.neutral[900],

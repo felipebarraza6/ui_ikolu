@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Flex, Typography, Tooltip, theme } from "antd";
-import { FaCheckCircle, FaExclamationTriangle, FaShieldAlt } from "react-icons/fa";
+import { FaCheckCircle, FaShieldAlt } from "react-icons/fa";
+import BlinkingDot from "./BlinkingDot";
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -19,7 +20,6 @@ export const createLevelConfig = (token) => ({
     bg: `${token.colorWarning}15`,
     border: `${token.colorWarning}30`,
     label: "Cerca de superar límite",
-    icon: FaExclamationTriangle,
     shortLabel: "Alerta",
   },
   critical: {
@@ -27,7 +27,6 @@ export const createLevelConfig = (token) => ({
     bg: `${token.colorError}15`,
     border: `${token.colorError}30`,
     label: "Incumplimiento detectado",
-    icon: FaExclamationTriangle,
     shortLabel: "Crítico",
   },
   unknown: {
@@ -50,8 +49,9 @@ const StatusBadge = ({ record, onViewComplianceDetail }) => {
   const status = record.compliance_warning?.status || levelConfig[level]?.label || "—";
   const cfg = levelConfig[level] || levelConfig.safe;
   const Icon = cfg.icon;
+  const isDot = level === 'warning' || level === 'critical';
 
-  const isAlert = (level === 'warning' || level === 'critical') && !hasBeenClicked;
+  const isAlert = isDot && !hasBeenClicked;
 
   return (
     <Tooltip title={status}>
@@ -90,11 +90,16 @@ const StatusBadge = ({ record, onViewComplianceDetail }) => {
           e.currentTarget.style.opacity = 1;
         }}
       >
-        <Icon style={{
-          fontSize: 10,
-          color: cfg.color,
-          animation: isAlert ? 'warning-double-blink 2s ease-in-out infinite' : 'none',
-        }} />
+        {isDot ? (
+          <BlinkingDot
+            size={8}
+            color={cfg.color}
+            variant="warning"
+            active={isAlert}
+          />
+        ) : (
+          <Icon style={{ fontSize: 10, color: cfg.color, flexShrink: 0 }} />
+        )}
         <Text
           style={{
             fontSize: 10,

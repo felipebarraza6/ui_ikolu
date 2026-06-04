@@ -91,6 +91,9 @@
         "Al completar cada tarea, marca su checkbox en el plan como [x].",
         "Escribe codigo limpio siguiendo estrictamente AGENTS.md: usa orchestrator para API, Smart* components cuando existan, CSS variables para colores, Zustand/Context especializado para estado, skeletons y estados de error siempre.",
         "Despues de implementar, ejecuta `yarn build` para verificar que compila. Si hay errores, corrigelos inmediatamente.",
+        "USAR SIEMPRE YARN: Este proyecto usa Yarn (no npm). Para instalar dependencias usa `yarn add`, para scripts usa `yarn <script>`. Nunca uses `npm install` ni `npm run`.",
+        "VALIDACION VISUAL OBLIGATORIA: Despues de cualquier cambio de UI, verifica en ambos modos (light y dark). Si hay componentes nuevos o modificados, asegurate de que tengan estados de loading/skeleton apropiados.",
+        "REGLA DE SKELETONS: Todo componente que muestre datos dinamicos DEBE tener un estado de skeleton. No dejes pantallas en blanco durante carga. Usa los SmartSkeleton components existentes (SkeletonKPI, SkeletonTable, SkeletonValue, etc.).",
         "NO modifiques Home.js, Sma.js ni otros monolitos legacy salvo que el plan lo ordene explicitamente."
       ]
     },

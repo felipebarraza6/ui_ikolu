@@ -5,8 +5,6 @@ import { ExclamationCircleOutlined, ReloadOutlined } from "@ant-design/icons";
 import ControlCenterLayout from "../layout/ControlCenterLayout";
 import TelemetryTab from "../tabs/telemetry";
 import ComplianceTab from "../tabs/compliance";
-import SkeletonTelemetry from "../tabs/telemetry/SkeletonTelemetry";
-import SkeletonCompliance from "../tabs/compliance/SkeletonCompliance";
 import { useControlCenterStore } from "../stores/controlCenterStore";
 import { useAuth } from "../../../contexts/AuthContext";
 
@@ -82,24 +80,6 @@ const ControlCenterContainer = ({
 
   // Filter out cancel/abort errors — these are not real errors
   const isRealError = error && error.message !== "canceled" && error.name !== "AbortError";
-
-  // Not ready state — shows skeleton during initial load
-  if (!isReady && !isRealError) {
-    return (
-      <ControlCenterLayout
-        overview={{}}
-        points={[]}
-        warningsList={[]}
-        warningsRaw={{}}
-        chatQuota={chatQuota}
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        loading={true}
-      >
-        {activeTab === "telemetry" ? <SkeletonTelemetry /> : <SkeletonCompliance />}
-      </ControlCenterLayout>
-    );
-  }
 
   // Error state — only show for real errors, not aborts
   if (isRealError && !isReady) {

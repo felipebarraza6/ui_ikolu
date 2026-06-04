@@ -48,6 +48,8 @@ auto_execute:
   validate_on_component_create: true
   suggest_tests: true
   check_responsive: true
+  build_command: "yarn build"  # Comando por defecto para builds (yarn es mas rapido y estable en este proyecto)
+  package_manager: "yarn"      # Usar yarn siempre en lugar de npm
 
 # Project-specific shortcuts (invocar con @nombre)
 shortcuts:

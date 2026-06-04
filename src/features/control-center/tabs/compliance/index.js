@@ -1,6 +1,5 @@
 import React from "react";
 import CCComplianceTable from "./ComplianceTable";
-import SkeletonCompliance from "./SkeletonCompliance";
 
 const ComplianceTab = ({
   points,
@@ -13,15 +12,6 @@ const ComplianceTab = ({
   handleViewComplianceDetail,
   loading,
 }) => {
-
-  if (loading && !points?.length) {
-    return (
-      <div style={{ padding: "16px 0" }}>
-        <SkeletonCompliance />
-      </div>
-    );
-  }
-
   return (
     <div>
       <CCComplianceTable

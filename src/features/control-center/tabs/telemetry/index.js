@@ -1,6 +1,5 @@
 import React from "react";
 import CCWeekConsumption from "./WeekConsumption";
-import SkeletonTelemetry from "./SkeletonTelemetry";
 
 const TelemetryTab = ({
   last7,
@@ -14,15 +13,6 @@ const TelemetryTab = ({
   warningsRaw,
   loading,
 }) => {
-
-  if (loading && !last7) {
-    return (
-      <div style={{ padding: "16px 0" }}>
-        <SkeletonTelemetry />
-      </div>
-    );
-  }
-
   return (
     <div>
       <CCWeekConsumption

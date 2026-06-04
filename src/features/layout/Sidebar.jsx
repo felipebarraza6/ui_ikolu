@@ -1,7 +1,8 @@
 import React from "react";
-import { Layout, Menu, Typography, Drawer, theme } from "antd";
+import { Layout, Menu, Typography, Drawer } from "antd";
 import { DashboardOutlined } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useIkoluToken } from "../../hooks/useIkoluToken";
 import logoSrc from "../../assets/images/ikolu.png";
 
 const { Sider } = Layout;
@@ -30,7 +31,7 @@ const menuItems = [
 const SidebarContent = ({ collapsed, onMenuClick }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { token } = theme.useToken();
+  const token = useIkoluToken();
 
   const handleClick = (e) => {
     navigate(e.key);
@@ -40,7 +41,7 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
   return (
     <div
       style={{
-        background: token.colorPrimary,
+        background: token.colorHeaderBg,
         height: "100%",
         display: "flex",
         flexDirection: "column",
@@ -54,7 +55,7 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
           alignItems: "center",
           justifyContent: "center",
           gap: collapsed ? 0 : 12,
-          borderBottom: `1px solid rgba(255,255,255,0.15)`,
+          borderBottom: `1px solid ${token.colorHeaderBorder}`,
           padding: "0 16px",
         }}
       >
@@ -102,7 +103,7 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
           bottom: 0,
           width: "100%",
           padding: "16px",
-          borderTop: "1px solid rgba(255,255,255,0.15)",
+          borderTop: `1px solid ${token.colorHeaderBorder}`,
           textAlign: "center",
         }}
       >
@@ -122,7 +123,7 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
 };
 
 const Sidebar = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpen }) => {
-  const { token } = theme.useToken();
+  const token = useIkoluToken();
 
   if (isMobile) {
     return (
@@ -133,7 +134,7 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpen 
         width={280}
         closable={false}
         styles={{ body: { padding: 0 } }}
-        style={{ background: token.colorPrimary }}
+        style={{ background: token.colorHeaderBg }}
       >
         <SidebarContent collapsed={false} onMenuClick={() => setMobileOpen(false)} />
       </Drawer>
@@ -148,8 +149,8 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpen 
       onCollapse={setCollapsed}
       theme="dark"
       style={{
-        background: token.colorPrimary,
-        borderRight: "1px solid rgba(0,0,0,0.2)",
+        background: token.colorHeaderBg,
+        borderRight: `1px solid ${token.colorHeaderBorder}`,
       }}
       width={240}
     >

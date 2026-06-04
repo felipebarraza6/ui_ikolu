@@ -1,5 +1,5 @@
 import React from "react";
-import { Layout, Button, Dropdown, Avatar, Typography, Space, Tooltip, theme } from "antd";
+import { Layout, Button, Dropdown, Avatar, Typography, Space, Tooltip } from "antd";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -11,6 +11,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useAppTheme } from "../../contexts/ThemeContext";
+import { useIkoluToken } from "../../hooks/useIkoluToken";
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -19,11 +20,11 @@ const HeaderNav = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpe
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useAppTheme();
-  const { token } = theme.useToken();
+  const token = useIkoluToken();
 
   const handleLogout = () => {
-    logout();
     navigate("/login", { replace: true });
+    logout();
   };
 
   const handleToggle = () => {
@@ -46,7 +47,6 @@ const HeaderNav = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpe
       key: "logout",
       icon: <LogoutOutlined />,
       label: "Cerrar Sesión",
-      danger: true,
       onClick: handleLogout,
     },
   ];
@@ -55,13 +55,13 @@ const HeaderNav = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpe
     <Header
       style={{
         padding: isMobile ? "0 12px" : "0 24px",
-        background: token.colorPrimary,
+        background: token.colorHeaderBg,
         color: '#ffffff',
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-        borderBottom: `1px solid ${token.colorBorder}`,
+        borderBottom: `1px solid ${token.colorHeaderBorder}`,
         position: "sticky",
         top: 0,
         zIndex: 100,
@@ -78,12 +78,20 @@ const HeaderNav = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpe
           color: 'rgba(255,255,255,0.85)',
         }}
       />
- 
+
       <Space align="center" size={isMobile ? "small" : "middle"}>
         <Tooltip title={isDark ? "Modo Claro" : "Modo Oscuro"}>
           <Button
             type="text"
-            icon={<BulbOutlined style={{ color: isDark ? token.colorWarning : 'rgba(255,255,255,0.85)' }} />}
+            icon={
+              <BulbOutlined
+                style={{
+                  color: isDark ? '#FFD700' : 'rgba(255,255,255,0.85)',
+                  filter: isDark ? 'drop-shadow(0 0 3px rgba(255, 215, 0, 0.5))' : 'none',
+                  transition: 'all 0.3s ease',
+                }}
+              />
+            }
             onClick={toggleTheme}
             style={{ width: isMobile ? 32 : 40, height: isMobile ? 32 : 40 }}
           />
@@ -95,7 +103,7 @@ const HeaderNav = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpe
           </Text>
         )}
 
-        <Dropdown menu={{ items: menuItems }} placement="bottomRight" arrow>
+        <Dropdown menu={{ items: menuItems }} placement="bottomRight" arrow destroyPopupOnHide>
           <Avatar
             style={{
               background: token.colorPrimary,

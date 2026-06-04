@@ -13,6 +13,16 @@
   50% { transform: translateY(-10px); }
 }
 
+@keyframes wave-pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes wave-scale {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.15); }
+}
+
 @keyframes ripple {
   0% { transform: scale(0); opacity: 0.5; }
   100% { transform: scale(4); opacity: 0; }
@@ -55,50 +65,31 @@
 }
 
 /* =====================================================
-   Warning - Parpadeo doble tipo alerta
+   Dots - Parpadeo minimalista
    ===================================================== */
 
-@keyframes warning-double-blink {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-    filter: brightness(1);
-  }
-  20% {
-    opacity: 0.2;
-    transform: scale(1.3);
-    filter: brightness(2);
-  }
-  40% {
-    opacity: 1;
-    transform: scale(1);
-    filter: brightness(1);
-  }
-  60% {
-    opacity: 0.2;
-    transform: scale(1.3);
-    filter: brightness(2);
-  }
-  80% {
-    opacity: 1;
-    transform: scale(1);
-    filter: brightness(1);
-  }
+/* Telemetry: respiracion suave, 2s */
+@keyframes telemetry-dot-blink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.85); }
 }
 
-/* =====================================================
-   Telemetria - Parpadeo LED tipo conexion activa
-   ===================================================== */
+/* Warning: doble pulso, 1.2s */
+@keyframes warning-dot-blink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  25% { opacity: 0.2; transform: scale(1.2); }
+  50% { opacity: 1; transform: scale(1); }
+  75% { opacity: 0.2; transform: scale(1.2); }
+}
 
-@keyframes telemetry-led-blink {
-  0%, 100% {
-    opacity: 1;
-    box-shadow: 0 0 0 0 rgba(42, 157, 143, 0.7);
-  }
-  50% {
-    opacity: 0.25;
-    box-shadow: 0 0 12px 4px rgba(42, 157, 143, 0.9);
-  }
+/* Critical: pulsacion rapida, 0.8s (futuro) */
+@keyframes critical-dot-blink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  15% { opacity: 0.15; transform: scale(1.25); }
+  30% { opacity: 1; transform: scale(1); }
+  45% { opacity: 0.15; transform: scale(1.25); }
+  60% { opacity: 1; transform: scale(1); }
+  75% { opacity: 0.15; transform: scale(1.25); }
 }
 
 /* =====================================================
