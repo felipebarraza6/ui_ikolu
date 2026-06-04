@@ -1,51 +1,30 @@
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useContext, useMemo, useReducer } from 'react';
 
-/**
- * DataContext — Contexto especializado para datos de la aplicación
- *
- * Contiene: puntos de captación, perfil seleccionado, resumen de puntos.
- * Separar de AuthContext y UIContext evita re-renders en:
- * - Componentes de autenticación cuando cambian datos
- * - Componentes de UI (spinners) cuando cambian datos
- *
- * Uso: const { points_summary, selected_profile, points_list, dispatch } = useData();
- */
+const DataContext = createContext(null);
 
-export const DataContext = createContext(null);
+const dataReducer = (state, action) => {
+  switch (action.type) {
+    case "CHANGE_SELECTED_PROFILE":
+      return { ...state, selected_profile: action.payload.selected_profile };
+    default:
+      return state;
+  }
+};
 
-export const DataProvider = ({ value, children }) => {
-  const {
-    points_summary,
-    selected_profile,
-    points_list,
-    dispatch,
-  } = value;
+export const DataProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(dataReducer, { selected_profile: null });
 
-  // Memoizar profundamente para evitar re-renders por cambios en otros campos del state
   const contextValue = useMemo(() => ({
-    points_summary,
-    selected_profile,
-    points_list,
+    selected_profile: state.selected_profile,
     dispatch,
-  }), [
-    points_summary,
-    selected_profile,
-    points_list,
-    dispatch,
-  ]);
+  }), [state.selected_profile, dispatch]);
 
-  return (
-    <DataContext.Provider value={contextValue}>
-      {children}
-    </DataContext.Provider>
-  );
+  return <DataContext.Provider value={contextValue}>{children}</DataContext.Provider>;
 };
 
 export const useData = () => {
   const context = useContext(DataContext);
-  if (!context) {
-    throw new Error('useData debe usarse dentro de DataProvider');
-  }
+  if (!context) throw new Error('useData debe usarse dentro de DataProvider');
   return context;
 };
 

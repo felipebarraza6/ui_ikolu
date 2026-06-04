@@ -4,33 +4,33 @@
 // Accent: #CCCF07 (Yellow-Green / Lime)
 
 export const smarthydroColors = {
-  // Ocean Deep palette - Ultra modern water theme
+  // Corporate palette - Smart Hydro brand
   primary: {
-    25: '#E8F4F8',
-    50: '#D0E9F2',
-    100: '#A8D8E8',
-    200: '#6BBFD9',
-    300: '#3BA3C9',
-    400: '#1A7A9E',
-    500: '#0A2540',  // Deep ocean
-    600: '#081E35',
-    700: '#06182A',
-    800: '#041220',
-    900: '#020C16',
+    25: '#EBF0F8',
+    50: '#D6E0F0',
+    100: '#ADC1E0',
+    200: '#85A2D1',
+    300: '#5C83C1',
+    400: '#3A68AA',
+    500: '#203562',  // Corporate Dark Blue
+    600: '#16294A',
+    700: '#0F1E3A',
+    800: '#0A152A',
+    900: '#050D1A',
   },
   
-  // Cyan/Water accent
+  // Yellow-Green / Lime accent
   accent: {
-    50: '#E0FBFC',
-    100: '#C1F4F8',
-    200: '#90E0EF',
-    300: '#60C6E0',
-    400: '#00B4D8',
-    500: '#0096C7',
-    600: '#0077B6',
-    700: '#005F8C',
-    800: '#004A6E',
-    900: '#003852',
+    50: '#FDFEE6',
+    100: '#F8FAC4',
+    200: '#F0F39A',
+    300: '#E3E865',
+    400: '#CCCF07',  // Yellow-Green
+    500: '#B8BB06',
+    600: '#9EA105',
+    700: '#7F8204',
+    800: '#606303',
+    900: '#414302',
   },
   
   // Surface colors - glassmorphism
@@ -39,13 +39,13 @@ export const smarthydroColors = {
     medium: 'rgba(255, 255, 255, 0.06)',
     strong: 'rgba(255, 255, 255, 0.10)',
     border: 'rgba(255, 255, 255, 0.08)',
-    glow: 'rgba(0, 180, 216, 0.15)',
+    glow: 'rgba(32, 53, 98, 0.2)',
   },
   
   // Supporting colors
   supporting: {
-    blue: '#0077B6',
-    cyan: '#00B4D8',
+    blue: '#203562',
+    cyan: '#CCCF07',
     teal: '#2A9D8F',
     coral: '#F4A261',
     warm: '#E76F51',
@@ -65,9 +65,9 @@ export const smarthydroColors = {
     errorBg: 'rgba(231, 111, 81, 0.15)',
     errorBorder: 'rgba(231, 111, 81, 0.3)',
     
-    info: '#00B4D8',     // Cyan water
-    infoBg: 'rgba(0, 180, 216, 0.15)',
-    infoBorder: 'rgba(0, 180, 216, 0.3)',
+    info: '#3A68AA',     // Corporate blue
+    infoBg: 'rgba(58, 104, 170, 0.15)',
+    infoBorder: 'rgba(58, 104, 170, 0.3)',
   },
   
   // Neutral palette - Cool grays for dark theme
@@ -81,7 +81,7 @@ export const smarthydroColors = {
     600: '#495057',
     700: '#343A40',
     800: '#212529',
-    900: '#050A14',  // Deep ocean background
+    900: '#050D1A',  // Deep background
   },
 };
 
@@ -141,31 +141,31 @@ export const smarthydroRadii = {
 
 export const smarthydroShadows = {
   none: 'none',
-  sm: '0 1px 3px rgba(0, 180, 216, 0.1)',
-  md: '0 4px 16px rgba(0, 180, 216, 0.12)',
-  lg: '0 8px 32px rgba(0, 180, 216, 0.15)',
-  xl: '0 12px 48px rgba(0, 180, 216, 0.2)',
-  glow: '0 0 20px rgba(0, 180, 216, 0.3)',
+  sm: '0 1px 3px rgba(32, 53, 98, 0.1)',
+  md: '0 4px 16px rgba(32, 53, 98, 0.12)',
+  lg: '0 8px 32px rgba(32, 53, 98, 0.15)',
+  xl: '0 12px 48px rgba(32, 53, 98, 0.2)',
+  glow: '0 0 20px rgba(204, 207, 7, 0.25)',
   inner: 'inset 0 2px 4px rgba(0, 0, 0, 0.2)',
-  focus: '0 0 0 3px rgba(0, 180, 216, 0.25)',
+  focus: '0 0 0 3px rgba(32, 53, 98, 0.25)',
 };
 
 export const smarthydroGradients = {
-  // Ocean deep gradient - Animated living water
-  ocean: 'linear-gradient(-45deg, #0A2540, #0077B6, #00B4D8, #90E0EF)',
-  oceanDeep: 'linear-gradient(180deg, #050A14 0%, #0A2540 50%, #0D3B4C 100%)',
+  // Corporate deep gradient
+  ocean: 'linear-gradient(-45deg, #203562, #3A68AA, #4D7FBD, #85A2D1)',
+  oceanDeep: 'linear-gradient(180deg, #050D1A 0%, #203562 50%, #2A4A8A 100%)',
   
   // Surface gradient - Glassmorphism base
   surface: 'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)',
   surfaceHover: 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%)',
   
   // Primary gradient for KPIs
-  primary: 'linear-gradient(135deg, #0A2540 0%, #0077B6 100%)',
-  primaryReverse: 'linear-gradient(135deg, #0077B6 0%, #0A2540 100%)',
+  primary: 'linear-gradient(135deg, #203562 0%, #3A68AA 100%)',
+  primaryReverse: 'linear-gradient(135deg, #3A68AA 0%, #203562 100%)',
   
-  // Cyan accent gradient
-  accent: 'linear-gradient(135deg, #00B4D8 0%, #0096C7 100%)',
-  accentGlow: 'linear-gradient(135deg, #90E0EF 0%, #00B4D8 50%, #0077B6 100%)',
+  // Accent gradient
+  accent: 'linear-gradient(135deg, #CCCF07 0%, #B8BB06 100%)',
+  accentGlow: 'linear-gradient(135deg, #F0F39A 0%, #CCCF07 50%, #B8BB06 100%)',
   
   // Teal success gradient
   success: 'linear-gradient(135deg, #2A9D8F 0%, #3DB8A8 100%)',
@@ -174,7 +174,7 @@ export const smarthydroGradients = {
   warning: 'linear-gradient(135deg, #F4A261 0%, #E76F51 100%)',
   
   // Info gradient
-  info: 'linear-gradient(135deg, #00B4D8 0%, #3BA3C9 100%)',
+  info: 'linear-gradient(135deg, #3A68AA 0%, #5C83C1 100%)',
 };
 
 export const smarthydroTransitions = {

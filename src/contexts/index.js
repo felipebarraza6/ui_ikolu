@@ -11,4 +11,3 @@
 
 export { AuthContext, AuthProvider, useAuth } from './AuthContext';
 export { DataContext, DataProvider, useData } from './DataContext';
-export { UIContext, UIProvider, useUI } from './UIContext';

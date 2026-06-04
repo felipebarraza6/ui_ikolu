@@ -20,6 +20,14 @@ export const ThemeProvider = ({ children }) => {
     try {
       localStorage.setItem(THEME_KEY, isDark ? "dark" : "light");
     } catch {}
+
+    if (isDark) {
+      document.body.classList.add("dark");
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.body.classList.remove("dark");
+      document.documentElement.setAttribute("data-theme", "light");
+    }
   }, [isDark]);
 
   const algorithm = isDark ? theme.darkAlgorithm : theme.defaultAlgorithm;

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback } from "react";
+import React from "react";
 import { Flex, Typography, theme } from "antd";
 import { extractRecordNum } from "./MeasurementUtils";
 
@@ -18,31 +18,18 @@ export const TrendArrow = ({ current, previous }) => {
   );
 };
 
-export const StatPill = ({ label, value, sub, color, valueColor }) => {
-  const pillRef = useRef(null);
-  const valueRef = useRef(null);
-
-  useEffect(() => {
-    if (pillRef.current) {
-      pillRef.current.style.border = `1px solid ${color}30`;
-    }
-    if (valueRef.current) {
-      valueRef.current.style.color = valueColor || color;
-    }
-  }, [color, valueColor]);
-
-  return (
-    <div ref={pillRef} className="ocean-stat-pill">
-      {typeof label === 'string' ? (
-        <Text className="ocean-text-xs ocean-text-muted ocean-uppercase ocean-letter-spacing ocean-stat-label">{label}</Text>
-      ) : label}
-      <Text ref={valueRef} strong className="ocean-stat-value">{value}</Text>
-      {sub && <Text className={`ocean-stat-sub ${sub === 'TOTAL' ? 'ocean-stat-sub-total' : ''}`}>{sub}</Text>}
-    </div>
-  );
-};
+export const StatPill = ({ label, value, sub, color, valueColor }) => (
+  <div className="ocean-stat-pill" style={{ border: `1px solid ${color}30` }}>
+    {typeof label === 'string' ? (
+      <Text className="ocean-text-xs ocean-text-muted ocean-uppercase ocean-letter-spacing ocean-stat-label">{label}</Text>
+    ) : label}
+    <Text strong className="ocean-stat-value" style={{ color: valueColor || color }}>{value}</Text>
+    {sub && <Text className="ocean-stat-sub" style={{ fontWeight: sub === 'TOTAL' ? 700 : 400, textTransform: sub === 'TOTAL' ? 'uppercase' : 'none' }}>{sub}</Text>}
+  </div>
+);
 
 export const MetricCard = ({ title, icon, kpis, children }) => {
+  const { token } = useToken();
   return (
     <div className="ocean-metric-card">
       <div className="ocean-metric-header">

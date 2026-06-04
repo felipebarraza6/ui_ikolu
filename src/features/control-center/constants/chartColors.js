@@ -1,11 +1,11 @@
 export const COLORS = {
   max: '#E76F51',
   min: '#2A9D8F',
-  avg: '#90E0EF',
-  consumo: '#0077B6',
-  caudal: '#00B4D8',
-  nivel: '#0077B6',
-  freatico: '#90E0EF',
+  avg: '#85A2D1',
+  consumo: '#3A68AA',
+  caudal: '#CCCF07',
+  nivel: '#3A68AA',
+  freatico: '#85A2D1',
 };
 
 export const CHART_METRICS = {

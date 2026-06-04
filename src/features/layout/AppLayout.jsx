@@ -1,0 +1,49 @@
+import React, { useState } from "react";
+import { Layout, Grid } from "antd";
+import Sidebar from "./Sidebar";
+import HeaderNav from "./HeaderNav";
+
+const { Content } = Layout;
+
+const AppLayout = ({ children }) => {
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
+
+  return (
+    <Layout style={{ minHeight: "100vh", background: "#050A14" }}>
+      <Sidebar
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+        isMobile={isMobile}
+        mobileOpen={mobileOpen}
+        setMobileOpen={setMobileOpen}
+      />
+      <Layout style={{ background: "#050A14" }}>
+        <HeaderNav
+          collapsed={collapsed}
+          setCollapsed={setCollapsed}
+          isMobile={isMobile}
+          mobileOpen={mobileOpen}
+          setMobileOpen={setMobileOpen}
+        />
+        <Content
+          className="app-layout-content"
+          style={{
+            margin: "24px 16px",
+            padding: 24,
+            background: "rgba(255, 255, 255, 0.02)",
+            borderRadius: 16,
+            minHeight: 280,
+            overflow: "auto",
+          }}
+        >
+          {children}
+        </Content>
+      </Layout>
+    </Layout>
+  );
+};
+
+export default AppLayout;

@@ -1,27 +1,47 @@
-import React, { useContext } from "react";
+import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import Home from "./containers/Home";
-import Login from "./containers/Login";
-import ResetPassword from "./containers/ResetPassword";
-import PreviewModalQR from "./components/dga/PreviewModalQR";
-import { AppContext } from "./App";
+import ControlCenter from "./features/control-center/ControlCenter";
+import LoginPage from "./features/auth/LoginPage";
+import ProfilePage from "./features/profile/ProfilePage";
+import AppLayout from "./features/layout/AppLayout";
+import { useAuth } from "./contexts/AuthContext";
+
+const ProtectedLayout = ({ children }) => {
+  const { isAuth } = useAuth();
+  return isAuth ? <AppLayout>{children}</AppLayout> : <Navigate to="/login" replace />;
+};
 
 const AppRouter = () => {
-  const { state } = useContext(AppContext);
-  const isAuth = state && state.isAuth && state.user && state.user.username;
+  const { isAuth } = useAuth();
+
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      {/* Ruta pública para preview del certificado - no requiere autenticación */}
-      <Route path="/preview-certificate" element={<PreviewModalQR />} />
       <Route
-        path="/"
-        element={isAuth ? <Home /> : <Navigate to="/login" replace />}
+        path="/login"
+        element={isAuth ? <Navigate to="/control-center/telemetry" replace /> : <LoginPage />}
       />
+
+      <Route
+        path="/control-center/:tab?"
+        element={
+          <ProtectedLayout>
+            <ControlCenter />
+          </ProtectedLayout>
+        }
+      />
+
+      <Route
+        path="/profile"
+        element={
+          <ProtectedLayout>
+            <ProfilePage />
+          </ProtectedLayout>
+        }
+      />
+
       <Route
         path="/*"
-        element={isAuth ? <Home /> : <Navigate to="/login" replace />}
+        element={<Navigate to={isAuth ? "/control-center/telemetry" : "/login"} replace />}
       />
     </Routes>
   );

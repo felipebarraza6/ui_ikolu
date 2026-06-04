@@ -8,7 +8,7 @@ const SmartKPICard = ({
   label,
   value,
   suffix,
-  gradient = "linear-gradient(-45deg, #0A2540, #0077B6, #00B4D8, #90E0EF)",
+  gradient = "linear-gradient(-45deg, #203562, #3A68AA, #4D7FBD, #85A2D1)",
   onClick,
   style = {},
 }) => {
@@ -33,21 +33,21 @@ const SmartKPICard = ({
         alignItems: "center",
         justifyContent: "center",
         gap: 8,
-        border: "1px solid rgba(0, 180, 216, 0.15)",
-        boxShadow: "0 4px 16px rgba(0, 180, 216, 0.12)",
+        border: "1px solid rgba(58, 104, 170, 0.15)",
+        boxShadow: "0 4px 16px rgba(32, 53, 98, 0.12)",
         ...style,
       }}
       onMouseEnter={(e) => {
         if (onClick) {
           e.currentTarget.style.transform = "translateY(-4px)";
-          e.currentTarget.style.boxShadow = "0 8px 32px rgba(0, 180, 216, 0.25)";
-          e.currentTarget.style.borderColor = "rgba(0, 180, 216, 0.3)";
+          e.currentTarget.style.boxShadow = "0 8px 32px rgba(32, 53, 98, 0.25)";
+          e.currentTarget.style.borderColor = "rgba(58, 104, 170, 0.3)";
         }
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "0 4px 16px rgba(0, 180, 216, 0.12)";
-        e.currentTarget.style.borderColor = "rgba(0, 180, 216, 0.15)";
+        e.currentTarget.style.boxShadow = "0 4px 16px rgba(32, 53, 98, 0.12)";
+        e.currentTarget.style.borderColor = "rgba(58, 104, 170, 0.15)";
       }}
     >
       {/* Wave decoration at bottom */}
@@ -58,7 +58,7 @@ const SmartKPICard = ({
           left: 0,
           right: 0,
           height: 40,
-          background: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%2300B4D8' fill-opacity='0.15' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E\") no-repeat bottom",
+          background: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%233A68AA' fill-opacity='0.15' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E\") no-repeat bottom",
           backgroundSize: "cover",
           opacity: 0.6,
           animation: "wave 6s ease-in-out infinite",
@@ -79,7 +79,7 @@ const SmartKPICard = ({
             justifyContent: "center",
             marginTop: 4,
             marginBottom: 8,
-            boxShadow: "0 0 20px rgba(0, 180, 216, 0.2)",
+            boxShadow: "0 0 20px rgba(204, 207, 7, 0.2)",
             border: "1px solid rgba(255, 255, 255, 0.1)",
           }}>
             {icon}
@@ -106,7 +106,7 @@ const SmartKPICard = ({
               fontFamily: "'Lato', sans-serif",
               fontWeight: 800,
               lineHeight: 1.1,
-              textShadow: "0 0 20px rgba(0, 180, 216, 0.5)",
+              textShadow: "0 0 20px rgba(32, 53, 98, 0.5)",
             }}
           >
             {value}

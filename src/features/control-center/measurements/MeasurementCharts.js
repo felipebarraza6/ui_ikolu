@@ -159,10 +159,10 @@ export const MeasurementsDualColumnChart = ({ data, token, showOnly, wellConfig,
         const exceedsAvg = val > avgValue;
         const avgDiff = (val - avgValue).toFixed(2);
         html += `<div style="border-top: 1px solid ${token.colorBorderSecondary}; padding-top: 6px; margin-top: 4px;">`;
-        html += `<div style="font-size: 9px; color: #90E0EF; margin-bottom: 4px; font-weight: 600; text-transform: uppercase;">Promedio</div>`;
+        html += `<div style="font-size: 9px; color: #85A2D1; margin-bottom: 4px; font-weight: 600; text-transform: uppercase;">Promedio</div>`;
         html += `<div style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;">`;
-        html += `<div style="width: 6px; height: 6px; border-radius: 50%; background: #90E0EF;"></div>`;
-        html += `<span style="font-size: 10px; color: ${exceedsAvg ? '#E76F51' : '#90E0EF'};">`;
+        html += `<div style="width: 6px; height: 6px; border-radius: 50%; background: #85A2D1;"></div>`;
+        html += `<span style="font-size: 10px; color: ${exceedsAvg ? '#E76F51' : '#85A2D1'};">`;
         html += `${exceedsAvg ? '<span style="color:#E76F51">▲ Supera</span>' : 'Bajo'} promedio: ${avgValue.toFixed(2)}m (${avgDiff > 0 ? '+' : ''}${avgDiff})`;
         html += `</span>`;
         html += `</div>`;
@@ -177,7 +177,7 @@ export const MeasurementsDualColumnChart = ({ data, token, showOnly, wellConfig,
 
   if (showOnly === 'nivel') {
     const nivelData = data.filter(d => d.nivel != null);
-    if (nivelData.length === 0) return <Flex justify="center" align="center" className="ocean-chart-empty" vertical><Text type="secondary" className="ocean-text-xs">Sin datos de nivel</Text></Flex>;
+    if (nivelData.length === 0) return <Flex justify="center" align="center" style={{ height: 220 }} vertical><Text type="secondary" style={{ fontSize: 12 }}>Sin datos de nivel</Text></Flex>;
     
     return (
       <ApexChartWrapper
@@ -200,7 +200,7 @@ export const MeasurementsDualColumnChart = ({ data, token, showOnly, wellConfig,
 
   if (showOnly === 'water_table') {
     const wtData = data.filter(d => d.water_table != null);
-    if (wtData.length === 0) return <Flex justify="center" align="center" className="ocean-chart-empty" vertical><Text type="secondary" className="ocean-text-xs">Sin datos de nivel freático</Text></Flex>;
+    if (wtData.length === 0) return <Flex justify="center" align="center" style={{ height: 220 }} vertical><Text type="secondary" style={{ fontSize: 12 }}>Sin datos de nivel freático</Text></Flex>;
 
     return (
       <ApexChartWrapper
@@ -235,7 +235,7 @@ export const MeasurementsCombinedLevelChart = ({ data, token, wellConfig, pointN
   const wtData = data.filter(d => d.water_table != null);
 
   if (nivelData.length === 0 && wtData.length === 0) {
-    return <Flex justify="center" align="center" className="ocean-chart-empty" vertical><Text type="secondary" className="ocean-text-xs">Sin datos de niveles</Text></Flex>;
+    return <Flex justify="center" align="center" style={{ height: 220 }} vertical><Text type="secondary" style={{ fontSize: 12 }}>Sin datos de niveles</Text></Flex>;
   }
 
   const series = [];
@@ -408,25 +408,25 @@ export const MeasurementsCombinedLevelChart = ({ data, token, wellConfig, pointN
 
       // Zona de aire
       if (pctA > 0) {
-        html += `<div style="height: ${Math.max(pctA, 10)}%; min-height: 18px; background: rgba(230, 247, 255, 0.6); display: flex; align-items: center; justify-content: center; font-size: 11px; color: #90E0EF; font-weight: 700; position: relative;">`;
+        html += `<div style="height: ${Math.max(pctA, 10)}%; min-height: 18px; background: rgba(230, 247, 255, 0.6); display: flex; align-items: center; justify-content: center; font-size: 11px; color: #85A2D1; font-weight: 700; position: relative;">`;
         html += `<span style="z-index: 2;">ZONA DE AIRE</span>`;
-        html += `<div style="position: absolute; bottom: 4px; right: 6px; font-size: 10px; color: #90E0EF; font-weight: 700;">${zonaA.toFixed(1)}m</div>`;
+        html += `<div style="position: absolute; bottom: 4px; right: 6px; font-size: 10px; color: #85A2D1; font-weight: 700;">${zonaA.toFixed(1)}m</div>`;
         html += `</div>`;
       }
 
       // Capa saturada (zona de agua)
       if (pctB > 0) {
-        html += `<div style="height: ${Math.max(pctB, 10)}%; min-height: 18px; background: rgba(0, 80, 179, 0.25); display: flex; align-items: center; justify-content: center; font-size: 11px; color: #90E0EF; font-weight: 700; position: relative;">`;
+        html += `<div style="height: ${Math.max(pctB, 10)}%; min-height: 18px; background: rgba(0, 80, 179, 0.25); display: flex; align-items: center; justify-content: center; font-size: 11px; color: #85A2D1; font-weight: 700; position: relative;">`;
         html += `<span style="z-index: 2;">ZONA DINÁMICA</span>`;
-        html += `<div style="position: absolute; bottom: 4px; right: 6px; font-size: 10px; color: #90E0EF; font-weight: 700;">${zonaB.toFixed(1)}m</div>`;
+        html += `<div style="position: absolute; bottom: 4px; right: 6px; font-size: 10px; color: #85A2D1; font-weight: 700;">${zonaB.toFixed(1)}m</div>`;
         html += `</div>`;
       }
 
       // Zona estática
       if (pctC > 0) {
-        html += `<div style="height: ${Math.max(pctC, 10)}%; min-height: 18px; background: rgba(0, 39, 102, 0.35); display: flex; align-items: center; justify-content: center; font-size: 11px; color: #90E0EF; font-weight: 700; position: relative;">`;
+        html += `<div style="height: ${Math.max(pctC, 10)}%; min-height: 18px; background: rgba(0, 39, 102, 0.35); display: flex; align-items: center; justify-content: center; font-size: 11px; color: #85A2D1; font-weight: 700; position: relative;">`;
         html += `<span style="z-index: 2;">ZONA ESTÁTICA</span>`;
-        html += `<div style="position: absolute; bottom: 4px; right: 6px; font-size: 10px; color: #90E0EF; font-weight: 700;">${zonaC.toFixed(1)}m</div>`;
+        html += `<div style="position: absolute; bottom: 4px; right: 6px; font-size: 10px; color: #85A2D1; font-weight: 700;">${zonaC.toFixed(1)}m</div>`;
         html += `</div>`;
       }
 

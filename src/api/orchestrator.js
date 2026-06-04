@@ -422,6 +422,28 @@ export const getOrchestratorStats = () => {
 };
 
 // ──────────────────────────────────────────
+// Centro de Control — Wrappers directos
+// ──────────────────────────────────────────
+
+export const dashboardStats = (signal) => sh.dashboardStats(signal);
+
+export const compliance = (signal) => sh.compliance(signal);
+
+export const chat = (message) => sh.chat(message);
+
+export const verifyDgaVoucher = (codigoObra, numeroComprobante, tipoDga) =>
+  sh.verifyDgaVoucher(codigoObra, numeroComprobante, tipoDga);
+
+export const pointRecords = (pointId, startDate, endDate, limit) =>
+  sh.pointRecords(pointId, startDate, endDate, limit);
+
+export const pointConfig = (pointId) => sh.pointConfig(pointId);
+
+export const notifications = {
+  create: (data) => sh.notifications.create(data),
+};
+
+// ──────────────────────────────────────────
 // Export default
 // ──────────────────────────────────────────
 const orchestrator = {
@@ -437,6 +459,13 @@ const orchestrator = {
   cancelAllRequests,
   invalidatePointCache,
   getStats: getOrchestratorStats,
+  dashboardStats,
+  compliance,
+  chat,
+  verifyDgaVoucher,
+  pointRecords,
+  pointConfig,
+  notifications,
   PRIORITY,
 };
 

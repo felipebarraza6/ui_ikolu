@@ -1,15 +1,14 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
-import "./styles/mobile.css";
-import "./styles/components.css";
 import "./styles/global-animations.css";
+import "./styles/theme-variables.css";
+import "./styles/ocean-theme.css";
+import "./styles/animations.css";
 import { ConfigProvider, App } from "antd";
 import AppStore from "./App";
-import reportWebVitals from "./reportWebVitals";
 import es_ES from "antd/lib/locale/es_ES";
 import { BrowserRouter } from "react-router-dom";
-import "./components/smart_data/i18n";
 import { createIkoluTheme } from "./theme";
 import IkoluEmotionProvider from "./theme/EmotionThemeProvider";
 import { ThemeProvider, useAppTheme } from "./contexts/ThemeContext";
@@ -40,5 +39,3 @@ root.render(
     </ThemeProvider>
   </React.StrictMode>
 );
-
-reportWebVitals();

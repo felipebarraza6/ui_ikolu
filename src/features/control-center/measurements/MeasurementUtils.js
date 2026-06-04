@@ -1,5 +1,3 @@
-import moment from "moment";
-
 /* ── Helper: normalizar número que puede venir como objeto {source, parsedValue} ── */
 export const extractRecordNum = (val) => {
   if (val == null) return null;
@@ -43,7 +41,7 @@ export const classifyByTimeOfDay = (measurements) => {
   measurements.forEach((m) => {
     const timeStr = m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at;
     if (!timeStr) return;
-    const hour = moment(timeStr).hour();
+    const hour = new Date(timeStr).getHours();
     if (hour >= 0 && hour <= 5) dawn.push(m);
     else if (hour >= 6 && hour <= 12) morning.push(m);
     else if (hour >= 13 && hour <= 18) afternoon.push(m);
@@ -51,8 +49,8 @@ export const classifyByTimeOfDay = (measurements) => {
   });
 
   const sortByTime = (a, b) => {
-    const ta = moment(a.date_time || a.date_time_medition || a.timestamp || a.time || a.created_at).valueOf();
-    const tb = moment(b.date_time || b.date_time_medition || b.timestamp || b.time || b.created_at).valueOf();
+    const ta = new Date(a.date_time || a.date_time_medition || a.timestamp || a.time || a.created_at).getTime();
+    const tb = new Date(b.date_time || b.date_time_medition || b.timestamp || b.time || b.created_at).getTime();
     return ta - tb;
   };
 

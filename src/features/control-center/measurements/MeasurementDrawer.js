@@ -1,9 +1,10 @@
 import React, { useCallback, useState, useMemo, useRef } from "react";
-import moment from "moment";
+import { format, parseISO, parse } from "date-fns";
 import html2canvas from "html2canvas";
 import { Row, Col, Flex, Typography, Table, Tag, Button, message } from "antd";
 import { FaDownload, FaSun, FaMoon, FaImage } from "react-icons/fa";
 import { extractRecordNum, extractMeasurements, classifyByTimeOfDay, getPeriod, formatKPI } from "./MeasurementUtils";
+import { smarthydro } from "../../../theme/smarthydro.tokens";
 import { TrendArrow, StatPill, MetricCard } from "./MeasurementKPIs";
 import { MeasurementsAreaChart, MeasurementsLineChart, MeasurementsDualColumnChart, MeasurementsCombinedLevelChart } from "./MeasurementCharts";
 
@@ -35,15 +36,15 @@ const MemoizedMeasurementsTable = React.memo(({ allMeasurements, measurementColu
         const field = fieldMap[c.key] || c.key;
         let val = m[field];
         if (c.key === 'period') {
-          const hour = moment(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at).hour();
+          const hour = new Date(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at).getHours();
           const p = getPeriod(hour);
           val = p.label;
         }
         if (c.key === 'logger_time') {
-          val = moment(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at).format('DD/MM/YYYY HH:mm:ss');
+          val = format(parseISO(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at), 'dd/MM/yyyy HH:mm:ss');
         }
         if (c.key === 'time') {
-          val = moment(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at).format('HH:mm');
+          val = format(parseISO(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at), 'HH:mm');
         }
         if (c.key === 'estado') {
           val = val ? 'Error' : 'Confirmado';
@@ -70,20 +71,13 @@ const MemoizedMeasurementsTable = React.memo(({ allMeasurements, measurementColu
     [allMeasurements]
   );
 
-  const HeaderCell = useMemo(() => {
-    const Component = (props) => {
-      const { className: _cn, style: _s, ...rest } = props;
-      return <th {...rest} className="ocean-table-header-cell" />;
-    };
-    Component.displayName = "HeaderCell";
-    return Component;
-  }, []);
-
   const components = useMemo(() => ({
     header: {
-      cell: HeaderCell,
+      cell: (props) => (
+        <th {...props} className="ocean-table-header-cell" style={{ ...props.style }} />
+      ),
     },
-  }), [HeaderCell]);
+  }), [token.colorTextSecondary, token.colorBgLayout]);
 
   return (
     <Flex vertical gap={12}>
@@ -152,9 +146,9 @@ const handleExportLevelsCSV = (chartData, wellConfig, pointName, date) => {
   const rows = chartData
     .filter(d => d.water_table != null)
     .map(d => {
-      const dt = moment(d.datetime, "DD/MM HH:mm");
-      const fecha = dt.format("DD/MM/YYYY");
-      const hora = dt.format("HH:mm");
+      const dt = parse(d.datetime, "dd/MM HH:mm", new Date());
+      const fecha = format(dt, "dd/MM/yyyy");
+      const hora = format(dt, "HH:mm");
       const wt = Number(d.water_table);
       const nivel = sensorPos != null ? (sensorPos - wt).toFixed(2) : null;
       
@@ -206,7 +200,7 @@ export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, ac
       if (better) { target = v; targetItem = m; }
     });
     if (!targetItem) return null;
-    const t = moment(targetItem.date_time || targetItem.date_time_medition || targetItem.timestamp || targetItem.time || targetItem.created_at).format("HH:mm");
+    const t = format(parseISO(targetItem.date_time || targetItem.date_time_medition || targetItem.timestamp || targetItem.time || targetItem.created_at), "HH:mm");
     return { value: target, time: t };
   }, []);
 
@@ -234,10 +228,10 @@ export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, ac
   const chartDataAll = useMemo(() => {
     return sortedMeasurements
       .map((m) => {
-        const dt = moment(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at);
+        const dt = parseISO(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at);
         return {
-          time: dt.format("HH:mm"),
-          datetime: dt.format("DD/MM HH:mm"),
+          time: format(dt, "HH:mm"),
+          datetime: format(dt, "dd/MM HH:mm"),
           consumo: extractRecordNum(m.total_diff),
           caudal: extractRecordNum(m.flow) ?? extractRecordNum(m.caudal),
           nivel: extractRecordNum(m.nivel) ?? extractRecordNum(m.level),
@@ -261,13 +255,13 @@ export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, ac
       width: 85,
       align: "center",
       render: (_, m) => {
-        const hour = moment(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at).hour();
+        const hour = new Date(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at).getHours();
         const p = getPeriod(hour);
         const Icon = getPeriodIcon(hour);
         return (
           <Flex align="center" justify="center" gap={4}>
-            <Icon className="ocean-period-icon" />
-            <Text className="ocean-period-label">{p.label}</Text>
+            <Icon style={{ fontSize: 9, color: smarthydro.colors.accent[400], opacity: 0.5 }} />
+            <Text style={{ fontSize: 10, color: smarthydro.colors.accent[400] }}>{p.label}</Text>
           </Flex>
         );
       },
@@ -278,8 +272,8 @@ export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, ac
       width: 120,
       align: "center",
       render: (_, m) => {
-        const t = moment(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at).format("DD/MM HH:mm:ss");
-        return <Text strong className="ocean-logger-time">{t}</Text>;
+        const t = format(parseISO(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at), "dd/MM HH:mm:ss");
+        return <Text strong style={{ fontSize: 10, color: smarthydro.colors.accent[400] }}>{t}</Text>;
       },
     },
     {
@@ -288,8 +282,8 @@ export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, ac
       width: 50,
       align: "center",
       render: (_, m) => {
-        const t = moment(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at).format("HH:mm");
-        return <Text className="ocean-table-time">{t}</Text>;
+        const t = format(parseISO(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at), "HH:mm");
+        return <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.9)' }}>{t}</Text>;
       },
     },
   ];
@@ -304,14 +298,12 @@ export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, ac
       const flowVal = extractRecordNum(m.flow) ?? extractRecordNum(m.caudal);
       const isMax = kpis.maxCaudal && flowVal === kpis.maxCaudal.value;
       const isMin = kpis.minCaudal && flowVal === kpis.minCaudal.value;
-      const valueClass = isMax ? "ocean-table-value-max" : isMin ? "ocean-table-value-min" : "ocean-table-value";
-      const weightStyle = isMax || isMin ? " ocean-font-semibold" : " ocean-font-normal";
       return flowVal != null ? (
-        <Text className={`${valueClass}${weightStyle}`}>
+        <Text style={{ fontSize: 11, color: isMax ? smarthydro.colors.semantic.error : isMin ? smarthydro.colors.semantic.success : 'rgba(255, 255, 255, 0.9)', fontWeight: isMax || isMin ? 600 : 400 }}>
           {flowVal.toFixed(1)}
           <TrendArrow current={m.flow} previous={m._prev?.flow} />
         </Text>
-      )       : <Text className="ocean-table-empty">—</Text>;
+      )       : <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.5)' }}>—</Text>;
     },
   };
 
@@ -325,14 +317,12 @@ export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, ac
       const levelVal = extractRecordNum(m.nivel) ?? extractRecordNum(m.level);
       const isMax = kpis.maxNivel && levelVal === kpis.maxNivel.value;
       const isMin = kpis.minNivel && levelVal === kpis.minNivel.value;
-      const valueClass = isMax ? "ocean-table-value-max" : isMin ? "ocean-table-value-min" : "ocean-table-value";
-      const weightStyle = isMax || isMin ? " ocean-font-semibold" : " ocean-font-normal";
       return levelVal != null ? (
-        <Text className={`${valueClass}${weightStyle}`}>
+        <Text style={{ fontSize: 11, color: isMax ? smarthydro.colors.semantic.error : isMin ? smarthydro.colors.semantic.success : 'rgba(255, 255, 255, 0.9)', fontWeight: isMax || isMin ? 600 : 400 }}>
           {levelVal.toFixed(2)}
           <TrendArrow current={m.nivel} previous={m._prev?.nivel} />
         </Text>
-      ) : <Text className="ocean-table-empty">—</Text>;
+      ) : <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>—</Text>;
     },
   };
 
@@ -346,14 +336,12 @@ export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, ac
       const wtVal = extractRecordNum(m.water_table);
       const isMax = kpis.maxWaterTable && wtVal === kpis.maxWaterTable.value;
       const isMin = kpis.minWaterTable && wtVal === kpis.minWaterTable.value;
-      const valueClass = isMax ? "ocean-table-value-max" : isMin ? "ocean-table-value-min" : "ocean-table-value";
-      const weightStyle = isMax || isMin ? " ocean-font-semibold" : " ocean-font-normal";
       return wtVal != null ? (
-        <Text className={`${valueClass}${weightStyle}`}>
+        <Text style={{ fontSize: 11, color: isMax ? smarthydro.colors.semantic.error : isMin ? smarthydro.colors.semantic.success : 'rgba(255, 255, 255, 0.9)', fontWeight: isMax || isMin ? 600 : 400 }}>
           {wtVal.toFixed(2)}
           <TrendArrow current={m.water_table} previous={m._prev?.water_table} />
         </Text>
-      ) : <Text className="ocean-table-empty">—</Text>;
+      ) : <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.5)' }}>—</Text>;
     },
   };
 
@@ -366,11 +354,11 @@ export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, ac
     render: (_, m) => {
       const totalVal = extractRecordNum(m.total);
       return totalVal != null ? (
-        <Text className="ocean-table-value">
+        <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.9)' }}>
           {totalVal.toLocaleString("es-CL", { maximumFractionDigits: 0 })}
           <TrendArrow current={m.total} previous={m._prev?.total} />
         </Text>
-      ) : <Text className="ocean-table-empty">—</Text>;
+      ) : <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.5)' }}>—</Text>;
     },
   };
 
@@ -384,14 +372,12 @@ export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, ac
       const diffVal = extractRecordNum(m.total_diff);
       const isMax = kpis.maxConsumo && diffVal === kpis.maxConsumo.value;
       const isMin = kpis.minConsumo && diffVal === kpis.minConsumo.value;
-      const valueClass = isMax ? "ocean-table-value-max" : isMin ? "ocean-table-value-min" : "ocean-table-value-cyan";
-      const weightStyle = isMax || isMin ? " ocean-font-bold" : " ocean-font-semibold";
       return diffVal != null ? (
-        <Text strong className={`${valueClass}${weightStyle}`}>
+        <Text strong style={{ fontSize: 11, color: isMax ? smarthydro.colors.semantic.error : isMin ? smarthydro.colors.semantic.success : smarthydro.colors.accent[400], fontWeight: isMax || isMin ? 700 : 600 }}>
           {diffVal.toLocaleString("es-CL", { maximumFractionDigits: 0 })}
           <TrendArrow current={m.total_diff} previous={m._prev?.total_diff} />
         </Text>
-      ) : <Text className="ocean-table-empty">—</Text>;
+      ) : <Text style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.5)' }}>—</Text>;
     },
   };
 
@@ -453,10 +439,10 @@ export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, ac
                     kpis={
                       <>
                         {totalDayConsumo > 0 && (
-                          <StatPill label="Total día" value={`${totalDayConsumo.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".")} m³`} sub="acumulado" color="#00B4D8" />
+                          <StatPill label="Total día" value={`${totalDayConsumo.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".")} m³`} sub="acumulado" color={smarthydro.colors.accent[400]} />
                         )}
-                        <StatPill label="Máx" value={formatKPI(kpis.maxConsumo, 0, " m³")} sub={kpis.maxConsumo ? `${kpis.maxConsumo.time} hrs` : null} color="#00B4D8" valueColor="#E76F51" />
-                        <StatPill label="Mín" value={formatKPI(kpis.minConsumo, 0, " m³")} sub={kpis.minConsumo ? `${kpis.minConsumo.time} hrs` : null} color="#00B4D8" valueColor="#2A9D8F" />
+                        <StatPill label="Máx" value={formatKPI(kpis.maxConsumo, 0, " m³")} sub={kpis.maxConsumo ? `${kpis.maxConsumo.time} hrs` : null} color={smarthydro.colors.accent[400]} valueColor={smarthydro.colors.semantic.error} />
+                        <StatPill label="Mín" value={formatKPI(kpis.minConsumo, 0, " m³")} sub={kpis.minConsumo ? `${kpis.minConsumo.time} hrs` : null} color={smarthydro.colors.accent[400]} valueColor={smarthydro.colors.semantic.success} />
                         <StatPill label="Prom" value={kpis.avgConsumo != null ? `${kpis.avgConsumo.toFixed(0)} m³` : "—"} sub="promedio" color="rgba(255, 255, 255, 0.5)" />
                       </>
                     }
@@ -482,8 +468,8 @@ export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, ac
                     icon={<div className="ocean-metric-dot ocean-metric-dot-cyan" />}
                     kpis={
                       <>
-                        <StatPill label="Máx" value={formatKPI(kpis.maxCaudal, 1, " L/s")} sub={kpis.maxCaudal ? `${kpis.maxCaudal.time} hrs` : null} color="#00B4D8" valueColor="#E76F51" />
-                        <StatPill label="Mín" value={formatKPI(kpis.minCaudal, 1, " L/s")} sub={kpis.minCaudal ? `${kpis.minCaudal.time} hrs` : null} color="#00B4D8" valueColor="#2A9D8F" />
+                        <StatPill label="Máx" value={formatKPI(kpis.maxCaudal, 1, " L/s")} sub={kpis.maxCaudal ? `${kpis.maxCaudal.time} hrs` : null} color={smarthydro.colors.accent[400]} valueColor={smarthydro.colors.semantic.error} />
+                        <StatPill label="Mín" value={formatKPI(kpis.minCaudal, 1, " L/s")} sub={kpis.minCaudal ? `${kpis.minCaudal.time} hrs` : null} color={smarthydro.colors.accent[400]} valueColor={smarthydro.colors.semantic.success} />
                         <StatPill label="Prom" value={kpis.avgCaudal != null ? `${kpis.avgCaudal.toFixed(1)} L/s` : "—"} sub="promedio" color="rgba(255, 255, 255, 0.5)" />
                       </>
                     }
@@ -518,19 +504,19 @@ export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, ac
                   }
                   kpis={
                     <>
-                      <StatPill label="Profundidad total" value={wellConfig?.d1 != null ? `${wellConfig.d1} m` : "—"} sub="POZO" color="#0077B6" />
-                      <StatPill label="Posicionamiento Sensor" value={wellConfig?.d3 != null ? `${wellConfig.d3} m` : "—"} sub="SENSOR" color="#0077B6" />
+                      <StatPill label="Profundidad total" value={wellConfig?.d1 != null ? `${wellConfig.d1} m` : "—"} sub="POZO" color={smarthydro.colors.accent[600]} />
+                      <StatPill label="Posicionamiento Sensor" value={wellConfig?.d3 != null ? `${wellConfig.d3} m` : "—"} sub="SENSOR" color={smarthydro.colors.accent[600]} />
                       {activeVars.hasNivel && (
                         <>
-                          <StatPill label="Nivel máx" value={formatKPI(kpis.maxNivel, 2, " m")} sub={kpis.maxNivel ? `${kpis.maxNivel.time} hrs` : null} color="#0077B6" valueColor="#E76F51" />
-                          <StatPill label="Nivel mín" value={formatKPI(kpis.minNivel, 2, " m")} sub={kpis.minNivel ? `${kpis.minNivel.time} hrs` : null} color="#0077B6" valueColor="#2A9D8F" />
+                          <StatPill label="Nivel máx" value={formatKPI(kpis.maxNivel, 2, " m")} sub={kpis.maxNivel ? `${kpis.maxNivel.time} hrs` : null} color={smarthydro.colors.accent[600]} valueColor={smarthydro.colors.semantic.error} />
+                          <StatPill label="Nivel mín" value={formatKPI(kpis.minNivel, 2, " m")} sub={kpis.minNivel ? `${kpis.minNivel.time} hrs` : null} color={smarthydro.colors.accent[600]} valueColor={smarthydro.colors.semantic.success} />
                           <StatPill label="Nivel prom" value={kpis.avgNivel != null ? `${kpis.avgNivel.toFixed(2)} m` : "—"} sub="PROMEDIO" color="rgba(255, 255, 255, 0.5)" />
                         </>
                       )}
                       {activeVars.hasWaterTable && (
                         <>
-                          <StatPill label="Freático máx" value={formatKPI(kpis.maxWaterTable, 2, " m")} sub={kpis.maxWaterTable ? `${kpis.maxWaterTable.time} hrs` : null} color="rgba(255, 255, 255, 0.5)" valueColor="#E76F51" />
-                          <StatPill label="Freático mín" value={formatKPI(kpis.minWaterTable, 2, " m")} sub={kpis.minWaterTable ? `${kpis.minWaterTable.time} hrs` : null} color="rgba(255, 255, 255, 0.5)" valueColor="#2A9D8F" />
+                          <StatPill label="Freático máx" value={formatKPI(kpis.maxWaterTable, 2, " m")} sub={kpis.maxWaterTable ? `${kpis.maxWaterTable.time} hrs` : null} color="rgba(255, 255, 255, 0.5)" valueColor={smarthydro.colors.semantic.error} />
+                          <StatPill label="Freático mín" value={formatKPI(kpis.minWaterTable, 2, " m")} sub={kpis.minWaterTable ? `${kpis.minWaterTable.time} hrs` : null} color="rgba(255, 255, 255, 0.5)" valueColor={smarthydro.colors.semantic.success} />
                           <StatPill label="Freático prom" value={kpis.avgWaterTable != null ? `${kpis.avgWaterTable.toFixed(2)} m` : "—"} sub="PROMEDIO" color="rgba(255, 255, 255, 0.5)" />
                         </>
                       )}
@@ -563,12 +549,12 @@ export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, ac
           )}
 
           {activeTab === "1" && !activeVars.hasTotalizado && !activeVars.hasCaudal && (
-            <Flex justify="center" align="center" className="ocean-empty-chart">
+            <Flex justify="center" align="center" style={{ height: 200 }}>
               <Text type="secondary">Sin datos de hidrometría para este punto</Text>
             </Flex>
           )}
           {activeTab === "2" && !activeVars.hasNivel && !activeVars.hasWaterTable && (
-            <Flex justify="center" align="center" className="ocean-empty-chart">
+            <Flex justify="center" align="center" style={{ height: 200 }}>
               <Text type="secondary">Sin datos de niveles para este punto</Text>
             </Flex>
           )}
