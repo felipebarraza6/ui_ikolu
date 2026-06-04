@@ -110,13 +110,13 @@ const buildDefaultTooltip = (token, title, metric, unit, maxInfo, minInfo, avgIn
     const avgDiff = avgInfo != null ? (point.y - avgInfo).toFixed(2) : null;
     
     return `
-      <div style="padding: 8px 12px; background: ${token.colorBgElevated}; border-radius: 8px; box-shadow: ${token.boxShadowSecondary};">
+      <div style="padding: 8px 12px; background: ${token.colorBgElevated}; border-radius: 8px; box-shadow: ${"0 4px 16px rgba(0,0,0,0.15)"};">
         <div style="font-size: 12px; color: ${token.colorTextSecondary}; margin-bottom: 4px;">${time} hrs</div>
         <div style="font-size: 13px; color: ${token.colorText}; font-weight: 500;">
           ${title || metric}${suffix}: <strong>${Number(point.y).toFixed(unit.includes('m³') ? 0 : unit.includes('L/s') ? 1 : 2)} ${unit}</strong>
         </div>
         ${avgInfo != null ? `
-        <div style="margin-top: 4px; padding-top: 4px; border-top: 1px solid ${token.colorBorderSecondary}; font-size: 11px; color: ${COLORS.avg};">
+        <div style="margin-top: 4px; padding-top: 4px; border-top: 1px solid ${token.colorBorder}; font-size: 11px; color: ${COLORS.avg};">
           ${exceedsAvg ? '<span style="color:#ff4d4f">▲ Supera promedio</span>' : 'Bajo promedio'} ${avgInfo.toFixed(2)} (${avgDiff > 0 ? '+' : ''}${avgDiff})
         </div>
         ` : ''}
@@ -329,7 +329,7 @@ export const ApexChartWrapper = ({
       }
     },
     grid: {
-      borderColor: token.colorBorderSecondary + '50',
+      borderColor: token.colorBorder + '50',
       strokeDashArray: 4,
     },
     tooltip: {

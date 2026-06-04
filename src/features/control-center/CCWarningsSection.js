@@ -26,7 +26,7 @@ const CCWarningsSection = ({ warningsList, warningsRaw, onWarningPointClick }) =
         style={{
           padding: "12px 16px",
           cursor: "pointer",
-          borderBottom: expanded ? `1px solid ${token.colorBorderSecondary}` : "none",
+          borderBottom: expanded ? `1px solid ${token.colorBorder}` : "none",
         }}
       >
         <Flex justify="space-between" align="flex-start">
@@ -68,7 +68,7 @@ const CCWarningsSection = ({ warningsList, warningsRaw, onWarningPointClick }) =
                     style={{
                       borderRadius: token.borderRadius,
                       background: token.colorBgLayout,
-                      border: `1px solid ${token.colorBorderSecondary}`,
+                      border: `1px solid ${token.colorBorder}`,
                       cursor: "pointer",
                       transition: "all 0.2s ease",
                       padding: "10px 12px",

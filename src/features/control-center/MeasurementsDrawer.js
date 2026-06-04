@@ -41,7 +41,7 @@ const MeasurementsDrawerHeader = ({
           popupMatchSelectWidth={false}
           getPopupContainer={() => document.body}
           listHeight={320}
-          dropdownStyle={{ borderRadius: 10, boxShadow: token.boxShadowSecondary }}
+          dropdownStyle={{ borderRadius: 10, boxShadow: "0 4px 16px rgba(0,0,0,0.15)" }}
           suffixIcon={<FaMapMarkerAlt size={12} style={{ color: token.colorPrimary }} />}
         >
           {pointsRef.current.map((p) => {
@@ -161,7 +161,7 @@ const MeasurementsDrawerLoading = () => {
       <Row gutter={[16, 16]}>
         {[1, 2].map(i => (
           <Col xs={24} md={12} key={i}>
-            <div style={{ borderRadius: 12, border: `1px solid ${token.colorBorderSecondary}`, overflow: "hidden" }}>
+            <div style={{ borderRadius: 12, border: `1px solid ${token.colorBorder}`, overflow: "hidden" }}>
               <div style={{ height: 40, background: token.colorBgLayout }} />
               <div style={{ height: 50, padding: "10px 16px", display: "flex", gap: 8, justifyContent: "center" }}>
                 {[1, 2, 3].map(j => <div key={j} style={{ flex: 1, height: 40, borderRadius: 6, background: token.colorFillQuaternary }} />)}

@@ -38,7 +38,7 @@ const AppLayout = ({ children }) => {
             borderRadius: token.borderRadiusLG,
             minHeight: 280,
             overflow: "auto",
-            border: `1px solid ${token.colorBorderSecondary}`,
+            border: `1px solid ${token.colorBorder}`,
           }}
         >
           {children}

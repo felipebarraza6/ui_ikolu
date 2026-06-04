@@ -120,14 +120,14 @@ export const MeasurementsDualColumnChart = ({ data, token, showOnly, wellConfig,
       if (isMax) suffix = ' (MÁX)';
       if (isMin) suffix = ' (MÍN)';
       
-      let html = `<div style="padding: 8px 12px; background: ${token.colorBgElevated}; border-radius: 8px; box-shadow: ${token.boxShadowSecondary}; min-width: 200px;">`;
+      let html = `<div style="padding: 8px 12px; background: ${token.colorBgElevated}; border-radius: 8px; box-shadow: ${"0 4px 16px rgba(0,0,0,0.15)"}; min-width: 200px;">`;
       html += `<div style="font-size: 11px; color: ${token.colorTextSecondary}; margin-bottom: 6px; font-weight: 600;">${time} hrs</div>`;
       html += `<div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">`;
       html += `<div style="width: 8px; height: 8px; border-radius: 50%; background: ${isMax ? '#E76F51' : isMin ? '#2A9D8F' : color};"></div>`;
       html += `<span style="font-size: 12px; color: ${token.colorText};">${label}: <strong>${Number(val).toFixed(2)} m</strong>${suffix}</span>`;
       html += `</div>`;
       
-      html += `<div style="border-top: 1px solid ${token.colorBorderSecondary}; padding-top: 6px; margin-top: 4px;">`;
+      html += `<div style="border-top: 1px solid ${token.colorBorder}; padding-top: 6px; margin-top: 4px;">`;
       
       if (showOnly === 'nivel' && wellDepth != null) {
         const diff = (wellDepth - val).toFixed(2);
@@ -158,7 +158,7 @@ export const MeasurementsDualColumnChart = ({ data, token, showOnly, wellConfig,
       if (avgValue != null) {
         const exceedsAvg = val > avgValue;
         const avgDiff = (val - avgValue).toFixed(2);
-        html += `<div style="border-top: 1px solid ${token.colorBorderSecondary}; padding-top: 6px; margin-top: 4px;">`;
+        html += `<div style="border-top: 1px solid ${token.colorBorder}; padding-top: 6px; margin-top: 4px;">`;
         html += `<div style="font-size: 9px; color: #85A2D1; margin-bottom: 4px; font-weight: 600; text-transform: uppercase;">Promedio</div>`;
         html += `<div style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;">`;
         html += `<div style="width: 6px; height: 6px; border-radius: 50%; background: #85A2D1;"></div>`;
@@ -352,10 +352,10 @@ export const MeasurementsCombinedLevelChart = ({ data, token, wellConfig, pointN
         ? sensorPos - wtVal
         : null;
 
-      let html = `<div style="padding: 10px 12px; background: ${token.colorBgElevated}; border-radius: 10px; box-shadow: ${token.boxShadowSecondary}; min-width: 170px; position: relative; z-index: 99999;">`;
+      let html = `<div style="padding: 10px 12px; background: ${token.colorBgElevated}; border-radius: 10px; box-shadow: ${"0 4px 16px rgba(0,0,0,0.15)"}; min-width: 170px; position: relative; z-index: 99999;">`;
       html += `<div style="font-size: 10px; color: ${token.colorTextSecondary}; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">${t} hrs</div>`;
 
-      html += `<div style="border-bottom: 1px solid ${token.colorBorderSecondary}; padding-bottom: 8px; margin-bottom: 8px;">`;
+      html += `<div style="border-bottom: 1px solid ${token.colorBorder}; padding-bottom: 8px; margin-bottom: 8px;">`;
 
       // Primero: Nivel (medición del sensor)
       if (nivelVal != null) {

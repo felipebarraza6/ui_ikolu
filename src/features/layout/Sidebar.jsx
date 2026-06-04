@@ -54,7 +54,7 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
           alignItems: "center",
           justifyContent: "center",
           gap: collapsed ? 0 : 12,
-          borderBottom: `1px solid ${token.colorBorderSecondary}`,
+          borderBottom: `1px solid ${token.colorBorder}`,
           padding: "0 16px",
         }}
       >
@@ -102,7 +102,7 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
           bottom: 0,
           width: "100%",
           padding: "16px",
-          borderTop: `1px solid ${token.colorBorderSecondary}`,
+          borderTop: `1px solid ${token.colorBorder}`,
           textAlign: "center",
         }}
       >
@@ -149,7 +149,7 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpen 
       theme="dark"
       style={{
         background: token.colorPrimary,
-        boxShadow: token.boxShadowSecondary,
+        boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
       }}
       width={240}
     >

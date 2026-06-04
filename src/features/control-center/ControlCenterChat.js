@@ -101,13 +101,13 @@ const ControlCenterChat = ({ points, chatQuota }) => {
           justifyContent: "center",
           cursor: "pointer",
           zIndex: 1000,
-          boxShadow: token.boxShadow,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
           transition: "transform 0.3s ease",
         }}
         onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; }}
         onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
       >
-        <FaRobot style={{ color: token.colorWhite, fontSize: 24 }} />
+        <FaRobot style={{ color: #ffffff, fontSize: 24 }} />
       </div>
     );
   }
@@ -126,7 +126,7 @@ const ControlCenterChat = ({ points, chatQuota }) => {
     height: 550,
     borderRadius: token.borderRadiusLG,
     zIndex: 1000,
-    boxShadow: token.boxShadowSecondary,
+    boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
     display: "flex",
     flexDirection: "column",
     overflow: "hidden",
@@ -137,7 +137,7 @@ const ControlCenterChat = ({ points, chatQuota }) => {
 
   const headerStyle = {
     padding: "16px 20px",
-    borderBottom: `1px solid ${token.colorBorderSecondary}`,
+    borderBottom: `1px solid ${token.colorBorder}`,
     flexShrink: 0,
     background: token.colorBgContainer,
   };
@@ -145,7 +145,7 @@ const ControlCenterChat = ({ points, chatQuota }) => {
   const objectiveStyle = {
     padding: "12px 16px",
     background: token.colorBgContainer,
-    borderBottom: `1px solid ${token.colorBorderSecondary}`,
+    borderBottom: `1px solid ${token.colorBorder}`,
     flexShrink: 0,
   };
 
@@ -161,7 +161,7 @@ const ControlCenterChat = ({ points, chatQuota }) => {
 
   const inputAreaStyle = {
     padding: "12px 16px",
-    borderTop: `1px solid ${token.colorBorderSecondary}`,
+    borderTop: `1px solid ${token.colorBorder}`,
     background: token.colorBgContainer,
     flexShrink: 0,
   };
@@ -183,7 +183,7 @@ const ControlCenterChat = ({ points, chatQuota }) => {
             alignItems: "center",
             justifyContent: "center",
           }}>
-            <FaRobot style={{ color: token.colorWhite, fontSize: 16 }} />
+            <FaRobot style={{ color: #ffffff, fontSize: 16 }} />
           </div>
           <div>
             <Text strong style={{ display: "block", color: token.colorText }}>Experto en Telemetria</Text>
@@ -238,7 +238,7 @@ const ControlCenterChat = ({ points, chatQuota }) => {
                   flexShrink: 0, 
                   marginTop: 2 
                 }}>
-                  <FaRobot style={{ color: token.colorWhite, fontSize: 12 }} />
+                  <FaRobot style={{ color: #ffffff, fontSize: 12 }} />
                 </div>
               )}
               <div
@@ -249,11 +249,11 @@ const ControlCenterChat = ({ points, chatQuota }) => {
                   background: msg.role === "user" 
                     ? token.colorPrimary 
                     : token.colorBgContainer,
-                  color: msg.role === "user" ? token.colorWhite : token.colorText,
+                  color: msg.role === "user" ? #ffffff : token.colorText,
                   fontSize: 13,
                   lineHeight: 1.5,
                   wordBreak: "break-word",
-                  border: msg.role === "user" ? "none" : `1px solid ${token.colorBorderSecondary}`,
+                  border: msg.role === "user" ? "none" : `1px solid ${token.colorBorder}`,
                 }}
               >
                 {msg.text}
@@ -271,13 +271,13 @@ const ControlCenterChat = ({ points, chatQuota }) => {
                 alignItems: "center", 
                 justifyContent: "center" 
               }}>
-                <FaRobot style={{ color: token.colorWhite, fontSize: 12 }} />
+                <FaRobot style={{ color: #ffffff, fontSize: 12 }} />
               </div>
               <div style={{ 
                 padding: "10px 14px", 
                 borderRadius: 16, 
                 background: token.colorBgContainer, 
-                border: `1px solid ${token.colorBorderSecondary}`,
+                border: `1px solid ${token.colorBorder}`,
               }}>
                 <Flex gap={4} align="center" style={{ height: 16 }}>
                   <span style={{ width: 8, height: 8, borderRadius: "50%", background: token.colorPrimary, animation: "chat-bounce 1.4s infinite ease-in-out both", animationDelay: "0s" }} />
@@ -292,7 +292,7 @@ const ControlCenterChat = ({ points, chatQuota }) => {
         {showSuggestions && (
           <div style={{ 
             padding: "12px 16px", 
-            borderTop: `1px solid ${token.colorBorderSecondary}`, 
+            borderTop: `1px solid ${token.colorBorder}`, 
             background: token.colorBgContainer, 
             flexShrink: 0 
           }}>
@@ -357,7 +357,7 @@ const ControlCenterChat = ({ points, chatQuota }) => {
             <Button
               type="primary"
               shape="circle"
-              icon={<FaPaperPlane style={{ fontSize: 14, color: token.colorWhite }} />}
+              icon={<FaPaperPlane style={{ fontSize: 14, color: #ffffff }} />}
               onClick={sendChatMessage}
               loading={chatLoading}
               style={{
@@ -395,13 +395,13 @@ const ControlCenterChat = ({ points, chatQuota }) => {
           justifyContent: "center",
           cursor: "pointer",
           zIndex: 1000,
-          boxShadow: token.boxShadow,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
           transition: "transform 0.3s ease",
         }}
         onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; }}
         onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
       >
-        <FaRobot style={{ color: token.colorWhite, fontSize: 24 }} />
+        <FaRobot style={{ color: #ffffff, fontSize: 24 }} />
       </div>
     </>
   );
