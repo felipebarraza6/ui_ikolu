@@ -4,12 +4,12 @@ import {
   FaMapMarkerAlt,
   FaBroadcastTower,
   FaClipboardCheck,
-  FaExclamationTriangle,
   FaDownload,
 } from "react-icons/fa";
-import { SmartKPICard } from "../../shared/ui";
+import { SmartKPICard } from "../../../shared/ui";
+import { BlinkingDot } from "../components";
 
-import ControlCenterChat from "./ControlCenterChat";
+import ControlCenterChat from "../components/Chat/ControlCenterChat";
 import SkeletonControlCenter from "./SkeletonControlCenter";
 import { format } from "date-fns";
 
@@ -90,6 +90,7 @@ const ControlCenterLayout = memo(({
                     label="Total Puntos"
                     value={overview.total_points || 0}
                     gradient={`linear-gradient(135deg, ${token.colorPrimary} 0%, ${token.colorPrimary}dd 100%)`}
+                    wave={true}
                   />
                 </div>
               </Tooltip>
@@ -100,7 +101,7 @@ const ControlCenterLayout = memo(({
               <Tooltip title="Puntos con telemetria funcionando en tiempo real" placement="top">
                 <div>
                   <SmartKPICard
-                    icon={<FaBroadcastTower style={{ fontSize: 18, color: '#ffffff', animation: "telemetry-led-blink 1.5s ease-in-out infinite" }} />}
+                    icon={<BlinkingDot size={12} color="#ffffff" variant="telemetry" />}
                     label="Telemetria Activa"
                     value={`${overview.points_with_telemetry || 0}`}
                     suffix={`/${overview.total_points || 0}`}
@@ -129,7 +130,7 @@ const ControlCenterLayout = memo(({
               <Tooltip title="Alertas y advertencias detectadas recientemente" placement="top">
                 <div>
                   <SmartKPICard
-                    icon={<FaExclamationTriangle style={{ fontSize: 18, color: '#ffffff', animation: hasWarnings ? 'warning-double-blink 2s ease-in-out infinite' : 'none' }} />}
+                    icon={<BlinkingDot size={12} color="#ffffff" variant="warning" active={hasWarnings} />}
                     label="Warnings"
                     value={warningsList.length}
                     gradient={`linear-gradient(135deg, ${token.colorWarning} 0%, ${token.colorError} 100%)`}
@@ -153,13 +154,13 @@ const ControlCenterLayout = memo(({
         <ControlCenterChat points={points} chatQuota={chatQuota} />
       )}
 
-      <div style={{
-        background: token.colorBgContainer,
-        borderRadius: token.borderRadiusLG,
-        border: `1px solid ${token.colorBorder}`,
-        padding: 24,
-        marginTop: 24,
-      }}>
+      <div className="ocean-tabs-container"
+        style={{
+          background: token.colorBgContainer,
+          borderRadius: token.borderRadiusLG,
+          border: `1px solid ${token.colorBorder}`,
+        }}
+      >
         <Flex justify="space-between" align="center" className="ocean-tabs-header">
           <Button
             size="small"

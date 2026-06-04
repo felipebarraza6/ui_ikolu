@@ -1,8 +1,8 @@
 import React, { useCallback } from "react";
 import { Drawer, Form, Input, Select, Button, Flex, Typography, Card, theme, message } from "antd";
 import { FaHeadset } from "react-icons/fa";
-import { useAuth } from "../../contexts/AuthContext";
-import orchestrator from "../../api/orchestrator";
+import { useAuth } from "../../../contexts/AuthContext";
+import orchestrator from "../../../api/orchestrator";
 
 const { Text } = Typography;
 const { TextArea } = Input;

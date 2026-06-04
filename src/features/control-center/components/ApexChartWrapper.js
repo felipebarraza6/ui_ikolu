@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import { format, parseISO } from "date-fns";
 import ReactApexChart from "react-apexcharts";
 import { Flex } from "antd";
-import { COLORS } from "./constants/chartColors";
+import { COLORS } from "../constants/chartColors";
 
 const getStrokeConfig = (type, metric) => {
   if (type === 'bar' || metric === 'nivel' || metric === 'water_table') {

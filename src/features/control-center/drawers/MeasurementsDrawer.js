@@ -4,7 +4,7 @@ import { FaMapMarkerAlt, FaArrowLeft, FaArrowRight, FaChartLine, FaTable } from 
 import { format, parseISO, subDays } from "date-fns";
 import { es } from "date-fns/locale/es";
 
-import { MeasurementsDrawerContentMemo } from "./measurements/MeasurementDrawer";
+import { MeasurementsDrawerContentMemo } from "../measurements/MeasurementDrawer";
 
 const { Text } = Typography;
 const { useToken } = theme;

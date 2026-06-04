@@ -4,8 +4,8 @@ import { FaEye, FaHandPaper, FaHeadset, FaExclamationTriangle, FaInfoCircle } fr
 import { FormOutlined, CheckCircleOutlined, CloseCircleOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import { format, parseISO, isSameDay } from "date-fns";
 import { es } from "date-fns/locale/es";
-import { formatInteger } from "../../utils/numberFormatter";
-import { SmartIconButton, SmartBadge } from "../../shared/ui";
+import { formatInteger } from "../../../../utils/numberFormatter";
+import { SmartIconButton, SmartBadge } from "../../../../shared/ui";
 
 const typeDgaLabels = {
   "SUPERFICIAL": "Superficial",

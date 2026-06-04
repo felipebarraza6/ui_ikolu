@@ -1,10 +1,10 @@
 import React from "react";
 import { Row, Col } from "antd";
-import { SkeletonKPI } from "../../shared/ui/SmartSkeleton";
+import { SkeletonKPI } from "../../../shared/ui/SmartSkeleton";
 
 const SkeletonControlCenter = () => {
   return (
-    <Row gutter={[16, 16]} className="ocean-kpi-row fade-in">
+    <Row id="cc-kpi-cards" gutter={[16, 24]} className="ocean-kpi-row">
       <Col xs={12} sm={6} md={6}>
         <SkeletonKPI />
       </Col>

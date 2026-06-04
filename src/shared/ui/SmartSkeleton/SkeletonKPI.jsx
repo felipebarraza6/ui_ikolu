@@ -9,32 +9,22 @@ const SkeletonKPI = ({ style = {} }) => {
     <div
       style={{
         background: isDark ? "#1a1a1a" : "#FFFFFF",
-        borderRadius: 8,
-        padding: "20px 16px",
+        borderRadius: 24,
+        padding: "20px 16px 16px 16px",
         border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "#F0F0F0"}`,
         boxShadow: isDark ? "none" : "0 1px 3px rgba(0,0,0,0.04)",
-        minHeight: 120,
+        minHeight: 88,
         display: "flex",
         flexDirection: "column",
-        justifyContent: "space-between",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8,
         ...style,
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div style={{ flex: 1 }}>
-          <Skeleton.Input
-            active
-            size="small"
-            style={{ width: 80, marginBottom: 16 }}
-          />
-          <Skeleton.Input
-            active
-            size="default"
-            style={{ width: 60, height: 32 }}
-          />
-        </div>
-        <Skeleton.Avatar active size={40} shape="square" />
-      </div>
+      <Skeleton.Avatar active size={40} shape="circle" />
+      <Skeleton.Input active size="small" style={{ width: 80 }} />
+      <Skeleton.Input active size="default" style={{ width: 60, height: 28 }} />
     </div>
   );
 };

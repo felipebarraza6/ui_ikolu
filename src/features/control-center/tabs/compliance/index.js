@@ -1,5 +1,5 @@
 import React from "react";
-import CCComplianceTable from "./CCComplianceTable";
+import CCComplianceTable from "./ComplianceTable";
 import SkeletonCompliance from "./SkeletonCompliance";
 
 const ComplianceTab = ({

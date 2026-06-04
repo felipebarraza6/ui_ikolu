@@ -1,18 +1,20 @@
 import React from "react";
-import { Drawer, Row, Col, Flex, Typography, Button, Input, Form, DatePicker, theme } from "antd";
-import { FaHandPaper } from "react-icons/fa";
-import { useAuth } from "../../contexts/AuthContext";
+import { Drawer, Row, Col, Flex, Typography, Card, Button, Input, Form, DatePicker, Alert, theme } from "antd";
+import { FaPauseCircle } from "react-icons/fa";
+import { useAuth } from "../../../contexts/AuthContext";
 
 const { Text } = Typography;
 const { useToken } = theme;
 
-const StopTelemetryDrawer = ({
+const StopComplianceDrawer = ({
   open,
   onClose,
   point,
   form,
   loading,
   onSubmit,
+  showDgaAlert,
+  showDgaCriticalAlert,
 }) => {
   const { token } = useToken();
   const { user } = useAuth();
@@ -21,8 +23,8 @@ const StopTelemetryDrawer = ({
     <Drawer
       title={
         <Flex align="center" gap={8}>
-          <FaHandPaper style={{ color: token.colorPrimary, fontSize: 16 }} />
-          <Text strong style={{ fontSize: 16 }}>Solicitud para detener telemetría</Text>
+          <FaPauseCircle style={{ color: token.colorPrimary, fontSize: 16 }} />
+          <Text strong style={{ fontSize: 16 }}>Solicitud para detener cumplimiento</Text>
         </Flex>
       }
       open={open}
@@ -41,8 +43,11 @@ const StopTelemetryDrawer = ({
       }
     >
       {point && (
-        <Flex vertical style={{ marginBottom: 16 }}>
-          <Text strong style={{ fontSize: 14 }}>{point.name}</Text>
+        <Flex vertical gap={12} style={{ marginBottom: 16 }}>
+          <Card size="small" bodyStyle={{ padding: 10 }} style={{ background: `${token.colorPrimary}06`, border: `1px solid ${token.colorPrimary}15` }}>
+            <Text strong style={{ fontSize: 13, display: "block" }}>{point.name}</Text>
+            <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>Código: {point.code}</Text>
+          </Card>
         </Flex>
       )}
       <Form form={form} layout="vertical" onFinish={onSubmit}>
@@ -73,6 +78,32 @@ const StopTelemetryDrawer = ({
             </Form.Item>
           </Col>
         </Row>
+        {showDgaAlert && !showDgaCriticalAlert && (
+          <Alert
+            type="warning"
+            showIcon
+            style={{ marginBottom: 12, fontSize: 12 }}
+            message="Informe Técnico requerido"
+            description={
+              <Text style={{ fontSize: 12 }}>
+                La detención supera los 5 días. Se debe enviar el <strong>Informe Técnico</strong> (formato libre) que cumpla con los fundamentos principales y cuyo objetivo sea evidenciar las actividades realizadas en terreno.
+              </Text>
+            }
+          />
+        )}
+        {showDgaCriticalAlert && (
+          <Alert
+            type="error"
+            showIcon
+            style={{ marginBottom: 12, fontSize: 12 }}
+            message="Informe Detallado Obligatorio"
+            description={
+              <Text style={{ fontSize: 12 }}>
+                La detención supera los 10 días. Se debe confeccionar un <strong>informe detallado de las actividades realizadas en terreno</strong>, evidenciando cada una de las labores ejecutadas.
+              </Text>
+            }
+          />
+        )}
         <Form.Item
           name="reason"
           label="Razón de la solicitud"
@@ -80,7 +111,7 @@ const StopTelemetryDrawer = ({
         >
           <Input.TextArea
             rows={4}
-            placeholder="Ej: Mantenimiento programado del sensor..."
+            placeholder="Ej: Pausa temporal por reconfiguración normativa..."
             maxLength={500}
             showCount
             style={{ borderRadius: 8, fontSize: 13 }}
@@ -94,4 +125,4 @@ const StopTelemetryDrawer = ({
   );
 };
 
-export default React.memo(StopTelemetryDrawer);
+export default React.memo(StopComplianceDrawer);

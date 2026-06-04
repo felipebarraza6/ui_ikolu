@@ -1,5 +1,5 @@
 import React from "react";
-import CCWeekConsumption from "./CCWeekConsumption";
+import CCWeekConsumption from "./WeekConsumption";
 import SkeletonTelemetry from "./SkeletonTelemetry";
 
 const TelemetryTab = ({

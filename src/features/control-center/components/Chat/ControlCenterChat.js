@@ -7,7 +7,7 @@ import {
   FaTrash,
   FaQuestionCircle,
 } from "react-icons/fa";
-import orchestrator from "../../api/orchestrator";
+import orchestrator from "../../../../api/orchestrator";
 
 const { Text } = Typography;
 

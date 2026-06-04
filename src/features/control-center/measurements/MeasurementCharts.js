@@ -1,6 +1,6 @@
 import React from "react";
 import { Flex, Typography } from "antd";
-import ApexChartWrapper from "../ApexChartWrapper";
+import ApexChartWrapper from "../components/ApexChartWrapper";
 import { COLORS } from "../constants/chartColors";
 
 const { Text } = Typography;

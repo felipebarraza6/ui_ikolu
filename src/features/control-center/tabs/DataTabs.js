@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from "react";
 import { Segmented, Flex, theme } from "antd";
 import { FaClipboardCheck, FaBroadcastTower } from "react-icons/fa";
-import CCComplianceTable from "./CCComplianceTable";
-import CCWeekConsumption from "./CCWeekConsumption";
+import CCComplianceTable from "./compliance/ComplianceTable";
+import CCWeekConsumption from "./telemetry/WeekConsumption";
 
 const { useToken } = theme;
 

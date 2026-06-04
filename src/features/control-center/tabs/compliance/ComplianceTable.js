@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { Flex, Typography, Table, Tag, Tooltip, theme, Input } from "antd";
 import { FaEye, FaPauseCircle, FaHeadset, FaInfoCircle, FaExternalLinkAlt, FaExclamationTriangle, FaChartLine, FaCheckCircle, FaShieldAlt, FaTint } from "react-icons/fa";
-import { formatInteger } from "../../utils/numberFormatter";
-import { PointHeader, ConsumptionCell, ActionButtons } from "./components";
+import { formatInteger } from "../../../../utils/numberFormatter";
+import { PointHeader, ConsumptionCell, ActionButtons } from "../../components";
 
 const { Text } = Typography;
 const { useToken } = theme;
