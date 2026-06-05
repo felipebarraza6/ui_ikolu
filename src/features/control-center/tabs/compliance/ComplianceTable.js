@@ -274,11 +274,6 @@ const CCComplianceTable = ({ points, last7, onViewVoucher, onOpenStopCompliance,
         onChange={(e) => setSearch(e.target.value)}
         style={{ maxWidth: 360 }}
       />
-      {search.trim() && filteredPoints.length === 0 && (
-        <Flex justify="center" style={{ padding: 24 }}>
-          <Text style={{ fontSize: token.fontSize, color: token.colorTextTertiary }}>No se encontraron puntos</Text>
-        </Flex>
-      )}
       <Table
         loading={loading}
         dataSource={filteredPoints}
