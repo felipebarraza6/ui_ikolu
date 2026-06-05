@@ -1,5 +1,4 @@
 import axios from "axios";
-import { upload } from "@testing-library/user-event/dist/upload";
 import { POST_LOGIN, GET, DOWNLOAD, DELETE, POST, PATCH, Axios } from "./config";
 
 const requestPasswordReset = async (email) => {

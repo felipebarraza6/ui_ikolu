@@ -1,6 +1,7 @@
 import React, { useCallback, useState, useMemo, useRef, useEffect } from "react";
 import "./ControlCenter.css";
 import { useControlCenterStore } from "./stores/controlCenterStore";
+import { shallow } from "zustand/shallow";
 import orchestrator from "../../api/orchestrator";
 import { Form, theme, Drawer, message } from "antd";
 import CCSupportDrawer from "./drawers/SupportDrawer";
@@ -26,8 +27,13 @@ const ControlCenter = () => {
   const { user } = useAuth();
   const { token } = useToken();
 
-  const store = useControlCenterStore();
-  const { drawers, openDrawer, closeDrawer } = store;
+  const drawers = useControlCenterStore((s) => s.drawers);
+  const openDrawer = useControlCenterStore((s) => s.openDrawer);
+  const closeDrawer = useControlCenterStore((s) => s.closeDrawer);
+  const { data, loading } = useControlCenterStore(
+    (s) => ({ data: s.data, loading: s.loading }),
+    shallow
+  );
 
   // Shorthand helpers para drawer state
   const d = (name) => drawers[name] || { open: false };
@@ -37,12 +43,12 @@ const ControlCenter = () => {
   const last7Ref = useRef({});
 
   useEffect(() => {
-    pointsRef.current = store.data?.points || [];
-  }, [store.data?.points]);
+    pointsRef.current = data?.points || [];
+  }, [data?.points]);
 
   useEffect(() => {
-    last7Ref.current = store.data?.last_7 || {};
-  }, [store.data?.last_7]);
+    last7Ref.current = data?.last_7 || {};
+  }, [data?.last_7]);
 
   // ── Voucher state ──
   const [selectedVoucher, setSelectedVoucher] = useState(null);
@@ -459,6 +465,7 @@ const ControlCenter = () => {
         hasPoint={true}
         autoStart={true}
         delay={1000}
+        ready={!!data}
       />
     </>
   );

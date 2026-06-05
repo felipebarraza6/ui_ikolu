@@ -2,6 +2,7 @@ import React from "react";
 import { Drawer, Flex, Typography, Table, Button, Tag, Divider, theme } from "antd";
 import { FaDownload, FaTimes, FaExclamationTriangle, FaCheckCircle, FaChartLine, FaShieldAlt, FaPaperPlane } from "react-icons/fa";
 import { format, parseISO } from "date-fns";
+import { exportToCSV } from "../../../utils/exportToCSV";
 
 const { Text, Title } = Typography;
 const { useToken } = theme;
@@ -11,17 +12,6 @@ const levelColorMap = {
   warning: { color: "#F4A261", bg: "rgba(244, 162, 97, 0.1)", border: "rgba(244, 162, 97, 0.3)", icon: FaExclamationTriangle, label: "Cerca de superar límite" },
   critical: { color: "#E76F51", bg: "rgba(231, 111, 81, 0.1)", border: "rgba(231, 111, 81, 0.3)", icon: FaExclamationTriangle, label: "Incumplimiento detectado" },
   unknown: { color: "rgba(255, 255, 255, 0.4)", bg: "rgba(255, 255, 255, 0.05)", border: "rgba(255, 255, 255, 0.1)", icon: FaShieldAlt, label: "Sin límites configurados" },
-};
-
-const exportToCSV = (headers, rows, filename) => {
-  const csv = [headers, ...rows].map(r => r.join(",")).join("\n");
-  const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(url);
 };
 
 const CCComplianceDetailDrawer = ({ open, onClose, point }) => {

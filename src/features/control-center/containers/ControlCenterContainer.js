@@ -5,6 +5,8 @@ import { ExclamationCircleOutlined, ReloadOutlined } from "@ant-design/icons";
 import ControlCenterLayout from "../layout/ControlCenterLayout";
 import TelemetryTab from "../tabs/telemetry";
 import ComplianceTab from "../tabs/compliance";
+import SkeletonCompliance from "../layout/SkeletonCompliance";
+import SkeletonTelemetry from "../layout/SkeletonTelemetry";
 import { useControlCenterStore } from "../stores/controlCenterStore";
 import { useAuth } from "../../../contexts/AuthContext";
 
@@ -115,30 +117,36 @@ const ControlCenterContainer = ({
     >
       <div className="tab-transition" key={`tab-${activeTab}`}>
         {activeTab === "telemetry" ? (
-          <TelemetryTab
-            last7={data?.last_7}
-            selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
-            handleViewMeasurements={onViewMeasurements}
-            handleOpenStopTelemetry={onOpenStopTelemetry}
-            handleOpenSupport={onOpenSupport}
-            handleWarningPointClick={onWarningClick}
-            warningsRaw={warningsRaw}
-            handleViewPointConfig={onViewPointConfig}
-            loading={loading}
-          />
+          loading && !data ? (
+            <SkeletonTelemetry />
+          ) : (
+            <TelemetryTab
+              last7={data?.last_7}
+              selectedDate={selectedDate}
+              setSelectedDate={setSelectedDate}
+              handleViewMeasurements={onViewMeasurements}
+              handleOpenStopTelemetry={onOpenStopTelemetry}
+              handleOpenSupport={onOpenSupport}
+              handleWarningPointClick={onWarningClick}
+              warningsRaw={warningsRaw}
+              handleViewPointConfig={onViewPointConfig}
+            />
+          )
         ) : (
-          <ComplianceTab
-            points={points}
-            last7={data?.last_7}
-            handleViewVoucher={onViewVoucher}
-            handleOpenStopCompliance={onOpenStopCompliance}
-            handleOpenSupport={onOpenSupport}
-            handleViewPointConfig={onViewPointConfig}
-            handleViewFlowAnalysis={onViewFlowAnalysis}
-            handleViewComplianceDetail={onViewComplianceDetail}
-            loading={loading}
-          />
+          loading && !data ? (
+            <SkeletonCompliance />
+          ) : (
+            <ComplianceTab
+              points={points}
+              last7={data?.last_7}
+              handleViewVoucher={onViewVoucher}
+              handleOpenStopCompliance={onOpenStopCompliance}
+              handleOpenSupport={onOpenSupport}
+              handleViewPointConfig={onViewPointConfig}
+              handleViewFlowAnalysis={onViewFlowAnalysis}
+              handleViewComplianceDetail={onViewComplianceDetail}
+            />
+          )
         )}
       </div>
     </ControlCenterLayout>

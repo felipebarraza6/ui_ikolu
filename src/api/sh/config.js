@@ -1,7 +1,5 @@
 import axios from "axios";
 
-import { notification } from "antd";
-import { CloudDownloadOutlined } from "@ant-design/icons";
 const BASE_URL = "https://api.smarthydro.app/api/";
 //const BASE_URL = 'http://localhost:8000/api/'
 
@@ -9,15 +7,38 @@ export const Axios = axios.create({
   baseURL: BASE_URL,
 });
 
+// ── Interceptor de request: inyecta token automáticamente ──
+Axios.interceptors.request.use((config) => {
+  // POST_LOGIN no lleva token
+  if (config._skipAuth) return config;
+
+  try {
+    const token = JSON.parse(localStorage.getItem("token") || "null");
+    if (token) {
+      config.headers.Authorization = `Token ${token}`;
+    }
+  } catch {
+    // no token disponible
+  }
+  return config;
+});
+
+// ── Descargas: callback opcional para notificación UI ──
+let downloadCallback = null;
+export const setDownloadCallback = (cb) => { downloadCallback = cb; };
+
+const triggerDownloadNotification = (filename) => {
+  if (typeof downloadCallback === "function") {
+    downloadCallback(filename);
+  }
+};
+
 export const POST_LOGIN = async (endpoint, data) => {
   try {
-    const request = await Axios.post(endpoint, data);
-    // Solo validar errores si NO tiene los campos de éxito
-    // Una respuesta exitosa de login debe tener user y access_token
+    const request = await Axios.post(endpoint, data, { _skipAuth: true });
     if (request.data) {
       const hasError =
         request.data.error && !request.data.user && !request.data.access_token;
-      // Si tiene error pero no tiene los campos de éxito, es un error real
       if (hasError) {
         const error = new Error(
           request.data.error || request.data.message || "Error de autenticación"
@@ -28,17 +49,12 @@ export const POST_LOGIN = async (endpoint, data) => {
     }
     return request;
   } catch (error) {
-    // Si es un error de axios (status != 200), propagarlo
-    if (error.response) {
-      throw error;
-    }
-    // Si es un error que lanzamos nosotros, propagarlo
+    if (error.response) throw error;
     throw error;
   }
 };
 
 export const GET = async (endpoint, token = null, options = {}) => {
-  // Si se proporciona token, usarlo; si no, intentar obtenerlo de localStorage
   let authToken = token;
   if (!authToken) {
     authToken = JSON.parse(localStorage.getItem("token") || "null");
@@ -96,7 +112,6 @@ export const PATCH = async (endpoint, data) => {
 export const DOWNLOAD = async (endpoint, name_file) => {
   const token = JSON.parse(localStorage.getItem("token"));
 
-  // Configuración para la descarga con tipo blob
   const download = {
     responseType: "blob",
     headers: {
@@ -107,7 +122,6 @@ export const DOWNLOAD = async (endpoint, name_file) => {
   };
 
   const request = await Axios.get(endpoint, download).then((response) => {
-    // Crear el blob con el tipo MIME correcto para archivos Excel
     const blob = new Blob([response.data], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
@@ -117,18 +131,11 @@ export const DOWNLOAD = async (endpoint, name_file) => {
     link.setAttribute("download", name_file);
     document.body.appendChild(link);
     link.click();
-
-    // Limpiar después de la descarga
     window.URL.revokeObjectURL(url);
     document.body.removeChild(link);
   });
 
-  notification.open({
-    message: `${name_file}`,
-    description: `Archivo descargado exitosamente!`,
-    placement: "topRight",
-    icon: <CloudDownloadOutlined style={{ color: "#69802A" }} />,
-  });
+  triggerDownloadNotification(name_file);
 
   return request;
 };

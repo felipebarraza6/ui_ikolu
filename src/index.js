@@ -6,7 +6,7 @@ import "./styles/theme-variables.css";
 import "./styles/animations.css";
 import { ConfigProvider, App } from "antd";
 import AppStore from "./App";
-import es_ES from "antd/lib/locale/es_ES";
+import es_ES from "antd/locale/es_ES";
 import { BrowserRouter } from "react-router-dom";
 import { createIkoluTheme } from "./theme";
 import IkoluEmotionProvider from "./theme/EmotionThemeProvider";

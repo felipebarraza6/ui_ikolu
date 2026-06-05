@@ -3,24 +3,10 @@ import { Flex, Typography, Table, Tag, Tooltip, theme, Input } from "antd";
 import { FaEye, FaPauseCircle, FaHeadset, FaInfoCircle, FaExternalLinkAlt, FaExclamationTriangle, FaChartLine, FaCheckCircle, FaShieldAlt, FaTint } from "react-icons/fa";
 import { formatInteger } from "../../../../utils/numberFormatter";
 import { PointHeader, ConsumptionCell, ActionButtons } from "../../components";
+import { typeDgaLabels } from "../../../../constants/dgaTypes";
 
 const { Text } = Typography;
 const { useToken } = theme;
-
-const typeDgaLabels = {
-  "SUPERFICIAL": "Superficial",
-  "SUBTERRANEO": "Subterráneo",
-  "SUPERFICIAL_MAYOR": "Superficial Mayor",
-  "SUBTERRANEO_MENOR": "Subterráneo Menor",
-  "CAUDALES_MUY_PEQUENOS": "Caudales muy pequeños",
-  "MEDIO": "Medio",
-  "MAYOR": "Mayor",
-  "MENOR": "Menor",
-  "CAUDAL": "Caudal",
-  "VOLUMEN": "Volumen",
-};
-
-
 
 const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPointConfig, onViewComplianceDetail, last7, token) => [
   {
@@ -226,7 +212,7 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
   },
 ];
 
-const CCComplianceTable = ({ points, last7, onViewVoucher, onOpenStopCompliance, onOpenSupport = () => {}, onViewPointConfig, onViewComplianceDetail, loading = false }) => {
+const CCComplianceTable = ({ points, last7, onViewVoucher, onOpenStopCompliance, onOpenSupport = () => {}, onViewPointConfig, onViewComplianceDetail }) => {
   const { token } = useToken();
   const levelColorMap = {
     safe: { color: token.colorSuccess, label: "Dentro de límites" },
@@ -275,7 +261,6 @@ const CCComplianceTable = ({ points, last7, onViewVoucher, onOpenStopCompliance,
         style={{ maxWidth: 360 }}
       />
       <Table
-        loading={loading}
         dataSource={filteredPoints}
         columns={columns}
         rowKey="id"

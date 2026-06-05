@@ -7,20 +7,9 @@ import { es } from "date-fns/locale/es";
 import { formatInteger } from "../../../../utils/numberFormatter";
 import { SmartBadge } from "../../../../shared/ui";
 
-const typeDgaLabels = {
-  "SUPERFICIAL": "Superficial",
-  "SUBTERRANEO": "Subterráneo",
-  "SUPERFICIAL_MAYOR": "Superficial Mayor",
-  "SUBTERRANEO_MENOR": "Subterráneo Menor",
-  "CAUDALES_MUY_PEQUENOS": "Caudales muy pequeños",
-  "MEDIO": "Medio",
-  "MAYOR": "Mayor",
-  "MENOR": "Menor",
-};
-
 const { Text } = Typography;
 
-const TableMemo = React.memo(({ data, columns, loading }) => {
+const TableMemo = React.memo(({ data, columns }) => {
   const dataSource = useMemo(() =>
     data.map((p, idx) => ({ ...p, key: p.pointName || idx, rank: idx + 1 })),
     [data]
@@ -28,7 +17,6 @@ const TableMemo = React.memo(({ data, columns, loading }) => {
 
   return (
     <Table
-      loading={loading}
       dataSource={dataSource}
       size="small"
       pagination={false}
@@ -40,7 +28,7 @@ const TableMemo = React.memo(({ data, columns, loading }) => {
   );
 });
 
-const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasurements, onOpenStopTelemetry, onOpenSupport = () => {}, onWarningPointClick = () => {}, onViewPointConfig, warningsRaw = {}, loading = false }) => {
+const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasurements, onOpenStopTelemetry, onOpenSupport = () => {}, onWarningPointClick = () => {}, onViewPointConfig, warningsRaw = {} }) => {
   const { token } = theme.useToken();
 
   const dayMap = useMemo(() => {
@@ -323,8 +311,7 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
     });
 
     return cols;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, handleViewMeasurements, handleOpenStopTelemetry, handleOpenSupport, onWarningPointClick, activeVars]);
+  }, [token, handleViewMeasurements, handleOpenStopTelemetry, handleOpenSupport, onWarningPointClick, onViewPointConfig, activeVars]);
 
   if (sortedDays.length === 0) {
     return (
@@ -391,7 +378,6 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
         {activeDate && dayMap[activeDate] && (
           <div className="fade-in">
             <TableMemo
-              loading={loading}
               data={dayMap[activeDate].points}
               columns={columns}
             />

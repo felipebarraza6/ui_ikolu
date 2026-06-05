@@ -56,7 +56,7 @@ const cleanupAbortController = (key) => {
 };
 
 // ──────────────────────────────────────────
-// Priority Queue para requests
+// Priority Queue para requests (concurrente)
 // ──────────────────────────────────────────
 const PRIORITY = {
   CRITICAL: 0,   // Login, logout, acciones de usuario
@@ -65,39 +65,49 @@ const PRIORITY = {
   LOW: 3,        // Históricos, exports
 };
 
-let requestQueue = [];
-let isProcessingQueue = false;
+const MAX_CONCURRENT = 6;
+let activeCount = 0;
+const pendingByPriority = {
+  [PRIORITY.CRITICAL]: [],
+  [PRIORITY.HIGH]: [],
+  [PRIORITY.NORMAL]: [],
+  [PRIORITY.LOW]: [],
+};
 
 const enqueueRequest = (fn, priority = PRIORITY.NORMAL) => {
-  requestQueue.push({ fn, priority });
-  requestQueue.sort((a, b) => a.priority - b.priority);
+  pendingByPriority[priority].push(fn);
   processQueue();
 };
 
-const processQueue = async () => {
-  if (isProcessingQueue || requestQueue.length === 0) return;
-  isProcessingQueue = true;
-
-  const { fn } = requestQueue.shift();
-  try {
-    await fn();
-  } catch (err) {
-    if (err.name !== 'AbortError') {
-      console.error('[Orchestrator] Request error:', err);
+const processQueue = () => {
+  while (activeCount < MAX_CONCURRENT) {
+    let fn = null;
+    for (const prio of [PRIORITY.CRITICAL, PRIORITY.HIGH, PRIORITY.NORMAL, PRIORITY.LOW]) {
+      if (pendingByPriority[prio].length > 0) {
+        fn = pendingByPriority[prio].shift();
+        break;
+      }
     }
-  }
+    if (!fn) break;
 
-  isProcessingQueue = false;
-  // Procesar siguiente si hay
-  if (requestQueue.length > 0) {
-    setTimeout(processQueue, 0);
+    activeCount++;
+    fn()
+      .catch((err) => {
+        if (err.name !== 'AbortError') {
+          console.error('[Orchestrator] Request error:', err);
+        }
+      })
+      .finally(() => {
+        activeCount--;
+        processQueue();
+      });
   }
 };
 
 // ──────────────────────────────────────────
 // Helpers de caché con TTL
 // ──────────────────────────────────────────
-const getCached = (key, ttl) => {
+const getCached = (key) => {
   const cached = dataCache.get(key);
   if (cached !== null) {
     return cached;
@@ -127,7 +137,7 @@ export const getBatchTelemetry = async (pointIds, options = {}) => {
   const cacheKey = CacheKeys.batchTelemetry(pointIds.join(','), hours);
 
   if (useCache) {
-    const cached = getCached(cacheKey, CONFIG.CACHE_TTL.batch);
+    const cached = getCached(cacheKey);
     if (cached) return cached;
   }
 
@@ -170,7 +180,7 @@ export const getBatchStats = async (pointIds, options = {}) => {
   const cacheKey = CacheKeys.batchStats(pointIds.join(','), days);
 
   if (useCache) {
-    const cached = getCached(cacheKey, CONFIG.CACHE_TTL.stats);
+    const cached = getCached(cacheKey);
     if (cached) return cached;
   }
 
@@ -199,7 +209,7 @@ export const getBatchSummary = async (pointIds, options = {}) => {
   const cacheKey = `batch_summary_${pointIds.join(',')}`;
 
   if (useCache) {
-    const cached = getCached(cacheKey, CONFIG.CACHE_TTL.batch);
+    const cached = getCached(cacheKey);
     if (cached) return cached;
   }
 
@@ -223,7 +233,7 @@ export const getProfileOrchestrated = async (options = {}) => {
   const cacheKey = CacheKeys.profile(username || 'current');
 
   if (useCache) {
-    const cached = getCached(cacheKey, CONFIG.CACHE_TTL.profile);
+    const cached = getCached(cacheKey);
     if (cached) return cached;
   }
 
@@ -244,7 +254,7 @@ export const getPointsListOrchestrated = async (options = {}) => {
   const cacheKey = `points_list_${isAdmin ? 'admin' : 'user'}`;
 
   if (useCache) {
-    const cached = getCached(cacheKey, CONFIG.CACHE_TTL.pointsList);
+    const cached = getCached(cacheKey);
     if (cached) return cached;
   }
 
@@ -270,7 +280,7 @@ export const getDayDataOrchestrated = async (profileId, initialDate, finishDate,
   const cacheKey = CacheKeys.dayData(profileId, `${initialDate}_${finishDate}`);
 
   if (useCache) {
-    const cached = getCached(cacheKey, CONFIG.CACHE_TTL.dayData);
+    const cached = getCached(cacheKey);
     if (cached) return cached;
   }
 
@@ -292,7 +302,7 @@ export const getMonthDataOrchestrated = async (profileId, initialDate, finishDat
   const cacheKey = CacheKeys.monthData(profileId, yearMonth);
 
   if (useCache) {
-    const cached = getCached(cacheKey, CONFIG.CACHE_TTL.monthData);
+    const cached = getCached(cacheKey);
     if (cached) return cached;
   }
 
@@ -315,7 +325,7 @@ export const getNotificationsOrchestrated = async (profileId, page, type, option
     : CacheKeys.notifications(profileId, type);
 
   if (useCache) {
-    const cached = getCached(cacheKey, CONFIG.CACHE_TTL.notifications);
+    const cached = getCached(cacheKey);
     if (cached) return cached;
   }
 
@@ -378,10 +388,16 @@ export const createAutoRefresh = (callback, interval, deps = []) => {
     return throttledCallback();
   };
 
+  // Reiniciar intervalo cuando cambian dependencias
+  const reset = () => {
+    cancel();
+    start();
+  };
+
   // Iniciar automáticamente
   start();
 
-  return { refresh, cancel, start };
+  return { refresh, cancel, start, reset };
 };
 
 // ──────────────────────────────────────────
@@ -396,7 +412,8 @@ export const cancelAllRequests = () => {
     try { ctrl.abort(); } catch (e) { /* ignore */ }
   });
   abortControllers.clear();
-  requestQueue = [];
+  Object.values(pendingByPriority).forEach((q) => (q.length = 0));
+  activeCount = 0;
 };
 
 /**
@@ -414,8 +431,10 @@ export const invalidatePointCache = (pointId) => {
  * Estadísticas del orquestador
  */
 export const getOrchestratorStats = () => {
+  const totalPending = Object.values(pendingByPriority).reduce((sum, q) => sum + q.length, 0);
   return {
-    pendingRequests: requestQueue.length,
+    pendingRequests: totalPending,
+    activeRequests: activeCount,
     activeAbortControllers: abortControllers.size,
     cacheStats: dataCache.getStats(),
   };
