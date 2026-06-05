@@ -79,8 +79,8 @@ const VoucherModal = ({
           </Row>
         )}
 
-        <Row gutter={[16, 16]} style={{ minHeight: 500 }}>
-          <Col xs={24} md={12} style={{ height: 400 }}>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} md={12}>
             <div
               style={{
                 background: token.colorBgLayout,
@@ -89,24 +89,24 @@ const VoucherModal = ({
                 fontFamily: "monospace",
                 fontSize: 11,
                 color: token.colorTextTertiary,
-                height: "500px",
+                height: 500,
                 overflowY: "auto",
                 lineHeight: 1.6,
               }}
             >
               {dgaConsole.length === 0 ? (
-                <Flex align="center" justify="center" style={{ height: "100%", color: "#6b7280" }}>
-                  <Text style={{ color: "#6b7280", fontSize: 12 }}>Listo para validar...</Text>
+                <Flex align="center" justify="center" style={{ height: "100%" }}>
+                  <Text style={{ color: token.colorTextDisabled, fontSize: 12 }}>Listo para validar...</Text>
                 </Flex>
               ) : (
                 dgaConsole.map((line, i) => (
                   <div key={i} style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
                     {line.startsWith("> ERROR") ? (
-                      <span style={{ color: "#f87171" }}>{line}</span>
+                      <span style={{ color: token.colorError }}>{line}</span>
                     ) : line.startsWith("> Status: 2") ? (
-                      <span style={{ color: "#4ade80" }}>{line}</span>
+                      <span style={{ color: token.colorSuccess }}>{line}</span>
                     ) : line.startsWith("> Status:") ? (
-                      <span style={{ color: "#fbbf24" }}>{line}</span>
+                      <span style={{ color: token.colorWarning }}>{line}</span>
                     ) : (
                       line
                     )}
@@ -114,7 +114,7 @@ const VoucherModal = ({
                 ))
               )}
               {dgaVerifying && (
-                <div style={{ color: "#60a5fa" }}>
+                <div style={{ color: token.colorPrimary }}>
                   {"\u258B"}
                 </div>
               )}

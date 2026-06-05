@@ -41,10 +41,10 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
     responsive: ["md"],
     render: (_, record) => (
       <Flex vertical gap={2} align="center">
-        <Tag className="ocean-tag ocean-tag-default ocean-font-body">
+        <Tag style={{ fontSize: token.fontSizeSM }}>
           {typeDgaLabels[record.standard] || record.standard}
         </Tag>
-        <Text className="ocean-text-xs ocean-text-secondary ocean-font-body">
+        <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextSecondary }}>
           {typeDgaLabels[record.type_dga] || record.type_dga}
         </Text>
       </Flex>
@@ -85,20 +85,20 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
         <Flex vertical gap={2} align="center">
           {currentFlow != null && authorizedFlow > 0 ? (
             <>
-              <Text strong className="ocean-text-lg ocean-font-heading" style={{ color: flowColor }}>
+              <Text strong style={{ fontSize: token.fontSizeLG, color: flowColor }}>
                 {Number(currentFlow).toFixed(1)}
-                <span className="ocean-text-xs ocean-font-normal ocean-ml-xs ocean-font-body">L/s</span>
+                <span style={{ fontSize: token.fontSizeSM, fontWeight: 400, marginLeft: 2 }}> L/s</span>
               </Text>
-              <Text className="ocean-text-xs ocean-text-secondary ocean-font-body">
+              <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextSecondary }}>
                 / {Number(authorizedFlow).toFixed(1)} L/s
               </Text>
             </>
           ) : currentFlow != null ? (
-            <Text strong className="ocean-text-base ocean-text-primary ocean-font-heading">
+            <Text strong style={{ fontSize: token.fontSize, color: token.colorText }}>
               {Number(currentFlow).toFixed(1)} L/s
             </Text>
           ) : (
-            <Text className="ocean-text-sm ocean-text-disabled ocean-font-body">—</Text>
+            <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextDisabled }}>—</Text>
           )}
         </Flex>
       );
@@ -118,12 +118,12 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
     render: (_, record) => {
       const v = record.water_table_m;
       return v != null ? (
-        <Text className="ocean-text-base ocean-text-blue ocean-font-heading">
+        <Text style={{ fontSize: token.fontSize, color: token.colorInfo }}>
           {Number(v).toFixed(2)}
-          <span className="ocean-text-xs ocean-ml-xs ocean-font-body">m</span>
+          <span style={{ fontSize: token.fontSizeSM, marginLeft: 2 }}> m</span>
         </Text>
       ) : (
-        <Text className="ocean-text-sm ocean-text-disabled ocean-font-body">—</Text>
+        <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextDisabled }}>—</Text>
       );
     },
   },
@@ -146,6 +146,7 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
       const exceededHasMore = flowHistory?.has_more ?? false;
       const nearLimitHasMore = nearLimitHistory?.has_more ?? false;
       const authorizedFlow = record.authorized_flow;
+      const badgeBase = { display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: token.borderRadius, cursor: "pointer", transition: "opacity 0.2s" };
       
       return (
         <Flex vertical gap={4} align="center">
@@ -165,12 +166,12 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
                     onViewComplianceDetail?.(record, "exceeded");
                   }
                 }}
-                className="ocean-audit-badge ocean-audit-badge-error"
-                onMouseEnter={(e) => { e.currentTarget.style.opacity = 0.85; }}
-                onMouseLeave={(e) => { e.currentTarget.style.opacity = 1; }}
+                style={{ ...badgeBase, background: `${token.colorError}15`, border: `1px solid ${token.colorError}30` }}
+                onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.85"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
               >
-                <FaExclamationTriangle className="ocean-audit-icon-error" />
-                <Text className="ocean-text-xs ocean-font-semibold ocean-text-coral ocean-font-body">
+                <FaExclamationTriangle style={{ fontSize: token.fontSizeSM, color: token.colorError }} />
+                <Text style={{ fontSize: token.fontSizeSM, fontWeight: 600, color: token.colorError }}>
                   {exceededHasMore ? "20+" : exceededCount}
                 </Text>
               </div>
@@ -193,12 +194,12 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
                     onViewComplianceDetail?.(record, "near_limit");
                   }
                 }}
-                className="ocean-audit-badge ocean-audit-badge-warning"
-                onMouseEnter={(e) => { e.currentTarget.style.opacity = 0.85; }}
-                onMouseLeave={(e) => { e.currentTarget.style.opacity = 1; }}
+                style={{ ...badgeBase, background: `${token.colorWarning}15`, border: `1px solid ${token.colorWarning}30` }}
+                onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.85"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
               >
-                <FaChartLine className="ocean-audit-icon-warning" />
-                <Text className="ocean-text-xs ocean-font-semibold ocean-text-orange ocean-font-body">
+                <FaChartLine style={{ fontSize: token.fontSizeSM, color: token.colorWarning }} />
+                <Text style={{ fontSize: token.fontSizeSM, fontWeight: 600, color: token.colorWarning }}>
                   {nearLimitHasMore ? "20+" : nearLimitCount}
                 </Text>
               </div>
@@ -275,7 +276,7 @@ const CCComplianceTable = ({ points, last7, onViewVoucher, onOpenStopCompliance,
       />
       {search.trim() && filteredPoints.length === 0 && (
         <Flex justify="center" style={{ padding: 24 }}>
-          <Text className="ocean-text-base ocean-text-muted">No se encontraron puntos</Text>
+          <Text style={{ fontSize: token.fontSize, color: token.colorTextTertiary }}>No se encontraron puntos</Text>
         </Flex>
       )}
       <Table
@@ -287,9 +288,7 @@ const CCComplianceTable = ({ points, last7, onViewVoucher, onOpenStopCompliance,
         scroll={{ x: "max-content" }}
         pagination={{ pageSize: 10, hideOnSinglePage: true }}
         locale={{ emptyText: "No hay puntos disponibles" }}
-        className="ocean-table ocean-table-transparent"
         onRow={(record) => ({
-          className: "ocean-table-row",
           style: {
             borderLeft: `4px solid ${levelColorMap[record.compliance_warning?.level || "safe"]?.color || levelColorMap.safe.color}`,
           },
