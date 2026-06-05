@@ -9,8 +9,6 @@ const ConsumptionCell = ({ record, token }) => {
   const pct = record.pct_consumed;
   const pctNum = pct != null ? Number(pct) : null;
   
-  const isDark = token?.colorBgLayout === "#141414" || token?.colorBgLayout === "#000";
-  
   const color = pctNum == null
     ? token?.colorTextDisabled
     : pctNum > 100
@@ -18,14 +16,6 @@ const ConsumptionCell = ({ record, token }) => {
     : pctNum > 80
     ? token?.colorWarning
     : token?.colorSuccess;
-
-  const bgColor = isDark
-    ? "rgba(255, 255, 255, 0.08)"
-    : '#E9ECEF';
-
-  const trackColor = isDark
-    ? "rgba(255, 255, 255, 0.04)"
-    : '#F8F9FA';
 
   return (
     <Flex vertical gap={3} align="center">
@@ -47,7 +37,7 @@ const ConsumptionCell = ({ record, token }) => {
               width: "100%",
               height: 8,
               borderRadius: 4,
-              background: bgColor,
+              background: token?.colorFillSecondary,
               overflow: "hidden",
               position: "relative",
             }}

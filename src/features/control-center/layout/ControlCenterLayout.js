@@ -174,8 +174,8 @@ const ControlCenterLayout = memo(({
                 value: "telemetry",
                 label: (
                   <Flex align="center" gap={8}>
-                    <FaBroadcastTower className="ocean-icon-cyan" />
-                    <span className="ocean-tab-label">Telemetria</span>
+                    <FaBroadcastTower style={{ color: token.colorInfo, fontSize: 14 }} />
+                    <span style={{ color: activeTab === "telemetry" ? token.colorInfo : token.colorTextSecondary, fontWeight: 500 }}>Telemetria</span>
                   </Flex>
                 ),
               },
@@ -183,15 +183,19 @@ const ControlCenterLayout = memo(({
                 value: "compliance",
                 label: (
                   <Flex align="center" gap={8}>
-                    <FaClipboardCheck className="ocean-icon-cyan" />
-                    <span className="ocean-tab-label">Cumplimiento</span>
+                    <FaClipboardCheck style={{ color: token.colorSuccess, fontSize: 14 }} />
+                    <span style={{ color: activeTab === "compliance" ? token.colorSuccess : token.colorTextSecondary, fontWeight: 500 }}>Cumplimiento</span>
                   </Flex>
                 ),
               },
             ]}
             value={activeTab}
             onChange={onTabChange}
-            className="ocean-segmented"
+            style={{
+              background: token.colorFillSecondary,
+              borderRadius: token.borderRadius,
+              padding: 4,
+            }}
           />
         </Flex>
 

@@ -5,7 +5,7 @@ import { FormOutlined, CheckCircleOutlined, CloseCircleOutlined, MinusCircleOutl
 import { format, parseISO, isSameDay } from "date-fns";
 import { es } from "date-fns/locale/es";
 import { formatInteger } from "../../../../utils/numberFormatter";
-import { SmartIconButton, SmartBadge } from "../../../../shared/ui";
+import { SmartBadge } from "../../../../shared/ui";
 
 const typeDgaLabels = {
   "SUPERFICIAL": "Superficial",
@@ -274,6 +274,20 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
       });
     }
 
+    const btnBase = (color) => ({
+      width: 28,
+      height: 28,
+      borderRadius: "50%",
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      cursor: "pointer",
+      border: `1.5px solid ${color}30`,
+      background: `${color}12`,
+      color,
+      transition: "all 0.2s ease",
+    });
+
     cols.push({ 
       title: "", 
       dataIndex: "measurements_count", 
@@ -283,30 +297,27 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
       responsive: ["md"], 
       sorter: (a, b) => (a.measurements_count || 0) - (b.measurements_count || 0), 
       render: (v, record) => (
-        <Flex align="center" justify="center" gap={4} onClick={(e) => e.stopPropagation()}>
-          <SmartIconButton
-            variant="ghost"
-            size="sm"
-            icon={<FaEye style={{ fontSize: 10 }} />}
-            tooltip={`Ver ${v || 0} mediciones`}
-            onClick={() => handleViewMeasurements(record)}
-          />
+        <Flex align="center" justify="center" gap={6} onClick={(e) => e.stopPropagation()}>
+          <Tooltip title={`Ver ${v || 0} mediciones`}>
+            <div role="button" tabIndex={0} style={btnBase(token.colorPrimary)}
+              onClick={() => handleViewMeasurements(record)}>
+              <FaEye style={{ fontSize: 11 }} />
+            </div>
+          </Tooltip>
           {(record.measurements_count || 0) > 0 && (
-            <SmartIconButton
-              variant="primary"
-              size="sm"
-              icon={<FaHandPaper style={{ fontSize: 9 }} />}
-              tooltip="Detener telemetría"
-              onClick={() => handleOpenStopTelemetry(record)}
-            />
+            <Tooltip title="Detener telemetria">
+              <div role="button" tabIndex={0} style={btnBase(token.colorError)}
+                onClick={() => handleOpenStopTelemetry(record)}>
+                <FaHandPaper style={{ fontSize: 10 }} />
+              </div>
+            </Tooltip>
           )}
-          <SmartIconButton
-            variant="primary"
-            size="sm"
-            icon={<FaHeadset style={{ fontSize: 9 }} />}
-            tooltip="Solicitar soporte"
-            onClick={() => handleOpenSupport(record)}
-          />
+          <Tooltip title="Solicitar soporte">
+            <div role="button" tabIndex={0} style={btnBase(token.colorWarning)}
+              onClick={() => handleOpenSupport(record)}>
+              <FaHeadset style={{ fontSize: 10 }} />
+            </div>
+          </Tooltip>
         </Flex>
       ) 
     });
