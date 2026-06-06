@@ -41,20 +41,6 @@ const CONFIG = {
 // ──────────────────────────────────────────
 const abortControllers = new Map();
 
-const getAbortController = (key) => {
-  // Cancelar request anterior si existe
-  if (abortControllers.has(key)) {
-    abortControllers.get(key).abort();
-  }
-  const ctrl = new AbortController();
-  abortControllers.set(key, ctrl);
-  return ctrl;
-};
-
-const cleanupAbortController = (key) => {
-  abortControllers.delete(key);
-};
-
 // ──────────────────────────────────────────
 // Priority Queue para requests (concurrente)
 // ──────────────────────────────────────────
@@ -74,11 +60,7 @@ const pendingByPriority = {
   [PRIORITY.LOW]: [],
 };
 
-const enqueueRequest = (fn, priority = PRIORITY.NORMAL) => {
-  pendingByPriority[priority].push(fn);
-  processQueue();
-};
-
+// eslint-disable-next-line no-unused-vars
 const processQueue = () => {
   while (activeCount < MAX_CONCURRENT) {
     let fn = null;
@@ -97,6 +79,7 @@ const processQueue = () => {
           console.error('[Orchestrator] Request error:', err);
         }
       })
+      // eslint-disable-next-line no-loop-func
       .finally(() => {
         activeCount--;
         processQueue();

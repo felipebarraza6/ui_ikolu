@@ -1,23 +1,5 @@
-/* ── Helper: normalizar número que puede venir como objeto {source, parsedValue} ── */
-export const extractRecordNum = (val) => {
-  if (val == null) return null;
-  if (typeof val === "number") return val;
-  if (typeof val === "string") {
-    const n = Number(val);
-    return isNaN(n) ? null : n;
-  }
-  if (typeof val === "object") {
-    if (val.parsedValue != null) {
-      const n = Number(val.parsedValue);
-      return isNaN(n) ? null : n;
-    }
-    if (val.source != null) {
-      const n = Number(val.source);
-      return isNaN(n) ? null : n;
-    }
-  }
-  return null;
-};
+import { extractNum } from "../../../utils/numbers";
+export const extractRecordNum = extractNum;
 
 /* ── Helper: extraer mediciones de respuesta del endpoint ── */
 export const extractMeasurements = (raw) => {

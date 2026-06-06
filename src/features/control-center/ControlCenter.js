@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useMemo, useRef, useEffect } from "react";
 import "./ControlCenter.css";
 import { useControlCenterStore } from "./stores/controlCenterStore";
-import { shallow } from "zustand/shallow";
+import { useControlCenterData } from "./hooks/useControlCenterData";
 import orchestrator from "../../api/orchestrator";
 import { Form, theme, Drawer, message } from "antd";
 import CCSupportDrawer from "./drawers/SupportDrawer";
@@ -30,10 +30,7 @@ const ControlCenter = () => {
   const drawers = useControlCenterStore((s) => s.drawers);
   const openDrawer = useControlCenterStore((s) => s.openDrawer);
   const closeDrawer = useControlCenterStore((s) => s.closeDrawer);
-  const { data, loading } = useControlCenterStore(
-    (s) => ({ data: s.data, loading: s.loading }),
-    shallow
-  );
+  const { data, loading, error, refresh } = useControlCenterData();
 
   // Shorthand helpers para drawer state
   const d = (name) => drawers[name] || { open: false };
@@ -348,13 +345,17 @@ const ControlCenter = () => {
         onOpenStopCompliance={handleOpenStopCompliance}
         onViewFlowAnalysis={handleViewFlowAnalysis}
         onViewComplianceDetail={handleViewComplianceDetail}
+        data={data}
+        loading={loading}
+        error={error}
+        onRefresh={refresh}
       />
 
       <WarningsDrawer
         open={d('warnings').open}
         onClose={() => closeDrawer('warnings')}
-        warningsList={useControlCenterStore.getState().getWarningsList()}
-        warningsRaw={useControlCenterStore.getState().getWarningsRaw()}
+        warningsList={data?.recent_warnings_list || []}
+        warningsRaw={data?.recent_warnings || {}}
         selectedWarningPoint={d('warnings').pointName}
         setSelectedWarningPoint={(pointName) => openDrawer('warnings', { pointName })}
       />

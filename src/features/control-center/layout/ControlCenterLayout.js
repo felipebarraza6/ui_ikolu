@@ -1,10 +1,11 @@
 import React, { memo, useCallback } from "react";
-import { Row, Col, Flex, Typography, theme, Segmented, Tooltip, Button, message } from "antd";
+import { Row, Col, Flex, Typography, theme, Segmented, Tooltip, Button, Input, message } from "antd";
 import {
   FaMapMarkerAlt,
   FaBroadcastTower,
   FaClipboardCheck,
   FaDownload,
+  FaSearch,
 } from "react-icons/fa";
 import { SmartKPICard } from "../../../shared/ui";
 import { BlinkingDot } from "../components";
@@ -26,6 +27,8 @@ const ControlCenterLayout = memo(({
   onWarningClick,
   children,
   loading,
+  search,
+  onSearchChange,
 }) => {
   const { token } = useToken();
 
@@ -161,13 +164,25 @@ const ControlCenterLayout = memo(({
         }}
       >
         <Flex justify="space-between" align="center" className="ocean-tabs-header">
-          <Button
-            size="small"
-            icon={<FaDownload className="ocean-icon-xs" />}
-            onClick={handleExport}
-          >
-            Exportar
-          </Button>
+          <Flex align="center" gap={12}>
+            <Button
+              size="small"
+              icon={<FaDownload className="ocean-icon-xs" />}
+              onClick={handleExport}
+            >
+              Exportar
+            </Button>
+            <Input
+              variant="borderless"
+              placeholder="Buscar punto..."
+              allowClear
+              prefix={<FaSearch style={{ color: token.colorTextQuaternary, fontSize: 13 }} />}
+              value={search}
+              onChange={(e) => onSearchChange(e.target.value)}
+              style={{ width: 220 }}
+              size="small"
+            />
+          </Flex>
           <Segmented
             options={[
               {

@@ -1,12 +1,26 @@
-import React, { useMemo, useState } from "react";
-import { Flex, Typography, Table, Tag, Tooltip, theme, Input } from "antd";
+import React, { useMemo } from "react";
+import { Flex, Typography, Table, Tag, Tooltip, theme } from "antd";
 import { FaEye, FaPauseCircle, FaHeadset, FaInfoCircle, FaExternalLinkAlt, FaExclamationTriangle, FaChartLine, FaCheckCircle, FaShieldAlt, FaTint } from "react-icons/fa";
 import { formatInteger } from "../../../../utils/numberFormatter";
 import { PointHeader, ConsumptionCell, ActionButtons } from "../../components";
-import { typeDgaLabels } from "../../../../constants/dgaTypes";
 
 const { Text } = Typography;
 const { useToken } = theme;
+
+const typeDgaLabels = {
+  "SUPERFICIAL": "Superficial",
+  "SUBTERRANEO": "Subterráneo",
+  "SUPERFICIAL_MAYOR": "Superficial Mayor",
+  "SUBTERRANEO_MENOR": "Subterráneo Menor",
+  "CAUDALES_MUY_PEQUENOS": "Caudales muy pequeños",
+  "MEDIO": "Medio",
+  "MAYOR": "Mayor",
+  "MENOR": "Menor",
+  "CAUDAL": "Caudal",
+  "VOLUMEN": "Volumen",
+};
+
+
 
 const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPointConfig, onViewComplianceDetail, last7, token) => [
   {
@@ -212,7 +226,7 @@ const pointsColumns = (onViewVoucher, onStopCompliance, onOpenSupport, onViewPoi
   },
 ];
 
-const CCComplianceTable = ({ points, last7, onViewVoucher, onOpenStopCompliance, onOpenSupport = () => {}, onViewPointConfig, onViewComplianceDetail }) => {
+const CCComplianceTable = ({ points, last7, onViewVoucher, onOpenStopCompliance, onOpenSupport = () => {}, onViewPointConfig, onViewComplianceDetail, loading = false, search = "" }) => {
   const { token } = useToken();
   const levelColorMap = {
     safe: { color: token.colorSuccess, label: "Dentro de límites" },
@@ -220,7 +234,6 @@ const CCComplianceTable = ({ points, last7, onViewVoucher, onOpenStopCompliance,
     critical: { color: token.colorError, label: "Incumplimiento detectado" },
     unknown: { color: token.colorTextDisabled, label: "Sin límites configurados" },
   };
-  const [search, setSearch] = useState("");
 
   const filteredPoints = useMemo(() => {
     if (!search.trim()) return points;
@@ -252,29 +265,21 @@ const CCComplianceTable = ({ points, last7, onViewVoucher, onOpenStopCompliance,
   }, [onViewVoucher, onOpenStopCompliance, onOpenSupport, onViewPointConfig, onViewComplianceDetail, last7, token, activeVars]);
 
   return (
-    <Flex vertical gap={12}>
-      <Input.Search
-        placeholder="Buscar punto por nombre o codigo..."
-        allowClear
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        style={{ maxWidth: 360 }}
-      />
-      <Table
-        dataSource={filteredPoints}
-        columns={columns}
-        rowKey="id"
-        size="small"
-        scroll={{ x: "max-content" }}
-        pagination={{ pageSize: 10, hideOnSinglePage: true }}
-        locale={{ emptyText: "No hay puntos disponibles" }}
-        onRow={(record) => ({
-          style: {
-            borderLeft: `4px solid ${levelColorMap[record.compliance_warning?.level || "safe"]?.color || levelColorMap.safe.color}`,
-          },
-        })}
-      />
-    </Flex>
+    <Table
+      loading={loading}
+      dataSource={filteredPoints}
+      columns={columns}
+      rowKey="id"
+      size="small"
+      scroll={{ x: "max-content" }}
+      pagination={{ pageSize: 10, hideOnSinglePage: true }}
+      locale={{ emptyText: "No hay puntos disponibles" }}
+      onRow={(record) => ({
+        style: {
+          borderLeft: `4px solid ${levelColorMap[record.compliance_warning?.level || "safe"]?.color || levelColorMap.safe.color}`,
+        },
+      })}
+    />
   );
 };
 

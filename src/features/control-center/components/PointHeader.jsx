@@ -2,7 +2,21 @@ import React from "react";
 import { Flex, Typography, Tag } from "antd";
 import { FaInfoCircle, FaExternalLinkAlt } from "react-icons/fa";
 
+
 const { Text } = Typography;
+
+const typeDgaLabels = {
+  SUPERFICIAL: "Superficial",
+  SUBTERRANEO: "Subterráneo",
+  SUPERFICIAL_MAYOR: "Superficial Mayor",
+  SUBTERRANEO_MENOR: "Subterráneo Menor",
+  CAUDALES_MUY_PEQUENOS: "Caudales muy pequeños",
+  MEDIO: "Medio",
+  MAYOR: "Mayor",
+  MENOR: "Menor",
+  CAUDAL: "Caudal",
+  VOLUMEN: "Volumen",
+};
 
 const PointHeader = ({ record, onViewPointConfig, token }) => {
   const hasDga = record.compliance_type?.includes("DGA");
@@ -107,4 +121,5 @@ const PointHeader = ({ record, onViewPointConfig, token }) => {
   );
 };
 
+export { typeDgaLabels };
 export default PointHeader;

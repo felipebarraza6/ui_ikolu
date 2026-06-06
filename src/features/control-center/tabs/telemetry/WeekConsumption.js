@@ -7,9 +7,20 @@ import { es } from "date-fns/locale/es";
 import { formatInteger } from "../../../../utils/numberFormatter";
 import { SmartBadge } from "../../../../shared/ui";
 
+const typeDgaLabels = {
+  "SUPERFICIAL": "Superficial",
+  "SUBTERRANEO": "Subterráneo",
+  "SUPERFICIAL_MAYOR": "Superficial Mayor",
+  "SUBTERRANEO_MENOR": "Subterráneo Menor",
+  "CAUDALES_MUY_PEQUENOS": "Caudales muy pequeños",
+  "MEDIO": "Medio",
+  "MAYOR": "Mayor",
+  "MENOR": "Menor",
+};
+
 const { Text } = Typography;
 
-const TableMemo = React.memo(({ data, columns }) => {
+const TableMemo = React.memo(({ data, columns, loading }) => {
   const dataSource = useMemo(() =>
     data.map((p, idx) => ({ ...p, key: p.pointName || idx, rank: idx + 1 })),
     [data]
@@ -17,6 +28,7 @@ const TableMemo = React.memo(({ data, columns }) => {
 
   return (
     <Table
+      loading={loading}
       dataSource={dataSource}
       size="small"
       pagination={false}
@@ -28,7 +40,7 @@ const TableMemo = React.memo(({ data, columns }) => {
   );
 });
 
-const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasurements, onOpenStopTelemetry, onOpenSupport = () => {}, onWarningPointClick = () => {}, onViewPointConfig, warningsRaw = {} }) => {
+const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasurements, onOpenStopTelemetry, onOpenSupport = () => {}, onWarningPointClick = () => {}, onViewPointConfig, warningsRaw = {}, loading = false, search = "" }) => {
   const { token } = theme.useToken();
 
   const dayMap = useMemo(() => {
@@ -48,9 +60,24 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
     return map;
   }, [last7]);
 
+  const filteredDayMap = useMemo(() => {
+    if (!search.trim()) return dayMap;
+    const q = search.toLowerCase();
+    const filtered = {};
+    Object.entries(dayMap).forEach(([date, { points }]) => {
+      const matching = points.filter((p) =>
+        (p.pointName || "").toLowerCase().includes(q)
+      );
+      if (matching.length > 0) {
+        filtered[date] = { points: matching };
+      }
+    });
+    return filtered;
+  }, [dayMap, search]);
+
   const sortedDays = useMemo(() => {
-    return Object.entries(dayMap).sort(([a], [b]) => a.localeCompare(b)).slice(-7);
-  }, [dayMap]);
+    return Object.entries(filteredDayMap).sort(([a], [b]) => a.localeCompare(b)).slice(-7);
+  }, [filteredDayMap]);
 
   const defaultDate = sortedDays.length > 0 ? sortedDays[sortedDays.length - 1][0] : null;
   const activeDate = selectedDate || defaultDate;
@@ -375,10 +402,11 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
           })}
         </Flex>
 
-        {activeDate && dayMap[activeDate] && (
+        {activeDate && filteredDayMap[activeDate] && (
           <div className="fade-in">
             <TableMemo
-              data={dayMap[activeDate].points}
+              loading={loading}
+              data={filteredDayMap[activeDate].points}
               columns={columns}
             />
           </div>

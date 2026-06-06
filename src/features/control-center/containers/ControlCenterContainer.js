@@ -1,14 +1,13 @@
-import React, { useEffect, useLayoutEffect, useMemo, useCallback } from "react";
+import React, { useMemo, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Flex, Typography, theme, Button } from "antd";
 import { ExclamationCircleOutlined, ReloadOutlined } from "@ant-design/icons";
 import ControlCenterLayout from "../layout/ControlCenterLayout";
 import TelemetryTab from "../tabs/telemetry";
 import ComplianceTab from "../tabs/compliance";
-import SkeletonCompliance from "../layout/SkeletonCompliance";
-import SkeletonTelemetry from "../layout/SkeletonTelemetry";
+import SkeletonCompliance from "../tabs/compliance/SkeletonCompliance";
+import SkeletonTelemetry from "../tabs/telemetry/SkeletonTelemetry";
 import { useControlCenterStore } from "../stores/controlCenterStore";
-import { useAuth } from "../../../contexts/AuthContext";
 
 const { Text, Title } = Typography;
 const { useToken } = theme;
@@ -23,47 +22,18 @@ const ControlCenterContainer = ({
   onOpenStopCompliance,
   onViewFlowAnalysis,
   onViewComplianceDetail,
+  data,
+  loading,
+  error,
+  onRefresh,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuth } = useAuth();
   const { token } = useToken();
 
-  const {
-    data,
-    loading,
-    error,
-    fetchData,
-    selectedDate,
-    setSelectedDate,
-  } = useControlCenterStore();
+  const selectedDate = useControlCenterStore((s) => s.selectedDate);
+  const setSelectedDate = useControlCenterStore((s) => s.setSelectedDate);
 
-  // Track if this is the initial mount to prevent error flash on remounts
-  const isInitialMount = React.useRef(true);
-  
-  useEffect(() => {
-    isInitialMount.current = false;
-  }, []);
-
-  // Data fetching with auto-refresh
-  useEffect(() => {
-    if (!isAuth) return;
-    const controller = new AbortController();
-    fetchData(controller.signal);
-    return () => controller.abort();
-  }, [isAuth, fetchData]);
-
-  useEffect(() => {
-    if (!isAuth) return;
-    const interval = setInterval(() => {
-      const controller = new AbortController();
-      fetchData(controller.signal, true);
-      return () => controller.abort();
-    }, 60000);
-    return () => clearInterval(interval);
-  }, [isAuth, fetchData]);
-
-  // Tab routing from URL
   const activeTab = useMemo(() => {
     return location.pathname.includes("/compliance") ? "compliance" : "telemetry";
   }, [location.pathname]);
@@ -73,17 +43,15 @@ const ControlCenterContainer = ({
     navigate(tab === "compliance" ? "/control-center/compliance" : "/control-center/telemetry");
   }, [activeTab, navigate]);
 
-  const isReady = !!data && !loading;
-  const overview = data?.overview || {};
-  const points = data?.points || [];
-  const warningsList = data?.recent_warnings_list || [];
-  const warningsRaw = data?.recent_warnings || {};
-  const chatQuota = data?.chat_quota || null;
+  const isReady = !!data;
+  const overview = useMemo(() => data?.overview || {}, [data?.overview]);
+  const points = useMemo(() => data?.points || [], [data?.points]);
+  const warningsList = useMemo(() => data?.recent_warnings_list || [], [data?.recent_warnings_list]);
+  const warningsRaw = useMemo(() => data?.recent_warnings || {}, [data?.recent_warnings]);
+  const chatQuota = useMemo(() => data?.chat_quota || null, [data?.chat_quota]);
 
-  // Filter out cancel/abort errors — these are not real errors
   const isRealError = error && error.message !== "canceled" && error.name !== "AbortError";
 
-  // Error state — only show for real errors, not aborts
   if (isRealError && !isReady) {
     return (
       <Flex align="center" justify="center" style={{ minHeight: "50vh" }} vertical gap={16}>
@@ -92,10 +60,7 @@ const ControlCenterContainer = ({
         <Text style={{ color: token.colorTextDisabled }}>{error.message}</Text>
         <Button
           type="primary"
-          onClick={() => {
-            const controller = new AbortController();
-            fetchData(controller.signal);
-          }}
+          onClick={() => onRefresh && onRefresh()}
           icon={<ReloadOutlined />}
         >
           Reintentar
@@ -114,10 +79,11 @@ const ControlCenterContainer = ({
       activeTab={activeTab}
       onTabChange={handleTabChange}
       onWarningClick={onWarningClick}
+      loading={!data}
     >
       <div className="tab-transition" key={`tab-${activeTab}`}>
         {activeTab === "telemetry" ? (
-          loading && !data ? (
+          !data ? (
             <SkeletonTelemetry />
           ) : (
             <TelemetryTab
@@ -133,7 +99,7 @@ const ControlCenterContainer = ({
             />
           )
         ) : (
-          loading && !data ? (
+          !data ? (
             <SkeletonCompliance />
           ) : (
             <ComplianceTab
@@ -153,4 +119,4 @@ const ControlCenterContainer = ({
   );
 };
 
-export default ControlCenterContainer;
+export default React.memo(ControlCenterContainer);

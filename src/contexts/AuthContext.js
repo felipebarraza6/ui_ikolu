@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     dispatch,
-  }), [state.isAuth, state.user?.id, state.token, state.loading, state.error, login, logout]);
+  }), [state.isAuth, state.user, state.token, state.loading, state.error, login, logout]);
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };

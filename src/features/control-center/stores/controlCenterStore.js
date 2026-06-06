@@ -1,19 +1,9 @@
 import { create } from "zustand";
-import orchestrator from "../../../api/orchestrator";
-import { transformDashboardStats } from "../utils/transformDashboardStats";
 
-export const useControlCenterStore = create((set, get) => ({
-  // ── UI State ──
+export const useControlCenterStore = create((set) => ({
   selectedDate: null,
   activeTab: "telemetry",
-  loading: false,
-  error: null,
-  lastRefresh: null,
 
-  // ── Data State ──
-  data: null,
-
-  // ── Drawers (genérico) ──
   drawers: {
     measurements: { open: false, point: null },
     voucherModal: { open: false },
@@ -26,34 +16,9 @@ export const useControlCenterStore = create((set, get) => ({
     complianceDetail: { open: false, point: null },
   },
 
-  // ── Actions: UI ──
   setSelectedDate: (date) => set({ selectedDate: date }),
   setActiveTab: (tab) => set({ activeTab: tab }),
-  setLoading: (loading) => set({ loading }),
-  setError: (error) => set({ error }),
-  setLastRefresh: (date) => set({ lastRefresh: date }),
-  setData: (data) => set({ data }),
 
-  // ── Async Fetch ──
-  fetchData: async (signal, silent = false) => {
-    if (!silent) set({ loading: true, error: null });
-    try {
-      const [rawDashboard, rawCompliance] = await Promise.all([
-        orchestrator.dashboardStats(signal),
-        orchestrator.compliance(signal).catch((err) => {
-          console.warn("[controlCenterStore] Endpoint compliance no disponible:", err?.message || err);
-          return null;
-        }),
-      ]);
-      const transformed = transformDashboardStats(rawDashboard, rawCompliance);
-      set({ data: transformed, loading: false, error: null, lastRefresh: new Date() });
-    } catch (err) {
-      if (err.name === "AbortError") return;
-      set({ error: err, loading: false });
-    }
-  },
-
-  // ── Generic Drawer Actions ──
   openDrawer: (name, payload = {}) =>
     set((state) => ({
       drawers: { ...state.drawers, [name]: { ...state.drawers[name], open: true, ...payload } },
@@ -71,7 +36,6 @@ export const useControlCenterStore = create((set, get) => ({
       return { drawers: closed };
     }),
 
-  // ── Convenience Actions ──
   handleWarningPointClick: (pointName) =>
     set((state) => ({
       drawers: { ...state.drawers, warnings: { open: true, pointName } },
@@ -108,12 +72,4 @@ export const useControlCenterStore = create((set, get) => ({
     set((state) => ({
       drawers: { ...state.drawers, complianceDetail: { open: true, point: { point, type } } },
     })),
-
-  // ── Selectors ──
-  getOverview: () => get().data?.overview || {},
-  getPoints: () => get().data?.points || [],
-  getLast7: () => get().data?.last_7 || {},
-  getWarningsList: () => get().data?.recent_warnings_list || [],
-  getWarningsRaw: () => get().data?.recent_warnings || {},
-  getChatQuota: () => get().data?.chat_quota || null,
 }));

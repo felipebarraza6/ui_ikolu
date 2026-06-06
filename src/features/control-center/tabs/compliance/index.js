@@ -10,6 +10,8 @@ const ComplianceTab = ({
   handleViewPointConfig,
   handleViewFlowAnalysis,
   handleViewComplianceDetail,
+  loading,
+  search,
 }) => {
   return (
     <div>
@@ -22,6 +24,8 @@ const ComplianceTab = ({
         onViewPointConfig={handleViewPointConfig}
         onViewFlowAnalysis={handleViewFlowAnalysis}
         onViewComplianceDetail={handleViewComplianceDetail}
+        loading={loading}
+        search={search}
       />
     </div>
   );

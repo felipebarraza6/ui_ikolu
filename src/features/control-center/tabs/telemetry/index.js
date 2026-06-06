@@ -11,6 +11,8 @@ const TelemetryTab = ({
   handleWarningPointClick,
   handleViewPointConfig,
   warningsRaw,
+  loading,
+  search,
 }) => {
   return (
     <div>
@@ -24,6 +26,8 @@ const TelemetryTab = ({
         onWarningPointClick={handleWarningPointClick}
         onViewPointConfig={handleViewPointConfig}
         warningsRaw={warningsRaw}
+        loading={loading}
+        search={search}
       />
     </div>
   );

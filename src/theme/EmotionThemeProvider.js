@@ -1,10 +1,11 @@
+import { useMemo } from "react";
 import { ThemeProvider } from "@emotion/react";
 import { theme } from "antd";
 
 const IkoluEmotionProvider = ({ children }) => {
   const { token } = theme.useToken();
 
-  const emotionTheme = {
+  const emotionTheme = useMemo(() => ({
     token,
     colors: {
       corporateBlue: token.colorPrimary,
@@ -58,7 +59,7 @@ const IkoluEmotionProvider = ({ children }) => {
       secondary: `linear-gradient(135deg, ${token.colorPrimaryHover || "#2A4A8A"} 0%, #3B6CA8 100%)`,
       info: `linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)`,
     },
-  };
+  }), [token]);
 
   return <ThemeProvider theme={emotionTheme}>{children}</ThemeProvider>;
 };

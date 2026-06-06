@@ -40,8 +40,13 @@ export const ThemeProvider = ({ children }) => {
     [algorithm, isDark]
   );
 
+  const contextValue = useMemo(
+    () => ({ isDark, toggleTheme, algorithm, themeConfig }),
+    [isDark, toggleTheme, algorithm, themeConfig]
+  );
+
   return (
-    <ThemeContext.Provider value={{ isDark, toggleTheme, algorithm, themeConfig }}>
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );

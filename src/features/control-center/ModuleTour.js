@@ -8,31 +8,23 @@ const { useToken } = theme;
  * Resuelve los targets de los steps de forma segura.
  * Convierte funciones target a referencias DOM directas para evitar que
  * rc-tour las ejecute repetidamente en cada render (causa loop infinito).
- *
- * Reglas:
- * - target === null/undefined: se deja tal cual (step con placement center)
- * - target es función: se ejecuta UNA vez. Si retorna elemento DOM, se usa
- *   directamente. Si retorna null/undefined, target queda como null.
- * - target es elemento DOM: se deja tal cual.
  */
 const resolveStepTargets = (steps) => {
   if (!Array.isArray(steps)) return [];
   return steps.map((step) => {
     if (!step) return step;
-    // Step con target null/undefined es válido (placement center)
     if (step.target === null || step.target === undefined) {
       return step;
     }
-    // Si target es función, ejecutar una sola vez y pasar la referencia directa
     if (typeof step.target === "function") {
       try {
         const el = step.target();
         if (el && el.nodeType === 1) {
           return { ...step, target: el };
         }
-        return { ...step, target: null };
+        return step;
       } catch {
-        return { ...step, target: null };
+        return step;
       }
     }
     return step;
@@ -69,19 +61,14 @@ const ModuleTour = ({
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [pendingStep, setPendingStep] = useState(null);
   const timeoutRef = useRef(null);
-  const openRef = useRef(open);
 
-  // Sincronizar ref para evitar stale closures en timeouts
+  const currentStepRef = useRef(currentStep);
   useEffect(() => {
-    openRef.current = open;
-  }, [open]);
+    currentStepRef.current = currentStep;
+  }, [currentStep]);
 
-  // Memoizar steps con targets resueltos para evitar que rc-tour
-  // ejecute funciones target en cada render (causa loop infinito).
-  // Se actualiza cuando cambian los steps originales o cuando refreshKey cambia.
   const resolvedSteps = useMemo(() => resolveStepTargets(steps), [steps, refreshKey]);
 
-  // Memoizar indicatorsRender para evitar re-renders innecesarios del Tour
   const indicatorsRender = useCallback(
     (current, total) => (
       <span style={{ color: token.colorPrimary, fontSize: 12 }}>
@@ -91,14 +78,12 @@ const ModuleTour = ({
     [token.colorPrimary, isTransitioning]
   );
 
-  // Sincronizar con activeTour global (para iniciar desde fuera)
   useEffect(() => {
     if (activeTour === tourKey) {
       setOpen(true);
     }
   }, [activeTour, tourKey]);
 
-  // Auto-start: solo si no fue completado, no hay otro tour activo, y las condiciones se cumplen
   useEffect(() => {
     if (!autoStart) return;
     if (!ready) return;
@@ -107,23 +92,18 @@ const ModuleTour = ({
     if (requiresPoint && !hasPoint) return;
 
     const timer = setTimeout(() => {
-      if (!openRef.current) {
-        setOpen(true);
-      }
+      setOpen(true);
     }, delay);
 
     return () => clearTimeout(timer);
   }, [autoStart, ready, isTourCompleted, activeTour, tourKey, requiresPoint, hasPoint, delay]);
 
-  // Escuchar cuando un drawer terminó de abrirse para avanzar el tour
   useEffect(() => {
     const handleDrawerOpened = (e) => {
       if (e.detail?.tourKey === tourKey && pendingStep !== null) {
         const stepToGo = pendingStep;
         const targetFn = steps[stepToGo]?.target;
 
-        // Esperar activamente hasta que el elemento target exista en el DOM
-        // y tenga dimensiones válidas antes de avanzar el paso.
         const start = Date.now();
         const MAX_WAIT = 3000;
         const POLL_INTERVAL = 80;
@@ -142,7 +122,6 @@ const ModuleTour = ({
           } else if (Date.now() - start < MAX_WAIT) {
             timeoutRef.current = setTimeout(tryAdvance, POLL_INTERVAL);
           } else {
-            // Fallback: avanzar de todas formas si se agota el tiempo
             setCurrentStep(stepToGo);
             setPendingStep(null);
             setIsTransitioning(false);
@@ -164,7 +143,6 @@ const ModuleTour = ({
     };
   }, [tourKey, pendingStep, steps]);
 
-  // Escuchar solicitudes de refresco de targets
   useEffect(() => {
     const handleRefresh = (e) => {
       if (e.detail?.tourKey === tourKey || e.detail?.tourKey === "all") {
@@ -195,18 +173,17 @@ const ModuleTour = ({
 
   const handleChange = useCallback(
     (next) => {
+      if (next === currentStepRef.current) return;
+
       const nextStep = steps[next];
 
-      window.dispatchEvent(
-        new CustomEvent("tour-step-change", {
-          detail: { tourKey, current: next, step: nextStep },
-        })
-      );
+      window.dispatchEvent(new CustomEvent("tour-step-change", {
+        detail: { tourKey, current: next, step: nextStep },
+      }));
 
       if (nextStep?.opensDrawer) {
         setIsTransitioning(true);
         setPendingStep(next);
-        // Fallback: si el drawer ya estaba abierto y no dispara afterOpenChange
         timeoutRef.current = setTimeout(() => {
           setPendingStep((ps) => {
             if (ps !== null) {
@@ -224,15 +201,9 @@ const ModuleTour = ({
     [steps, tourKey]
   );
 
-  // No renderizar el Tour si no hay steps válidos para evitar errores de rc-component
-  if (!resolvedSteps || resolvedSteps.length === 0) {
-    return children || null;
-  }
-
   return (
     <>
       <Tour
-        key={`${tourKey}-${refreshKey}`}
         open={open}
         current={currentStep}
         onClose={handleClose}
