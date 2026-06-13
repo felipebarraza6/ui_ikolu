@@ -25,7 +25,9 @@ Axios.interceptors.request.use((config) => {
 
 // ── Descargas: callback opcional para notificación UI ──
 let downloadCallback = null;
-export const setDownloadCallback = (cb) => { downloadCallback = cb; };
+export const setDownloadCallback = (cb) => {
+  downloadCallback = cb;
+};
 
 const triggerDownloadNotification = (filename) => {
   if (typeof downloadCallback === "function") {
@@ -41,7 +43,9 @@ export const POST_LOGIN = async (endpoint, data) => {
         request.data.error && !request.data.user && !request.data.access_token;
       if (hasError) {
         const error = new Error(
-          request.data.error || request.data.message || "Error de autenticación"
+          request.data.error ||
+            request.data.message ||
+            "Error de autenticación",
         );
         error.response = { data: request.data };
         throw error;
@@ -49,7 +53,6 @@ export const POST_LOGIN = async (endpoint, data) => {
     }
     return request;
   } catch (error) {
-    if (error.response) throw error;
     throw error;
   }
 };
@@ -62,7 +65,7 @@ export const GET = async (endpoint, token = null, options = {}) => {
 
   if (!authToken) {
     throw new Error(
-      "No se encontró token de autenticación. Por favor, inicia sesión nuevamente."
+      "No se encontró token de autenticación. Por favor, inicia sesión nuevamente.",
     );
   }
 
@@ -77,65 +80,40 @@ export const GET = async (endpoint, token = null, options = {}) => {
 };
 
 export const POST = async (endpoint, data) => {
-  const token = JSON.parse(localStorage.getItem("token"));
-  const options = {
-    headers: {
-      Authorization: `Token ${token}`,
-    },
-  };
-  const request = await Axios.post(endpoint, data, options);
+  const request = await Axios.post(endpoint, data);
   return request;
 };
 
 export const DELETE = async (endpoint) => {
-  const token = JSON.parse(localStorage.getItem("token"));
-  const options = {
-    headers: {
-      Authorization: `Token ${token}`,
-    },
-  };
-  const request = await Axios.delete(endpoint, options);
+  const request = await Axios.delete(endpoint);
   return request;
 };
 
 export const PATCH = async (endpoint, data) => {
-  const token = JSON.parse(localStorage.getItem("token"));
-  const options = {
-    headers: {
-      Authorization: `Token ${token}`,
-    },
-  };
-  const request = await Axios.patch(endpoint, data, options);
+  const request = await Axios.patch(endpoint, data);
   return request;
 };
 
 export const DOWNLOAD = async (endpoint, name_file) => {
-  const token = JSON.parse(localStorage.getItem("token"));
-
-  const download = {
+  const response = await Axios.get(endpoint, {
     responseType: "blob",
     headers: {
-      Authorization: `Token ${token}`,
       Accept:
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     },
-  };
-
-  const request = await Axios.get(endpoint, download).then((response) => {
-    const blob = new Blob([response.data], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", name_file);
-    document.body.appendChild(link);
-    link.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(link);
   });
 
-  triggerDownloadNotification(name_file);
+  const blob = new Blob([response.data], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", name_file);
+  document.body.appendChild(link);
+  link.click();
+  window.URL.revokeObjectURL(url);
+  document.body.removeChild(link);
 
-  return request;
+  triggerDownloadNotification(name_file);
 };

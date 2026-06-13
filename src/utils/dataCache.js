@@ -83,7 +83,7 @@ class DataCache {
       }
     }
 
-    keysToDelete.forEach(key => {
+    keysToDelete.forEach((key) => {
       this.cache.delete(key);
       this.timestamps.delete(key);
     });
@@ -109,7 +109,7 @@ class DataCache {
     return {
       total: this.cache.size,
       valid: validEntries,
-      expired: expiredEntries
+      expired: expiredEntries,
     };
   }
 }
@@ -140,15 +140,11 @@ export const CacheKeys = {
  * @returns {Promise<any>}
  */
 export const withCache = async (key, fetcher, ttl = undefined) => {
-  // Intentar obtener del caché primero
   const cached = dataCache.get(key);
   if (cached !== null) {
-    console.log(`[Cache HIT] ${key}`);
     return cached;
   }
 
-  // Si no está en caché, obtener datos
-  console.log(`[Cache MISS] ${key}`);
   try {
     const data = await fetcher();
     dataCache.set(key, data, ttl);
@@ -163,12 +159,12 @@ export const withCache = async (key, fetcher, ttl = undefined) => {
  * Invalida el caché cuando cambia el perfil seleccionado
  */
 export const invalidateProfileCache = () => {
-  dataCache.invalidatePattern('profile_');
-  dataCache.invalidatePattern('telemetry_');
-  dataCache.invalidatePattern('alerts_');
-  dataCache.invalidatePattern('day_');
-  dataCache.invalidatePattern('month_');
-  dataCache.invalidatePattern('notifications_');
+  dataCache.invalidatePattern("profile_");
+  dataCache.invalidatePattern("telemetry_");
+  dataCache.invalidatePattern("alerts_");
+  dataCache.invalidatePattern("day_");
+  dataCache.invalidatePattern("month_");
+  dataCache.invalidatePattern("notifications_");
 };
 
 /**
@@ -176,7 +172,6 @@ export const invalidateProfileCache = () => {
  */
 export const clearCacheOnLogout = () => {
   dataCache.clear();
-  console.log('[Cache] Cleared on logout');
 };
 
 export default dataCache;

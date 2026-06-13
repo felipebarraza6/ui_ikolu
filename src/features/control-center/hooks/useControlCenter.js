@@ -32,7 +32,7 @@ export const useControlCenter = (options = {}) => {
   }, []);
 
   const fetchData = useCallback(
-    async (silent = false) => {
+    async (signal, silent = false) => {
       if (!isAuth) return;
 
       const now = Date.now();
@@ -42,18 +42,22 @@ export const useControlCenter = (options = {}) => {
       if (!silent) setLoading(true);
       setError(null);
 
-      const controller = new AbortController();
-
       try {
         const [rawDashboard, rawCompliance] = await Promise.all([
-          orchestrator.dashboardStats(controller.signal),
-          orchestrator.compliance(controller.signal).catch((err) => {
-            console.warn("[useControlCenter] Endpoint compliance no disponible:", err?.message || err);
+          orchestrator.dashboardStats(signal),
+          orchestrator.compliance(signal).catch((err) => {
+            console.warn(
+              "[useControlCenter] Endpoint compliance no disponible:",
+              err?.message || err,
+            );
             return null;
           }),
         ]);
 
-        const transformed = transformDashboardStats(rawDashboard, rawCompliance);
+        const transformed = transformDashboardStats(
+          rawDashboard,
+          rawCompliance,
+        );
 
         if (isMountedRef.current) {
           setData(transformed);
@@ -69,22 +73,28 @@ export const useControlCenter = (options = {}) => {
           setLoading(false);
         }
       }
-
-      return () => controller.abort();
     },
-    [isAuth]
+    [isAuth],
   );
 
   useEffect(() => {
-    if (isAuth) fetchData();
+    if (!isAuth) return;
+    const controller = new AbortController();
+    fetchData(controller.signal);
+    return () => controller.abort();
   }, [isAuth, fetchData]);
 
   useEffect(() => {
     if (!autoRefresh || !isAuth) return;
+    const controller = { current: null };
     intervalRef.current = setInterval(() => {
-      fetchData(true);
+      controller.current = new AbortController();
+      fetchData(controller.current.signal, true);
     }, refreshInterval);
-    return () => clearInterval(intervalRef.current);
+    return () => {
+      clearInterval(intervalRef.current);
+      controller.current?.abort();
+    };
   }, [autoRefresh, refreshInterval, fetchData, isAuth]);
 
   const refresh = useCallback(() => {

@@ -1,5 +1,12 @@
-import axios from "axios";
-import { POST_LOGIN, GET, DOWNLOAD, DELETE, POST, PATCH, Axios } from "./config";
+import {
+  POST_LOGIN,
+  GET,
+  DOWNLOAD,
+  DELETE,
+  POST,
+  PATCH,
+  Axios,
+} from "./config";
 
 const requestPasswordReset = async (email) => {
   const request = await Axios.post("ik/auth/password-reset/", { email });
@@ -73,7 +80,7 @@ const get_history_data_admin = async () => {
 
 const getDataDay = async (id_profile, initialDate, finishDate) => {
   const rq = await GET(
-    `interaction_detail_override/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}`
+    `interaction_detail_override/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}`,
   );
   return rq.data;
 };
@@ -82,8 +89,8 @@ const getDataMonth = async (id_profile, initialDate, finishDate) => {
   const rq = await GET(
     `interaction_detail_override_month/?catchment_point=${id_profile}&date_time_medition__month=${initialDate.slice(
       5,
-      7
-    )}&date_time_medition__year=${initialDate.slice(0, 4)}`
+      7,
+    )}&date_time_medition__year=${initialDate.slice(0, 4)}`,
   );
   return rq.data;
 };
@@ -91,14 +98,14 @@ const getDataMonth = async (id_profile, initialDate, finishDate) => {
 const downloadDataMonthToExcel = async (
   id_profile,
   initialDate,
-  finishDate
+  finishDate,
 ) => {
-  const rq = await DOWNLOAD(
-    `https://api.smarthydro.app/api/interaction_detail_override_month_xlsx/?catchment_point=${id_profile}&date_time_medition__month=${initialDate.slice(
+  await DOWNLOAD(
+    `interaction_detail_override_month_xlsx/?catchment_point=${id_profile}&date_time_medition__month=${initialDate.slice(
       5,
-      7
+      7,
     )}&date_time_medition__year=${initialDate.slice(0, 4)}`,
-    `data.xlsx`
+    `data.xlsx`,
   );
 };
 /**
@@ -116,7 +123,7 @@ const get_profile = async (username = null, token = null) => {
       userUsername = user.username;
     } else {
       throw new Error(
-        "No se pudo obtener el nombre de usuario. Por favor, inicia sesión nuevamente."
+        "No se pudo obtener el nombre de usuario. Por favor, inicia sesión nuevamente.",
       );
     }
   }
@@ -203,20 +210,16 @@ const formUploadFile = async (values) => {
 };
 
 const downloadFile = async (id_profile, initialDate, finishDate, title) => {
-  const now_date = new Date();
-  // Endpoint con parámetro type=xlsx para forzar respuesta en formato Excel
-  const rq = await DOWNLOAD(
+  await DOWNLOAD(
     `interaction_detail/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}&type=xlsx`,
-    `${title}.xlsx`
+    `${title}.xlsx`,
   );
 };
 
 const downloadFileDga = async (id_profile, initialDate, finishDate, title) => {
-  const now_date = new Date();
-  // Endpoint con parámetro type=xlsx para forzar respuesta en formato Excel
-  const rq = await DOWNLOAD(
+  await DOWNLOAD(
     `interaction_detail_dga/?point_catchment=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}&type=xlsx`,
-    `${title}.xlsx`
+    `${title}.xlsx`,
   );
 };
 
@@ -232,7 +235,7 @@ const createDataApiSh = async (data) => {
 
 const getDataApiSh = async (id_profile) => {
   const rq = await GET(
-    `interaction_detail_json/?catchment_point=${id_profile}&hour=0`
+    `interaction_detail_json/?catchment_point=${id_profile}&hour=0`,
   );
   return rq.data;
 };
@@ -240,10 +243,10 @@ const getDataApiShRangeDate = async (
   id_profile,
   initialDate,
   finishDate,
-  page
+  page,
 ) => {
   const rq = await GET(
-    `interaction_detail_json/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}&page=${page}`
+    `interaction_detail_json/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}&page=${page}`,
   );
   return rq.data;
 };
@@ -252,10 +255,10 @@ const getDataApiShRangeDateToExcel = async (
   id_profile,
   initialDate,
   finishDate,
-  page
+  page,
 ) => {
   const rq = await GET(
-    `interaction_detail/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}&page=${page}`
+    `interaction_detail/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}&page=${page}`,
   );
   return rq.data;
 };
@@ -264,10 +267,10 @@ const getDataApiShRangeDateAndHour = async (
   id_profile,
   initialDate,
   finishDate,
-  page
+  page,
 ) => {
   const rq = await GET(
-    `interaction_detail_json/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}&page=${page}&date_time_medition__hour=00`
+    `interaction_detail_json/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}&page=${page}&date_time_medition__hour=00`,
   );
   return rq.data;
 };
@@ -275,10 +278,10 @@ const getDataApiShRangeDateAndHour = async (
 const getDataApiShRangeDateGraphic = async (
   id_profile,
   initialDate,
-  finishDate
+  finishDate,
 ) => {
   const rq = await GET(
-    `interaction_detail_json/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}`
+    `interaction_detail_json/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}`,
   );
   return rq.data;
 };
@@ -286,27 +289,21 @@ const getDataApiShRangeDateGraphic = async (
 const getDataApiShDgaSend = async (id_profile, page) => {
   const year = new Date().getFullYear();
   const month = new Date().getMonth() + 1;
-  const day = new Date().getDate();
-  let totalCount = 0;
 
   const rq = await GET(
-    `interaction_detail_json/?profile_client=${id_profile.id}&page=${page}
-    &date_time_medition__month=${month}&date_time_medition__year=${year}${
+    `interaction_detail_json/?profile_client=${id_profile.id}&page=${page}&date_time_medition__month=${month}&date_time_medition__year=${year}${
       id_profile.standard === "MEDIO" ? "&date_time_medition__hour=9" : ""
-    }`
-  ).then((r) => {
-    totalCount = r.data.count;
-    return r;
-  });
+    }`,
+  );
 
   return rq.data;
 };
 
 const getDataApiShStructural24h = async (id_profile, year, month, day) => {
-  var totalCount = 0;
-  var listFormat = {};
+  let totalCount = 0;
+  let listFormat = {};
   const rq1 = await GET(
-    `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__day=${day}`
+    `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__day=${day}`,
   ).then((r) => {
     totalCount = r.data.count;
     listFormat = { ...r.data, results: r.data.results };
@@ -315,7 +312,7 @@ const getDataApiShStructural24h = async (id_profile, year, month, day) => {
 
   if (totalCount / 10 > 1) {
     const rq2 = await GET(
-      `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__day=${day}&page=2`
+      `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__day=${day}&page=2`,
     ).then((r) => {
       listFormat = {
         ...listFormat,
@@ -326,7 +323,7 @@ const getDataApiShStructural24h = async (id_profile, year, month, day) => {
   }
   if (totalCount / 10 > 2) {
     const rq3 = await GET(
-      `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__day=${day}&page=3`
+      `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__day=${day}&page=3`,
     ).then((r) => {
       listFormat = {
         ...listFormat,
@@ -350,23 +347,23 @@ const getDataApiShStructural24h = async (id_profile, year, month, day) => {
 
 const getDataApiShStructuralMonth = async (id_profile, year, month) => {
   const rq1 = await GET(
-    `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__hour=12&date_time_medition__day__range=01,31`
+    `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__hour=12&date_time_medition__day__range=01,31`,
   );
-  var listFormat = {
+  let listFormat = {
     ...rq1.data,
     results: [...rq1.data.results],
   };
 
   if (listFormat.results.length > 10) {
     const rq2 = await GET(
-      `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__hour=12&page=2&date_time_medition__day__range=01,31`
+      `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__hour=12&page=2&date_time_medition__day__range=01,31`,
     );
     listFormat.results.push(...rq2.data.results);
   }
 
   if (listFormat.results.length > 20) {
     const rq3 = await GET(
-      `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__hour=12&page=3&date_time_medition__day__range=01,31`
+      `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__hour=12&page=3&date_time_medition__day__range=01,31`,
     );
     listFormat.results.push(...rq3.data.results);
   }
@@ -389,14 +386,14 @@ const createNotification = async (data) => {
 
 const getNotifications = async (id_point, page, type) => {
   const rq = await GET(
-    `notifications_catchment/?point_catchment=${id_point}&page=${page}&type_notification=${type}`
+    `notifications_catchment/?point_catchment=${id_point}&page=${page}&type_notification=${type}`,
   );
   return rq.data;
 };
 
 const getNotificationsActives = async (id_point, page, type) => {
   const rq = await GET(
-    `notifications_catchment/?point_catchment=${id_point}&page=${page}&type_notification=${type}&is_active=true`
+    `notifications_catchment/?point_catchment=${id_point}&page=${page}&type_notification=${type}&is_active=true`,
   );
   return rq.data;
 };
@@ -418,7 +415,12 @@ const getAllNotificationsByType = async (type, page = 1, isActive = null) => {
  * 🆕 NUEVO: Obtener notificaciones de un punto específico por tipo
  * Wrapper más flexible que getNotifications
  */
-const getNotificationsByPoint = async (pointId, type, page = 1, isActive = null) => {
+const getNotificationsByPoint = async (
+  pointId,
+  type,
+  page = 1,
+  isActive = null,
+) => {
   let url = `notifications_catchment/?point_catchment=${pointId}&type_notification=${type}&page=${page}`;
   if (isActive !== null) {
     url += `&is_active=${isActive}`;
@@ -445,7 +447,7 @@ const updateNotification = async (id, data) => {
 
 const getNotificationsResponse = async (id_notification, page) => {
   const rq = await GET(
-    `response_notifications_catchment/?notification=${id_notification}&page=${page}`
+    `response_notifications_catchment/?notification=${id_notification}&page=${page}`,
   );
   return rq.data;
 };
@@ -500,7 +502,9 @@ const getPointsStatus = async (params = {}) => {
 
 const getTelemetryMetrics = async (params = {}) => {
   const query = new URLSearchParams(params).toString();
-  const rq = await GET(`management/telemetry_metrics/${query ? "?" + query : ""}`);
+  const rq = await GET(
+    `management/telemetry_metrics/${query ? "?" + query : ""}`,
+  );
   return rq.data;
 };
 
@@ -623,7 +627,9 @@ const get_compliance = async (signal) => {
  * Devuelve registros detallados de un punto para un rango de fechas.
  */
 const get_point_records = async (pointId, startDate, endDate, limit = 100) => {
-  const rq = await GET(`ik/point/${pointId}/records/?start_date=${startDate}&end_date=${endDate}&limit=${limit}`);
+  const rq = await GET(
+    `ik/point/${pointId}/records/?start_date=${startDate}&end_date=${endDate}&limit=${limit}`,
+  );
   return rq.data;
 };
 
@@ -642,48 +648,27 @@ const get_point_config = async (pointId) => {
  * Endpoint: GET /compliance/dga/verify/?codigo_obra=XXX&numero_comprobante=YYY&tipo_dga=ZZZ
  * Auth: Bearer Token o Session
  */
-const verifyDgaVoucher = async (codigoObra, numeroComprobante, tipoDga = 'SUPERFICIAL') => {
-  const token = JSON.parse(localStorage.getItem("token") || "null");
-  if (!token) {
-    throw new Error("No se encontró token de autenticación.");
-  }
-  
-  // Crear instancia de axios sin baseURL para endpoint externo
-  const dgaClient = axios.create({
-    baseURL: 'https://api.smarthydro.app',
-    headers: {
-      'Content-Type': 'application/json',
-    }
-  });
-  
-  // Interceptor para agregar el token a cada request
-  dgaClient.interceptors.request.use((config) => {
-    const authToken = JSON.parse(localStorage.getItem("token") || "null");
-    if (authToken) {
-      config.headers['Authorization'] = `Token ${authToken}`;
-    }
-    return config;
-  });
-  
+const verifyDgaVoucher = async (
+  codigoObra,
+  numeroComprobante,
+  tipoDga = "SUPERFICIAL",
+) => {
   try {
-    const response = await dgaClient.get('/compliance/dga/verify/', {
-      params: {
-        codigo_obra: codigoObra,
-        numero_comprobante: numeroComprobante,
-        tipo_dga: tipoDga
-      }
-    });
-    
-    return {
-      status: response.status,
-      ...response.data
-    };
+    // Usar URL absoluta — el interceptor del Axios principal inyecta el token
+    const response = await Axios.get(
+      "https://api.smarthydro.app/compliance/dga/verify/",
+      {
+        params: {
+          codigo_obra: codigoObra,
+          numero_comprobante: numeroComprobante,
+          tipo_dga: tipoDga,
+        },
+      },
+    );
+    return { status: response.status, ...response.data };
   } catch (error) {
     if (error.response) {
-      return {
-        status: error.response.status,
-        ...error.response.data
-      };
+      return { status: error.response.status, ...error.response.data };
     }
     throw error;
   }

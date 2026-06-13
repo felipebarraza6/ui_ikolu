@@ -1,5 +1,14 @@
 import React, { useState } from "react";
-import { Form, Input, Button, Card, Typography, message, Flex, theme } from "antd";
+import {
+  Form,
+  Input,
+  Button,
+  Card,
+  Typography,
+  message,
+  Flex,
+  theme,
+} from "antd";
 import { MailOutlined, LockOutlined } from "@ant-design/icons";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -63,7 +72,6 @@ const LoginPage = () => {
             style={{
               color: token.colorWarning,
               margin: 0,
-              
             }}
           >
             Ikolu
@@ -71,7 +79,7 @@ const LoginPage = () => {
           <Text
             style={{
               color: token.colorTextDisabled,
-              
+
               marginTop: 8,
             }}
           >
@@ -82,10 +90,15 @@ const LoginPage = () => {
         <Form layout="vertical" onFinish={onFinish} size="large">
           <Form.Item
             name="email"
-            rules={[{ required: true, message: "Ingresa tu email" }]}
+            rules={[
+              { required: true, message: "Ingresa tu email" },
+              { type: "email", message: "Ingresa un email válido" },
+            ]}
           >
             <Input
-              prefix={<MailOutlined style={{ color: token.colorTextDisabled }} />}
+              prefix={
+                <MailOutlined style={{ color: token.colorTextDisabled }} />
+              }
               placeholder="Email"
               style={{
                 background: token.colorBgContainer,
@@ -100,7 +113,9 @@ const LoginPage = () => {
             rules={[{ required: true, message: "Ingresa tu contraseña" }]}
           >
             <Input.Password
-              prefix={<LockOutlined style={{ color: token.colorTextDisabled }} />}
+              prefix={
+                <LockOutlined style={{ color: token.colorTextDisabled }} />
+              }
               placeholder="Contraseña"
               style={{
                 background: token.colorBgContainer,
@@ -120,7 +135,7 @@ const LoginPage = () => {
               style={{
                 background: token.colorWarning,
                 borderColor: token.colorWarning,
-                
+
                 fontWeight: 600,
                 height: 48,
               }}
