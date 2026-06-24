@@ -1,6 +1,16 @@
 import axios from "axios";
 
-const BASE_URL = "https://api.smarthydro.app/api/";
+// En desarrollo local usamos ruta relativa para que el proxy de React Scripts
+// reenvíe las peticiones a la API y evitemos errores de CORS en el navegador.
+// En producción seguimos apuntando directamente al dominio de la API.
+const isLocalhost =
+  typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1");
+
+const BASE_URL = isLocalhost
+  ? "/api/"
+  : "https://api.smarthydro.app/api/";
 //const BASE_URL = 'http://localhost:8000/api/'
 
 export const Axios = axios.create({

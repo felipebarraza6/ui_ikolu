@@ -21,18 +21,22 @@ export const extractNum = (val) => {
   return null;
 };
 
-export const transformDashboardStats = (raw, complianceRaw = null) => {
+export const transformDashboardStats = (raw, complianceRaw = null, generalStats = null, dailySummary = null) => {
   if (!raw || typeof raw !== "object") {
     console.warn("[transformDashboardStats] Respuesta inválida:", raw);
     return null;
   }
 
   const ds = raw;
+  const gs = generalStats || {};
   const today = new Date();
 
-  const pointsCounters = ds.points || {};
-  const statusToday = ds.status_today || {};
+  // Preferir KPIs globales del endpoint liviano general_stats si está disponible
+  const pointsCounters = gs.points || ds.points || {};
+  const statusToday = gs.status_today || ds.status_today || {};
   const complianceStats = ds.compliance_stats || {};
+  const chatQuota = gs.chat_quota || ds.chat_quota || null;
+  const projects = Array.isArray(gs.projects) ? gs.projects : [];
 
   const weeklyStatsByPoint = {};
   Object.entries(ds.last_7 || {}).forEach(([pointName, weekData]) => {
@@ -147,6 +151,15 @@ export const transformDashboardStats = (raw, complianceRaw = null) => {
     complianceByPointName[cp.point_name] = cp;
   });
 
+  // Mapa punto_name -> point_id para poder abrir drawers desde telemetry
+  // aunque el punto no esté en la lista final de compliance.
+  const pointIdByName = {};
+  [...complianceList, ...compliancePoints].forEach((p) => {
+    if (p.point_name && p.point_id != null && !pointIdByName[p.point_name]) {
+      pointIdByName[p.point_name] = p.point_id;
+    }
+  });
+
   const points = complianceList.map((p) => {
     const wStats = weeklyStatsByPoint[p.point_name] || {};
     const flowAnalysis = flowAnalysisByPoint[p.point_name] || { exceeded: 0, nearLimit: 0, totalDays: 0 };
@@ -168,6 +181,7 @@ export const transformDashboardStats = (raw, complianceRaw = null) => {
 
     return {
       id: p.point_id,
+      project_id: p.project_id || null,
       title: p.point_name,
       code: p.code || p.code_dga || null,
       code_dga: p.code_dga || null,
@@ -237,6 +251,7 @@ export const transformDashboardStats = (raw, complianceRaw = null) => {
   Object.entries(ds.last_7 || {}).forEach(([pointName, weekData]) => {
     last7Normalized[pointName] = {
       ...weekData,
+      point_id: pointIdByName[pointName] || weekData?.point_id || null,
       total_m3: extractNum(weekData?.total_m3),
       avg_flow_week: extractNum(weekData?.avg_flow_week),
       avg_level_week: extractNum(weekData?.avg_level_week),
@@ -262,6 +277,7 @@ export const transformDashboardStats = (raw, complianceRaw = null) => {
       points_with_gps: pointsCounters.with_gps || 0,
       points_with_compliance: pointsCounters.with_compliance || 0,
       points_with_telemetry: pointsCounters.with_telemetry || 0,
+      warnings: pointsCounters.warnings || 0,
     },
     consumption: {
       today_m3: consumptionToday,
@@ -284,6 +300,8 @@ export const transformDashboardStats = (raw, complianceRaw = null) => {
     recent_warnings: recentWarningsByPoint,
     recent_warnings_list: recentWarningsList,
     compliance_stats: complianceStats,
-    chat_quota: ds.chat_quota || null,
+    chat_quota: chatQuota,
+    projects,
+    daily_summary: dailySummary || null,
   };
 };

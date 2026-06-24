@@ -1,7 +1,23 @@
 import React from "react";
 import { Layout, Menu, Typography, Drawer } from "antd";
-import { DashboardOutlined } from "@ant-design/icons";
+import {
+  DashboardOutlined,
+  BarChartOutlined,
+  ToolOutlined,
+  CustomerServiceOutlined,
+  TeamOutlined,
+  ProjectOutlined,
+  EnvironmentOutlined,
+  BuildOutlined,
+  CloudOutlined,
+  AlertOutlined,
+  NotificationOutlined,
+  FireOutlined,
+  FileProtectOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import { useIkoluToken } from "../../hooks/useIkoluToken";
 import logoSrc from "../../assets/images/ikolu.png";
 
@@ -20,18 +36,45 @@ const AppLogo = ({ collapsed }) => (
   />
 );
 
-const menuItems = [
+const buildMenuItems = (isAdmin) => [
   {
     key: "/control-center/telemetry",
     icon: <DashboardOutlined />,
     label: "Centro de Control",
   },
+  ...(isAdmin
+    ? [
+        { key: "/admin/performance", icon: <BarChartOutlined />, label: "Rendimiento" },
+        { key: "/admin/operational", icon: <ToolOutlined />, label: "Operacional" },
+        { key: "/admin/support", icon: <CustomerServiceOutlined />, label: "Soporte" },
+        { key: "/admin/clients", icon: <TeamOutlined />, label: "Clientes" },
+        { key: "/admin/projects", icon: <ProjectOutlined />, label: "Proyectos" },
+        { key: "/admin/points", icon: <EnvironmentOutlined />, label: "Puntos" },
+        { key: "/admin/schemes", icon: <BuildOutlined />, label: "Esquemas y Variables" },
+        { key: "/admin/providers", icon: <CloudOutlined />, label: "Proveedores" },
+        {
+          key: "/admin/alerts",
+          icon: <AlertOutlined />,
+          label: "Alertas",
+          children: [
+            { key: "/admin/alerts", icon: <AlertOutlined />, label: "Resumen" },
+            { key: "/admin/alerts/rules", icon: <AlertOutlined />, label: "Reglas" },
+            { key: "/admin/alerts/channels", icon: <NotificationOutlined />, label: "Canales" },
+            { key: "/admin/alerts/triggers", icon: <FireOutlined />, label: "Disparos" },
+          ],
+        },
+        { key: "/admin/compliance", icon: <FileProtectOutlined />, label: "Cumplimiento" },
+        { key: "/admin/users", icon: <UserOutlined />, label: "Usuarios" },
+      ]
+    : []),
 ];
 
 const SidebarContent = ({ collapsed, onMenuClick }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const token = useIkoluToken();
+  const { isAdmin } = useAuth();
+  const menuItems = buildMenuItems(isAdmin);
 
   const handleClick = (e) => {
     navigate(e.key);
@@ -88,6 +131,7 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
         theme="dark"
         mode="inline"
         selectedKeys={[location.pathname]}
+        defaultOpenKeys={isAdmin ? ["/admin/alerts"] : []}
         items={menuItems}
         onClick={handleClick}
         style={{

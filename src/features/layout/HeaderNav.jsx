@@ -1,5 +1,5 @@
 import React from "react";
-import { Layout, Button, Dropdown, Avatar, Typography, Space, Tooltip } from "antd";
+import { Layout, Button, Dropdown, Avatar, Typography, Space, Tooltip, Tag } from "antd";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -7,6 +7,7 @@ import {
   UserOutlined,
   LogoutOutlined,
   BulbOutlined,
+  BarChartOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
@@ -18,7 +19,7 @@ const { Text } = Typography;
 
 const HeaderNav = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpen }) => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const { isDark, toggleTheme } = useAppTheme();
   const token = useIkoluToken();
 
@@ -42,6 +43,16 @@ const HeaderNav = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpe
       label: "Mi Perfil",
       onClick: () => navigate("/profile"),
     },
+    ...(isAdmin
+      ? [
+          {
+            key: "admin",
+            icon: <BarChartOutlined />,
+            label: "Administración",
+            onClick: () => navigate("/admin/performance"),
+          },
+        ]
+      : []),
     { type: "divider" },
     {
       key: "logout",
@@ -98,9 +109,16 @@ const HeaderNav = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpe
         </Tooltip>
 
         {!isMobile && (
-          <Text style={{ color: 'rgba(255,255,255,0.85)' }}>
-            {user?.first_name || user?.username || "Usuario"}
-          </Text>
+          <Space size={8}>
+            <Text style={{ color: 'rgba(255,255,255,0.85)' }}>
+              {user?.first_name || user?.username || "Usuario"}
+            </Text>
+            {isAdmin && (
+              <Tag color="gold" style={{ marginInlineEnd: 0 }}>
+                Admin
+              </Tag>
+            )}
+          </Space>
         )}
 
         <Dropdown menu={{ items: menuItems }} placement="bottomRight" arrow destroyPopupOnHide>

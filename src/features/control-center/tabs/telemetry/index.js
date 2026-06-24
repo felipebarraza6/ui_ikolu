@@ -3,6 +3,12 @@ import CCWeekConsumption from "./WeekConsumption";
 
 const TelemetryTab = ({
   last7,
+  dailySummary,
+  listData,
+  listPage,
+  setListPage,
+  listOrderBy,
+  setListOrderBy,
   selectedDate,
   setSelectedDate,
   handleViewMeasurements,
@@ -12,12 +18,18 @@ const TelemetryTab = ({
   handleViewPointConfig,
   warningsRaw,
   loading,
-  search,
+  listLoading,
 }) => {
   return (
     <div>
       <CCWeekConsumption
         last7={last7}
+        dailySummary={dailySummary}
+        listData={listData}
+        listPage={listPage}
+        setListPage={setListPage}
+        listOrderBy={listOrderBy}
+        setListOrderBy={setListOrderBy}
         selectedDate={selectedDate}
         onDateSelect={setSelectedDate}
         onViewMeasurements={handleViewMeasurements}
@@ -27,7 +39,7 @@ const TelemetryTab = ({
         onViewPointConfig={handleViewPointConfig}
         warningsRaw={warningsRaw}
         loading={loading}
-        search={search}
+        listLoading={listLoading}
       />
     </div>
   );

@@ -1,29 +1,6 @@
 import React from "react";
-import { Card } from "antd";
+import { Card, theme } from "antd";
 import { smarthydro } from "../../theme/smarthydro.tokens";
-
-const variantStyles = {
-  default: {
-    background: "#fff",
-    border: `1px solid ${smarthydro.colors.neutral[200]}`,
-    boxShadow: smarthydro.shadows.md,
-  },
-  elevated: {
-    background: "#fff",
-    border: "none",
-    boxShadow: smarthydro.shadows.lg,
-  },
-  bordered: {
-    background: "#fff",
-    border: `2px solid ${smarthydro.colors.primary[500]}`,
-    boxShadow: "none",
-  },
-  subtle: {
-    background: smarthydro.colors.secondary,
-    border: "none",
-    boxShadow: "none",
-  },
-};
 
 const SmartCard = ({
   variant = "default",
@@ -33,6 +10,31 @@ const SmartCard = ({
   ...props
 }) => {
   const [isHovered, setIsHovered] = React.useState(false);
+  const { token } = theme.useToken();
+
+  const variantStyles = {
+    default: {
+      background: token.colorBgContainer,
+      border: `1px solid ${token.colorBorder}`,
+      boxShadow: smarthydro.shadows.md,
+    },
+    elevated: {
+      background: token.colorBgElevated,
+      border: "none",
+      boxShadow: smarthydro.shadows.lg,
+    },
+    bordered: {
+      background: token.colorBgContainer,
+      border: `2px solid ${token.colorPrimary}`,
+      boxShadow: "none",
+    },
+    subtle: {
+      background: token.colorFillSecondary,
+      border: "none",
+      boxShadow: "none",
+    },
+  };
+
   const variantStyle = variantStyles[variant] || variantStyles.default;
 
   const hoverStyle = hover && isHovered ? {

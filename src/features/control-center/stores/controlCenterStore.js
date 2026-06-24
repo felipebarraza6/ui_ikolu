@@ -1,7 +1,16 @@
 import { create } from "zustand";
+import { format, subDays } from "date-fns";
+
+const today = new Date();
+const defaultDateRange = {
+  startDate: format(subDays(today, 6), "yyyy-MM-dd"),
+  endDate: format(today, "yyyy-MM-dd"),
+};
 
 export const useControlCenterStore = create((set) => ({
   selectedDate: null,
+  selectedProject: null,
+  dateRange: defaultDateRange,
   activeTab: "telemetry",
 
   drawers: {
@@ -17,6 +26,8 @@ export const useControlCenterStore = create((set) => ({
   },
 
   setSelectedDate: (date) => set({ selectedDate: date }),
+  setSelectedProject: (projectId) => set({ selectedProject: projectId }),
+  setDateRange: (range) => set({ dateRange: range }),
   setActiveTab: (tab) => set({ activeTab: tab }),
 
   openDrawer: (name, payload = {}) =>

@@ -49,6 +49,16 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Animación suave al navegar los cuadritos de días */
+.day-cards-slide {
+  animation: day-cards-enter 0.25s ease-out;
+}
+
+@keyframes day-cards-enter {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
 /* Shimmer animation for skeletons */
 
 /* Toolbar de ApexCharts siempre visible */

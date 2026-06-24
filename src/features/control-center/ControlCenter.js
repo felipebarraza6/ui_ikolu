@@ -30,7 +30,14 @@ const ControlCenter = () => {
   const drawers = useControlCenterStore((s) => s.drawers);
   const openDrawer = useControlCenterStore((s) => s.openDrawer);
   const closeDrawer = useControlCenterStore((s) => s.closeDrawer);
-  const { data, loading, error, refresh } = useControlCenterData();
+  const selectedProject = useControlCenterStore((s) => s.selectedProject);
+  const selectedDate = useControlCenterStore((s) => s.selectedDate);
+  const dateRange = useControlCenterStore((s) => s.dateRange);
+  const { data, loading, listLoading, error, refresh, listData, listPage, setListPage, listOrderBy, setListOrderBy } = useControlCenterData({
+    dateRange,
+    selectedProject,
+    selectedDate,
+  });
 
   // Shorthand helpers para drawer state
   const d = (name) => drawers[name] || { open: false };
@@ -118,8 +125,8 @@ const ControlCenter = () => {
     openDrawer('voucherModal');
   }, []);
 
-  const handleViewMeasurements = useCallback(async (pointName, date, variables = []) => {
-    const point = pointsRef.current?.find((p) => p.title === pointName);
+  const handleViewMeasurements = useCallback(async (pointName, date, variables = [], pointId = null) => {
+    const point = pointsRef.current?.find((p) => p.title === pointName) || (pointId ? { id: pointId, title: pointName } : null);
     if (!point) return;
     const pointCfg = last7Ref.current?.[pointName] || null;
     setSelectedMeasurementPoint({ pointName, date, pointId: point.id, variables });
@@ -217,8 +224,8 @@ const ControlCenter = () => {
     openDrawer('complianceDetail', { point });
   }, []);
 
-  const handleViewPointConfig = useCallback(async (pointName) => {
-    const point = pointsRef.current?.find((p) => p.title === pointName);
+  const handleViewPointConfig = useCallback(async (pointName, pointId = null) => {
+    const point = pointsRef.current?.find((p) => p.title === pointName) || (pointId ? { id: pointId, title: pointName } : null);
     if (!point) return;
     setPointConfigName(pointName);
     openDrawer('pointConfig', { pointName });
@@ -235,8 +242,8 @@ const ControlCenter = () => {
     }
   }, []);
 
-  const handleOpenStopTelemetry = useCallback((pointName) => {
-    const point = pointsRef.current?.find((p) => p.title === pointName);
+  const handleOpenStopTelemetry = useCallback((pointName, pointId = null) => {
+    const point = pointsRef.current?.find((p) => p.title === pointName) || (pointId ? { id: pointId, title: pointName, client_name: null } : null);
     if (!point) return;
     const payload = { id: point.id, name: pointName, client: point.client_name || "—" };
     setStopTelemetryPoint(payload);
@@ -256,6 +263,16 @@ const ControlCenter = () => {
     if (typeof pointNameOrRecord === "string") {
       point = pointsRef.current?.find((p) => p.title === pointNameOrRecord);
       if (!point) point = { id: null, title: pointNameOrRecord, name: pointNameOrRecord, code: null, client_name: null, client: null };
+    } else if (pointNameOrRecord && typeof pointNameOrRecord === "object" && pointNameOrRecord.name) {
+      // Viene desde telemetry con name + id opcional
+      point = pointsRef.current?.find((p) => p.title === pointNameOrRecord.name) || {
+        id: pointNameOrRecord.id || null,
+        title: pointNameOrRecord.name,
+        name: pointNameOrRecord.name,
+        code: null,
+        client_name: null,
+        client: null,
+      };
     } else {
       point = pointNameOrRecord;
     }
@@ -346,7 +363,14 @@ const ControlCenter = () => {
         onViewFlowAnalysis={handleViewFlowAnalysis}
         onViewComplianceDetail={handleViewComplianceDetail}
         data={data}
+        dailySummary={data?.daily_summary}
+        listData={listData}
+        listPage={listPage}
+        setListPage={setListPage}
+        listOrderBy={listOrderBy}
+        setListOrderBy={setListOrderBy}
         loading={loading}
+        listLoading={listLoading}
         error={error}
         onRefresh={refresh}
       />

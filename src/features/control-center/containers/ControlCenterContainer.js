@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Flex, Typography, theme, Button } from "antd";
 import { ExclamationCircleOutlined, ReloadOutlined } from "@ant-design/icons";
@@ -23,16 +23,28 @@ const ControlCenterContainer = ({
   onViewFlowAnalysis,
   onViewComplianceDetail,
   data,
+  dailySummary,
+  listData,
+  listPage,
+  setListPage,
+  listOrderBy,
+  setListOrderBy,
   loading,
+  listLoading,
   error,
   onRefresh,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { token } = useToken();
+  const [changingDate, setChangingDate] = useState(false);
 
   const selectedDate = useControlCenterStore((s) => s.selectedDate);
   const setSelectedDate = useControlCenterStore((s) => s.setSelectedDate);
+  const selectedProject = useControlCenterStore((s) => s.selectedProject);
+  const setSelectedProject = useControlCenterStore((s) => s.setSelectedProject);
+  const dateRange = useControlCenterStore((s) => s.dateRange);
+  const setDateRange = useControlCenterStore((s) => s.setDateRange);
 
   const activeTab = useMemo(() => {
     return location.pathname.includes("/compliance") ? "compliance" : "telemetry";
@@ -43,12 +55,113 @@ const ControlCenterContainer = ({
     navigate(tab === "compliance" ? "/control-center/compliance" : "/control-center/telemetry");
   }, [activeTab, navigate]);
 
+  const handleDateRangeChange = useCallback((range) => {
+    setChangingDate(true);
+    setDateRange(range);
+  }, [setDateRange]);
+
+  useEffect(() => {
+    if (!loading) setChangingDate(false);
+  }, [loading]);
+
+  const visualLoading = loading || changingDate;
   const isReady = !!data;
   const overview = useMemo(() => data?.overview || {}, [data?.overview]);
-  const points = useMemo(() => data?.points || [], [data?.points]);
+  const projects = useMemo(() => data?.projects || [], [data?.projects]);
+  const points = useMemo(() => {
+    const all = data?.points || [];
+    if (!selectedProject) return all;
+    return all.filter((p) => p.project_id === selectedProject);
+  }, [data?.points, selectedProject]);
+
+  const last7 = useMemo(() => {
+    const all = data?.last_7 || {};
+    if (!selectedProject) return all;
+    const filtered = {};
+    Object.entries(all).forEach(([pointName, weekData]) => {
+      if (weekData?.point_id == null) return;
+      if (weekData.point_id === selectedProject) {
+        filtered[pointName] = weekData;
+      }
+    });
+    return filtered;
+  }, [data?.last_7, selectedProject]);
+
   const warningsList = useMemo(() => data?.recent_warnings_list || [], [data?.recent_warnings_list]);
   const warningsRaw = useMemo(() => data?.recent_warnings || {}, [data?.recent_warnings]);
   const chatQuota = useMemo(() => data?.chat_quota || null, [data?.chat_quota]);
+
+  const telemetryTab = useMemo(() => {
+    if (!data) return <SkeletonTelemetry />;
+    return (
+      <TelemetryTab
+        last7={last7}
+        dailySummary={dailySummary}
+        listData={listData}
+        listPage={listPage}
+        setListPage={setListPage}
+        listOrderBy={listOrderBy}
+        setListOrderBy={setListOrderBy}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        handleViewMeasurements={onViewMeasurements}
+        handleOpenStopTelemetry={onOpenStopTelemetry}
+        handleOpenSupport={onOpenSupport}
+        handleWarningPointClick={onWarningClick}
+        warningsRaw={warningsRaw}
+        handleViewPointConfig={onViewPointConfig}
+        loading={visualLoading}
+        listLoading={listLoading}
+      />
+    );
+  }, [
+    data,
+    last7,
+    dailySummary,
+    listData,
+    listPage,
+    setListPage,
+    listOrderBy,
+    setListOrderBy,
+    selectedDate,
+    setSelectedDate,
+    onViewMeasurements,
+    onOpenStopTelemetry,
+    onOpenSupport,
+    onWarningClick,
+    warningsRaw,
+    onViewPointConfig,
+    visualLoading,
+    listLoading,
+  ]);
+
+  const complianceTab = useMemo(() => {
+    if (!data) return <SkeletonCompliance />;
+    return (
+      <ComplianceTab
+        points={points}
+        last7={last7}
+        handleViewVoucher={onViewVoucher}
+        handleOpenStopCompliance={onOpenStopCompliance}
+        handleOpenSupport={onOpenSupport}
+        handleViewPointConfig={onViewPointConfig}
+        handleViewFlowAnalysis={onViewFlowAnalysis}
+        handleViewComplianceDetail={onViewComplianceDetail}
+        loading={visualLoading}
+      />
+    );
+  }, [
+    data,
+    points,
+    last7,
+    onViewVoucher,
+    onOpenStopCompliance,
+    onOpenSupport,
+    onViewPointConfig,
+    onViewFlowAnalysis,
+    onViewComplianceDetail,
+    visualLoading,
+  ]);
 
   const isRealError = error && error.message !== "canceled" && error.name !== "AbortError";
 
@@ -73,6 +186,11 @@ const ControlCenterContainer = ({
     <ControlCenterLayout
       overview={overview}
       points={points}
+      projects={projects}
+      selectedProject={selectedProject}
+      onSelectProject={setSelectedProject}
+      dateRange={dateRange}
+      onDateRangeChange={handleDateRangeChange}
       warningsList={warningsList}
       warningsRaw={warningsRaw}
       chatQuota={chatQuota}
@@ -80,40 +198,10 @@ const ControlCenterContainer = ({
       onTabChange={handleTabChange}
       onWarningClick={onWarningClick}
       loading={!data}
+      tableLoading={visualLoading}
     >
       <div className="tab-transition" key={`tab-${activeTab}`}>
-        {activeTab === "telemetry" ? (
-          !data ? (
-            <SkeletonTelemetry />
-          ) : (
-            <TelemetryTab
-              last7={data?.last_7}
-              selectedDate={selectedDate}
-              setSelectedDate={setSelectedDate}
-              handleViewMeasurements={onViewMeasurements}
-              handleOpenStopTelemetry={onOpenStopTelemetry}
-              handleOpenSupport={onOpenSupport}
-              handleWarningPointClick={onWarningClick}
-              warningsRaw={warningsRaw}
-              handleViewPointConfig={onViewPointConfig}
-            />
-          )
-        ) : (
-          !data ? (
-            <SkeletonCompliance />
-          ) : (
-            <ComplianceTab
-              points={points}
-              last7={data?.last_7}
-              handleViewVoucher={onViewVoucher}
-              handleOpenStopCompliance={onOpenStopCompliance}
-              handleOpenSupport={onOpenSupport}
-              handleViewPointConfig={onViewPointConfig}
-              handleViewFlowAnalysis={onViewFlowAnalysis}
-              handleViewComplianceDetail={onViewComplianceDetail}
-            />
-          )
-        )}
+        {activeTab === "telemetry" ? telemetryTab : complianceTab}
       </div>
     </ControlCenterLayout>
   );

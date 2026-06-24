@@ -59,6 +59,12 @@ const authReducer = (state, action) => {
         loading: false,
         error: null,
       };
+    case "UPDATE_USER":
+      localStorage.setItem("user", JSON.stringify(action.payload));
+      return {
+        ...state,
+        user: action.payload,
+      };
     default:
       return state;
   }
@@ -92,6 +98,25 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: "LOGOUT" });
   }, []);
 
+  const updateUserProfile = useCallback(async (data) => {
+    if (!state.user?.username) {
+      throw new Error("No hay usuario activo");
+    }
+    const updated = await sh.updateUser(state.user.username, data);
+    const merged = { ...state.user, ...updated };
+    dispatch({ type: "UPDATE_USER", payload: merged });
+    return updated;
+  }, [state.user]);
+
+  const changeCurrentPassword = useCallback(async (currentPassword, newPassword) => {
+    const res = await sh.changePassword(currentPassword, newPassword);
+    return res;
+  }, []);
+
+  const isStaff = useMemo(() => !!state.user?.is_staff, [state.user]);
+  const isSuperUser = useMemo(() => !!state.user?.is_superuser, [state.user]);
+  const isAdmin = useMemo(() => isStaff || isSuperUser, [isStaff, isSuperUser]);
+
   const contextValue = useMemo(
     () => ({
       isAuth: state.isAuth,
@@ -99,8 +124,13 @@ export const AuthProvider = ({ children }) => {
       token: state.token,
       loading: state.loading,
       error: state.error,
+      isStaff,
+      isSuperUser,
+      isAdmin,
       login,
       logout,
+      updateUserProfile,
+      changeCurrentPassword,
       dispatch,
     }),
     [
@@ -109,8 +139,13 @@ export const AuthProvider = ({ children }) => {
       state.token,
       state.loading,
       state.error,
+      isStaff,
+      isSuperUser,
+      isAdmin,
       login,
       logout,
+      updateUserProfile,
+      changeCurrentPassword,
     ],
   );
 

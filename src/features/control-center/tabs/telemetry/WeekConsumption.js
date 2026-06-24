@@ -1,6 +1,6 @@
-import React, { useCallback, useMemo } from "react";
-import { Flex, Typography, Table, Tooltip, Tag, theme } from "antd";
-import { FaEye, FaHandPaper, FaHeadset, FaExclamationTriangle, FaInfoCircle } from "react-icons/fa";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
+import { Flex, Typography, Table, Tooltip, Tag, theme, Skeleton, Button } from "antd";
+import { FaEye, FaHandPaper, FaHeadset, FaExclamationTriangle, FaInfoCircle, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { FormOutlined, CheckCircleOutlined, CloseCircleOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import { format, parseISO, isSameDay } from "date-fns";
 import { es } from "date-fns/locale/es";
@@ -20,28 +20,93 @@ const typeDgaLabels = {
 
 const { Text } = Typography;
 
-const TableMemo = React.memo(({ data, columns, loading }) => {
+const PAGE_SIZE = 10;
+const DAYS_PER_PAGE = 7;
+
+const DayCardSkeleton = ({ token }) => (
+  <div
+    style={{
+      flex: 1,
+      minHeight: 100,
+      borderRadius: token.borderRadiusLG,
+      padding: token.paddingSM,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      border: `1px solid ${token.colorBorder}`,
+      background: token.colorBgContainer,
+    }}
+  >
+    <Skeleton.Button active size="small" style={{ width: 50, height: 10 }} />
+    <Skeleton.Button active size="small" style={{ width: 28, height: 20 }} />
+    <Skeleton.Button active size="small" style={{ width: 45, height: 10 }} />
+  </div>
+);
+
+const TableSkeleton = ({ token }) => (
+  <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "8px 0" }}>
+    {Array.from({ length: 10 }).map((_, idx) => (
+      <div key={idx} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <Skeleton.Button active size="small" style={{ width: 32, height: 16 }} />
+        <Skeleton.Button active size="small" style={{ flex: 1, height: 16 }} />
+        <Skeleton.Button active size="small" style={{ width: 80, height: 16 }} />
+        <Skeleton.Button active size="small" style={{ width: 80, height: 16 }} />
+        <Skeleton.Button active size="small" style={{ width: 80, height: 16 }} />
+        <Skeleton.Button active size="small" style={{ width: 100, height: 16 }} />
+      </div>
+    ))}
+  </div>
+);
+
+const TableMemo = React.memo(({ data, columns, loading, pagination, onChange, token }) => {
   const dataSource = useMemo(() =>
     data.map((p, idx) => ({ ...p, key: p.pointName || idx, rank: idx + 1 })),
     [data]
   );
+
+  if (loading && dataSource.length === 0) {
+    return <TableSkeleton token={token} />;
+  }
 
   return (
     <Table
       loading={loading}
       dataSource={dataSource}
       size="small"
-      pagination={false}
+      pagination={pagination}
       showHeader={true}
       columns={columns}
       scroll={{ x: "max-content" }}
       locale={{ emptyText: "Sin datos" }}
+      onChange={onChange}
     />
   );
 });
 
-const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasurements, onOpenStopTelemetry, onOpenSupport = () => {}, onWarningPointClick = () => {}, onViewPointConfig, warningsRaw = {}, loading = false, search = "" }) => {
+const CCWeekConsumption = ({
+  last7,
+  dailySummary,
+  listData,
+  listPage,
+  setListPage,
+  listOrderBy,
+  setListOrderBy,
+  selectedDate,
+  onDateSelect,
+  onViewMeasurements,
+  onOpenStopTelemetry,
+  onOpenSupport = () => {},
+  onWarningPointClick = () => {},
+  onViewPointConfig,
+  warningsRaw = {},
+  loading = false,
+  listLoading = false,
+}) => {
   const { token } = theme.useToken();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [dayPage, setDayPage] = useState(0);
 
   const dayMap = useMemo(() => {
     const map = {};
@@ -49,64 +114,115 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
       (pointWeek?.days || []).forEach((d) => {
         if (!d.date) return;
         if (!map[d.date]) map[d.date] = { points: [] };
-        map[d.date].points.push({ 
-          pointName, 
+        map[d.date].points.push({
+          pointName,
+          pointId: pointWeek.point_id || null,
           is_telemetry: pointWeek.is_telemetry,
           is_form: pointWeek.is_form,
-          ...d 
+          ...d
         });
       });
     });
     return map;
   }, [last7]);
 
-  const filteredDayMap = useMemo(() => {
-    if (!search.trim()) return dayMap;
-    const q = search.toLowerCase();
-    const filtered = {};
-    Object.entries(dayMap).forEach(([date, { points }]) => {
-      const matching = points.filter((p) =>
-        (p.pointName || "").toLowerCase().includes(q)
-      );
-      if (matching.length > 0) {
-        filtered[date] = { points: matching };
-      }
-    });
-    return filtered;
-  }, [dayMap, search]);
-
   const sortedDays = useMemo(() => {
-    return Object.entries(filteredDayMap).sort(([a], [b]) => a.localeCompare(b)).slice(-7);
-  }, [filteredDayMap]);
+    if (dailySummary?.date_range?.length) {
+      return dailySummary.date_range.map((date) => ({
+        date,
+        total_consumption: dailySummary.days?.[date]?.total_consumption || 0,
+      }));
+    }
+    // Fallback a last7 si no hay daily_summary
+    return Object.entries(dayMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-7)
+      .map(([date, { points }]) => ({
+        date,
+        total_consumption: points.reduce((sum, p) => sum + (p.consumption || 0), 0),
+      }));
+  }, [dailySummary, dayMap]);
 
-  const defaultDate = sortedDays.length > 0 ? sortedDays[sortedDays.length - 1][0] : null;
+  const defaultDate = sortedDays.length > 0 ? sortedDays[sortedDays.length - 1].date : null;
   const activeDate = selectedDate || defaultDate;
+
+  const showMonthLabel = useMemo(() => {
+    const months = new Set(sortedDays.map((d) => format(parseISO(d.date), "yyyy-MM")));
+    return months.size > 1;
+  }, [sortedDays]);
+
+  const visibleDays = useMemo(() => {
+    const start = dayPage * DAYS_PER_PAGE;
+    return sortedDays.slice(start, start + DAYS_PER_PAGE);
+  }, [sortedDays, dayPage]);
+
+  const canGoPrev = dayPage > 0;
+  const canGoNext = (dayPage + 1) * DAYS_PER_PAGE < sortedDays.length;
+
+  // Key que cambia al cambiar página o data, forzando la animación
+  const galleryKey = `${dayPage}-${dailySummary?.date_range?.join(",") || ""}`;
 
   const handleDateClick = useCallback((date) => {
     onDateSelect(date === selectedDate ? null : date);
+    setCurrentPage(1);
   }, [selectedDate, onDateSelect]);
 
   const handleViewMeasurements = useCallback((record) => {
-    const pointVars = last7?.[record.pointName]?.variables || [];
-    onViewMeasurements(record.pointName, activeDate, pointVars);
-  }, [onViewMeasurements, activeDate, last7]);
+    onViewMeasurements(record.pointName, activeDate, record.variables || [], record.pointId);
+  }, [onViewMeasurements, activeDate]);
 
   const handleOpenStopTelemetry = useCallback((record) => {
-    onOpenStopTelemetry(record.pointName);
+    onOpenStopTelemetry(record.pointName, record.pointId);
   }, [onOpenStopTelemetry]);
 
   const handleOpenSupport = useCallback((record) => {
-    onOpenSupport(record.pointName);
+    onOpenSupport({ name: record.pointName, id: record.pointId });
   }, [onOpenSupport]);
 
+  const handleTableChange = useCallback((pagination, filters, sorter) => {
+    console.log("[Table sorter]", sorter);
+    if (!sorter || (!sorter.field && !sorter.columnKey)) {
+      setListOrderBy(null);
+      return;
+    }
+    const field = sorter.columnKey || sorter.field;
+    // Backend: "consumption" = mayor primero, "-consumption" = menor primero
+    // Ant Design: "descend" = mayor arriba, "ascend" = menor arriba
+    const direction = sorter.order === "ascend" ? "-" : "";
+    if (["consumption", "avg_flow", "avg_level"].includes(field)) {
+      console.log("[Table order_by]", `${direction}${field}`);
+      setListOrderBy(`${direction}${field}`);
+    }
+  }, [setListOrderBy]);
+
+  const tableData = useMemo(() => {
+    if (!listData?.results) return [];
+    return listData.results.map((p) => ({
+      pointId: p.point_id,
+      pointName: p.point_name,
+      projectId: p.project_id,
+      projectName: p.project_name,
+      is_telemetry: p.is_telemetry,
+      is_form: p.is_form,
+      status: p.status,
+      measurements_count: p.measurements_count,
+      consumption: p.consumption,
+      avg_flow: p.avg_flow,
+      avg_level: p.avg_level,
+      water_table: p.water_table,
+      variables: (p.variables || []).map(v => String(v).toUpperCase()),
+      warnings_count: p.warnings_count || 0,
+    }));
+  }, [listData]);
+
   const activeVars = useMemo(() => {
-    const allVars = Object.values(last7 || {}).flatMap(w => w.variables || []);
+    const allVars = tableData.flatMap(p => p.variables || []);
     return {
       hasConsumption: allVars.some(v => v === "TOTALIZADO"),
       hasFlow: allVars.some(v => v.includes("CAUDAL")),
       hasLevel: allVars.some(v => v === "NIVEL" || v === "NIVEL_FREATICO"),
     };
-  }, [last7]);
+  }, [tableData]);
 
   const dayCardStyle = {
     flex: 1,
@@ -114,7 +230,7 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
     padding: "10px 8px",
     backdropFilter: "blur(10px)",
     cursor: "pointer",
-    transition: "all 0.3s ease",
+    transition: "border-color 0.2s ease, box-shadow 0.2s ease",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
@@ -206,8 +322,7 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
         width: 140,
         sorter: (a, b) => (a.pointName || "").localeCompare(b.pointName || ""),
         render: (text, record) => {
-          const allWarnings = record.warnings || [];
-          const warningCount = allWarnings.length;
+          const warningCount = record.warnings_count || 0;
           return (
             <Flex align="center" justify="space-between" style={{ width: "100%" }}>
               <Flex align="center" gap={6}>
@@ -216,7 +331,7 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
                   style={{ fontSize: 11, color: token.colorPrimary, cursor: "pointer", opacity: 0.7 }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    onViewPointConfig(text);
+                    onViewPointConfig(text, record.pointId);
                   }}
                 />
               </Flex>
@@ -243,13 +358,15 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
     ];
 
     if (activeVars.hasConsumption) {
-      cols.push({ 
-        title: "Consumo (m³)", 
-        dataIndex: "consumption", 
-        key: "consumption", 
-        width: 130, 
-        align: "right", 
-        sorter: (a, b) => (a.consumption || 0) - (b.consumption || 0), 
+      cols.push({
+        title: "Consumo (m³)",
+        dataIndex: "consumption",
+        key: "consumption",
+        width: 130,
+        align: "right",
+        sorter: true,
+        sortDirections: ["ascend", "descend"],
+        showSorterTooltip: true,
         render: (v) => (
           <Text strong style={{ fontSize: token.fontSizeSM, color: token.colorText }}>
             {formatInteger(v || 0)}
@@ -258,13 +375,15 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
       });
     }
     if (activeVars.hasFlow) {
-      cols.push({ 
-        title: "Caudal prom. (L/s)", 
-        dataIndex: "avg_flow", 
-        key: "avg_flow", 
-        width: 120, 
-        align: "right", 
-        sorter: (a, b) => (a.avg_flow || 0) - (b.avg_flow || 0), 
+      cols.push({
+        title: "Caudal prom. (L/s)",
+        dataIndex: "avg_flow",
+        key: "avg_flow",
+        width: 120,
+        align: "right",
+        sorter: true,
+        sortDirections: ["ascend", "descend"],
+        showSorterTooltip: true,
         render: (v) => (
           <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextSecondary }}>
             {v != null ? Number(v).toFixed(1) : "—"}
@@ -273,14 +392,16 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
       });
     }
     if (activeVars.hasLevel) {
-      cols.push({ 
-        title: "Nivel prom. (m)", 
-        dataIndex: "avg_level", 
-        key: "avg_level", 
-        width: 100, 
-        align: "right", 
-        responsive: ["md"], 
-        sorter: (a, b) => (a.avg_level || 0) - (b.avg_level || 0), 
+      cols.push({
+        title: "Nivel prom. (m)",
+        dataIndex: "avg_level",
+        key: "avg_level",
+        width: 100,
+        align: "right",
+        responsive: ["md"],
+        sorter: true,
+        sortDirections: ["ascend", "descend"],
+        showSorterTooltip: true,
         render: (v) => (
           <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextSecondary }}>
             {v != null ? Number(v).toFixed(2) : "—"}
@@ -340,6 +461,27 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
     return cols;
   }, [token, handleViewMeasurements, handleOpenStopTelemetry, handleOpenSupport, onWarningPointClick, onViewPointConfig, activeVars]);
 
+  if (loading) {
+    return (
+      <div style={{ paddingLeft: 0, paddingRight: 0, paddingBottom: token.paddingMD }}>
+        <Flex vertical gap={12}>
+          <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextSecondary }}>
+            Cargando días...
+          </Text>
+          <Flex gap={12} align="center" style={{ width: "100%" }}>
+            <Button type="text" size="small" icon={<FaChevronLeft />} disabled />
+            <Flex gap={12} wrap={false} style={{ flex: 1 }}>
+              {Array.from({ length: 7 }).map((_, idx) => (
+                <DayCardSkeleton key={idx} token={token} />
+              ))}
+            </Flex>
+            <Button type="text" size="small" icon={<FaChevronRight />} disabled />
+          </Flex>
+        </Flex>
+      </div>
+    );
+  }
+
   if (sortedDays.length === 0) {
     return (
       <div style={{ paddingLeft: 0, paddingRight: 0, paddingBottom: token.paddingMD }}>
@@ -351,63 +493,107 @@ const CCWeekConsumption = ({ last7, selectedDate, onDateSelect, onViewMeasuremen
   return (
     <div style={{ paddingLeft: 0, paddingRight: 0, paddingBottom: token.paddingMD }}>
       <Flex vertical gap={16}>
-        <Flex gap={12}>
-          {sortedDays.map(([date, { points }]) => {
-            const total = points.reduce((a, p) => a + (p.consumption || 0), 0);
-            const isActive = activeDate === date;
-            const isToday = isSameDay(parseISO(date), new Date());
-            
-            return (
-              <div
-                key={date}
-                onClick={() => handleDateClick(date)}
-                style={isActive ? dayCardActiveStyle : dayCardStyle}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.borderColor = token.colorPrimary;
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.borderColor = token.colorBorder;
-                    e.currentTarget.style.transform = "translateY(0)";
-                  }
-                }}
-              >
-                <Text style={{ 
-                  fontSize: token.fontSizeSM, 
-                  color: isActive ? token.colorPrimary : token.colorTextSecondary,
-                  textTransform: "capitalize",
-                  letterSpacing: 0.5,
-                  whiteSpace: "nowrap",
-                }}>
-                  {format(parseISO(date), "EEEE", { locale: es })}
-                </Text>
-                <Text strong style={{ 
-                  fontSize: token.fontSizeLG * 1.25, 
-                  color: token.colorText,
-                  lineHeight: 1,
-                }}>
-                  {format(parseISO(date), "dd")}
-                </Text>
-                <Text style={{ 
-                  fontSize: token.fontSizeSM, 
-                  color: isActive ? token.colorPrimary : token.colorTextTertiary,
-                }}>
-                  {formatInteger(total)} m³
-                </Text>
-              </div>
-            );
-          })}
+        <Flex gap={12} align="center" style={{ width: "100%" }}>
+          <Button
+            type="text"
+            size="small"
+            icon={<FaChevronLeft />}
+            disabled={loading || !canGoPrev}
+            onClick={() => setDayPage((p) => Math.max(0, p - 1))}
+          />
+          <Flex
+            key={galleryKey}
+            gap={12}
+            wrap={false}
+            className="day-cards-slide"
+            style={{ flex: 1 }}
+          >
+            {loading
+              ? Array.from({ length: 7 }).map((_, idx) => <DayCardSkeleton key={idx} token={token} />)
+              : visibleDays.map(({ date, total_consumption: total }) => {
+                  const isActive = activeDate === date;
+                  const isToday = isSameDay(parseISO(date), new Date());
+
+                  return (
+                    <div
+                      key={date}
+                      onClick={() => handleDateClick(date)}
+                      style={isActive ? dayCardActiveStyle : dayCardStyle}
+                      onMouseEnter={(e) => {
+                        if (!isActive) {
+                          e.currentTarget.style.borderColor = token.colorPrimary;
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isActive) {
+                          e.currentTarget.style.borderColor = token.colorBorder;
+                        }
+                      }}
+                    >
+                      <Text style={{
+                        fontSize: token.fontSizeSM,
+                        color: isActive ? token.colorPrimary : token.colorTextSecondary,
+                        textTransform: "capitalize",
+                        letterSpacing: 0.5,
+                        whiteSpace: "nowrap",
+                      }}>
+                        {format(parseISO(date), "EEEE", { locale: es })}
+                      </Text>
+                      <Text strong style={{
+                        fontSize: token.fontSizeLG * 1.25,
+                        color: token.colorText,
+                        lineHeight: 1,
+                      }}>
+                        {format(parseISO(date), "dd")}
+                      </Text>
+                      {showMonthLabel && (
+                        <Text style={{
+                          fontSize: token.fontSizeSM - 1,
+                          color: isActive ? token.colorPrimary : token.colorTextTertiary,
+                          lineHeight: 1,
+                          marginTop: -2,
+                        }}>
+                          {format(parseISO(date), "MMM", { locale: es })}
+                        </Text>
+                      )}
+                      <Text style={{
+                        fontSize: token.fontSizeSM,
+                        color: isActive ? token.colorPrimary : token.colorTextTertiary,
+                      }}>
+                        {formatInteger(total)} m³
+                      </Text>
+                    </div>
+                  );
+                })}
+          </Flex>
+          <Button
+            type="text"
+            size="small"
+            icon={<FaChevronRight />}
+            disabled={loading || !canGoNext}
+            onClick={() => setDayPage((p) => p + 1)}
+          />
         </Flex>
 
-        {activeDate && filteredDayMap[activeDate] && (
+        {activeDate && (
           <div className="fade-in">
             <TableMemo
-              loading={loading}
-              data={filteredDayMap[activeDate].points}
+              loading={listLoading}
+              data={tableData}
               columns={columns}
+              onChange={handleTableChange}
+              token={token}
+              pagination={{
+                current: listPage,
+                pageSize: listData?.page_size || PAGE_SIZE,
+                total: listData?.count || 0,
+                showSizeChanger: false,
+                hideOnSinglePage: false,
+                onChange: (page) => {
+                  setListPage(page);
+                  setCurrentPage(1);
+                },
+              }}
             />
           </div>
         )}

@@ -272,7 +272,7 @@ const CCComplianceTable = ({ points, last7, onViewVoucher, onOpenStopCompliance,
       rowKey="id"
       size="small"
       scroll={{ x: "max-content" }}
-      pagination={{ pageSize: 10, hideOnSinglePage: true }}
+      pagination={false}
       locale={{ emptyText: "No hay puntos disponibles" }}
       onRow={(record) => ({
         style: {

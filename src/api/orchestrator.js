@@ -429,6 +429,14 @@ export const getOrchestratorStats = () => {
 
 export const dashboardStats = (signal) => sh.dashboardStats(signal);
 
+export const controlCenterGeneralStats = (signal) => sh.controlCenterGeneralStats(signal);
+
+export const controlCenterDailySummary = (params, signal) => sh.controlCenterDailySummary(params, signal);
+
+export const controlCenterProjectPoints = (projectId, signal) => sh.controlCenterProjectPoints(projectId, signal);
+
+export const controlCenterList = (params, signal) => sh.controlCenterList(params, signal);
+
 export const compliance = (signal) => sh.compliance(signal);
 
 export const chat = (message) => sh.chat(message);
@@ -443,6 +451,104 @@ export const pointConfig = (pointId) => sh.pointConfig(pointId);
 
 export const notifications = {
   create: (data) => sh.notifications.create(data),
+};
+
+// ──────────────────────────────────────────
+// Admin / Management wrappers
+// ──────────────────────────────────────────
+
+export const systemStatus = (signal) => sh.management.systemStatus();
+
+export const resourcesStatus = (signal) => sh.management.resourcesStatus();
+
+export const pointsStatus = (params, signal) => sh.management.pointsStatus(params);
+
+export const telemetryMetrics = (params, signal) => sh.management.telemetryMetrics(params);
+
+export const dgaQueueStatus = (signal) => sh.management.dgaQueueStatus();
+
+export const systemEvents = {
+  get: (params) => sh.systemEvents.get(params),
+  summary: () => sh.systemEvents.summary(),
+};
+
+export const tickets = {
+  get: (params) => sh.tickets.get(params),
+  getById: (id) => sh.tickets.getById(id),
+  create: (data) => sh.tickets.create(data),
+  update: (id, data) => sh.tickets.update(id, data),
+  assign: (id, assignedTo) => sh.tickets.assign(id, assignedTo),
+  changeStatus: (id, status) => sh.tickets.changeStatus(id, status),
+  getComments: (id, page) => sh.tickets.getComments(id, page),
+  createComment: (id, data) => sh.tickets.createComment(id, data),
+  getAttachments: (id) => sh.tickets.getAttachments(id),
+  uploadAttachment: (id, formData) => sh.tickets.uploadAttachment(id, formData),
+  stats: () => sh.tickets.stats(),
+};
+
+export const alerts = {
+  rules: {
+    get: (params) => sh.alerts.rules.get(params),
+    getById: (id) => sh.alerts.rules.getById(id),
+    create: (data) => sh.alerts.rules.create(data),
+    update: (id, data) => sh.alerts.rules.update(id, data),
+    delete: (id) => sh.alerts.rules.delete(id),
+  },
+  channels: {
+    get: (params) => sh.alerts.channels.get(params),
+    create: (data) => sh.alerts.channels.create(data),
+    update: (id, data) => sh.alerts.channels.update(id, data),
+    delete: (id) => sh.alerts.channels.delete(id),
+  },
+  triggers: {
+    get: (params) => sh.alerts.triggers.get(params),
+    acknowledge: (id) => sh.alerts.triggers.acknowledge(id),
+  },
+};
+
+export const admin = {
+  clients: (params) => sh.admin.clients(params),
+  clientsAll: () => sh.admin.clientsAll(),
+  createClient: (data) => sh.admin.createClient(data),
+  updateClient: (id, data) => sh.admin.updateClient(id, data),
+  deleteClient: (id) => sh.admin.deleteClient(id),
+  projects: (params) => sh.admin.projects(params),
+  projectsAll: () => sh.admin.projectsAll(),
+  createProject: (data) => sh.admin.createProject(data),
+  updateProject: (id, data) => sh.admin.updateProject(id, data),
+  deleteProject: (id) => sh.admin.deleteProject(id),
+  points: (params) => sh.admin.catchmentPoints(params),
+  pointsAll: () => sh.admin.getPointsAll(),
+  pointById: (id) => sh.admin.getCatchmentPoint(id),
+  createPoint: (data) => sh.admin.createCatchmentPoint(data),
+  updatePoint: (id, data) => sh.admin.updateCatchmentPoint(id, data),
+  deletePoint: (id) => sh.admin.deleteCatchmentPoint(id),
+  clientsWithProjects: () => sh.admin.clientsWithProjects(),
+  pointsByProject: (projectId) => sh.admin.pointsByProject(projectId),
+  users: (params) => sh.getUsers(params),
+  userById: (username) => sh.getUser(username),
+  signupUser: (data) => sh.signupUser(data),
+  updateUser: (username, data) => sh.updateUser(username, data),
+  deleteUser: (username) => sh.deleteUser(username),
+  changeUserPassword: (currentPassword, newPassword) =>
+    sh.changePassword(currentPassword, newPassword),
+  requestPasswordReset: (email) => sh.requestPasswordReset(email),
+  confirmPasswordReset: (token, newPassword) =>
+    sh.confirmPasswordReset(token, newPassword),
+  variables: (params) => sh.getVariables(params),
+  variableById: (id) => sh.getVariable(id),
+  createVariable: (data) => sh.createVariable(data),
+  updateVariable: (id, data) => sh.updateVariable(id, data),
+  deleteVariable: (id) => sh.deleteVariable(id),
+  schemes: (params) => sh.getSchemes(params),
+  schemeById: (id) => sh.getScheme(id),
+  createScheme: (data) => sh.createScheme(data),
+  updateScheme: (id, data) => sh.updateScheme(id, data),
+  deleteScheme: (id) => sh.deleteScheme(id),
+  telemetryProviders: (params) => sh.getTelemetryProviders(params),
+  telemetryProviderById: (id) => sh.getTelemetryProvider(id),
+  complianceProviders: (params) => sh.getComplianceProviders(params),
+  complianceProviderById: (id) => sh.getComplianceProvider(id),
 };
 
 // ──────────────────────────────────────────
@@ -462,12 +568,25 @@ const orchestrator = {
   invalidatePointCache,
   getStats: getOrchestratorStats,
   dashboardStats,
+  controlCenterGeneralStats,
+  controlCenterDailySummary,
+  controlCenterProjectPoints,
+  controlCenterList,
   compliance,
   chat,
   verifyDgaVoucher,
   pointRecords,
   pointConfig,
   notifications,
+  systemStatus,
+  resourcesStatus,
+  pointsStatus,
+  telemetryMetrics,
+  dgaQueueStatus,
+  systemEvents,
+  tickets,
+  alerts,
+  admin,
   PRIORITY,
 };
 

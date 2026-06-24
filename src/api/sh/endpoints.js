@@ -466,6 +466,11 @@ const updateUser = async (username, data) => {
   return rq.data;
 };
 
+const deleteUser = async (username) => {
+  const rq = await DELETE(`users/${username}/`);
+  return rq.data;
+};
+
 // ==========================================
 // TELEMETRÍA — Edición
 // ==========================================
@@ -606,6 +611,55 @@ const get_dashboard_stats = async (signal) => {
   return rq.data;
 };
 
+/**
+ * 🆕 CENTRO DE CONTROL: KPIs globales + lista de proyectos para filtro.
+ * Endpoint: GET /api/ik/control_center/general_stats/
+ * Devuelve overview, status_today, projects[] y chat_quota. Sin last_7 ni lista de puntos.
+ */
+const get_control_center_general_stats = async (signal) => {
+  const rq = await GET(`ik/control_center/general_stats/`, null, signal ? { signal } : {});
+  return rq.data;
+};
+
+/**
+ * 🆕 CENTRO DE CONTROL: resumen diario agregado para armar las cajitas de días.
+ * Endpoint: GET /api/ik/control_center/daily_summary/?start_date=&end_date=&project_id=
+ */
+const get_control_center_daily_summary = async (params = {}, signal) => {
+  const query = new URLSearchParams();
+  if (params.start_date) query.set("start_date", params.start_date);
+  if (params.end_date) query.set("end_date", params.end_date);
+  if (params.project_id != null) query.set("project_id", String(params.project_id));
+  const qs = query.toString();
+  const rq = await GET(`ik/control_center/daily_summary/${qs ? `?${qs}` : ""}`, null, signal ? { signal } : {});
+  return rq.data;
+};
+
+/**
+ * 🆕 CENTRO DE CONTROL: puntos de captación por proyecto.
+ * Endpoint: GET /api/ik/control_center/project_points/?project_id=X
+ */
+const get_control_center_project_points = async (projectId, signal) => {
+  const rq = await GET(`ik/control_center/project_points/?project_id=${projectId}`, null, signal ? { signal } : {});
+  return rq.data;
+};
+
+/**
+ * 🆕 CENTRO DE CONTROL: lista paginada de puntos con datos de un día específico.
+ * Endpoint: GET /api/ik/control_center/list/?date=YYYY-MM-DD&project_id=&page=&page_size=
+ */
+const get_control_center_list = async (params = {}, signal) => {
+  const query = new URLSearchParams();
+  if (params.date) query.set("date", params.date);
+  if (params.project_id != null) query.set("project_id", String(params.project_id));
+  if (params.page != null) query.set("page", String(params.page));
+  if (params.page_size != null) query.set("page_size", String(params.page_size));
+  if (params.order_by) query.set("order_by", params.order_by);
+  const qs = query.toString();
+  const rq = await GET(`ik/control_center/list/${qs ? `?${qs}` : ""}`, null, signal ? { signal } : {});
+  return rq.data;
+};
+
 const chat = async (message) => {
   const rq = await POST(`ik/chat/client/general_stats/`, { message });
   return rq.data;
@@ -654,17 +708,13 @@ const verifyDgaVoucher = async (
   tipoDga = "SUPERFICIAL",
 ) => {
   try {
-    // Usar URL absoluta — el interceptor del Axios principal inyecta el token
-    const response = await Axios.get(
-      "https://api.smarthydro.app/compliance/dga/verify/",
-      {
-        params: {
-          codigo_obra: codigoObra,
-          numero_comprobante: numeroComprobante,
-          tipo_dga: tipoDga,
-        },
+    const response = await GET("compliance/dga/verify/", null, {
+      params: {
+        codigo_obra: codigoObra,
+        numero_comprobante: numeroComprobante,
+        tipo_dga: tipoDga,
       },
-    );
+    });
     return { status: response.status, ...response.data };
   } catch (error) {
     if (error.response) {
@@ -675,22 +725,339 @@ const verifyDgaVoucher = async (
 };
 
 // ==========================================
-// ADMIN: CLIENTES, PROYECTOS, PUNTOS
+// USUARIOS / AUTH
 // ==========================================
 
-const getClients = async () => {
-  const rq = await GET(`client/`);
+const getMe = async () => {
+  const rq = await GET(`users/me/`);
   return rq.data;
 };
 
-const getProjects = async () => {
-  const rq = await GET(`project_catchments/`);
+const changePassword = async (currentPassword, newPassword) => {
+  const rq = await POST(`users/change-password/`, {
+    current_password: currentPassword,
+    new_password: newPassword,
+  });
+  return rq.data;
+};
+
+const getUsers = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const rq = await GET(`users/${query ? "?" + query : ""}`);
+  return rq.data;
+};
+
+const getUser = async (username) => {
+  const rq = await GET(`users/${username}/`);
+  return rq.data;
+};
+
+const createUser = async (data) => {
+  const rq = await POST(`users/`, data);
+  return rq.data;
+};
+
+const signupUser = async (data) => {
+  const rq = await POST(`users/signup/`, data);
+  return rq.data;
+};
+
+// ==========================================
+// VARIABLES / ESQUEMAS / PROVEEDORES
+// ==========================================
+
+const getVariables = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const rq = await GET(`variable/${query ? "?" + query : ""}`);
+  return rq.data;
+};
+
+const getVariable = async (id) => {
+  const rq = await GET(`variable/${id}/`);
+  return rq.data;
+};
+
+const createVariable = async (data) => {
+  const rq = await POST(`variable/`, data);
+  return rq.data;
+};
+
+const updateVariable = async (id, data) => {
+  const rq = await PATCH(`variable/${id}/`, data);
+  return rq.data;
+};
+
+const deleteVariable = async (id) => {
+  const rq = await DELETE(`variable/${id}/`);
+  return rq.data;
+};
+
+const getSchemes = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const rq = await GET(`schemes_catchment/${query ? "?" + query : ""}`);
+  return rq.data;
+};
+
+const getScheme = async (id) => {
+  const rq = await GET(`schemes_catchment/${id}/`);
+  return rq.data;
+};
+
+const createScheme = async (data) => {
+  const rq = await POST(`schemes_catchment/`, data);
+  return rq.data;
+};
+
+const updateScheme = async (id, data) => {
+  const rq = await PATCH(`schemes_catchment/${id}/`, data);
+  return rq.data;
+};
+
+const deleteScheme = async (id) => {
+  const rq = await DELETE(`schemes_catchment/${id}/`);
+  return rq.data;
+};
+
+const getTelemetryProviders = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const rq = await GET(`telemetry_providers/${query ? "?" + query : ""}`);
+  return rq.data;
+};
+
+const getTelemetryProvider = async (id) => {
+  const rq = await GET(`telemetry_providers/${id}/`);
+  return rq.data;
+};
+
+const getComplianceProviders = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const rq = await GET(`compliance_providers/${query ? "?" + query : ""}`);
+  return rq.data;
+};
+
+const getComplianceProvider = async (id) => {
+  const rq = await GET(`compliance_providers/${id}/`);
+  return rq.data;
+};
+
+// ==========================================
+// TICKETS DE SOPORTE (/api/ik/tickets/)
+// ==========================================
+
+const getTickets = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const rq = await GET(`ik/tickets/${query ? "?" + query : ""}`);
+  return rq.data;
+};
+
+const getTicket = async (id) => {
+  const rq = await GET(`ik/tickets/${id}/`);
+  return rq.data;
+};
+
+const createTicket = async (data) => {
+  const rq = await POST(`ik/tickets/`, data);
+  return rq.data;
+};
+
+const updateTicket = async (id, data) => {
+  const rq = await PATCH(`ik/tickets/${id}/`, data);
+  return rq.data;
+};
+
+const assignTicket = async (id, assignedTo) => {
+  const rq = await POST(`ik/tickets/${id}/assign/`, { assigned_to: assignedTo });
+  return rq.data;
+};
+
+const changeTicketStatus = async (id, status) => {
+  const rq = await POST(`ik/tickets/${id}/status/`, { status });
+  return rq.data;
+};
+
+const getTicketComments = async (id, page = 1) => {
+  const rq = await GET(`ik/tickets/${id}/comments/?page=${page}`);
+  return rq.data;
+};
+
+const createTicketComment = async (id, data) => {
+  const rq = await POST(`ik/tickets/${id}/comments/`, data);
+  return rq.data;
+};
+
+const getTicketAttachments = async (id) => {
+  const rq = await GET(`ik/tickets/${id}/attachments/`);
+  return rq.data;
+};
+
+const uploadTicketAttachment = async (id, formData) => {
+  const rq = await Axios.post(`ik/tickets/${id}/attachments/`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return rq.data;
+};
+
+const getTicketStats = async () => {
+  const rq = await GET(`ik/tickets/stats/`);
+  return rq.data;
+};
+
+// ==========================================
+// SYSTEM EVENTS / AUDITORÍA
+// ==========================================
+
+const getSystemEvents = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const rq = await GET(`system_events/${query ? "?" + query : ""}`);
+  return rq.data;
+};
+
+const getSystemEventsSummary = async () => {
+  const rq = await GET(`ik/system-events/summary/`);
+  return rq.data;
+};
+
+// ==========================================
+// ALERTAS: REGLAS, CANALES, DISPAROS
+// ==========================================
+
+const getAlertRules = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const rq = await GET(`alert_rules/${query ? "?" + query : ""}`);
+  return rq.data;
+};
+
+const getAlertRule = async (id) => {
+  const rq = await GET(`alert_rules/${id}/`);
+  return rq.data;
+};
+
+const createAlertRule = async (data) => {
+  const rq = await POST(`alert_rules/`, data);
+  return rq.data;
+};
+
+const updateAlertRule = async (id, data) => {
+  const rq = await PATCH(`alert_rules/${id}/`, data);
+  return rq.data;
+};
+
+const deleteAlertRule = async (id) => {
+  const rq = await DELETE(`alert_rules/${id}/`);
+  return rq.data;
+};
+
+const getAlertChannels = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const rq = await GET(`alert_channels/${query ? "?" + query : ""}`);
+  return rq.data;
+};
+
+const createAlertChannel = async (data) => {
+  const rq = await POST(`alert_channels/`, data);
+  return rq.data;
+};
+
+const updateAlertChannel = async (id, data) => {
+  const rq = await PATCH(`alert_channels/${id}/`, data);
+  return rq.data;
+};
+
+const deleteAlertChannel = async (id) => {
+  const rq = await DELETE(`alert_channels/${id}/`);
+  return rq.data;
+};
+
+const getAlertTriggers = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const rq = await GET(`alert_triggers/${query ? "?" + query : ""}`);
+  return rq.data;
+};
+
+const acknowledgeAlertTrigger = async (id) => {
+  const rq = await PATCH(`alert_triggers/${id}/`, { is_acknowledged: true });
+  return rq.data;
+};
+
+// ==========================================
+// CRUDS: CLIENTES, PROYECTOS, PUNTOS
+// ==========================================
+
+const getClients = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const rq = await GET(`client/${query ? "?" + query : ""}`);
+  return rq.data;
+};
+
+const getClientsAll = async () => {
+  const rq = await GET(`client/all/`);
+  return rq.data;
+};
+
+const createClient = async (data) => {
+  const rq = await POST(`client/`, data);
+  return rq.data;
+};
+
+const updateClient = async (id, data) => {
+  const rq = await PATCH(`client/${id}/`, data);
+  return rq.data;
+};
+
+const deleteClient = async (id) => {
+  const rq = await DELETE(`client/${id}/`);
+  return rq.data;
+};
+
+const getProjects = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const rq = await GET(`project_catchments/${query ? "?" + query : ""}`);
+  return rq.data;
+};
+
+const getProjectsAll = async () => {
+  const rq = await GET(`project_catchments/all/`);
+  return rq.data;
+};
+
+const createProject = async (data) => {
+  const rq = await POST(`project_catchments/`, data);
+  return rq.data;
+};
+
+const updateProject = async (id, data) => {
+  const rq = await PATCH(`project_catchments/${id}/`, data);
+  return rq.data;
+};
+
+const deleteProject = async (id) => {
+  const rq = await DELETE(`project_catchments/${id}/`);
   return rq.data;
 };
 
 const getCatchmentPoints = async (params = {}) => {
   const query = new URLSearchParams(params).toString();
   const rq = await GET(`catchment_point/${query ? "?" + query : ""}`);
+  return rq.data;
+};
+
+const getCatchmentPoint = async (id) => {
+  const rq = await GET(`catchment_point/${id}/`);
+  return rq.data;
+};
+
+const createCatchmentPoint = async (data) => {
+  const rq = await POST(`catchment_point/`, data);
+  return rq.data;
+};
+
+const updateCatchmentPoint = async (id, data) => {
+  const rq = await PATCH(`catchment_point/${id}/`, data);
+  return rq.data;
+};
+
+const deleteCatchmentPoint = async (id) => {
+  const rq = await DELETE(`catchment_point/${id}/`);
   return rq.data;
 };
 
@@ -720,7 +1087,28 @@ const sh = {
   billing_data: get_history_data,
   billing_data_admin: get_history_data_admin,
   get_profile: get_profile,
+  me: getMe,
+  changePassword,
   updateUser,
+  deleteUser,
+  getUsers,
+  getUser,
+  createUser,
+  signupUser,
+  getVariables,
+  getVariable,
+  createVariable,
+  updateVariable,
+  deleteVariable,
+  getSchemes,
+  getScheme,
+  createScheme,
+  updateScheme,
+  deleteScheme,
+  getTelemetryProviders,
+  getTelemetryProvider,
+  getComplianceProviders,
+  getComplianceProvider,
   downloadFile: downloadFile,
   get_data_sh: getDataApiSh,
   get_data_sh_range: getDataApiShRangeDate,
@@ -768,12 +1156,61 @@ const sh = {
     updatePointFrequency,
     notificationsSummary: getNotificationsSummary,
   },
+  systemEvents: {
+    get: getSystemEvents,
+    summary: getSystemEventsSummary,
+  },
+  tickets: {
+    get: getTickets,
+    getById: getTicket,
+    create: createTicket,
+    update: updateTicket,
+    assign: assignTicket,
+    changeStatus: changeTicketStatus,
+    getComments: getTicketComments,
+    createComment: createTicketComment,
+    getAttachments: getTicketAttachments,
+    uploadAttachment: uploadTicketAttachment,
+    stats: getTicketStats,
+  },
+  alerts: {
+    rules: {
+      get: getAlertRules,
+      getById: getAlertRule,
+      create: createAlertRule,
+      update: updateAlertRule,
+      delete: deleteAlertRule,
+    },
+    channels: {
+      get: getAlertChannels,
+      create: createAlertChannel,
+      update: updateAlertChannel,
+      delete: deleteAlertChannel,
+    },
+    triggers: {
+      get: getAlertTriggers,
+      acknowledge: acknowledgeAlertTrigger,
+    },
+  },
   admin: {
     clients: getClients,
+    clientsAll: getClientsAll,
+    createClient,
+    updateClient,
+    deleteClient,
     projects: getProjects,
+    projectsAll: getProjectsAll,
+    createProject,
+    updateProject,
+    deleteProject,
     catchmentPoints: getCatchmentPoints,
+    getCatchmentPoint,
+    createCatchmentPoint,
+    updateCatchmentPoint,
+    deleteCatchmentPoint,
     clientsWithProjects: getClientsWithProjects,
     pointsByProject: getCatchmentPointsByProject,
+    getPointsAll: get_catchment_points_all,
   },
   // 🆕 NUEVO: Endpoints para lazy loading de puntos
   getPointsAll: get_catchment_points_all,
@@ -792,6 +1229,10 @@ const sh = {
   // 🆕 CENTRO DE CONTROL: Resumen diario agregado
   dailySummary: get_daily_summary,
   dashboardStats: get_dashboard_stats,
+  controlCenterGeneralStats: get_control_center_general_stats,
+  controlCenterDailySummary: get_control_center_daily_summary,
+  controlCenterProjectPoints: get_control_center_project_points,
+  controlCenterList: get_control_center_list,
   chat,
   // 🆕 COMPLIANCE: Datos de cumplimiento con historial de caudal
   compliance: get_compliance,
