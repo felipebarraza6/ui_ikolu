@@ -49,10 +49,12 @@ const ComplianceDashboard = () => {
   const loadCompliance = async () => {
     setLoading(true);
     try {
-      const res = await orchestrator.compliance();
+      const res = await orchestrator.complianceList();
+      // Soporta respuesta paginada { results } o plana { points }.
+      const points = Array.isArray(res?.results) ? res.results : res?.points || [];
       setData({
         stats: res?.stats || {},
-        points: res?.points || [],
+        points,
       });
     } catch (err) {
       console.error("[ComplianceDashboard] error:", err);

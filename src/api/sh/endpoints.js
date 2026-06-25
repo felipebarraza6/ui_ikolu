@@ -676,6 +676,37 @@ const get_compliance = async (signal) => {
 };
 
 /**
+ * 🆕 COMPLIANCE PAGINADO: Lista paginada de puntos con datos de cumplimiento.
+ * Usa el mismo endpoint base /api/ik/compliance/ con query params de paginación.
+ * El backend puede devolver respuesta plana { points: [...] } o paginada { count, results: [...] }.
+ */
+const get_compliance_list = async (params = {}, signal) => {
+  const query = new URLSearchParams();
+  if (params.page != null) query.set("page", String(params.page));
+  if (params.page_size != null) query.set("page_size", String(params.page_size));
+  if (params.project_id != null) query.set("project_id", String(params.project_id));
+  if (params.search?.trim()) query.set("search", params.search.trim());
+  if (params.order_by) query.set("order_by", params.order_by);
+  if (params.warning_level) query.set("warning_level", params.warning_level);
+  const qs = query.toString();
+  const rq = await GET(`ik/compliance/${qs ? `?${qs}` : ""}`, null, signal ? { signal } : {});
+  return rq.data;
+};
+
+/**
+ * 🆕 COMPLIANCE TOGGLE: Activar/desactivar cumplimiento normativo de un punto (super admin).
+ * Endpoint: POST /api/ik/management/toggle_compliance/
+ * Body: { point_id, enabled }
+ */
+const toggle_compliance = async (pointId, enabled) => {
+  const rq = await POST(`ik/management/toggle_compliance/`, {
+    point_id: pointId,
+    enabled,
+  });
+  return rq.data;
+};
+
+/**
  * 🆕 MEDICIONES POR PUNTO Y DÍA
  * Endpoint: GET /api/ik/point/{id}/records/?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD&limit=100
  * Devuelve registros detallados de un punto para un rango de fechas.
@@ -1079,6 +1110,95 @@ const getCatchmentPointsByProject = async (projectId) => {
   return rq.data;
 };
 
+// ==========================================
+// PUNTOS DE CAPTACIÓN UNIFICADOS → /api/points/
+// ==========================================
+
+const pointsList = async (params = {}) => {
+  const query = new URLSearchParams();
+  if (params.project != null) query.set("project", String(params.project));
+  if (params.search?.trim()) query.set("search", params.search.trim());
+  if (params.page != null) query.set("page", String(params.page));
+  if (params.page_size != null) query.set("page_size", String(params.page_size));
+  if (params.order_by) query.set("order_by", params.order_by);
+  if (params.mine != null) query.set("mine", String(params.mine));
+  const qs = query.toString();
+  const rq = await GET(`points/${qs ? `?${qs}` : ""}`);
+  return rq.data;
+};
+
+const pointsGet = async (id) => {
+  const rq = await GET(`points/${id}/`);
+  return rq.data;
+};
+
+const pointsCreate = async (data) => {
+  const rq = await POST(`points/`, data);
+  return rq.data;
+};
+
+const pointsUpdate = async (id, data) => {
+  const rq = await PATCH(`points/${id}/`, data);
+  return rq.data;
+};
+
+const pointsDelete = async (id) => {
+  const rq = await DELETE(`points/${id}/`);
+  return rq.data;
+};
+
+const pointsRecords = async (id, { startDate, endDate, limit = 100, hours } = {}) => {
+  const query = new URLSearchParams();
+  if (startDate) query.set("start_date", startDate);
+  if (endDate) query.set("end_date", endDate);
+  if (limit != null) query.set("limit", String(limit));
+  if (hours != null) query.set("hours", String(hours));
+  const qs = query.toString();
+  const rq = await GET(`points/${id}/records/${qs ? `?${qs}` : ""}`);
+  return rq.data;
+};
+
+const pointsLatest = async (id) => {
+  const rq = await GET(`points/${id}/latest/`);
+  return rq.data;
+};
+
+const pointStatus = async (id, thresholdMinutes) => {
+  const qs = thresholdMinutes != null ? `?threshold_minutes=${thresholdMinutes}` : "";
+  const rq = await GET(`points/${id}/status/${qs}`);
+  return rq.data;
+};
+
+const pointsConfig = async (id) => {
+  const rq = await GET(`points/${id}/config/`);
+  return rq.data;
+};
+
+const pointsConfigUpdate = async (id, config) => {
+  const rq = await PATCH(`points/${id}/config/`, { config });
+  return rq.data;
+};
+
+const pointsVariables = async (id) => {
+  const rq = await GET(`points/${id}/variables/`);
+  return rq.data;
+};
+
+const pointsSummary = async (id) => {
+  const rq = await GET(`points/${id}/summary/`);
+  return rq.data;
+};
+
+const pointsBatchStatus = async (ids = []) => {
+  if (!ids.length) return { count: 0, statuses: {} };
+  const query = new URLSearchParams();
+  query.set("ids", ids.join(","));
+  const rq = await GET(`points/batch_status/?${query.toString()}`);
+  return rq.data;
+};
+
+const pointsMine = async (params = {}) => pointsList({ ...params, mine: true });
+
 const sh = {
   authenticated: login,
   requestPasswordReset,
@@ -1226,6 +1346,23 @@ const sh = {
     stats: batchStatsNative,
     summary: batchSummaryNative,
   },
+  // 🆕 PUNTOS UNIFICADOS: /api/points/
+  points: {
+    list: pointsList,
+    get: pointsGet,
+    create: pointsCreate,
+    update: pointsUpdate,
+    delete: pointsDelete,
+    records: pointsRecords,
+    latest: pointsLatest,
+    status: pointStatus,
+    config: pointsConfig,
+    configUpdate: pointsConfigUpdate,
+    variables: pointsVariables,
+    summary: pointsSummary,
+    batchStatus: pointsBatchStatus,
+    mine: pointsMine,
+  },
   // 🆕 CENTRO DE CONTROL: Resumen diario agregado
   dailySummary: get_daily_summary,
   dashboardStats: get_dashboard_stats,
@@ -1236,6 +1373,8 @@ const sh = {
   chat,
   // 🆕 COMPLIANCE: Datos de cumplimiento con historial de caudal
   compliance: get_compliance,
+  complianceList: get_compliance_list,
+  toggleCompliance: toggle_compliance,
   // 🆕 MEDICIONES POR PUNTO Y DÍA
   pointRecords: get_point_records,
   // 🆕 CONFIGURACIÓN TÉCNICA DEL PUNTO

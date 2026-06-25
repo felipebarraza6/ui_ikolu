@@ -155,10 +155,13 @@ const PointsPage = () => {
   const handleSubmit = useCallback(
     async (values) => {
       const payload = {
-        ...values,
+        title: values.title || null,
+        point_code: values.point_code || null,
+        lat: values.lat ? String(values.lat) : null,
+        lon: values.lon ? String(values.lon) : null,
+        is_active: values.is_active !== undefined ? values.is_active : true,
         project: values.project || null,
         owner_user: values.owner_user || null,
-        frecuency: values.frecuency ? String(values.frecuency) : null,
       };
       if (editing) {
         await updateItem(editing.id, payload);
@@ -229,15 +232,16 @@ const PointsPage = () => {
       render: (v) => (v ? `${v} min` : "—"),
     },
     {
-      title: "Modo",
-      key: "mode",
-      render: (_, record) => {
-        const modes = [];
-        if (record.is_tdata) modes.push("Twin");
-        if (record.is_thethings) modes.push("Nettra");
-        if (record.is_novus) modes.push("Novus");
-        return modes.length ? modes.join(", ") : "—";
-      },
+      title: "Código",
+      dataIndex: "point_code",
+      key: "point_code",
+      render: (v) => v || "—",
+    },
+    {
+      title: "Estado",
+      dataIndex: "is_active",
+      key: "is_active",
+      render: (v) => (v ? "Activo" : "Inactivo"),
     },
     {
       title: "Acciones",
@@ -383,12 +387,17 @@ const PointDrawer = ({
         const project = projects.find((p) => p.id === editing.project);
         setSelectedClient(project?.client || null);
         form.setFieldsValue({
-          ...editing,
-          frecuency: editing.frecuency ? String(editing.frecuency) : "",
+          title: editing.title,
+          point_code: editing.point_code,
+          lat: editing.lat,
+          lon: editing.lon,
+          is_active: editing.is_active !== undefined ? editing.is_active : true,
+          project: editing.project,
+          owner_user: editing.owner_user,
         });
       } else {
         setSelectedClient(null);
-        form.setFieldsValue({});
+        form.setFieldsValue({ is_active: true });
       }
     }
   }, [open, editing, projects, form]);
@@ -414,6 +423,10 @@ const PointDrawer = ({
       form={form}
     >
       <Form.Item name="title" label="Nombre" rules={[{ required: true, message: "Requerido" }]}>
+        <Input />
+      </Form.Item>
+
+      <Form.Item name="point_code" label="Código">
         <Input />
       </Form.Item>
 
@@ -484,21 +497,9 @@ const PointDrawer = ({
         <Input />
       </Form.Item>
 
-      <Form.Item name="frecuency" label="Frecuencia (min)">
-        <Input type="number" min={1} />
+      <Form.Item name="is_active" valuePropName="checked" label="Activo">
+        <Switch />
       </Form.Item>
-
-      <Flex gap={24}>
-        <Form.Item name="is_tdata" valuePropName="checked" label="Twin (legacy)">
-          <Switch />
-        </Form.Item>
-        <Form.Item name="is_thethings" valuePropName="checked" label="Nettra (legacy)">
-          <Switch />
-        </Form.Item>
-        <Form.Item name="is_novus" valuePropName="checked" label="Novus (legacy)">
-          <Switch />
-        </Form.Item>
-      </Flex>
     </CrudDrawer>
   );
 };

@@ -1,11 +1,13 @@
 import React, { useCallback, useMemo, useState, useEffect } from "react";
-import { Flex, Typography, Table, Tooltip, Tag, theme, Skeleton, Button } from "antd";
+import { Flex, Typography, Table, Tooltip, Tag, theme, Skeleton, Button, Switch } from "antd";
 import { FaEye, FaHandPaper, FaHeadset, FaExclamationTriangle, FaInfoCircle, FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import { FormOutlined, CheckCircleOutlined, CloseCircleOutlined, MinusCircleOutlined } from "@ant-design/icons";
+import { FormOutlined, CheckCircleOutlined, CloseCircleOutlined, MinusCircleOutlined, WifiOutlined, DisconnectOutlined } from "@ant-design/icons";
 import { format, parseISO, isSameDay } from "date-fns";
 import { es } from "date-fns/locale/es";
 import { formatInteger } from "../../../../utils/numberFormatter";
 import { SmartBadge } from "../../../../shared/ui";
+import SkeletonTable from "../../../../shared/ui/SmartSkeleton/SkeletonTable";
+import { useAuth } from "../../../../contexts/AuthContext";
 
 const typeDgaLabels = {
   "SUPERFICIAL": "Superficial",
@@ -45,34 +47,34 @@ const DayCardSkeleton = ({ token }) => (
   </div>
 );
 
-const TableSkeleton = ({ token }) => (
-  <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "8px 0" }}>
-    {Array.from({ length: 10 }).map((_, idx) => (
-      <div key={idx} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <Skeleton.Button active size="small" style={{ width: 32, height: 16 }} />
-        <Skeleton.Button active size="small" style={{ flex: 1, height: 16 }} />
-        <Skeleton.Button active size="small" style={{ width: 80, height: 16 }} />
-        <Skeleton.Button active size="small" style={{ width: 80, height: 16 }} />
-        <Skeleton.Button active size="small" style={{ width: 80, height: 16 }} />
-        <Skeleton.Button active size="small" style={{ width: 100, height: 16 }} />
-      </div>
-    ))}
-  </div>
+const TableSkeleton = ({ isSuperUser }) => (
+  <SkeletonTable
+    rows={10}
+    size="small"
+    columns={[
+      { title: "#", key: "#", width: 40, align: "center" },
+      { title: "Punto", key: "pointName", width: 180 },
+      { title: "Consumo (m³)", key: "consumption", width: 120, align: "right" },
+      { title: "Caudal prom. (L/s)", key: "avg_flow", width: 130, align: "right" },
+      { title: "Nivel prom. (m)", key: "avg_level", width: 120, align: "right" },
+      { title: "Mediciones", key: "measurements_count", width: 90, align: "center" },
+      { title: "", key: "actions", width: isSuperUser ? 180 : 120, align: "center" },
+    ]}
+  />
 );
 
-const TableMemo = React.memo(({ data, columns, loading, pagination, onChange, token }) => {
+const TableMemo = React.memo(({ data, columns, loading, pagination, onChange, token, isSuperUser }) => {
   const dataSource = useMemo(() =>
     data.map((p, idx) => ({ ...p, key: p.pointName || idx, rank: idx + 1 })),
     [data]
   );
 
-  if (loading && dataSource.length === 0) {
-    return <TableSkeleton token={token} />;
+  if (loading) {
+    return <TableSkeleton isSuperUser={isSuperUser} />;
   }
 
   return (
     <Table
-      loading={loading}
       dataSource={dataSource}
       size="small"
       pagination={pagination}
@@ -86,7 +88,6 @@ const TableMemo = React.memo(({ data, columns, loading, pagination, onChange, to
 });
 
 const CCWeekConsumption = ({
-  last7,
   dailySummary,
   listData,
   listPage,
@@ -100,31 +101,16 @@ const CCWeekConsumption = ({
   onOpenSupport = () => {},
   onWarningPointClick = () => {},
   onViewPointConfig,
+  onToggleTelemetry,
+  togglingTelemetry = {},
   warningsRaw = {},
   loading = false,
   listLoading = false,
 }) => {
   const { token } = theme.useToken();
+  const { isSuperUser } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const [dayPage, setDayPage] = useState(0);
-
-  const dayMap = useMemo(() => {
-    const map = {};
-    Object.entries(last7 || {}).forEach(([pointName, pointWeek]) => {
-      (pointWeek?.days || []).forEach((d) => {
-        if (!d.date) return;
-        if (!map[d.date]) map[d.date] = { points: [] };
-        map[d.date].points.push({
-          pointName,
-          pointId: pointWeek.point_id || null,
-          is_telemetry: pointWeek.is_telemetry,
-          is_form: pointWeek.is_form,
-          ...d
-        });
-      });
-    });
-    return map;
-  }, [last7]);
 
   const sortedDays = useMemo(() => {
     if (dailySummary?.date_range?.length) {
@@ -133,15 +119,8 @@ const CCWeekConsumption = ({
         total_consumption: dailySummary.days?.[date]?.total_consumption || 0,
       }));
     }
-    // Fallback a last7 si no hay daily_summary
-    return Object.entries(dayMap)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .slice(-7)
-      .map(([date, { points }]) => ({
-        date,
-        total_consumption: points.reduce((sum, p) => sum + (p.consumption || 0), 0),
-      }));
-  }, [dailySummary, dayMap]);
+    return [];
+  }, [dailySummary]);
 
   const defaultDate = sortedDays.length > 0 ? sortedDays[sortedDays.length - 1].date : null;
   const activeDate = selectedDate || defaultDate;
@@ -179,6 +158,10 @@ const CCWeekConsumption = ({
     onOpenSupport({ name: record.pointName, id: record.pointId });
   }, [onOpenSupport]);
 
+  const handleToggleTelemetry = useCallback((record) => {
+    if (onToggleTelemetry) onToggleTelemetry(record);
+  }, [onToggleTelemetry]);
+
   const handleTableChange = useCallback((pagination, filters, sorter) => {
     console.log("[Table sorter]", sorter);
     if (!sorter || (!sorter.field && !sorter.columnKey)) {
@@ -212,6 +195,7 @@ const CCWeekConsumption = ({
       water_table: p.water_table,
       variables: (p.variables || []).map(v => String(v).toUpperCase()),
       warnings_count: p.warnings_count || 0,
+      telemetryActive: p.telemetry_active != null ? p.telemetry_active : p.is_telemetry,
     }));
   }, [listData]);
 
@@ -424,14 +408,14 @@ const CCWeekConsumption = ({
       transition: "all 0.2s ease",
     });
 
-    cols.push({ 
-      title: "", 
-      dataIndex: "measurements_count", 
-      key: "measurements_count", 
-      width: 120, 
-      align: "center", 
-      responsive: ["md"], 
-      sorter: (a, b) => (a.measurements_count || 0) - (b.measurements_count || 0), 
+    cols.push({
+      title: "",
+      dataIndex: "measurements_count",
+      key: "measurements_count",
+      width: isSuperUser ? 180 : 120,
+      align: "center",
+      responsive: ["md"],
+      sorter: (a, b) => (a.measurements_count || 0) - (b.measurements_count || 0),
       render: (v, record) => (
         <Flex align="center" justify="center" gap={6} onClick={(e) => e.stopPropagation()}>
           <Tooltip title={`Ver ${v || 0} mediciones`}>
@@ -454,12 +438,24 @@ const CCWeekConsumption = ({
               <FaHeadset style={{ fontSize: 10 }} />
             </div>
           </Tooltip>
+          {isSuperUser && (
+            <Tooltip title={record.telemetryActive ? "Desactivar telemetría" : "Activar telemetría"}>
+              <Switch
+                size="small"
+                checked={record.telemetryActive}
+                loading={!!togglingTelemetry[record.pointId]}
+                onChange={() => handleToggleTelemetry(record)}
+                checkedChildren={<WifiOutlined />}
+                unCheckedChildren={<DisconnectOutlined />}
+              />
+            </Tooltip>
+          )}
         </Flex>
-      ) 
+      )
     });
 
     return cols;
-  }, [token, handleViewMeasurements, handleOpenStopTelemetry, handleOpenSupport, onWarningPointClick, onViewPointConfig, activeVars]);
+  }, [token, handleViewMeasurements, handleOpenStopTelemetry, handleOpenSupport, handleToggleTelemetry, togglingTelemetry, isSuperUser, onWarningPointClick, onViewPointConfig, activeVars]);
 
   if (loading) {
     return (
@@ -583,9 +579,10 @@ const CCWeekConsumption = ({
               columns={columns}
               onChange={handleTableChange}
               token={token}
+              isSuperUser={isSuperUser}
               pagination={{
                 current: listPage,
-                pageSize: listData?.page_size || PAGE_SIZE,
+                pageSize: PAGE_SIZE,
                 total: listData?.count || 0,
                 showSizeChanger: false,
                 hideOnSinglePage: false,

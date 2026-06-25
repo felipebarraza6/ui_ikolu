@@ -3,29 +3,47 @@ import CCComplianceTable from "./ComplianceTable";
 
 const ComplianceTab = ({
   points,
-  last7,
   handleViewVoucher,
   handleOpenStopCompliance,
   handleOpenSupport,
   handleViewPointConfig,
   handleViewFlowAnalysis,
   handleViewComplianceDetail,
+  onToggleCompliance,
+  togglingCompliance,
   loading,
+  page,
+  setPage,
+  pageSize,
+  setPageSize,
+  total,
+  orderBy,
+  setOrderBy,
   search,
+  setSearch,
 }) => {
   return (
     <div>
       <CCComplianceTable
         points={points}
-        last7={last7}
         onViewVoucher={handleViewVoucher}
         onOpenStopCompliance={handleOpenStopCompliance}
         onOpenSupport={handleOpenSupport}
         onViewPointConfig={handleViewPointConfig}
         onViewFlowAnalysis={handleViewFlowAnalysis}
         onViewComplianceDetail={handleViewComplianceDetail}
+        onToggleCompliance={onToggleCompliance}
+        togglingCompliance={togglingCompliance}
         loading={loading}
+        page={page}
+        setPage={setPage}
+        pageSize={pageSize}
+        setPageSize={setPageSize}
+        total={total}
+        orderBy={orderBy}
+        setOrderBy={setOrderBy}
         search={search}
+        setSearch={setSearch}
       />
     </div>
   );

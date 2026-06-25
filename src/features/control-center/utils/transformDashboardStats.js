@@ -21,163 +21,56 @@ export const extractNum = (val) => {
   return null;
 };
 
+/**
+ * Transforma datos granulados del Centro de Control.
+ *
+ * Fuentes:
+ * - generalStats:  GET /api/ik/control_center/general_stats/   (KPIs, proyectos, chat_quota)
+ * - complianceRaw: GET /api/ik/compliance/                    (lista compliance, warnings detalle)
+ * - dailySummary:  GET /api/ik/control_center/daily_summary/  (resumen diario para cuadritos)
+ *
+ * Nota: el endpoint monolítico /api/ik/dashboard_stats/ fue removido a propósito
+ * para probar rendimiento con endpoints granulados.
+ */
 export const transformDashboardStats = (raw, complianceRaw = null, generalStats = null, dailySummary = null) => {
-  if (!raw || typeof raw !== "object") {
-    console.warn("[transformDashboardStats] Respuesta inválida:", raw);
+  const gs = generalStats || {};
+  const cp = complianceRaw || {};
+  const today = new Date();
+
+  if (!gs || typeof gs !== "object") {
+    console.warn("[transformDashboardStats] generalStats inválido:", gs);
     return null;
   }
 
-  const ds = raw;
-  const gs = generalStats || {};
-  const today = new Date();
+  // Buscar contadores y metadatos en varias estructuras posibles.
+  const gsOverview = gs.overview || {};
+  const pointsCounters = gs.points || gs.stats || gs.data || gsOverview || {};
+  const statusToday = gs.status_today || pointsCounters.status_today || {};
 
-  // Preferir KPIs globales del endpoint liviano general_stats si está disponible
-  const pointsCounters = gs.points || ds.points || {};
-  const statusToday = gs.status_today || ds.status_today || {};
-  const complianceStats = ds.compliance_stats || {};
-  const chatQuota = gs.chat_quota || ds.chat_quota || null;
-  const projects = Array.isArray(gs.projects) ? gs.projects : [];
+  const chatQuota = gs.chat_quota || pointsCounters.chat_quota || null;
+  const projects = Array.isArray(gs.projects)
+    ? gs.projects
+    : Array.isArray(pointsCounters.projects)
+      ? pointsCounters.projects
+      : [];
+  const complianceStats = cp.stats || cp.compliance_stats || {};
 
-  const weeklyStatsByPoint = {};
-  Object.entries(ds.last_7 || {}).forEach(([pointName, weekData]) => {
-    weeklyStatsByPoint[pointName] = {
-      total_m3: extractNum(weekData?.total_m3),
-      avg_flow_week: extractNum(weekData?.avg_flow_week),
-      avg_level_week: extractNum(weekData?.avg_level_week),
-    };
-  });
+  // Puntos para la pestaña de cumplimiento.
+  // Soporta tanto respuesta plana (cp.points) como paginada (cp.results).
+  const compliancePoints = Array.isArray(cp.results)
+    ? cp.results
+    : Array.isArray(cp.points)
+      ? cp.points
+      : [];
 
-  const warningsByPoint = {};
-  const recentWarningsList = [];
-
-  Object.entries(ds.last_7 || {}).forEach(([pointName, pointData]) => {
-    const days = pointData?.days || [];
-    const pointWarnings = [];
-
-    days.forEach((day) => {
-      const dayWarnings = day?.warnings || [];
-      dayWarnings.forEach((w) => {
-        pointWarnings.push({
-          pointName,
-          time: w.time,
-          type: w.type,
-          severity: w.severity,
-          message: w.message,
-        });
-      });
-    });
-
-    warningsByPoint[pointName] = pointWarnings.length;
-    recentWarningsList.push(...pointWarnings);
-  });
-
-  Object.entries(ds.recent_warnings || {}).forEach(([pointName, warnings]) => {
-    const arr = Array.isArray(warnings) ? warnings : [];
-    if (!warningsByPoint[pointName]) {
-      warningsByPoint[pointName] = arr.length;
-    }
-    arr.forEach((w) => {
-      recentWarningsList.push({
-        pointName,
-        time: w.time,
-        type: w.type,
-        severity: w.severity,
-        message: w.message,
-      });
-    });
-  });
-
-  recentWarningsList.sort((a, b) => {
-    const ta = a.time ? new Date(a.time).getTime() : 0;
-    const tb = b.time ? new Date(b.time).getTime() : 0;
-    return tb - ta;
-  });
-
-  const recentWarningsByPoint = {};
-  recentWarningsList.forEach(w => {
-    if (!recentWarningsByPoint[w.pointName]) {
-      recentWarningsByPoint[w.pointName] = [];
-    }
-    const normalizedWarning = { ...w };
-    if (normalizedWarning.type === "Salto masivo bloqueado") {
-      normalizedWarning.type = "Salto masivo";
-    }
-    recentWarningsByPoint[w.pointName].push(normalizedWarning);
-  });
-
-  const dashboardCompliance = Array.isArray(ds.compliance_summary) ? ds.compliance_summary : [];
-  const endpointCompliance = Array.isArray(complianceRaw?.points) ? complianceRaw.points : [];
-
-  const complianceList = dashboardCompliance.length > 0
-    ? dashboardCompliance
-    : endpointCompliance;
-
-  const flowAnalysisByPoint = {};
-  Object.entries(ds.last_7 || {}).forEach(([pointName, pointData]) => {
-    const days = pointData?.days || [];
-    const authorizedFlow = extractNum(
-      complianceList.find(c => c.point_name === pointName)?.authorized_flow
-    );
-
-    if (!authorizedFlow || authorizedFlow <= 0) {
-      flowAnalysisByPoint[pointName] = { exceeded: 0, nearLimit: 0 };
-      return;
-    }
-
-    let exceededCount = 0;
-    let nearLimitCount = 0;
-
-    days.forEach(day => {
-      const avgFlow = extractNum(day.avg_flow);
-      if (avgFlow == null) return;
-
-      if (avgFlow > authorizedFlow) {
-        exceededCount++;
-      } else if (avgFlow >= authorizedFlow * 0.8) {
-        nearLimitCount++;
-      }
-    });
-
-    flowAnalysisByPoint[pointName] = {
-      exceeded: exceededCount,
-      nearLimit: nearLimitCount,
-      totalDays: days.length,
-    };
-  });
-
-  const compliancePoints = complianceRaw?.points || [];
   const complianceByPointName = {};
-  compliancePoints.forEach(cp => {
-    complianceByPointName[cp.point_name] = cp;
+  compliancePoints.forEach((cpItem) => {
+    complianceByPointName[cpItem.point_name] = cpItem;
   });
 
-  // Mapa punto_name -> point_id para poder abrir drawers desde telemetry
-  // aunque el punto no esté en la lista final de compliance.
-  const pointIdByName = {};
-  [...complianceList, ...compliancePoints].forEach((p) => {
-    if (p.point_name && p.point_id != null && !pointIdByName[p.point_name]) {
-      pointIdByName[p.point_name] = p.point_id;
-    }
-  });
-
-  const points = complianceList.map((p) => {
-    const wStats = weeklyStatsByPoint[p.point_name] || {};
-    const flowAnalysis = flowAnalysisByPoint[p.point_name] || { exceeded: 0, nearLimit: 0, totalDays: 0 };
+  const points = compliancePoints.map((p) => {
     const complianceData = complianceByPointName[p.point_name] || {};
-
-    const nearLimitHistory = complianceData.near_limit_history || null;
-    const flowHistory = complianceData.flow_history || null;
-
     const rawWarning = complianceData.compliance_warning || {};
-    const complianceWarning = {
-      level: rawWarning.level || (rawWarning.triggered ? "warning" : "safe"),
-      status: rawWarning.status || (rawWarning.triggered ? "Alerta" : "Dentro de límites"),
-      flow_pct: extractNum(rawWarning.flow_pct),
-      pct_consumed: extractNum(rawWarning.pct_consumed) ?? extractNum(p.pct_consumed) ?? 0,
-      threshold_pct: extractNum(rawWarning.threshold_pct) ?? 80,
-      messages: Array.isArray(rawWarning.messages) ? rawWarning.messages : [],
-      triggered: rawWarning.triggered ?? false,
-    };
 
     return {
       id: p.point_id,
@@ -199,69 +92,28 @@ export const transformDashboardStats = (raw, complianceRaw = null, generalStats 
       authorized_total: extractNum(p.authorized_total),
       annual_consumption: extractNum(p.annual_consumption),
       pct_consumed: extractNum(p.pct_consumed),
-      avg_flow_week: wStats.avg_flow_week,
-      avg_level_week: wStats.avg_level_week,
-      weekly_total_m3: wStats.total_m3,
+      complianceActive: p.compliance_active ?? p.send_dga ?? true,
+      telemetryActive: p.telemetry_active ?? p.is_active ?? null,
+      avg_flow_week: null,
+      avg_level_week: null,
+      weekly_total_m3: null,
       config_data: p.config_data || null,
       profile_ikolu: p.profile_ikolu || null,
-      warnings_count: warningsByPoint[p.point_name] || 0,
-      flow_exceeded_count: flowHistory?.count ?? flowAnalysis.exceeded,
-      flow_near_limit_count: nearLimitHistory?.count ?? flowAnalysis.nearLimit,
-      flow_analysis_days: flowAnalysis.totalDays,
-      flow_history: flowHistory ? {
-        count: flowHistory.count ?? 0,
-        has_more: flowHistory.has_more ?? false,
-        threshold: flowHistory.threshold,
-        measurements: flowHistory.measurements || []
-      } : null,
-      near_limit_history: nearLimitHistory ? {
-        count: nearLimitHistory.count ?? 0,
-        has_more: nearLimitHistory.has_more ?? false,
-        threshold: nearLimitHistory.threshold,
-        measurements: nearLimitHistory.measurements || []
-      } : null,
-      compliance_warning: complianceWarning,
-    };
-  });
-
-  let consumptionToday = 0;
-  let consumptionYesterday = 0;
-
-  Object.values(ds.last_7 || {}).forEach((weekData) => {
-    const days = weekData?.days || [];
-    if (days.length >= 1) {
-      const todayDay = days[days.length - 1];
-      consumptionToday += extractNum(todayDay?.consumption) || 0;
-    }
-    if (days.length >= 2) {
-      const yesterdayDay = days[days.length - 2];
-      consumptionYesterday += extractNum(yesterdayDay?.consumption) || 0;
-    }
-  });
-
-  const diffM3 = consumptionToday - consumptionYesterday;
-  const diffPercent =
-    consumptionYesterday > 0
-      ? ((diffM3 / consumptionYesterday) * 100).toFixed(2)
-      : consumptionToday > 0
-      ? 100
-      : 0;
-
-  const last7Normalized = {};
-  Object.entries(ds.last_7 || {}).forEach(([pointName, weekData]) => {
-    last7Normalized[pointName] = {
-      ...weekData,
-      point_id: pointIdByName[pointName] || weekData?.point_id || null,
-      total_m3: extractNum(weekData?.total_m3),
-      avg_flow_week: extractNum(weekData?.avg_flow_week),
-      avg_level_week: extractNum(weekData?.avg_level_week),
-      variables: (weekData?.variables || []).map(v => String(v).toUpperCase()),
-      days: (weekData?.days || []).map((d) => ({
-        ...d,
-        consumption: extractNum(d.consumption),
-        avg_flow: extractNum(d.avg_flow),
-        avg_level: extractNum(d.avg_level),
-      })),
+      warnings_count: 0,
+      flow_exceeded_count: null,
+      flow_near_limit_count: null,
+      flow_analysis_days: 0,
+      flow_history: null,
+      near_limit_history: null,
+      compliance_warning: {
+        level: rawWarning.level || (rawWarning.triggered ? "warning" : "safe"),
+        status: rawWarning.status || (rawWarning.triggered ? "Alerta" : "Dentro de límites"),
+        flow_pct: extractNum(rawWarning.flow_pct),
+        pct_consumed: extractNum(rawWarning.pct_consumed) ?? extractNum(p.pct_consumed) ?? 0,
+        threshold_pct: extractNum(rawWarning.threshold_pct) ?? 80,
+        messages: Array.isArray(rawWarning.messages) ? rawWarning.messages : [],
+        triggered: rawWarning.triggered ?? false,
+      },
     };
   });
 
@@ -272,19 +124,19 @@ export const transformDashboardStats = (raw, complianceRaw = null, generalStats 
       timezone: "America/Santiago",
     },
     overview: {
-      total_points: pointsCounters.total || 0,
-      active_points: statusToday.connected || 0,
-      points_with_gps: pointsCounters.with_gps || 0,
-      points_with_compliance: pointsCounters.with_compliance || 0,
-      points_with_telemetry: pointsCounters.with_telemetry || 0,
-      warnings: pointsCounters.warnings || 0,
+      total_points: gsOverview.total_points ?? pointsCounters.total_points ?? pointsCounters.total ?? 0,
+      active_points: gsOverview.active_points ?? pointsCounters.active_points ?? statusToday.connected ?? 0,
+      points_with_gps: gsOverview.points_with_gps ?? pointsCounters.points_with_gps ?? pointsCounters.with_gps ?? 0,
+      points_with_compliance: gsOverview.points_with_compliance ?? pointsCounters.points_with_compliance ?? pointsCounters.with_compliance ?? 0,
+      points_with_telemetry: gsOverview.points_with_telemetry ?? pointsCounters.points_with_telemetry ?? pointsCounters.with_telemetry ?? 0,
+      warnings: gsOverview.warnings ?? pointsCounters.warnings ?? 0,
     },
     consumption: {
-      today_m3: consumptionToday,
-      yesterday_m3: consumptionYesterday,
-      difference_m3: diffM3,
-      difference_percent: Number(diffPercent),
-      trend: diffM3 > 0 ? "up" : diffM3 < 0 ? "down" : "same",
+      today_m3: 0,
+      yesterday_m3: 0,
+      difference_m3: 0,
+      difference_percent: 0,
+      trend: "same",
       date_label_today: `Hoy (${format(today, "d MMM", { locale: es })})`,
       date_label_yesterday: `Ayer (${format(subDays(today, 1), "d MMM", { locale: es })})`,
     },
@@ -296,12 +148,14 @@ export const transformDashboardStats = (raw, complianceRaw = null, generalStats 
       total_points: pointsCounters.total || 0,
     },
     points,
-    last_7: last7Normalized,
-    recent_warnings: recentWarningsByPoint,
-    recent_warnings_list: recentWarningsList,
+    last_7: {},
+    recent_warnings: {},
+    recent_warnings_list: [],
     compliance_stats: complianceStats,
     chat_quota: chatQuota,
     projects,
     daily_summary: dailySummary || null,
   };
 };
+
+export default transformDashboardStats;

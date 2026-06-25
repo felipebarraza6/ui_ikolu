@@ -45,7 +45,7 @@ export const useControlCenter = (options = {}) => {
       try {
         const [rawDashboard, rawCompliance] = await Promise.all([
           orchestrator.dashboardStats(signal),
-          orchestrator.compliance(signal).catch((err) => {
+          orchestrator.complianceList({}, signal).catch((err) => {
             console.warn(
               "[useControlCenter] Endpoint compliance no disponible:",
               err?.message || err,

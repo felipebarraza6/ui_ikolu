@@ -233,8 +233,8 @@ export const getProfileOrchestrated = async (options = {}) => {
  * Obtiene lista de puntos del usuario (optimizada)
  */
 export const getPointsListOrchestrated = async (options = {}) => {
-  const { useCache = true, isAdmin = false } = options;
-  const cacheKey = `points_list_${isAdmin ? 'admin' : 'user'}`;
+  const { useCache = true, isAdmin = false, params = {} } = options;
+  const cacheKey = `points_list_${isAdmin ? 'admin' : 'user'}_${JSON.stringify(params)}`;
 
   if (useCache) {
     const cached = getCached(cacheKey);
@@ -242,14 +242,13 @@ export const getPointsListOrchestrated = async (options = {}) => {
   }
 
   return deduplicateRequest(cacheKey, async () => {
-    let points;
+    let response;
     if (isAdmin) {
-      const response = await sh.getPointsAll();
-      points = response.results || response || [];
+      response = await sh.points.list({ ...params, page_size: params.page_size || 1000 });
     } else {
-      const response = await sh.getMyPoints();
-      points = Array.isArray(response) ? response : (response.points || response.results || []);
+      response = await sh.points.mine(params);
     }
+    const points = Array.isArray(response) ? response : (response.results || response.points || []);
     if (useCache) setCached(cacheKey, points, CONFIG.CACHE_TTL.pointsList);
     return points;
   });
@@ -439,6 +438,10 @@ export const controlCenterList = (params, signal) => sh.controlCenterList(params
 
 export const compliance = (signal) => sh.compliance(signal);
 
+export const complianceList = (params, signal) => sh.complianceList(params, signal);
+
+export const toggleCompliance = (pointId, enabled) => sh.toggleCompliance(pointId, enabled);
+
 export const chat = (message) => sh.chat(message);
 
 export const verifyDgaVoucher = (codigoObra, numeroComprobante, tipoDga) =>
@@ -448,6 +451,19 @@ export const pointRecords = (pointId, startDate, endDate, limit) =>
   sh.pointRecords(pointId, startDate, endDate, limit);
 
 export const pointConfig = (pointId) => sh.pointConfig(pointId);
+
+// ── Puntos unificados modernos ──
+export const pointsList = (params, signal) => sh.points.list(params);
+export const pointsGet = (id) => sh.points.get(id);
+export const pointsCreate = (data) => sh.points.create(data);
+export const pointsUpdate = (id, data) => sh.points.update(id, data);
+export const pointsDelete = (id) => sh.points.delete(id);
+export const pointsRecords = (id, options) => sh.points.records(id, options);
+export const pointsLatest = (id) => sh.points.latest(id);
+export const pointStatus = (id, thresholdMinutes) => sh.points.status(id, thresholdMinutes);
+export const pointsVariables = (id) => sh.points.variables(id);
+export const pointsSummary = (id) => sh.points.summary(id);
+export const pointsBatchStatus = (ids) => sh.points.batchStatus(ids);
 
 export const notifications = {
   create: (data) => sh.notifications.create(data),
@@ -464,6 +480,8 @@ export const resourcesStatus = (signal) => sh.management.resourcesStatus();
 export const pointsStatus = (params, signal) => sh.management.pointsStatus(params);
 
 export const telemetryMetrics = (params, signal) => sh.management.telemetryMetrics(params);
+
+export const toggleTelemetry = (pointId, enabled) => sh.management.toggleTelemetry(pointId, enabled);
 
 export const dgaQueueStatus = (signal) => sh.management.dgaQueueStatus();
 
@@ -517,14 +535,17 @@ export const admin = {
   createProject: (data) => sh.admin.createProject(data),
   updateProject: (id, data) => sh.admin.updateProject(id, data),
   deleteProject: (id) => sh.admin.deleteProject(id),
-  points: (params) => sh.admin.catchmentPoints(params),
-  pointsAll: () => sh.admin.getPointsAll(),
-  pointById: (id) => sh.admin.getCatchmentPoint(id),
-  createPoint: (data) => sh.admin.createCatchmentPoint(data),
-  updatePoint: (id, data) => sh.admin.updateCatchmentPoint(id, data),
-  deletePoint: (id) => sh.admin.deleteCatchmentPoint(id),
+  points: (params) => sh.points.list(params),
+  pointsAll: async () => {
+    const res = await sh.points.list({ page_size: 1000 });
+    return Array.isArray(res) ? res : (res.results || res.data || []);
+  },
+  pointById: (id) => sh.points.get(id),
+  createPoint: (data) => sh.points.create(data),
+  updatePoint: (id, data) => sh.points.update(id, data),
+  deletePoint: (id) => sh.points.delete(id),
   clientsWithProjects: () => sh.admin.clientsWithProjects(),
-  pointsByProject: (projectId) => sh.admin.pointsByProject(projectId),
+  pointsByProject: (projectId) => sh.points.list({ project: projectId, page_size: 1000 }),
   users: (params) => sh.getUsers(params),
   userById: (username) => sh.getUser(username),
   signupUser: (data) => sh.signupUser(data),
@@ -573,15 +594,29 @@ const orchestrator = {
   controlCenterProjectPoints,
   controlCenterList,
   compliance,
+  complianceList,
+  toggleCompliance,
   chat,
   verifyDgaVoucher,
   pointRecords,
   pointConfig,
+  pointsList,
+  pointsGet,
+  pointsCreate,
+  pointsUpdate,
+  pointsDelete,
+  pointsRecords,
+  pointsLatest,
+  pointStatus,
+  pointsVariables,
+  pointsSummary,
+  pointsBatchStatus,
   notifications,
   systemStatus,
   resourcesStatus,
   pointsStatus,
   telemetryMetrics,
+  toggleTelemetry,
   dgaQueueStatus,
   systemEvents,
   tickets,

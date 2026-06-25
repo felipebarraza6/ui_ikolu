@@ -6,7 +6,7 @@ import CCWeekConsumption from "./telemetry/WeekConsumption";
 
 const { useToken } = theme;
 
-const CCDataTabs = ({ points, onViewVoucher, onOpenStopCompliance, onOpenSupport = () => {}, onWarningPointClick = () => {}, warningsRaw = {}, onViewMeasurements, onViewFlowAnalysis, onViewComplianceDetail, onOpenStopTelemetry, onViewPointConfig, last7, selectedDate, onDateSelect, loading = false }) => {
+const CCDataTabs = ({ points, onViewVoucher, onOpenStopCompliance, onOpenSupport = () => {}, onWarningPointClick = () => {}, warningsRaw = {}, onViewMeasurements, onViewFlowAnalysis, onViewComplianceDetail, onOpenStopTelemetry, onViewPointConfig, selectedDate, onDateSelect, loading = false }) => {
   const { token } = useToken();
   const [activeTab, setActiveTab] = useState("telemetria");
 
@@ -45,7 +45,6 @@ const CCDataTabs = ({ points, onViewVoucher, onOpenStopCompliance, onOpenSupport
       </Flex>
       {activeTab === "telemetria" && (
         <CCWeekConsumption
-          last7={last7}
           selectedDate={selectedDate}
           onDateSelect={onDateSelect}
           onViewMeasurements={onViewMeasurements}
@@ -60,7 +59,6 @@ const CCDataTabs = ({ points, onViewVoucher, onOpenStopCompliance, onOpenSupport
       {activeTab === "cumplimiento" && (
         <CCComplianceTable
           points={points}
-          last7={last7}
           onViewVoucher={onViewVoucher}
           onOpenStopCompliance={onOpenStopCompliance}
           onOpenSupport={onOpenSupport}

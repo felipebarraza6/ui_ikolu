@@ -17,10 +17,10 @@ const { useToken } = theme;
 const CONFIG_FIELDS = [
   {
     key: "d1",
-    label: "Profundidad de pozo",
+    label: "Profundidad",
     unit: "m",
     icon: FaRulerVertical,
-    description: "Profundidad total del pozo de extracción",
+    description: "Profundidad total de extracción",
   },
   {
     key: "d2",

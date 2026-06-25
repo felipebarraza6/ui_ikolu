@@ -132,7 +132,7 @@ export const MeasurementsDualColumnChart = ({ data, token, showOnly, wellConfig,
       if (showOnly === 'nivel' && wellDepth != null) {
         const diff = (wellDepth - val).toFixed(2);
         const exceedsDepth = val > wellDepth;
-        html += `<div style="font-size: 9px; color: ${token.colorTextSecondary}; margin-bottom: 4px; font-weight: 600; text-transform: uppercase;">Referencia: Profundidad del pozo</div>`;
+        html += `<div style="font-size: 9px; color: ${token.colorTextSecondary}; margin-bottom: 4px; font-weight: 600; text-transform: uppercase;">Referencia: Profundidad</div>`;
         html += `<div style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;">`;
         html += `<div style="width: 6px; height: 6px; border-radius: 50%; background: #E76F51;"></div>`;
         html += `<span style="font-size: 10px; color: ${exceedsDepth ? '#E76F51' : token.colorTextSecondary};">Límite pozo: ${wellDepth}m</span>`;

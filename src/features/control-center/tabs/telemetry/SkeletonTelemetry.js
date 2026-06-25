@@ -22,7 +22,7 @@ const SkeletonTelemetry = () => {
           { title: "Nivel prom. (m)", key: "avg_level", width: 100, align: "right" },
           { title: "", key: "actions", width: 120, align: "center" },
         ]}
-        rows={5}
+        rows={10}
       />
     </div>
   );

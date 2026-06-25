@@ -11,7 +11,6 @@ const { useToken } = theme;
 
 const MeasurementsDrawerHeader = ({
   pointsRef,
-  last7Ref,
   selectedMeasurementPoint,
   handleNavigatePointTo,
   handleNavigateDate,
@@ -45,10 +44,9 @@ const MeasurementsDrawerHeader = ({
           suffixIcon={<FaMapMarkerAlt size={12} style={{ color: token.colorPrimary }} />}
         >
           {pointsRef.current.map((p) => {
-            const pointData = last7Ref.current?.[p.title] || {};
-            const hasGPS = p.hasGPS || pointData.hasGPS;
-            const typeDGA = p.type_dga || pointData.type_dga || '—';
-            const codeDGA = p.code_dga || pointData.code_dga;
+            const hasGPS = p.hasGPS;
+            const typeDGA = p.type_dga || '—';
+            const codeDGA = p.code_dga;
 
             return (
               <Select.Option key={p.id} value={p.id} label={p.title || p.name || `Punto ${p.id}`}>

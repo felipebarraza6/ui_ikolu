@@ -2,7 +2,6 @@ import React from "react";
 import CCWeekConsumption from "./WeekConsumption";
 
 const TelemetryTab = ({
-  last7,
   dailySummary,
   listData,
   listPage,
@@ -16,6 +15,8 @@ const TelemetryTab = ({
   handleOpenSupport,
   handleWarningPointClick,
   handleViewPointConfig,
+  onToggleTelemetry,
+  togglingTelemetry,
   warningsRaw,
   loading,
   listLoading,
@@ -23,7 +24,6 @@ const TelemetryTab = ({
   return (
     <div>
       <CCWeekConsumption
-        last7={last7}
         dailySummary={dailySummary}
         listData={listData}
         listPage={listPage}
@@ -37,6 +37,8 @@ const TelemetryTab = ({
         onOpenSupport={handleOpenSupport}
         onWarningPointClick={handleWarningPointClick}
         onViewPointConfig={handleViewPointConfig}
+        onToggleTelemetry={onToggleTelemetry}
+        togglingTelemetry={togglingTelemetry}
         warningsRaw={warningsRaw}
         loading={loading}
         listLoading={listLoading}

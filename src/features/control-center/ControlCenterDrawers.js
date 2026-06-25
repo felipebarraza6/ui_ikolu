@@ -31,7 +31,6 @@ const ControlCenterDrawers = ({
 
   // Refs
   pointsRef,
-  last7Ref,
 
   // Voucher state
   selectedVoucher,
@@ -122,7 +121,6 @@ const ControlCenterDrawers = ({
         title={
           <MeasurementsDrawerHeader
             pointsRef={pointsRef}
-            last7Ref={last7Ref}
             selectedMeasurementPoint={selectedMeasurementPoint}
             handleNavigatePointTo={handleNavigatePointTo}
             handleNavigateDate={handleNavigateDate}

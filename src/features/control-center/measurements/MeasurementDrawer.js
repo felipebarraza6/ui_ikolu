@@ -504,7 +504,7 @@ export const MeasurementsDrawerContent = ({ data, token, viewMode, variables, ac
                   }
                   kpis={
                     <>
-                      <StatPill label="Profundidad total" value={wellConfig?.d1 != null ? `${wellConfig.d1} m` : "—"} sub="POZO" color={token.colorWarning} />
+                      <StatPill label="Profundidad total" value={wellConfig?.d1 != null ? `${wellConfig.d1} m` : "—"} sub="TOTAL" color={token.colorWarning} />
                       <StatPill label="Posicionamiento Sensor" value={wellConfig?.d3 != null ? `${wellConfig.d3} m` : "—"} sub="SENSOR" color={token.colorWarning} />
                       {activeVars.hasNivel && (
                         <>

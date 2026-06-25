@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback, useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Flex, Typography, theme, Button } from "antd";
 import { ExclamationCircleOutlined, ReloadOutlined } from "@ant-design/icons";
 import ControlCenterLayout from "../layout/ControlCenterLayout";
@@ -22,6 +22,12 @@ const ControlCenterContainer = ({
   onOpenStopCompliance,
   onViewFlowAnalysis,
   onViewComplianceDetail,
+  onToggleTelemetry,
+  togglingTelemetry,
+  onToggleCompliance,
+  togglingCompliance,
+  activeTab,
+  complianceLoading,
   data,
   dailySummary,
   listData,
@@ -29,13 +35,21 @@ const ControlCenterContainer = ({
   setListPage,
   listOrderBy,
   setListOrderBy,
+  compliancePage,
+  setCompliancePage,
+  compliancePageSize,
+  setCompliancePageSize,
+  complianceCount,
+  complianceOrderBy,
+  setComplianceOrderBy,
+  complianceSearch,
+  setComplianceSearch,
   loading,
   listLoading,
   error,
   onRefresh,
 }) => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { token } = useToken();
   const [changingDate, setChangingDate] = useState(false);
 
@@ -45,10 +59,6 @@ const ControlCenterContainer = ({
   const setSelectedProject = useControlCenterStore((s) => s.setSelectedProject);
   const dateRange = useControlCenterStore((s) => s.dateRange);
   const setDateRange = useControlCenterStore((s) => s.setDateRange);
-
-  const activeTab = useMemo(() => {
-    return location.pathname.includes("/compliance") ? "compliance" : "telemetry";
-  }, [location.pathname]);
 
   const handleTabChange = useCallback((tab) => {
     if (tab === activeTab) return;
@@ -60,9 +70,20 @@ const ControlCenterContainer = ({
     setDateRange(range);
   }, [setDateRange]);
 
+  // Desactivar skeleton visual cuando terminen todas las cargas activas.
   useEffect(() => {
-    if (!loading) setChangingDate(false);
-  }, [loading]);
+    if (!loading && !listLoading) setChangingDate(false);
+  }, [loading, listLoading]);
+
+  // Activar skeleton visual cuando cambia el proyecto (recarga base + daily + list).
+  useEffect(() => {
+    setChangingDate(true);
+  }, [selectedProject]);
+
+  // Resetear skeleton visual cuando se cambia de pestaña para no dejarlo pegado.
+  useEffect(() => {
+    setChangingDate(false);
+  }, [activeTab]);
 
   const visualLoading = loading || changingDate;
   const isReady = !!data;
@@ -74,28 +95,14 @@ const ControlCenterContainer = ({
     return all.filter((p) => p.project_id === selectedProject);
   }, [data?.points, selectedProject]);
 
-  const last7 = useMemo(() => {
-    const all = data?.last_7 || {};
-    if (!selectedProject) return all;
-    const filtered = {};
-    Object.entries(all).forEach(([pointName, weekData]) => {
-      if (weekData?.point_id == null) return;
-      if (weekData.point_id === selectedProject) {
-        filtered[pointName] = weekData;
-      }
-    });
-    return filtered;
-  }, [data?.last_7, selectedProject]);
-
   const warningsList = useMemo(() => data?.recent_warnings_list || [], [data?.recent_warnings_list]);
   const warningsRaw = useMemo(() => data?.recent_warnings || {}, [data?.recent_warnings]);
   const chatQuota = useMemo(() => data?.chat_quota || null, [data?.chat_quota]);
 
   const telemetryTab = useMemo(() => {
-    if (!data) return <SkeletonTelemetry />;
+    if (!data || !listData) return <SkeletonTelemetry />;
     return (
       <TelemetryTab
-        last7={last7}
         dailySummary={dailySummary}
         listData={listData}
         listPage={listPage}
@@ -110,13 +117,14 @@ const ControlCenterContainer = ({
         handleWarningPointClick={onWarningClick}
         warningsRaw={warningsRaw}
         handleViewPointConfig={onViewPointConfig}
-        loading={visualLoading}
+        onToggleTelemetry={onToggleTelemetry}
+        togglingTelemetry={togglingTelemetry}
+        loading={visualLoading || listLoading}
         listLoading={listLoading}
       />
     );
   }, [
     data,
-    last7,
     dailySummary,
     listData,
     listPage,
@@ -131,36 +139,58 @@ const ControlCenterContainer = ({
     onWarningClick,
     warningsRaw,
     onViewPointConfig,
+    onToggleTelemetry,
+    togglingTelemetry,
     visualLoading,
     listLoading,
   ]);
 
   const complianceTab = useMemo(() => {
-    if (!data) return <SkeletonCompliance />;
+    if (!data || complianceLoading) return <SkeletonCompliance pageSize={compliancePageSize} />;
     return (
       <ComplianceTab
         points={points}
-        last7={last7}
         handleViewVoucher={onViewVoucher}
         handleOpenStopCompliance={onOpenStopCompliance}
         handleOpenSupport={onOpenSupport}
         handleViewPointConfig={onViewPointConfig}
         handleViewFlowAnalysis={onViewFlowAnalysis}
         handleViewComplianceDetail={onViewComplianceDetail}
-        loading={visualLoading}
+        onToggleCompliance={onToggleCompliance}
+        togglingCompliance={togglingCompliance}
+        loading={complianceLoading}
+        page={compliancePage}
+        setPage={setCompliancePage}
+        pageSize={compliancePageSize}
+        setPageSize={setCompliancePageSize}
+        total={complianceCount}
+        orderBy={complianceOrderBy}
+        setOrderBy={setComplianceOrderBy}
+        search={complianceSearch}
+        setSearch={setComplianceSearch}
       />
     );
   }, [
     data,
     points,
-    last7,
     onViewVoucher,
     onOpenStopCompliance,
     onOpenSupport,
     onViewPointConfig,
     onViewFlowAnalysis,
     onViewComplianceDetail,
-    visualLoading,
+    onToggleCompliance,
+    togglingCompliance,
+    complianceLoading,
+    compliancePage,
+    setCompliancePage,
+    compliancePageSize,
+    setCompliancePageSize,
+    complianceCount,
+    complianceOrderBy,
+    setComplianceOrderBy,
+    complianceSearch,
+    setComplianceSearch,
   ]);
 
   const isRealError = error && error.message !== "canceled" && error.name !== "AbortError";
@@ -197,7 +227,7 @@ const ControlCenterContainer = ({
       activeTab={activeTab}
       onTabChange={handleTabChange}
       onWarningClick={onWarningClick}
-      loading={!data}
+      loading={visualLoading || !data}
       tableLoading={visualLoading}
     >
       <div className="tab-transition" key={`tab-${activeTab}`}>

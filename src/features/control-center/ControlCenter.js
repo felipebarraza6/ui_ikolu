@@ -15,6 +15,7 @@ import StopComplianceDrawer from "./drawers/StopComplianceDrawer";
 import { MeasurementsDrawerHeader, MeasurementsDrawerLoading } from "./drawers/MeasurementsDrawer";
 import ModuleTour from "./ModuleTour";
 import { centroControlTour } from "../../config/tours";
+import { useLocation } from "react-router-dom";
 import { format, parseISO, subDays, addDays } from "date-fns";
 import { useAuth } from "../../contexts/AuthContext";
 import { MeasurementsDrawerContentMemo } from "./measurements/MeasurementDrawer";
@@ -26,6 +27,10 @@ const { useToken } = theme;
 const ControlCenter = () => {
   const { user } = useAuth();
   const { token } = useToken();
+  const location = useLocation();
+  const activeTab = useMemo(() => {
+    return location.pathname.includes("/compliance") ? "compliance" : "telemetry";
+  }, [location.pathname]);
 
   const drawers = useControlCenterStore((s) => s.drawers);
   const openDrawer = useControlCenterStore((s) => s.openDrawer);
@@ -33,26 +38,27 @@ const ControlCenter = () => {
   const selectedProject = useControlCenterStore((s) => s.selectedProject);
   const selectedDate = useControlCenterStore((s) => s.selectedDate);
   const dateRange = useControlCenterStore((s) => s.dateRange);
-  const { data, loading, listLoading, error, refresh, listData, listPage, setListPage, listOrderBy, setListOrderBy } = useControlCenterData({
+  const {
+    data, loading, listLoading, complianceLoading, error, refresh, refreshList,
+    listData, listPage, setListPage, listOrderBy, setListOrderBy,
+    compliancePage, setCompliancePage, compliancePageSize, setCompliancePageSize,
+    complianceCount, complianceOrderBy, setComplianceOrderBy, complianceSearch, setComplianceSearch,
+  } = useControlCenterData({
     dateRange,
     selectedProject,
     selectedDate,
+    activeTab,
   });
 
   // Shorthand helpers para drawer state
   const d = (name) => drawers[name] || { open: false };
 
-  // Refs para datos (se actualizan cuando el store cambia)
+  // Ref para lista de puntos (usado por navegación de drawers)
   const pointsRef = useRef([]);
-  const last7Ref = useRef({});
 
   useEffect(() => {
     pointsRef.current = data?.points || [];
   }, [data?.points]);
-
-  useEffect(() => {
-    last7Ref.current = data?.last_7 || {};
-  }, [data?.last_7]);
 
   // ── Voucher state ──
   const [selectedVoucher, setSelectedVoucher] = useState(null);
@@ -81,6 +87,8 @@ const ControlCenter = () => {
   const [stopTelemetryLoading, setStopTelemetryLoading] = useState(false);
   const [stopTelemetryPoint, setStopTelemetryPoint] = useState(null);
   const [stopTelemetryForm] = Form.useForm();
+  const [togglingTelemetry, setTogglingTelemetry] = useState({});
+  const [togglingCompliance, setTogglingCompliance] = useState({});
 
   // ── Stop compliance state ──
   const [stopComplianceLoading, setStopComplianceLoading] = useState(false);
@@ -128,19 +136,22 @@ const ControlCenter = () => {
   const handleViewMeasurements = useCallback(async (pointName, date, variables = [], pointId = null) => {
     const point = pointsRef.current?.find((p) => p.title === pointName) || (pointId ? { id: pointId, title: pointName } : null);
     if (!point) return;
-    const pointCfg = last7Ref.current?.[pointName] || null;
     setSelectedMeasurementPoint({ pointName, date, pointId: point.id, variables });
-    setWellConfig(pointCfg?.d1 != null ? pointCfg : null);
+    setWellConfig(null);
     openDrawer('measurements');
     setMeasurementsLoading(true);
     setMeasurementsData(null);
     try {
-      const [recordsRes, configRes] = await Promise.all([
-        orchestrator.pointRecords(point.id, date, date, 100),
-        !pointCfg?.d1 ? orchestrator.pointConfig(point.id) : Promise.resolve(null)
+      const [recordsRes, configRes, variablesRes] = await Promise.all([
+        orchestrator.pointsRecords(point.id, { startDate: date, endDate: date, limit: 100 }),
+        orchestrator.pointsConfig(point.id),
+        orchestrator.pointsVariables(point.id)
       ]);
       setMeasurementsData(recordsRes);
-      if (configRes && configRes.d1 != null) setWellConfig(configRes);
+      const cfg = configRes?.config || configRes;
+      if (cfg && cfg.d1 != null) setWellConfig(cfg);
+      const pointVariables = (variablesRes?.variables || []).map(v => String(v.internal_code || v.name || v).toUpperCase());
+      setSelectedMeasurementPoint(prev => ({ ...prev, variables: pointVariables }));
     } catch (err) {
       console.error("[Measurements] Error:", err);
       message.error("Error cargando mediciones");
@@ -160,7 +171,7 @@ const ControlCenter = () => {
     setSelectedMeasurementPoint({ pointName: selectedMeasurementPoint.pointName, date: newDate, pointId: point.id, variables: selectedMeasurementPoint.variables || [] });
     setMeasurementsLoading(true);
     setMeasurementsData(null);
-    orchestrator.pointRecords(point.id, newDate, newDate, 100)
+    orchestrator.pointsRecords(point.id, { startDate: newDate, endDate: newDate, limit: 100 })
       .then(setMeasurementsData)
       .catch(err => { console.error(err); message.error("Error navegando fecha"); })
       .finally(() => setMeasurementsLoading(false));
@@ -174,18 +185,21 @@ const ControlCenter = () => {
     const newIndex = (currentIndex + direction + points.length) % points.length;
     const newPoint = points[newIndex];
     const date = selectedMeasurementPoint?.date;
-    const pointCfg = last7Ref.current?.[newPoint.title] || null;
-    setSelectedMeasurementPoint({ pointName: newPoint.title, date, pointId: newPoint.id, variables: last7Ref.current?.[newPoint.title]?.variables || [] });
-    setWellConfig(pointCfg?.d1 != null ? pointCfg : null);
+    setSelectedMeasurementPoint({ pointName: newPoint.title, date, pointId: newPoint.id, variables: [] });
+    setWellConfig(null);
     setMeasurementsLoading(true);
     setMeasurementsData(null);
     Promise.all([
-      orchestrator.pointRecords(newPoint.id, date, date, 100),
-      !pointCfg?.d1 ? orchestrator.pointConfig(newPoint.id) : Promise.resolve(null)
+      orchestrator.pointsRecords(newPoint.id, { startDate: date, endDate: date, limit: 100 }),
+      orchestrator.pointsConfig(newPoint.id),
+      orchestrator.pointsVariables(newPoint.id)
     ])
-      .then(([recordsRes, configRes]) => {
+      .then(([recordsRes, configRes, variablesRes]) => {
         setMeasurementsData(recordsRes);
-        if (configRes && configRes.d1 != null) setWellConfig(configRes);
+        const cfg = configRes?.config || configRes;
+        if (cfg && cfg.d1 != null) setWellConfig(cfg);
+        const pointVariables = (variablesRes?.variables || []).map(v => String(v.internal_code || v.name || v).toUpperCase());
+        setSelectedMeasurementPoint(prev => ({ ...prev, variables: pointVariables }));
       })
       .catch(err => { console.error(err); message.error("Error cambiando punto"); })
       .finally(() => setMeasurementsLoading(false));
@@ -194,18 +208,21 @@ const ControlCenter = () => {
   const handleNavigatePointTo = useCallback((point) => {
     if (!point) return;
     const date = selectedMeasurementPoint?.date || format(new Date(), 'yyyy-MM-dd');
-    const pointCfg = last7Ref.current?.[point.title] || null;
-    setSelectedMeasurementPoint({ pointName: point.title, date, pointId: point.id, variables: last7Ref.current?.[point.title]?.variables || [] });
-    setWellConfig(pointCfg?.d1 != null ? pointCfg : null);
+    setSelectedMeasurementPoint({ pointName: point.title, date, pointId: point.id, variables: [] });
+    setWellConfig(null);
     setMeasurementsLoading(true);
     setMeasurementsData(null);
     Promise.all([
-      orchestrator.pointRecords(point.id, date, date, 100),
-      !pointCfg?.d1 ? orchestrator.pointConfig(point.id) : Promise.resolve(null)
+      orchestrator.pointsRecords(point.id, { startDate: date, endDate: date, limit: 100 }),
+      orchestrator.pointsConfig(point.id),
+      orchestrator.pointsVariables(point.id)
     ])
-      .then(([recordsRes, configRes]) => {
+      .then(([recordsRes, configRes, variablesRes]) => {
         setMeasurementsData(recordsRes);
-        if (configRes && configRes.d1 != null) setWellConfig(configRes);
+        const cfg = configRes?.config || configRes;
+        if (cfg && cfg.d1 != null) setWellConfig(cfg);
+        const pointVariables = (variablesRes?.variables || []).map(v => String(v.internal_code || v.name || v).toUpperCase());
+        setSelectedMeasurementPoint(prev => ({ ...prev, variables: pointVariables }));
       })
       .catch(err => { console.error(err); message.error("Error cargando punto"); })
       .finally(() => setMeasurementsLoading(false));
@@ -232,8 +249,8 @@ const ControlCenter = () => {
     setPointConfigLoading(true);
     setPointConfigData(null);
     try {
-      const res = await orchestrator.pointConfig(point.id);
-      setPointConfigData(res);
+      const res = await orchestrator.pointsConfig(point.id);
+      setPointConfigData(res?.config || res);
     } catch (err) {
       console.error(err);
       message.error("Error cargando configuración");
@@ -250,6 +267,44 @@ const ControlCenter = () => {
     stopTelemetryForm.resetFields();
     openDrawer('stopTelemetry', { point: payload });
   }, [stopTelemetryForm]);
+
+  const handleToggleTelemetry = useCallback(async (record) => {
+    const pointId = record.pointId;
+    if (!pointId) {
+      message.error("No se encontró el identificador del punto");
+      return;
+    }
+    const next = !record.telemetryActive;
+    setTogglingTelemetry((prev) => ({ ...prev, [pointId]: true }));
+    try {
+      await orchestrator.toggleTelemetry(pointId, next);
+      refreshList();
+    } catch (err) {
+      console.error("[ControlCenter] toggleTelemetry error:", err);
+      message.error(err?.response?.data?.detail || "Error al cambiar telemetría");
+    } finally {
+      setTogglingTelemetry((prev) => ({ ...prev, [pointId]: false }));
+    }
+  }, [refreshList]);
+
+  const handleToggleCompliance = useCallback(async (record) => {
+    const pointId = record.id;
+    if (!pointId) {
+      message.error("No se encontró el identificador del punto");
+      return;
+    }
+    const next = !record.complianceActive;
+    setTogglingCompliance((prev) => ({ ...prev, [pointId]: true }));
+    try {
+      await orchestrator.toggleCompliance(pointId, next);
+      refresh();
+    } catch (err) {
+      console.error("[ControlCenter] toggleCompliance error:", err);
+      message.error(err?.response?.data?.detail || "Error al cambiar cumplimiento");
+    } finally {
+      setTogglingCompliance((prev) => ({ ...prev, [pointId]: false }));
+    }
+  }, [refresh]);
 
   const handleOpenStopCompliance = useCallback((record) => {
     const payload = { id: record.id, name: record.title || record.name || "—", code: record.code || "—", client: record.client_name || "—" };
@@ -362,6 +417,12 @@ const ControlCenter = () => {
         onOpenStopCompliance={handleOpenStopCompliance}
         onViewFlowAnalysis={handleViewFlowAnalysis}
         onViewComplianceDetail={handleViewComplianceDetail}
+        onToggleTelemetry={handleToggleTelemetry}
+        togglingTelemetry={togglingTelemetry}
+        onToggleCompliance={handleToggleCompliance}
+        togglingCompliance={togglingCompliance}
+        activeTab={activeTab}
+        complianceLoading={complianceLoading}
         data={data}
         dailySummary={data?.daily_summary}
         listData={listData}
@@ -369,6 +430,15 @@ const ControlCenter = () => {
         setListPage={setListPage}
         listOrderBy={listOrderBy}
         setListOrderBy={setListOrderBy}
+        compliancePage={compliancePage}
+        setCompliancePage={setCompliancePage}
+        compliancePageSize={compliancePageSize}
+        setCompliancePageSize={setCompliancePageSize}
+        complianceCount={complianceCount}
+        complianceOrderBy={complianceOrderBy}
+        setComplianceOrderBy={setComplianceOrderBy}
+        complianceSearch={complianceSearch}
+        setComplianceSearch={setComplianceSearch}
         loading={loading}
         listLoading={listLoading}
         error={error}
@@ -388,7 +458,6 @@ const ControlCenter = () => {
         title={
           <MeasurementsDrawerHeader
             pointsRef={pointsRef}
-            last7Ref={last7Ref}
             selectedMeasurementPoint={selectedMeasurementPoint}
             handleNavigatePointTo={handleNavigatePointTo}
             handleNavigateDate={handleNavigateDate}
