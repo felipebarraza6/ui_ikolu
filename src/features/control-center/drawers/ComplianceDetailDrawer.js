@@ -28,43 +28,55 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
   const { token } = useToken();
   
   if (!point) return null;
-  
+
+  // Normalizar campos: el backend usa snake_case (point_name, flow, water_table)
+  // y el frontend transformado usa title, flow_lps, water_table_m.
+  const pointName = point.title || point.point_name || point.name || "—";
+  const flow = point.flow_lps ?? point.flow ?? null;
+  const waterTable = point.water_table_m ?? point.water_table ?? null;
+  const totalM3 = point.total_m3 ?? point.total ?? null;
+  const annualConsumption = point.annual_consumption ?? null;
+  const authorizedFlow = point.authorized_flow ?? 0;
+  const authorizedTotal = point.authorized_total ?? 0;
+  const lastSentAt = point.last_sent_at ?? null;
+  const voucher = point.voucher ?? null;
+
   const level = point.compliance_warning?.level || "safe";
   const levelCfg = levelColorMap[level] || levelColorMap.safe;
   const LevelIcon = levelCfg.icon;
-  
+
   const flowHistory = point.flow_history || { count: 0, measurements: [] };
   const nearLimitHistory = point.near_limit_history || { count: 0, measurements: [] };
   const warning = point.compliance_warning || {};
-  
+
   const handleExportExceededCSV = () => {
     const headers = ["Fecha/Hora", "Caudal (L/s)", "% del limite", "Autorizado (L/s)"];
     const rows = (flowHistory.measurements || []).map(m => {
-      const flow = m.flow;
-      const pct = point.authorized_flow > 0 ? (flow / point.authorized_flow) * 100 : 0;
+      const mFlow = m.flow;
+      const pct = authorizedFlow > 0 ? (mFlow / authorizedFlow) * 100 : 0;
       return [
         format(parseISO(m.date), "dd/MM/yyyy HH:mm"),
-        flow,
+        mFlow,
         Math.round(pct) + "%",
-        point.authorized_flow
+        authorizedFlow
       ];
     });
-    exportToCSV(headers, rows, `${point.title}_excedencias.csv`);
+    exportToCSV(headers, rows, `${pointName}_excedencias.csv`);
   };
-  
+
   const handleExportNearLimitCSV = () => {
     const headers = ["Fecha/Hora", "Caudal (L/s)", "% del limite", "Autorizado (L/s)"];
     const rows = (nearLimitHistory.measurements || []).map(m => {
-      const flow = m.flow;
-      const pct = point.authorized_flow > 0 ? (flow / point.authorized_flow) * 100 : 0;
+      const mFlow = m.flow;
+      const pct = authorizedFlow > 0 ? (mFlow / authorizedFlow) * 100 : 0;
       return [
         format(parseISO(m.date), "dd/MM/yyyy HH:mm"),
-        flow,
+        mFlow,
         Math.round(pct) + "%",
-        point.authorized_flow
+        authorizedFlow
       ];
     });
-    exportToCSV(headers, rows, `${point.title}_cercanias.csv`);
+    exportToCSV(headers, rows, `${pointName}_cercanias.csv`);
   };
   
   return (
@@ -74,7 +86,7 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
           <Flex vertical gap={4}>
             <Flex align="center" gap={8}>
               <LevelIcon style={{ fontSize: 18, color: levelCfg.color }} />
-              <Title level={5} style={{ margin: 0 }}>{point.title}</Title>
+              <Title level={5} style={{ margin: 0 }}>{pointName}</Title>
             </Flex>
             <Flex gap={8} align="center">
               {point.compliance_type?.includes("DGA") && (
@@ -131,7 +143,7 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
                     {warning.flow_pct.toFixed(1)}%
                   </Text>
                   <Text style={{ fontSize: 10, color: token.colorTextSecondary }}>
-                    {point.flow_lps != null && point.authorized_flow > 0 ? `${point.flow_lps.toFixed(1)} / ${point.authorized_flow.toFixed(1)} L/s` : "umbral: 90%"}
+                    {flow != null && authorizedFlow > 0 ? `${Number(flow).toFixed(1)} / ${Number(authorizedFlow).toFixed(1)} L/s` : "umbral: 90%"}
                   </Text>
                 </Flex>
               )}
@@ -146,14 +158,14 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
                 </Text>
               </Flex>
               
-              {point.authorized_total > 0 && point.annual_consumption != null && (
+              {authorizedTotal > 0 && annualConsumption != null && (
                 <Flex vertical>
                   <Text style={{ fontSize: 10, color: token.colorTextSecondary, textTransform: "uppercase" }}>Volumen anual</Text>
                   <Text strong style={{ fontSize: 16, color: token.colorText }}>
-                    {Math.round(point.annual_consumption).toLocaleString()} m³
+                    {Math.round(annualConsumption).toLocaleString()} m³
                   </Text>
                   <Text style={{ fontSize: 10, color: token.colorTextSecondary }}>
-                    autorizado: {Math.round(point.authorized_total).toLocaleString()} m³
+                    autorizado: {Math.round(authorizedTotal).toLocaleString()} m³
                   </Text>
                 </Flex>
               )}
@@ -162,19 +174,21 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
         </div>
         
         {/* Sección 2: Histórico de Excedencias */}
-        <div>
-          <Flex justify="space-between" align="center" style={{ marginBottom: 12 }}>
-            <Flex align="center" gap={8}>
-              <FaExclamationTriangle style={{ fontSize: 14, color: "#ff4d4f" }} />
-              <Text strong style={{ fontSize: 14 }}>
-                Excedencias de caudal
-              </Text>
-              <Tag color="red" style={{ margin: 0 }}>{flowHistory.has_more ? "20+" : flowHistory.count} en {format(new Date(), 'yyyy')}</Tag>
+        <div style={{ padding: 16, background: token.colorBgContainer, borderRadius: token.borderRadiusLG, border: `1px solid ${token.colorBorder}` }}>
+          <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
+            <Flex align="center" gap={10}>
+              <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255, 77, 79, 0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <FaExclamationTriangle style={{ fontSize: 14, color: "#ff4d4f" }} />
+              </div>
+              <Flex vertical gap={2}>
+                <Text strong style={{ fontSize: 14 }}>Excedencias de caudal</Text>
+                <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{flowHistory.count} eventos en {format(new Date(), 'yyyy')}</Text>
+              </Flex>
             </Flex>
             {flowHistory.count > 0 && (
-              <Button 
-                size="small" 
-                icon={<FaDownload size={11} />} 
+              <Button
+                size="small"
+                icon={<FaDownload size={11} />}
                 onClick={handleExportExceededCSV}
                 style={{ borderRadius: 6, fontWeight: 600 }}
               >
@@ -182,11 +196,12 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
               </Button>
             )}
           </Flex>
-          
+
           {flowHistory.count === 0 ? (
-            <div className="ocean-panel ocean-success-card ocean-text-center" style={{ padding: 24 }}>
-              <FaCheckCircle style={{ fontSize: 24, color: "#2A9D8F", marginBottom: 8 }} />
-              <Text className="ocean-text-base ocean-text-teal">Sin excedencias registradas este año</Text>
+            <div style={{ padding: "28px 24px", textAlign: "center", background: "rgba(42, 157, 143, 0.08)", borderRadius: token.borderRadius, border: "1px solid rgba(42, 157, 143, 0.2)" }}>
+              <FaCheckCircle style={{ fontSize: 28, color: "#2A9D8F", marginBottom: 10 }} />
+              <Text strong style={{ fontSize: 14, color: "#2A9D8F", display: "block" }}>Sin excedencias registradas</Text>
+              <Text style={{ fontSize: 12, color: token.colorTextSecondary }}>El caudal no ha superado el límite autorizado</Text>
             </div>
           ) : (
             <Table
@@ -209,8 +224,8 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
                   align: "right",
                   width: 100,
                   render: (_, record) => {
-                    const flow = record.flow;
-                    const pct = point.authorized_flow > 0 ? (flow / point.authorized_flow) * 100 : 0;
+                    const mFlow = record.flow;
+                    const pct = authorizedFlow > 0 ? (mFlow / authorizedFlow) * 100 : 0;
                     return (
                       <Text strong style={{ fontSize: 13, color: token.colorError }}>
                         {Math.round(pct)}%
@@ -224,7 +239,7 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
                   width: 110,
                   render: () => (
                     <Text style={{ fontSize: 12, color: token.colorTextSecondary }}>
-                      {Number(point.authorized_flow).toFixed(1)} L/s
+                      {Number(authorizedFlow).toFixed(1)} L/s
                     </Text>
                   ),
                 },
@@ -243,21 +258,23 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
             />
           )}
         </div>
-        
+
         {/* Sección 3: Histórico de Cercanías */}
-        <div>
-          <Flex justify="space-between" align="center" style={{ marginBottom: 12 }}>
-            <Flex align="center" gap={8}>
-              <FaChartLine style={{ fontSize: 14, color: "#fa8c16" }} />
-              <Text strong style={{ fontSize: 14 }}>
-                Veces cerca del límite
-              </Text>
-              <Tag color="orange" style={{ margin: 0 }}>{nearLimitHistory.has_more ? "20+" : nearLimitHistory.count} en {format(new Date(), 'yyyy')}</Tag>
+        <div style={{ padding: 16, background: token.colorBgContainer, borderRadius: token.borderRadiusLG, border: `1px solid ${token.colorBorder}` }}>
+          <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
+            <Flex align="center" gap={10}>
+              <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(250, 140, 22, 0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <FaChartLine style={{ fontSize: 14, color: "#fa8c16" }} />
+              </div>
+              <Flex vertical gap={2}>
+                <Text strong style={{ fontSize: 14 }}>Cercanías al límite</Text>
+                <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{nearLimitHistory.count} eventos en {format(new Date(), 'yyyy')}</Text>
+              </Flex>
             </Flex>
             {nearLimitHistory.count > 0 && (
-              <Button 
-                size="small" 
-                icon={<FaDownload size={11} />} 
+              <Button
+                size="small"
+                icon={<FaDownload size={11} />}
                 onClick={handleExportNearLimitCSV}
                 style={{ borderRadius: 6, fontWeight: 600 }}
               >
@@ -265,10 +282,12 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
               </Button>
             )}
           </Flex>
-          
+
           {nearLimitHistory.count === 0 ? (
-            <div className="ocean-panel ocean-text-center" style={{ padding: 24 }}>
-              <Text className="ocean-text-base ocean-text-muted">Sin eventos cercanos al límite este año</Text>
+            <div style={{ padding: "28px 24px", textAlign: "center", background: "rgba(250, 140, 22, 0.06)", borderRadius: token.borderRadius, border: "1px solid rgba(250, 140, 22, 0.2)" }}>
+              <FaChartLine style={{ fontSize: 28, color: "#fa8c16", marginBottom: 10 }} />
+              <Text strong style={{ fontSize: 14, color: "#fa8c16", display: "block" }}>Sin cercanías registradas</Text>
+              <Text style={{ fontSize: 12, color: token.colorTextSecondary }}>El caudal no ha estado cerca del límite autorizado</Text>
             </div>
           ) : (
             <Table
@@ -291,8 +310,8 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
                   align: "right",
                   width: 100,
                   render: (_, record) => {
-                    const flow = record.flow;
-                    const pct = point.authorized_flow > 0 ? (flow / point.authorized_flow) * 100 : 0;
+                    const mFlow = record.flow;
+                    const pct = authorizedFlow > 0 ? (mFlow / authorizedFlow) * 100 : 0;
                     return (
                       <Text strong style={{ fontSize: 13, color: token.colorWarning }}>
                         {Math.round(pct)}%
@@ -306,7 +325,7 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
                   width: 110,
                   render: () => (
                     <Text style={{ fontSize: 12, color: token.colorTextSecondary }}>
-                      {Number(point.authorized_flow).toFixed(1)} L/s
+                      {Number(authorizedFlow).toFixed(1)} L/s
                     </Text>
                   ),
                 },
@@ -327,7 +346,7 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
         </div>
         
         {/* Sección 4: Último Envío DGA */}
-        {point.last_sent_at && (
+        {lastSentAt && (
           <div>
             <Flex align="center" gap={8} style={{ marginBottom: 12 }}>
               <FaPaperPlane style={{ fontSize: 14, color: token.colorPrimary }} />
@@ -339,33 +358,33 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
                 <Flex vertical>
                   <Text style={{ fontSize: 10, color: token.colorTextSecondary, textTransform: "uppercase" }}>Fecha</Text>
                   <Text strong style={{ fontSize: 14 }}>
-                    {format(parseISO(point.last_sent_at), "dd/MM/yyyy HH:mm")}
+                    {format(parseISO(lastSentAt), "dd/MM/yyyy HH:mm")}
                   </Text>
                 </Flex>
                 
-                {point.voucher && (
+                {voucher && (
                   <Flex vertical>
                     <Text style={{ fontSize: 10, color: token.colorTextSecondary, textTransform: "uppercase" }}>Voucher</Text>
                     <Text strong style={{ fontSize: 14, fontFamily: "monospace", color: token.colorPrimary }}>
-                      {point.voucher}
+                      {voucher}
                     </Text>
                   </Flex>
                 )}
-                
-                {point.flow_lps != null && (
+
+                {flow != null && (
                   <Flex vertical>
                     <Text style={{ fontSize: 10, color: token.colorTextSecondary, textTransform: "uppercase" }}>Caudal enviado</Text>
                     <Text strong style={{ fontSize: 14 }}>
-                      {point.flow_lps.toFixed(1)} L/s
+                      {Number(flow).toFixed(1)} L/s
                     </Text>
                   </Flex>
                 )}
-                
-                {point.total_m3 != null && (
+
+                {totalM3 != null && (
                   <Flex vertical>
                     <Text style={{ fontSize: 10, color: token.colorTextSecondary, textTransform: "uppercase" }}>Total enviado</Text>
                     <Text strong style={{ fontSize: 14 }}>
-                      {Math.round(point.total_m3).toLocaleString()} m³
+                      {Math.round(totalM3).toLocaleString()} m³
                     </Text>
                   </Flex>
                 )}

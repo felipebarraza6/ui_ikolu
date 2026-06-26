@@ -6,8 +6,10 @@ import orchestrator from "../../api/orchestrator";
 import { Form, theme, Drawer, message } from "antd";
 import CCSupportDrawer from "./drawers/SupportDrawer";
 import PointConfigDrawer from "./drawers/PointConfigDrawer";
+import SystemEventsDrawer from "./drawers/SystemEventsDrawer";
 import CCFlowAnalysisDrawer from "./drawers/FlowAnalysisDrawer";
 import CCComplianceDetailDrawer from "./drawers/ComplianceDetailDrawer";
+import AuditHistoryDrawer from "./drawers/AuditHistoryDrawer";
 import WarningsDrawer from "./drawers/WarningsDrawer";
 import VoucherModal from "./drawers/VoucherModal";
 import StopTelemetryDrawer from "./drawers/StopTelemetryDrawer";
@@ -39,10 +41,12 @@ const ControlCenter = () => {
   const selectedDate = useControlCenterStore((s) => s.selectedDate);
   const dateRange = useControlCenterStore((s) => s.dateRange);
   const {
-    data, loading, listLoading, complianceLoading, error, refresh, refreshList,
+    data, loading, listLoading, complianceLoading, isRefreshing, error, refresh, refreshList,
     listData, listPage, setListPage, listOrderBy, setListOrderBy,
     compliancePage, setCompliancePage, compliancePageSize, setCompliancePageSize,
     complianceCount, complianceOrderBy, setComplianceOrderBy, complianceSearch, setComplianceSearch,
+    complianceStandard, setComplianceStandard,
+    complianceNature, setComplianceNature,
   } = useControlCenterData({
     dateRange,
     selectedProject,
@@ -105,6 +109,7 @@ const ControlCenter = () => {
   const [pointConfigLoading, setPointConfigLoading] = useState(false);
   const [pointConfigData, setPointConfigData] = useState(null);
   const [pointConfigName, setPointConfigName] = useState("");
+  const [pointConfigId, setPointConfigId] = useState(null);
 
   // DGA watch
   const compStart = Form.useWatch("start_date", stopComplianceForm);
@@ -122,9 +127,21 @@ const ControlCenter = () => {
 
   // ── Callbacks para el container ──
 
-  const handleWarningClick = useCallback((pointName) => {
-    openDrawer('warnings', { pointName });
+  const handleGeneralWarningsClick = useCallback(() => {
+    openDrawer('systemEvents');
   }, []);
+
+  const handlePointWarningsClick = useCallback((pointName) => {
+    let point = pointName ? pointsRef.current?.find((p) => p.title === pointName) : null;
+    // Fallback: buscar en la lista paginada de telemetría (telemetry tab no llena pointsRef)
+    if (pointName && !point) {
+      const listPoint = listData?.results?.find((p) => p.point_name === pointName);
+      if (listPoint) {
+        point = { id: listPoint.point_id, title: listPoint.point_name };
+      }
+    }
+    openDrawer('systemEventsPoint', { point });
+  }, [listData]);
 
   const handleViewVoucher = useCallback((record) => {
     setSelectedVoucher(record);
@@ -241,10 +258,19 @@ const ControlCenter = () => {
     openDrawer('complianceDetail', { point });
   }, []);
 
+  const handleViewFlowHistory = useCallback((point) => {
+    openDrawer('flowHistory', { point });
+  }, []);
+
+  const handleViewNearLimitHistory = useCallback((point) => {
+    openDrawer('nearLimitHistory', { point });
+  }, []);
+
   const handleViewPointConfig = useCallback(async (pointName, pointId = null) => {
     const point = pointsRef.current?.find((p) => p.title === pointName) || (pointId ? { id: pointId, title: pointName } : null);
     if (!point) return;
     setPointConfigName(pointName);
+    setPointConfigId(point.id);
     openDrawer('pointConfig', { pointName });
     setPointConfigLoading(true);
     setPointConfigData(null);
@@ -411,18 +437,22 @@ const ControlCenter = () => {
         onViewMeasurements={handleViewMeasurements}
         onOpenStopTelemetry={handleOpenStopTelemetry}
         onOpenSupport={handleOpenSupport}
-        onWarningClick={handleWarningClick}
+        onGeneralWarningClick={handleGeneralWarningsClick}
+        onPointWarningClick={handlePointWarningsClick}
         onViewPointConfig={handleViewPointConfig}
         onViewVoucher={handleViewVoucher}
         onOpenStopCompliance={handleOpenStopCompliance}
         onViewFlowAnalysis={handleViewFlowAnalysis}
         onViewComplianceDetail={handleViewComplianceDetail}
+        onViewFlowHistory={handleViewFlowHistory}
+        onViewNearLimitHistory={handleViewNearLimitHistory}
         onToggleTelemetry={handleToggleTelemetry}
         togglingTelemetry={togglingTelemetry}
         onToggleCompliance={handleToggleCompliance}
         togglingCompliance={togglingCompliance}
         activeTab={activeTab}
         complianceLoading={complianceLoading}
+        isRefreshing={isRefreshing}
         data={data}
         dailySummary={data?.daily_summary}
         listData={listData}
@@ -439,6 +469,10 @@ const ControlCenter = () => {
         setComplianceOrderBy={setComplianceOrderBy}
         complianceSearch={complianceSearch}
         setComplianceSearch={setComplianceSearch}
+        complianceStandard={complianceStandard}
+        setComplianceStandard={setComplianceStandard}
+        complianceNature={complianceNature}
+        setComplianceNature={setComplianceNature}
         loading={loading}
         listLoading={listLoading}
         error={error}
@@ -452,6 +486,17 @@ const ControlCenter = () => {
         warningsRaw={data?.recent_warnings || {}}
         selectedWarningPoint={d('warnings').pointName}
         setSelectedWarningPoint={(pointName) => openDrawer('warnings', { pointName })}
+      />
+
+      <SystemEventsDrawer
+        open={d('systemEvents').open}
+        onClose={() => closeDrawer('systemEvents')}
+      />
+
+      <SystemEventsDrawer
+        open={d('systemEventsPoint').open}
+        onClose={() => closeDrawer('systemEventsPoint')}
+        point={d('systemEventsPoint').point}
       />
 
       <Drawer
@@ -502,10 +547,24 @@ const ControlCenter = () => {
 
       <PointConfigDrawer
         open={d('pointConfig').open}
-        onClose={() => { closeDrawer('pointConfig'); setPointConfigData(null); }}
+        onClose={() => { closeDrawer('pointConfig'); setPointConfigData(null); setPointConfigId(null); }}
         pointName={pointConfigName}
+        pointId={pointConfigId}
         configData={pointConfigData}
         loading={pointConfigLoading}
+        onSave={async () => {
+          if (!pointConfigId) return;
+          setPointConfigLoading(true);
+          try {
+            const res = await orchestrator.pointsConfig(pointConfigId);
+            setPointConfigData(res?.config || res);
+          } catch (err) {
+            console.error(err);
+            message.error("Error recargando configuración");
+          } finally {
+            setPointConfigLoading(false);
+          }
+        }}
       />
 
       <StopTelemetryDrawer
@@ -550,6 +609,20 @@ const ControlCenter = () => {
         open={d('complianceDetail').open}
         onClose={() => { closeDrawer('complianceDetail'); setSelectedCompliancePoint(null); }}
         point={selectedCompliancePoint}
+      />
+
+      <AuditHistoryDrawer
+        type="exceeded"
+        open={d('flowHistory').open}
+        onClose={() => closeDrawer('flowHistory')}
+        point={d('flowHistory').point}
+      />
+
+      <AuditHistoryDrawer
+        type="near_limit"
+        open={d('nearLimitHistory').open}
+        onClose={() => closeDrawer('nearLimitHistory')}
+        point={d('nearLimitHistory').point}
       />
 
       <ModuleTour

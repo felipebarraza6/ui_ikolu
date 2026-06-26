@@ -8,19 +8,23 @@ const ComplianceTab = ({
   handleOpenSupport,
   handleViewPointConfig,
   handleViewFlowAnalysis,
-  handleViewComplianceDetail,
+  handleViewFlowHistory,
+  handleViewNearLimitHistory,
   onToggleCompliance,
   togglingCompliance,
   loading,
   page,
   setPage,
   pageSize,
-  setPageSize,
   total,
   orderBy,
   setOrderBy,
   search,
   setSearch,
+  standard,
+  setStandard,
+  nature,
+  setNature,
 }) => {
   return (
     <div>
@@ -31,19 +35,23 @@ const ComplianceTab = ({
         onOpenSupport={handleOpenSupport}
         onViewPointConfig={handleViewPointConfig}
         onViewFlowAnalysis={handleViewFlowAnalysis}
-        onViewComplianceDetail={handleViewComplianceDetail}
+        onViewFlowHistory={handleViewFlowHistory}
+        onViewNearLimitHistory={handleViewNearLimitHistory}
         onToggleCompliance={onToggleCompliance}
         togglingCompliance={togglingCompliance}
         loading={loading}
         page={page}
         setPage={setPage}
         pageSize={pageSize}
-        setPageSize={setPageSize}
         total={total}
         orderBy={orderBy}
         setOrderBy={setOrderBy}
         search={search}
         setSearch={setSearch}
+        standard={standard}
+        setStandard={setStandard}
+        nature={nature}
+        setNature={setNature}
       />
     </div>
   );

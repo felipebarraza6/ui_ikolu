@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState, useEffect } from "react";
-import { Flex, Typography, Table, Tooltip, Tag, theme, Skeleton, Button, Switch } from "antd";
+import { Flex, Typography, Table, Tooltip, Tag, theme, Skeleton, Button, Select } from "antd";
 import { FaEye, FaHandPaper, FaHeadset, FaExclamationTriangle, FaInfoCircle, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { FormOutlined, CheckCircleOutlined, CloseCircleOutlined, MinusCircleOutlined, WifiOutlined, DisconnectOutlined } from "@ant-design/icons";
 import { format, parseISO, isSameDay } from "date-fns";
@@ -24,6 +24,12 @@ const { Text } = Typography;
 
 const PAGE_SIZE = 10;
 const DAYS_PER_PAGE = 7;
+
+const telemetryOrderByOptions = [
+  { value: "default", label: "Default" },
+  { value: "warnings_count_desc", label: "Más warnings primero" },
+  { value: "warnings_count_asc", label: "Menos warnings primero" },
+];
 
 const DayCardSkeleton = ({ token }) => (
   <div
@@ -228,9 +234,8 @@ const CCWeekConsumption = ({
 
   const dayCardActiveStyle = {
     ...dayCardStyle,
-    borderColor: token.colorPrimary,
-    background: `${token.colorPrimary}15`,
-    boxShadow: `0 0 20px ${token.colorPrimary}30`,
+    borderColor: `${token.colorPrimary}80`,
+    background: `${token.colorPrimary}10`,
   };
 
   const columns = useMemo(() => {
@@ -440,14 +445,23 @@ const CCWeekConsumption = ({
           </Tooltip>
           {isSuperUser && (
             <Tooltip title={record.telemetryActive ? "Desactivar telemetría" : "Activar telemetría"}>
-              <Switch
-                size="small"
-                checked={record.telemetryActive}
-                loading={!!togglingTelemetry[record.pointId]}
-                onChange={() => handleToggleTelemetry(record)}
-                checkedChildren={<WifiOutlined />}
-                unCheckedChildren={<DisconnectOutlined />}
-              />
+              <div
+                role="button"
+                tabIndex={0}
+                style={{
+                  ...btnBase(record.telemetryActive ? token.colorSuccess : token.colorError),
+                  opacity: !!togglingTelemetry[record.pointId] ? 0.5 : 1,
+                  cursor: !!togglingTelemetry[record.pointId] ? "not-allowed" : "pointer",
+                  pointerEvents: !!togglingTelemetry[record.pointId] ? "none" : "auto",
+                }}
+                onClick={() => handleToggleTelemetry(record)}
+              >
+                {record.telemetryActive ? (
+                  <WifiOutlined style={{ fontSize: 11 }} />
+                ) : (
+                  <DisconnectOutlined style={{ fontSize: 11 }} />
+                )}
+              </div>
             </Tooltip>
           )}
         </Flex>
@@ -573,6 +587,19 @@ const CCWeekConsumption = ({
 
         {activeDate && (
           <div className="fade-in">
+            <Flex justify="flex-end" style={{ marginBottom: 8 }}>
+              <Select
+                size="small"
+                placeholder="Ordenar por"
+                value={listOrderBy || "default"}
+                onChange={(value) => {
+                  setListOrderBy(value === "default" ? null : value);
+                  setListPage(1);
+                }}
+                options={telemetryOrderByOptions}
+                style={{ minWidth: 180 }}
+              />
+            </Flex>
             <TableMemo
               loading={listLoading}
               data={tableData}

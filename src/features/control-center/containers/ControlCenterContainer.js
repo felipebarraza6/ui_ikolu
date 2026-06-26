@@ -16,18 +16,22 @@ const ControlCenterContainer = ({
   onViewMeasurements,
   onOpenStopTelemetry,
   onOpenSupport,
-  onWarningClick,
+  onGeneralWarningClick,
+  onPointWarningClick,
   onViewPointConfig,
   onViewVoucher,
   onOpenStopCompliance,
   onViewFlowAnalysis,
   onViewComplianceDetail,
+  onViewFlowHistory,
+  onViewNearLimitHistory,
   onToggleTelemetry,
   togglingTelemetry,
   onToggleCompliance,
   togglingCompliance,
   activeTab,
   complianceLoading,
+  isRefreshing,
   data,
   dailySummary,
   listData,
@@ -44,6 +48,10 @@ const ControlCenterContainer = ({
   setComplianceOrderBy,
   complianceSearch,
   setComplianceSearch,
+  complianceStandard,
+  setComplianceStandard,
+  complianceNature,
+  setComplianceNature,
   loading,
   listLoading,
   error,
@@ -92,7 +100,7 @@ const ControlCenterContainer = ({
   const points = useMemo(() => {
     const all = data?.points || [];
     if (!selectedProject) return all;
-    return all.filter((p) => p.project_id === selectedProject);
+    return all.filter((p) => String(p.project_id) === String(selectedProject));
   }, [data?.points, selectedProject]);
 
   const warningsList = useMemo(() => data?.recent_warnings_list || [], [data?.recent_warnings_list]);
@@ -100,7 +108,7 @@ const ControlCenterContainer = ({
   const chatQuota = useMemo(() => data?.chat_quota || null, [data?.chat_quota]);
 
   const telemetryTab = useMemo(() => {
-    if (!data || !listData) return <SkeletonTelemetry />;
+    if (!data) return <SkeletonTelemetry />;
     return (
       <TelemetryTab
         dailySummary={dailySummary}
@@ -114,12 +122,12 @@ const ControlCenterContainer = ({
         handleViewMeasurements={onViewMeasurements}
         handleOpenStopTelemetry={onOpenStopTelemetry}
         handleOpenSupport={onOpenSupport}
-        handleWarningPointClick={onWarningClick}
+        handleWarningPointClick={onPointWarningClick}
         warningsRaw={warningsRaw}
         handleViewPointConfig={onViewPointConfig}
         onToggleTelemetry={onToggleTelemetry}
         togglingTelemetry={togglingTelemetry}
-        loading={visualLoading || listLoading}
+        loading={visualLoading}
         listLoading={listLoading}
       />
     );
@@ -136,7 +144,7 @@ const ControlCenterContainer = ({
     onViewMeasurements,
     onOpenStopTelemetry,
     onOpenSupport,
-    onWarningClick,
+    onPointWarningClick,
     warningsRaw,
     onViewPointConfig,
     onToggleTelemetry,
@@ -146,7 +154,7 @@ const ControlCenterContainer = ({
   ]);
 
   const complianceTab = useMemo(() => {
-    if (!data || complianceLoading) return <SkeletonCompliance pageSize={compliancePageSize} />;
+    if (!data) return <SkeletonCompliance pageSize={compliancePageSize} />;
     return (
       <ComplianceTab
         points={points}
@@ -156,9 +164,11 @@ const ControlCenterContainer = ({
         handleViewPointConfig={onViewPointConfig}
         handleViewFlowAnalysis={onViewFlowAnalysis}
         handleViewComplianceDetail={onViewComplianceDetail}
+        handleViewFlowHistory={onViewFlowHistory}
+        handleViewNearLimitHistory={onViewNearLimitHistory}
         onToggleCompliance={onToggleCompliance}
         togglingCompliance={togglingCompliance}
-        loading={complianceLoading}
+        loading={complianceLoading || isRefreshing}
         page={compliancePage}
         setPage={setCompliancePage}
         pageSize={compliancePageSize}
@@ -168,6 +178,10 @@ const ControlCenterContainer = ({
         setOrderBy={setComplianceOrderBy}
         search={complianceSearch}
         setSearch={setComplianceSearch}
+        standard={complianceStandard}
+        setStandard={setComplianceStandard}
+        nature={complianceNature}
+        setNature={setComplianceNature}
       />
     );
   }, [
@@ -179,9 +193,12 @@ const ControlCenterContainer = ({
     onViewPointConfig,
     onViewFlowAnalysis,
     onViewComplianceDetail,
+    onViewFlowHistory,
+    onViewNearLimitHistory,
     onToggleCompliance,
     togglingCompliance,
     complianceLoading,
+    isRefreshing,
     compliancePage,
     setCompliancePage,
     compliancePageSize,
@@ -191,6 +208,10 @@ const ControlCenterContainer = ({
     setComplianceOrderBy,
     complianceSearch,
     setComplianceSearch,
+    complianceStandard,
+    setComplianceStandard,
+    complianceNature,
+    setComplianceNature,
   ]);
 
   const isRealError = error && error.message !== "canceled" && error.name !== "AbortError";
@@ -226,9 +247,9 @@ const ControlCenterContainer = ({
       chatQuota={chatQuota}
       activeTab={activeTab}
       onTabChange={handleTabChange}
-      onWarningClick={onWarningClick}
-      loading={visualLoading || !data}
-      tableLoading={visualLoading}
+      onWarningClick={onGeneralWarningClick}
+      loading={visualLoading || !data || isRefreshing}
+      tableLoading={visualLoading || isRefreshing}
     >
       <div className="tab-transition" key={`tab-${activeTab}`}>
         {activeTab === "telemetry" ? telemetryTab : complianceTab}

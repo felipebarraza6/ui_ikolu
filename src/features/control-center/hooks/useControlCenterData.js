@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { format } from "date-fns";
 import { useAuth } from "../../../contexts/AuthContext";
 import orchestrator from "../../../api/orchestrator";
+import { dataCache } from "../../../utils/dataCache";
 import { transformDashboardStats } from "../utils/transformDashboardStats";
 
 export const useControlCenterData = (options = {}) => {
@@ -12,13 +13,14 @@ export const useControlCenterData = (options = {}) => {
   const [dailySummary, setDailySummary] = useState(null);
   const [listData, setListData] = useState(null);
   const [listPage, setListPage] = useState(1);
-  const [listOrderBy, setListOrderBy] = useState(null);
+  const [listOrderBy, setListOrderBy] = useState("warnings_count_desc");
   const [loadingBase, setLoadingBase] = useState(false);
   const [loadingDaily, setLoadingDaily] = useState(false);
   const [loadingList, setLoadingList] = useState(false);
   const [loadingCompliance, setLoadingCompliance] = useState(false);
   const [error, setError] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const mountedRef = useRef(true);
 
   // Estados de paginación/sorting/búsqueda para compliance.
@@ -26,18 +28,25 @@ export const useControlCenterData = (options = {}) => {
   const [compliancePage, setCompliancePage] = useState(1);
   const [compliancePageSize, setCompliancePageSize] = useState(10);
   const [complianceCount, setComplianceCount] = useState(0);
-  const [complianceOrderBy, setComplianceOrderBy] = useState(null);
+  const [complianceOrderBy, setComplianceOrderBy] = useState("default");
   const [complianceSearch, setComplianceSearch] = useState("");
+  const [complianceStandard, setComplianceStandard] = useState("");
+  const [complianceNature, setComplianceNature] = useState("");
 
   // Refs para mantener datos parciales entre renders y reconstruir el objeto unificado.
   const generalStatsRef = useRef(null);
   const complianceRawRef = useRef(null);
-  const initialLoadDoneRef = useRef(false);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
 
   useEffect(() => {
     mountedRef.current = true;
     return () => { mountedRef.current = false; };
   }, []);
+
+  // Resetear carga inicial al hacer logout para que vuelva a cargar en el próximo login.
+  useEffect(() => {
+    if (!isAuth) setInitialLoadDone(false);
+  }, [isAuth]);
 
   const rebuildData = useCallback(() => {
     const transformed = transformDashboardStats(
@@ -53,6 +62,15 @@ export const useControlCenterData = (options = {}) => {
 
   const loading = loadingBase || loadingDaily;
   const listLoading = loadingList;
+
+  // Transformar los puntos raw de compliance para que tengan el shape esperado por la UI.
+  const compliancePoints = useMemo(() => {
+    if (!complianceData) return null;
+    const rawList = complianceData.results || complianceData.points;
+    if (!Array.isArray(rawList)) return null;
+    const transformed = transformDashboardStats(null, complianceData, null, null);
+    return transformed?.points || null;
+  }, [complianceData]);
 
   const data = useMemo(() => {
     // Si no hay ni base ni compliance, no hay datos.
@@ -80,9 +98,8 @@ export const useControlCenterData = (options = {}) => {
     return {
       ...base,
       daily_summary: dailySummary ?? base.daily_summary,
-      // Sobrescribir points con la página actual de compliance cuando aplica.
-      // Si complianceData.results existe, se usa; si no, se conserva baseData.points.
-      points: complianceData?.results ?? base.points ?? [],
+      // Sobrescribir points con la página actual de compliance transformada.
+      points: compliancePoints ?? base.points ?? [],
       compliancePagination: {
         count: complianceCount,
         page: compliancePage,
@@ -91,7 +108,7 @@ export const useControlCenterData = (options = {}) => {
         search: complianceSearch,
       },
     };
-  }, [baseData, dailySummary, complianceData, complianceCount, compliancePage, compliancePageSize, complianceOrderBy, complianceSearch]);
+  }, [baseData, dailySummary, complianceData, compliancePoints, complianceCount, compliancePage, compliancePageSize, complianceOrderBy, complianceSearch]);
 
   // Carga base: KPIs, proyectos y chat_quota.
   const fetchBaseData = useCallback(async (signal, silent = false) => {
@@ -151,6 +168,8 @@ export const useControlCenterData = (options = {}) => {
         search: complianceSearch,
         project_id: selectedProject,
       };
+      if (complianceStandard) params.standard = complianceStandard;
+      if (complianceNature) params.type_dga = complianceNature;
 
       const rawCompliance = await orchestrator.complianceList(params, signal).catch((err) => {
         console.warn("[useControlCenterData] Endpoint compliance no disponible:", err?.message || err);
@@ -159,14 +178,16 @@ export const useControlCenterData = (options = {}) => {
 
       if (!mountedRef.current) return;
 
-      if (rawCompliance && Array.isArray(rawCompliance.results)) {
+      // El backend puede devolver los puntos en 'results' o en 'points'.
+      const complianceResults = rawCompliance?.results || rawCompliance?.points;
+      if (rawCompliance && Array.isArray(complianceResults)) {
         setComplianceData(rawCompliance);
         // Leer count de cualquier campo común para ser flexible con el backend.
         const totalCount =
           rawCompliance.count ??
           rawCompliance.total ??
           rawCompliance.total_count ??
-          rawCompliance.results.length;
+          complianceResults.length;
         setComplianceCount(totalCount);
       } else {
         setComplianceData(null);
@@ -184,12 +205,12 @@ export const useControlCenterData = (options = {}) => {
     } finally {
       setLoadingCompliance(false);
     }
-  }, [rebuildData, compliancePage, compliancePageSize, complianceOrderBy, complianceSearch, selectedProject]);
+  }, [rebuildData, compliancePage, compliancePageSize, complianceOrderBy, complianceSearch, complianceStandard, complianceNature, selectedProject]);
 
   // Carga liviana: cuadritos de días.
-  const fetchDailySummary = useCallback(async (signal) => {
+  const fetchDailySummary = useCallback(async (signal, silent = false) => {
     if (!isAuth) return;
-    setLoadingDaily(true);
+    if (!silent) setLoadingDaily(true);
 
     try {
       const dailyParams = {};
@@ -217,13 +238,13 @@ export const useControlCenterData = (options = {}) => {
   }, [dateRange?.startDate, dateRange?.endDate, selectedProject]);
 
   // Carga de la tabla: lista paginada de puntos del día seleccionado.
-  const fetchList = useCallback(async (signal, page = listPage, orderBy = listOrderBy) => {
+  const fetchList = useCallback(async (signal, page = listPage, orderBy = listOrderBy, silent = false) => {
     if (!isAuth) return;
 
     const date = selectedDate || format(new Date(), "yyyy-MM-dd");
     if (!date) return;
 
-    setLoadingList(true);
+    if (!silent) setLoadingList(true);
 
     try {
       const params = { date, page };
@@ -249,80 +270,107 @@ export const useControlCenterData = (options = {}) => {
     }
   }, [selectedDate, selectedProject, listPage, listOrderBy]);
 
-  // Carga inicial: solo base, daily summary y list.
+  // Carga inicial: según la pestaña activa.
   useEffect(() => {
-    if (!isAuth || initialLoadDoneRef.current) return;
+    if (!isAuth || initialLoadDone) return;
     const controller = new AbortController();
     fetchBaseData(controller.signal);
-    fetchDailySummary(controller.signal);
-    fetchList(controller.signal);
-    initialLoadDoneRef.current = true;
+    if (activeTab === "compliance") {
+      fetchCompliance(controller.signal);
+    } else {
+      fetchDailySummary(controller.signal);
+      fetchList(controller.signal);
+    }
+    setInitialLoadDone(true);
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuth]);
+  }, [isAuth, initialLoadDone, activeTab]);
 
   // Recargar base cuando cambia el proyecto (solo después de la carga inicial).
   useEffect(() => {
-    if (!isAuth || !initialLoadDoneRef.current) return;
+    if (!isAuth || !initialLoadDone) return;
     const controller = new AbortController();
     fetchBaseData(controller.signal);
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuth, selectedProject]);
+  }, [isAuth, initialLoadDone, selectedProject]);
 
-  // Recargar daily summary cuando cambia fecha o proyecto.
+  // Recargar daily summary cuando cambia fecha o proyecto (solo en telemetry).
   useEffect(() => {
-    if (!isAuth || !initialLoadDoneRef.current) return;
+    if (!isAuth || !initialLoadDone || activeTab !== "telemetry") return;
     const controller = new AbortController();
     fetchDailySummary(controller.signal);
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuth, dateRange?.startDate, dateRange?.endDate, selectedProject]);
+  }, [isAuth, initialLoadDone, activeTab, dateRange?.startDate, dateRange?.endDate, selectedProject]);
 
-  // Recargar lista cuando cambia fecha, proyecto, página u ordenamiento.
+  // Recargar lista cuando cambia fecha, proyecto, página u ordenamiento (solo en telemetry).
   useEffect(() => {
-    if (!isAuth || !initialLoadDoneRef.current) return;
+    if (!isAuth || !initialLoadDone || activeTab !== "telemetry") return;
     const controller = new AbortController();
     fetchList(controller.signal);
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuth, selectedDate, selectedProject, listPage, listOrderBy]);
+  }, [isAuth, initialLoadDone, activeTab, selectedDate, selectedProject, listPage, listOrderBy]);
 
-  // Cargar compliance solo cuando la pestaña activa es compliance o cambian filtros/paginación.
+  // Cargar compliance cuando la pestaña activa es compliance y no hay datos,
+  // o cuando cambian filtros/paginación.
   useEffect(() => {
     if (!isAuth || activeTab !== "compliance") return;
     const controller = new AbortController();
     fetchCompliance(controller.signal);
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuth, activeTab, selectedProject, compliancePage, compliancePageSize, complianceOrderBy, complianceSearch]);
+  }, [isAuth, activeTab, selectedProject, compliancePage, compliancePageSize, complianceOrderBy, complianceSearch, complianceStandard, complianceNature, initialLoadDone]);
 
-  // Auto-refresh silencioso cada 20 minutos (solo endpoints que ya están activos).
+  // Fallback: si entramos directo a compliance y no hay datos, forzar carga.
+  useEffect(() => {
+    if (!isAuth || activeTab !== "compliance" || complianceData) return;
+    const controller = new AbortController();
+    fetchCompliance(controller.signal);
+    return () => controller.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuth, activeTab, complianceData]);
+
+  // Auto-refresh silencioso cada 60 segundos (unificado con useControlCenter).
   useEffect(() => {
     if (!isAuth) return;
     const interval = setInterval(() => {
       const controller = new AbortController();
       fetchBaseData(controller.signal, true);
-      fetchDailySummary(controller.signal);
-      fetchList(controller.signal);
+      if (activeTab === "telemetry") {
+        fetchDailySummary(controller.signal, true);
+        fetchList(controller.signal, listPage, listOrderBy, true);
+      }
       if (activeTab === "compliance") {
         fetchCompliance(controller.signal, true);
       }
-    }, 1200000);
+    }, 60 * 1000);
     return () => clearInterval(interval);
-  }, [isAuth, fetchBaseData, fetchDailySummary, fetchList, fetchCompliance, activeTab]);
+  }, [isAuth, fetchBaseData, fetchDailySummary, fetchList, fetchCompliance, activeTab, listPage, listOrderBy]);
 
-  const refresh = useCallback(() => {
+  const refresh = useCallback(async () => {
+    // Invalidar caché del Centro de Control para forzar peticiones reales y mostrar skeleton.
+    dataCache.invalidatePattern("cc_");
+    setIsRefreshing(true);
     const controller = new AbortController();
-    fetchBaseData(controller.signal);
-    fetchDailySummary(controller.signal);
-    fetchList(controller.signal);
-    if (activeTab === "compliance") {
-      fetchCompliance(controller.signal);
+    try {
+      const promises = [fetchBaseData(controller.signal)];
+      if (activeTab === "telemetry") {
+        promises.push(fetchDailySummary(controller.signal));
+        promises.push(fetchList(controller.signal));
+      }
+      if (activeTab === "compliance") {
+        promises.push(fetchCompliance(controller.signal));
+      }
+      await Promise.all(promises);
+    } finally {
+      setIsRefreshing(false);
     }
   }, [fetchBaseData, fetchDailySummary, fetchList, fetchCompliance, activeTab]);
 
   const refreshList = useCallback(() => {
+    dataCache.invalidatePattern("cc_list_");
     const controller = new AbortController();
     fetchList(controller.signal);
   }, [fetchList]);
@@ -332,6 +380,7 @@ export const useControlCenterData = (options = {}) => {
     loading,
     listLoading,
     complianceLoading: loadingCompliance,
+    isRefreshing,
     error,
     lastRefresh,
     refresh,
@@ -351,6 +400,10 @@ export const useControlCenterData = (options = {}) => {
     setComplianceOrderBy,
     complianceSearch,
     setComplianceSearch,
+    complianceStandard,
+    setComplianceStandard,
+    complianceNature,
+    setComplianceNature,
     isReady: !!data && !loading,
   };
 };

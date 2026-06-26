@@ -27,8 +27,10 @@ const CONFIG = {
     stats: 60 * 1000,          // 1min — estadísticas
     batch: 30 * 1000,          // 30s — batch telemetry
     notifications: 2 * 60 * 1000, // 2min
-    dayData: 5 * 60 * 1000,    // 5min — histórico
+    dayData: 60 * 1000,        // 1min — resumen diario (CC)
     monthData: 10 * 60 * 1000, // 10min — mensual
+    controlCenter: 30 * 1000,  // 30s — datos volátiles del Centro de Control
+    generalStats: 60 * 60 * 1000, // 1h — KPIs generales cambian poco
   },
   // Intervalo mínimo entre refrescos automáticos (ms)
   MIN_REFRESH_INTERVAL: 30 * 1000,
@@ -330,10 +332,12 @@ export const getNotificationsOrchestrated = async (profileId, page, type, option
  * Crea un intervalo de auto-refresh con throttle y cleanup
  * @param {Function} callback - Función a ejecutar
  * @param {number} interval - Intervalo en ms
- * @param {Array} deps - Dependencias para resetear el intervalo
- * @returns {Object} { refresh, cancel }
+ * @param {Object} options - Opciones
+ * @param {boolean} options.immediate - Ejecutar callback al inicio (default: true)
+ * @returns {Object} { refresh, cancel, start, reset }
  */
-export const createAutoRefresh = (callback, interval, deps = []) => {
+export const createAutoRefresh = (callback, interval, options = {}) => {
+  const { immediate = true } = options;
   let lastRefresh = 0;
   let timeoutId = null;
 
@@ -354,7 +358,9 @@ export const createAutoRefresh = (callback, interval, deps = []) => {
 
   const start = () => {
     cancel();
-    throttledCallback();
+    if (immediate) {
+      throttledCallback();
+    }
     timeoutId = setInterval(throttledCallback, interval);
   };
 
@@ -423,22 +429,99 @@ export const getOrchestratorStats = () => {
 };
 
 // ──────────────────────────────────────────
-// Centro de Control — Wrappers directos
+// Centro de Control — Wrappers orchestrated
 // ──────────────────────────────────────────
 
-export const dashboardStats = (signal) => sh.dashboardStats(signal);
+const paramsKey = (params) => {
+  try {
+    return JSON.stringify(params || {});
+  } catch {
+    return String(params);
+  }
+};
 
-export const controlCenterGeneralStats = (signal) => sh.controlCenterGeneralStats(signal);
+export const dashboardStats = (signal) => {
+  const cacheKey = 'cc_dashboard_stats';
+  return deduplicateRequest('cc_dashboard_stats', async () => {
+    const cached = dataCache.get(cacheKey);
+    if (cached) return cached;
+    const data = await sh.dashboardStats(signal);
+    dataCache.set(cacheKey, data, CONFIG.CACHE_TTL.controlCenter);
+    return data;
+  });
+};
 
-export const controlCenterDailySummary = (params, signal) => sh.controlCenterDailySummary(params, signal);
+export const controlCenterGeneralStats = (signal) => {
+  const cacheKey = 'cc_general_stats';
+  return deduplicateRequest('cc_general_stats', async () => {
+    const cached = dataCache.get(cacheKey);
+    if (cached) return cached;
+    const data = await sh.controlCenterGeneralStats(signal);
+    dataCache.set(cacheKey, data, CONFIG.CACHE_TTL.generalStats);
+    return data;
+  });
+};
 
-export const controlCenterProjectPoints = (projectId, signal) => sh.controlCenterProjectPoints(projectId, signal);
+export const controlCenterDailySummary = (params = {}, signal) => {
+  const cacheKey = `cc_daily_summary_${paramsKey(params)}`;
+  return deduplicateRequest(cacheKey, async () => {
+    const cached = dataCache.get(cacheKey);
+    if (cached) return cached;
+    const data = await sh.controlCenterDailySummary(params, signal);
+    dataCache.set(cacheKey, data, CONFIG.CACHE_TTL.dayData); // 1 min
+    return data;
+  });
+};
 
-export const controlCenterList = (params, signal) => sh.controlCenterList(params, signal);
+export const controlCenterProjectPoints = (projectId, signal) => {
+  if (projectId == null) return Promise.resolve({ data: [] });
+  const cacheKey = `cc_project_points_${projectId}`;
+  return deduplicateRequest(cacheKey, async () => {
+    const cached = dataCache.get(cacheKey);
+    if (cached) return cached;
+    const data = await sh.controlCenterProjectPoints(projectId, signal);
+    dataCache.set(cacheKey, data, CONFIG.CACHE_TTL.pointsList);
+    return data;
+  });
+};
 
-export const compliance = (signal) => sh.compliance(signal);
+export const controlCenterList = (params = {}, signal) => {
+  const cacheKey = `cc_list_${paramsKey(params)}`;
+  return deduplicateRequest(cacheKey, async () => {
+    const cached = dataCache.get(cacheKey);
+    if (cached) return cached;
+    const data = await sh.controlCenterList(params, signal);
+    dataCache.set(cacheKey, data, CONFIG.CACHE_TTL.pointsList);
+    return data;
+  });
+};
 
-export const complianceList = (params, signal) => sh.complianceList(params, signal);
+export const getSystemEvents = (params = {}, signal) => sh.controlCenterSystemEvents(params, signal);
+
+export const getSystemEventsByPoint = (pointId, params = {}, signal) =>
+  sh.controlCenterSystemEventsByPoint(pointId, params, signal);
+
+export const compliance = (signal) => {
+  const cacheKey = 'cc_compliance';
+  return deduplicateRequest('cc_compliance', async () => {
+    const cached = dataCache.get(cacheKey);
+    if (cached) return cached;
+    const data = await sh.compliance(signal);
+    dataCache.set(cacheKey, data, CONFIG.CACHE_TTL.controlCenter);
+    return data;
+  });
+};
+
+export const complianceList = (params = {}, signal) => {
+  const cacheKey = `cc_compliance_list_${paramsKey(params)}`;
+  return deduplicateRequest(cacheKey, async () => {
+    const cached = dataCache.get(cacheKey);
+    if (cached) return cached;
+    const data = await sh.complianceList(params, signal);
+    dataCache.set(cacheKey, data, CONFIG.CACHE_TTL.pointsList);
+    return data;
+  });
+};
 
 export const toggleCompliance = (pointId, enabled) => sh.toggleCompliance(pointId, enabled);
 
@@ -451,6 +534,11 @@ export const pointRecords = (pointId, startDate, endDate, limit) =>
   sh.pointRecords(pointId, startDate, endDate, limit);
 
 export const pointConfig = (pointId) => sh.pointConfig(pointId);
+export const pointsConfig = (pointId) => sh.pointConfig(pointId);
+export const pointsConfigUpdate = (pointId, config) => sh.points.configUpdate(pointId, config);
+
+export const flowHistory = (pointId, params) => sh.flowHistory(pointId, params);
+export const nearLimitHistory = (pointId, params) => sh.nearLimitHistory(pointId, params);
 
 // ── Puntos unificados modernos ──
 export const pointsList = (params, signal) => sh.points.list(params);
@@ -593,6 +681,8 @@ const orchestrator = {
   controlCenterDailySummary,
   controlCenterProjectPoints,
   controlCenterList,
+  getSystemEvents,
+  getSystemEventsByPoint,
   compliance,
   complianceList,
   toggleCompliance,
@@ -600,6 +690,10 @@ const orchestrator = {
   verifyDgaVoucher,
   pointRecords,
   pointConfig,
+  pointsConfig,
+  pointsConfigUpdate,
+  flowHistory,
+  nearLimitHistory,
   pointsList,
   pointsGet,
   pointsCreate,

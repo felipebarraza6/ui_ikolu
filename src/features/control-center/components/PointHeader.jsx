@@ -34,7 +34,7 @@ const PointHeader = ({ record, onViewPointConfig, token }) => {
             fontFamily: "'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
           }}
         >
-          {record.title?.slice(0, 20) || "—"}
+          {(record.title || record.point_name || record.name || "—").slice(0, 20)}
         </Text>
         <FaInfoCircle
           style={{
@@ -45,7 +45,7 @@ const PointHeader = ({ record, onViewPointConfig, token }) => {
           }}
           onClick={(e) => {
             e.stopPropagation();
-            onViewPointConfig?.(record.title || record.name);
+            onViewPointConfig?.(record.title || record.point_name || record.name);
           }}
         />
       </Flex>

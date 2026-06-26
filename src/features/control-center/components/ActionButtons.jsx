@@ -1,6 +1,7 @@
 import React from "react";
 import { Flex, Tooltip, theme } from "antd";
 import { FaEye, FaPauseCircle, FaHeadset } from "react-icons/fa";
+import { SafetyOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
 
 const { useToken } = theme;
 
@@ -23,6 +24,9 @@ const ActionButtons = ({
   onViewVoucher,
   onOpenStopCompliance,
   onOpenSupport,
+  onToggleCompliance,
+  togglingCompliance,
+  isSuperUser,
 }) => {
   const { token } = useToken();
 
@@ -31,6 +35,9 @@ const ActionButtons = ({
     e.currentTarget.style.background = enter ? `${color}22` : `${color}12`;
     e.currentTarget.style.boxShadow = enter ? `0 0 10px ${color}40` : "none";
   };
+
+  const isToggling = !!togglingCompliance?.[record.id];
+  const complianceColor = record.complianceActive ? token.colorSuccess : token.colorError;
 
   return (
     <Flex align="center" justify="center" gap={8} onClick={(e) => e.stopPropagation()}>
@@ -74,6 +81,29 @@ const ActionButtons = ({
           <FaHeadset style={{ fontSize: 12 }} />
         </div>
       </Tooltip>
+      {isSuperUser && (
+        <Tooltip title={record.complianceActive ? "Desactivar cumplimiento" : "Activar cumplimiento"}>
+          <div
+            role="button"
+            tabIndex={0}
+            style={{
+              ...btnBase(complianceColor),
+              opacity: isToggling ? 0.5 : 1,
+              cursor: isToggling ? "not-allowed" : "pointer",
+              pointerEvents: isToggling ? "none" : "auto",
+            }}
+            onClick={() => onToggleCompliance?.(record)}
+            onMouseEnter={(e) => !isToggling && handleHover(e, true, complianceColor)}
+            onMouseLeave={(e) => !isToggling && handleHover(e, false, complianceColor)}
+          >
+            {record.complianceActive ? (
+              <SafetyCertificateOutlined style={{ fontSize: 12 }} />
+            ) : (
+              <SafetyOutlined style={{ fontSize: 12 }} />
+            )}
+          </div>
+        </Tooltip>
+      )}
     </Flex>
   );
 };

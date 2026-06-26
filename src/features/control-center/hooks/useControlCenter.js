@@ -1,15 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import orchestrator from "../../../api/orchestrator";
+import orchestrator, { createAutoRefresh } from "../../../api/orchestrator";
 import { useAuth } from "../../../contexts/AuthContext";
 import { transformDashboardStats } from "../utils/transformDashboardStats";
 
 /**
  * useControlCenter — Hook unificado para el Centro de Control
  *
- * Ahora usa UN SOLO endpoint:
- *   GET /api/ik/dashboard_stats/
- *
- * Que entrega: contadores, status, compliance_summary, last_7, warnings.
+ * Usa endpoints orchestrated con caché/deduplicación y un único
+ * mecanismo de auto-refresh centralizado (createAutoRefresh).
  */
 export const useControlCenter = (options = {}) => {
   const { autoRefresh = true, refreshInterval = 60 * 1000 } = options;
@@ -20,9 +18,8 @@ export const useControlCenter = (options = {}) => {
   const [error, setError] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
 
-  const intervalRef = useRef(null);
   const isMountedRef = useRef(true);
-  const lastFetchRef = useRef(0);
+  const autoRefreshRef = useRef(null);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -34,10 +31,6 @@ export const useControlCenter = (options = {}) => {
   const fetchData = useCallback(
     async (signal, silent = false) => {
       if (!isAuth) return;
-
-      const now = Date.now();
-      if (now - lastFetchRef.current < 30000) return;
-      lastFetchRef.current = now;
 
       if (!silent) setLoading(true);
       setError(null);
@@ -54,14 +47,12 @@ export const useControlCenter = (options = {}) => {
           }),
         ]);
 
-        const transformed = transformDashboardStats(
-          rawDashboard,
-          rawCompliance,
-        );
+        const transformed = transformDashboardStats(rawDashboard, rawCompliance);
 
         if (isMountedRef.current) {
           setData(transformed);
           setError(null);
+          setLastRefresh(new Date());
         }
       } catch (err) {
         if (err.name === "AbortError") return;
@@ -77,6 +68,7 @@ export const useControlCenter = (options = {}) => {
     [isAuth],
   );
 
+  // Carga inicial
   useEffect(() => {
     if (!isAuth) return;
     const controller = new AbortController();
@@ -84,22 +76,22 @@ export const useControlCenter = (options = {}) => {
     return () => controller.abort();
   }, [isAuth, fetchData]);
 
+  // Auto-refresh centralizado (sin throttle manual de 30s)
   useEffect(() => {
     if (!autoRefresh || !isAuth) return;
-    const controller = { current: null };
-    intervalRef.current = setInterval(() => {
-      controller.current = new AbortController();
-      fetchData(controller.current.signal, true);
-    }, refreshInterval);
+    autoRefreshRef.current = createAutoRefresh(
+      () => fetchData(new AbortController().signal, true),
+      refreshInterval,
+      { immediate: false },
+    );
     return () => {
-      clearInterval(intervalRef.current);
-      controller.current?.abort();
+      autoRefreshRef.current?.cancel();
+      autoRefreshRef.current = null;
     };
   }, [autoRefresh, refreshInterval, fetchData, isAuth]);
 
   const refresh = useCallback(() => {
-    lastFetchRef.current = 0;
-    fetchData();
+    return fetchData(new AbortController().signal);
   }, [fetchData]);
 
   return {

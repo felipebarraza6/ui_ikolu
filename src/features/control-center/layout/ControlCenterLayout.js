@@ -87,14 +87,7 @@ const KPIsSection = memo(({
                   value={warningsCount}
                   gradient={`linear-gradient(135deg, ${token.colorWarning} 0%, ${token.colorError} 100%)`}
                   loading={loading}
-                  onClick={
-                    hasWarnings
-                      ? () => {
-                          const firstPoint = Object.keys(warningsRaw)[0];
-                          if (firstPoint) onWarningClick(firstPoint);
-                        }
-                      : undefined
-                  }
+                  onClick={() => onWarningClick()}
                 />
               </div>
             </Tooltip>

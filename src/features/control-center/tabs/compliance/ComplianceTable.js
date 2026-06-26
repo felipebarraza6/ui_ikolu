@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
-import { Flex, Typography, Table, Tag, Tooltip, theme, Switch, Input } from "antd";
-import { SearchOutlined, SafetyOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
+import { Flex, Typography, Table, Tag, Tooltip, theme, Input, Select } from "antd";
+import { SearchOutlined } from "@ant-design/icons";
 import { FaExclamationTriangle, FaChartLine } from "react-icons/fa";
 import { useAuth } from "../../../../contexts/AuthContext";
 import { PointHeader, ConsumptionCell, ActionButtons } from "../../components";
@@ -19,6 +19,37 @@ const typeDgaLabels = {
   "MENOR": "Menor",
   "CAUDAL": "Caudal",
   "VOLUMEN": "Volumen",
+  "SIN_ESTANDAR": "Sin estandar",
+};
+
+const standardFilterOptions = [
+  { text: "Caudales muy pequeños", value: "CAUDALES_MUY_PEQUENOS" },
+  { text: "Medio", value: "MEDIO" },
+  { text: "Mayor", value: "MAYOR" },
+  { text: "Menor", value: "MENOR" },
+  { text: "Sin estandar", value: "SIN_ESTANDAR" },
+];
+
+const natureFilterOptions = [
+  { text: "Superficial", value: "SUPERFICIAL" },
+  { text: "Subterráneo", value: "SUBTERRANEO" },
+];
+
+const orderByOptions = [
+  { value: "default", label: "Default (activos primero)" },
+  { value: "pct_consumed_desc", label: "% consumido ↓" },
+  { value: "pct_consumed_asc", label: "% consumido ↑" },
+  { value: "point_name_asc", label: "Nombre ↑" },
+  { value: "point_name_desc", label: "Nombre ↓" },
+  { value: "exceedances_desc", label: "Más excedencias" },
+  { value: "near_limit_desc", label: "Más cercanías al límite" },
+];
+
+const getStandardLabel = (standard) => {
+  const normalized = String(standard || "").trim().toUpperCase();
+  if (!normalized || normalized === "SMA") return null;
+  if (normalized === "SIN_ESTANDAR") return "Sin estandar";
+  return typeDgaLabels[normalized] || standard;
 };
 
 const pointsColumns = ({
@@ -26,9 +57,12 @@ const pointsColumns = ({
   onStopCompliance,
   onOpenSupport,
   onViewPointConfig,
-  onViewComplianceDetail,
+  onViewFlowHistory,
+  onViewNearLimitHistory,
   onToggleCompliance,
   togglingCompliance,
+  standard,
+  nature,
   token,
   isSuperUser,
 }) => [
@@ -43,20 +77,43 @@ const pointsColumns = ({
     ),
   },
   {
-    title: "Tipo",
-    key: "type",
-    width: 100,
+    title: "Estándar",
+    key: "standard",
+    width: 95,
     align: "center",
     responsive: ["md"],
-    render: (_, record) => (
-      <Flex vertical gap={2} align="center">
+    filters: standardFilterOptions,
+    onFilter: () => true,
+    filteredValue: standard ? standard.split(",") : null,
+    render: (_, record) => {
+      const standardLabel = getStandardLabel(record.standard);
+      const complianceTypes = Array.isArray(record.compliance_type)
+        ? record.compliance_type
+        : record.compliance_type
+        ? [record.compliance_type]
+        : [];
+      const isSma = complianceTypes.some((t) => String(t).trim().toUpperCase() === "SMA");
+      if (!standardLabel || isSma) return <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextDisabled }}>—</Text>;
+      return (
         <Tag style={{ fontSize: token.fontSizeSM }}>
-          {typeDgaLabels[record.standard] || record.standard}
+          {standardLabel}
         </Tag>
-        <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextSecondary }}>
-          {typeDgaLabels[record.type_dga] || record.type_dga}
-        </Text>
-      </Flex>
+      );
+    },
+  },
+  {
+    title: "Naturaleza",
+    key: "nature",
+    width: 95,
+    align: "center",
+    responsive: ["md"],
+    filters: natureFilterOptions,
+    onFilter: () => true,
+    filteredValue: nature ? nature.split(",") : null,
+    render: (_, record) => (
+      <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextSecondary }}>
+        {typeDgaLabels[record.type_dga] || record.type_dga}
+      </Text>
     ),
   },
   {
@@ -74,7 +131,6 @@ const pointsColumns = ({
     key: "flow",
     width: 120,
     align: "center",
-    sorter: true,
     render: (_, record) => {
       const currentFlow = record.flow_lps;
       const authorizedFlow = record.authorized_flow;
@@ -111,7 +167,6 @@ const pointsColumns = ({
     width: 85,
     align: "right",
     responsive: ["md"],
-    sorter: true,
     render: (_, record) => {
       const v = record.water_table_m;
       return v != null ? (
@@ -130,33 +185,30 @@ const pointsColumns = ({
     width: 140,
     align: "center",
     responsive: ["md"],
-    sorter: true,
     render: (_, record) => {
       const flowHistory = record.flow_history;
       const nearLimitHistory = record.near_limit_history;
       const exceededCount = flowHistory?.count ?? record.flow_exceeded_count ?? 0;
       const nearLimitCount = nearLimitHistory?.count ?? record.flow_near_limit_count ?? 0;
-      const exceededHasMore = flowHistory?.has_more ?? false;
-      const nearLimitHasMore = nearLimitHistory?.has_more ?? false;
       const authorizedFlow = record.authorized_flow;
       const badgeBase = { display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: token.borderRadius, cursor: "pointer", transition: "opacity 0.2s" };
 
       return (
         <Flex vertical gap={4} align="center">
-          {exceededCount > 0 || exceededHasMore ? (
-            <Tooltip title={`Superó ${exceededCount}${exceededHasMore ? "+" : ""} veces el límite de ${authorizedFlow} L/s`}>
+          {exceededCount > 0 ? (
+            <Tooltip title={`Superó ${exceededCount} veces el límite de ${authorizedFlow} L/s`}>
               <div
                 role="button"
                 tabIndex={0}
-                aria-label={`Ver excedencias de ${record.title}`}
+                aria-label={`Ver excedencias de ${record.title || record.point_name || record.name}`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onViewComplianceDetail?.(record, "exceeded");
+                  onViewFlowHistory?.(record);
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    onViewComplianceDetail?.(record, "exceeded");
+                    onViewFlowHistory?.(record);
                   }
                 }}
                 style={{ ...badgeBase, background: `${token.colorError}15`, border: `1px solid ${token.colorError}30` }}
@@ -165,26 +217,26 @@ const pointsColumns = ({
               >
                 <FaExclamationTriangle style={{ fontSize: token.fontSizeSM, color: token.colorError }} />
                 <Text style={{ fontSize: token.fontSizeSM, fontWeight: 600, color: token.colorError }}>
-                  {exceededHasMore ? "20+" : exceededCount}
+                  {exceededCount}
                 </Text>
               </div>
             </Tooltip>
           ) : null}
 
-          {nearLimitCount > 0 || nearLimitHasMore ? (
-            <Tooltip title={`Cercano al límite ${nearLimitCount}${nearLimitHasMore ? "+" : ""} veces`}>
+          {nearLimitCount > 0 ? (
+            <Tooltip title={`Cercano al límite ${nearLimitCount} veces`}>
               <div
                 role="button"
                 tabIndex={0}
-                aria-label={`Ver cercanías de ${record.title}`}
+                aria-label={`Ver cercanías de ${record.title || record.point_name || record.name}`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onViewComplianceDetail?.(record, "near_limit");
+                  onViewNearLimitHistory?.(record);
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    onViewComplianceDetail?.(record, "near_limit");
+                    onViewNearLimitHistory?.(record);
                   }
                 }}
                 style={{ ...badgeBase, background: `${token.colorWarning}15`, border: `1px solid ${token.colorWarning}30` }}
@@ -193,7 +245,7 @@ const pointsColumns = ({
               >
                 <FaChartLine style={{ fontSize: token.fontSizeSM, color: token.colorWarning }} />
                 <Text style={{ fontSize: token.fontSizeSM, fontWeight: 600, color: token.colorWarning }}>
-                  {nearLimitHasMore ? "20+" : nearLimitCount}
+                  {nearLimitCount}
                 </Text>
               </div>
             </Tooltip>
@@ -202,34 +254,10 @@ const pointsColumns = ({
       );
     },
   },
-  ...(isSuperUser
-    ? [
-        {
-          title: "Cumplimiento",
-          key: "compliance_toggle",
-          width: 110,
-          align: "center",
-          fixed: "right",
-          render: (_, record) => (
-            <Tooltip title={record.complianceActive ? "Cumplimiento activo" : "Cumplimiento pausado"}>
-              <Switch
-                size="small"
-                checked={!!record.complianceActive}
-                loading={!!togglingCompliance?.[record.id]}
-                checkedChildren={<SafetyCertificateOutlined />}
-                unCheckedChildren={<SafetyOutlined />}
-                onChange={() => onToggleCompliance?.(record)}
-                onClick={(e) => e.stopPropagation()}
-              />
-            </Tooltip>
-          ),
-        },
-      ]
-    : []),
   {
     title: "",
     key: "actions",
-    width: 110,
+    width: isSuperUser ? 180 : 120,
     align: "center",
     fixed: "right",
     render: (_, record) => (
@@ -238,6 +266,9 @@ const pointsColumns = ({
         onViewVoucher={onViewVoucher}
         onOpenStopCompliance={onStopCompliance}
         onOpenSupport={onOpenSupport}
+        onToggleCompliance={onToggleCompliance}
+        togglingCompliance={togglingCompliance}
+        isSuperUser={isSuperUser}
       />
     ),
   },
@@ -249,24 +280,28 @@ const CCComplianceTable = ({
   onOpenStopCompliance,
   onOpenSupport = () => {},
   onViewPointConfig,
-  onViewComplianceDetail,
+  onViewFlowHistory,
+  onViewNearLimitHistory,
   onToggleCompliance,
   togglingCompliance = {},
   loading = false,
   page = 1,
   setPage,
   pageSize = 10,
-  setPageSize,
   total = 0,
   orderBy,
   setOrderBy,
   search = "",
   setSearch,
+  standard = "",
+  setStandard,
+  nature = "",
+  setNature,
 }) => {
   const { token } = useToken();
   const { isSuperUser } = useAuth();
   const [localSearch, setLocalSearch] = useState(search);
-  const isServerPaginated = total > 0 && Array.isArray(points) && !!setPage && !!setPageSize;
+  const isServerPaginated = total > 0 && Array.isArray(points) && !!setPage;
 
   const levelColorMap = {
     safe: { color: token.colorSuccess, label: "Dentro de límites" },
@@ -282,7 +317,7 @@ const CCComplianceTable = ({
     const q = search.toLowerCase();
     return (points || []).filter(
       (p) =>
-        (p.title || "").toLowerCase().includes(q) ||
+        (p.title || p.point_name || "").toLowerCase().includes(q) ||
         (p.code || "").toLowerCase().includes(q)
     );
   }, [points, search, isServerPaginated]);
@@ -301,9 +336,12 @@ const CCComplianceTable = ({
       onStopCompliance: onOpenStopCompliance,
       onOpenSupport,
       onViewPointConfig,
-      onViewComplianceDetail,
+      onViewFlowHistory,
+      onViewNearLimitHistory,
       onToggleCompliance,
       togglingCompliance,
+      standard,
+      nature,
       token,
       isSuperUser,
     });
@@ -313,21 +351,37 @@ const CCComplianceTable = ({
       if (col.key === "water_table" && !activeVars.hasLevel) return false;
       return true;
     });
-  }, [onViewVoucher, onOpenStopCompliance, onOpenSupport, onViewPointConfig, onViewComplianceDetail, onToggleCompliance, togglingCompliance, token, isSuperUser, activeVars]);
+  }, [onViewVoucher, onOpenStopCompliance, onOpenSupport, onViewPointConfig, onViewFlowHistory, onViewNearLimitHistory, onToggleCompliance, togglingCompliance, standard, nature, token, isSuperUser, activeVars]);
 
-  const handleTableChange = (_pagination, _filters, sorter) => {
+  const handleTableChange = (_pagination, filters, sorter) => {
+    // Filtros de estándar y naturaleza (backend).
+    if (setStandard) {
+      const standardFilters = filters?.standard;
+      const nextStandard = standardFilters?.length ? standardFilters.join(",") : "";
+      if (nextStandard !== standard) {
+        setStandard(nextStandard);
+        setPage?.(1);
+      }
+    }
+    if (setNature) {
+      const natureFilters = filters?.nature;
+      const nextNature = natureFilters?.length ? natureFilters.join(",") : "";
+      if (nextNature !== nature) {
+        setNature(nextNature);
+        setPage?.(1);
+      }
+    }
+
     if (!setOrderBy) return;
     const sortState = Array.isArray(sorter) ? sorter[0] : sorter;
+    // Solo los campos soportados por el backend.
     const fieldMap = {
-      point_name: "title",
+      point_name: "point_name",
       consumption: "pct_consumed",
-      flow: "flow_lps",
-      water_table: "water_table_m",
-      audit: "flow_exceeded_count",
     };
     const field = fieldMap[sortState?.columnKey];
     if (!field || !sortState?.order) {
-      setOrderBy(null);
+      setOrderBy("default");
       return;
     }
     const direction = sortState.order === "ascend" ? "asc" : "desc";
@@ -344,20 +398,14 @@ const CCComplianceTable = ({
         current: page,
         pageSize,
         total,
-        showSizeChanger: true,
+        showSizeChanger: false,
         showTotal: (t) => `${t} punto${t !== 1 ? "s" : ""}`,
-        pageSizeOptions: [10, 20, 50, 100],
-        onChange: (p, ps) => {
-          setPage(p);
-          if (ps !== pageSize) setPageSize(ps);
-        },
+        onChange: (p) => setPage(p),
       }
     : {
         defaultPageSize: pageSize,
-        showSizeChanger: true,
-        pageSizeOptions: [10, 20, 50, 100],
+        showSizeChanger: false,
         showTotal: (t) => `${t} punto${t !== 1 ? "s" : ""}`,
-        onShowSizeChange: (_current, size) => setPageSize?.(size),
       };
 
   return (
@@ -366,16 +414,29 @@ const CCComplianceTable = ({
         <Text strong style={{ fontSize: token.fontSizeLG }}>
           Cumplimiento normativo
         </Text>
-        <Input
-          prefix={<SearchOutlined />}
-          placeholder="Buscar punto o código..."
-          value={localSearch}
-          onChange={(e) => setLocalSearch(e.target.value)}
-          onPressEnter={handleSearchSubmit}
-          style={{ width: 260 }}
-          allowClear
-          size="small"
-        />
+        <Flex gap={8} wrap="wrap">
+          <Select
+            size="small"
+            placeholder="Ordenar por"
+            value={orderBy || "default"}
+            onChange={(value) => {
+              setOrderBy?.(value);
+              setPage?.(1);
+            }}
+            options={orderByOptions}
+            style={{ minWidth: 180 }}
+          />
+          <Input
+            prefix={<SearchOutlined />}
+            placeholder="Buscar punto o código..."
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
+            onPressEnter={handleSearchSubmit}
+            style={{ width: 260 }}
+            allowClear
+            size="small"
+          />
+        </Flex>
       </Flex>
       <Table
         loading={loading}

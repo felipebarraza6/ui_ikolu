@@ -660,6 +660,42 @@ const get_control_center_list = async (params = {}, signal) => {
   return rq.data;
 };
 
+/**
+ * 🆕 SYSTEM EVENTS: Eventos del sistema globales.
+ * Endpoint: GET /api/ik/control_center/system_events/
+ */
+const get_system_events = async (params = {}, signal) => {
+  const query = new URLSearchParams();
+  if (params.event_type) query.set("event_type", params.event_type);
+  if (params.severity) query.set("severity", params.severity);
+  if (params.start) query.set("start", params.start);
+  if (params.end) query.set("end", params.end);
+  if (params.search?.trim()) query.set("search", params.search.trim());
+  if (params.page != null) query.set("page", String(params.page));
+  if (params.page_size != null) query.set("page_size", String(params.page_size));
+  const qs = query.toString();
+  const rq = await GET(`ik/control_center/system_events/${qs ? `?${qs}` : ""}`, null, signal ? { signal } : {});
+  return rq.data;
+};
+
+/**
+ * 🆕 SYSTEM EVENTS BY POINT: Eventos del sistema para un punto específico.
+ * Endpoint: GET /api/ik/control_center/system_events/{point_id}/
+ */
+const get_system_events_by_point = async (pointId, params = {}, signal) => {
+  const query = new URLSearchParams();
+  if (params.event_type) query.set("event_type", params.event_type);
+  if (params.severity) query.set("severity", params.severity);
+  if (params.start) query.set("start", params.start);
+  if (params.end) query.set("end", params.end);
+  if (params.search?.trim()) query.set("search", params.search.trim());
+  if (params.page != null) query.set("page", String(params.page));
+  if (params.page_size != null) query.set("page_size", String(params.page_size));
+  const qs = query.toString();
+  const rq = await GET(`ik/control_center/system_events/${pointId}/${qs ? `?${qs}` : ""}`, null, signal ? { signal } : {});
+  return rq.data;
+};
+
 const chat = async (message) => {
   const rq = await POST(`ik/chat/client/general_stats/`, { message });
   return rq.data;
@@ -688,6 +724,8 @@ const get_compliance_list = async (params = {}, signal) => {
   if (params.search?.trim()) query.set("search", params.search.trim());
   if (params.order_by) query.set("order_by", params.order_by);
   if (params.warning_level) query.set("warning_level", params.warning_level);
+  if (params.standard) query.set("standard", params.standard);
+  if (params.type_dga) query.set("type_dga", params.type_dga);
   const qs = query.toString();
   const rq = await GET(`ik/compliance/${qs ? `?${qs}` : ""}`, null, signal ? { signal } : {});
   return rq.data;
@@ -703,6 +741,32 @@ const toggle_compliance = async (pointId, enabled) => {
     point_id: pointId,
     enabled,
   });
+  return rq.data;
+};
+
+/**
+ * 🆕 HISTÓRICO DE EXCEDENCIAS DE CAUDAL
+ * Endpoint: GET /api/ik/compliance/<point_id>/flow_history/?days=90&page=1&page_size=20
+ */
+const get_flow_history = async (pointId, params = {}) => {
+  const query = new URLSearchParams();
+  query.set("days", String(params.days ?? 90));
+  query.set("page", String(params.page ?? 1));
+  query.set("page_size", String(params.page_size ?? 20));
+  const rq = await GET(`ik/compliance/${pointId}/flow_history/?${query.toString()}`);
+  return rq.data;
+};
+
+/**
+ * 🆕 HISTÓRICO DE MEDICIONES CERCANAS AL LÍMITE
+ * Endpoint: GET /api/ik/compliance/<point_id>/near_limit/?days=90&page=1&page_size=20
+ */
+const get_near_limit_history = async (pointId, params = {}) => {
+  const query = new URLSearchParams();
+  query.set("days", String(params.days ?? 90));
+  query.set("page", String(params.page ?? 1));
+  query.set("page_size", String(params.page_size ?? 20));
+  const rq = await GET(`ik/compliance/${pointId}/near_limit/?${query.toString()}`);
   return rq.data;
 };
 
@@ -1175,7 +1239,7 @@ const pointsConfig = async (id) => {
 };
 
 const pointsConfigUpdate = async (id, config) => {
-  const rq = await PATCH(`points/${id}/config/`, { config });
+  const rq = await PATCH(`ik/point/${id}/config/`, config);
   return rq.data;
 };
 
@@ -1370,11 +1434,16 @@ const sh = {
   controlCenterDailySummary: get_control_center_daily_summary,
   controlCenterProjectPoints: get_control_center_project_points,
   controlCenterList: get_control_center_list,
+  controlCenterSystemEvents: get_system_events,
+  controlCenterSystemEventsByPoint: get_system_events_by_point,
   chat,
   // 🆕 COMPLIANCE: Datos de cumplimiento con historial de caudal
   compliance: get_compliance,
   complianceList: get_compliance_list,
   toggleCompliance: toggle_compliance,
+  // 🆕 HISTÓRICOS DE AUDITORÍA
+  flowHistory: get_flow_history,
+  nearLimitHistory: get_near_limit_history,
   // 🆕 MEDICIONES POR PUNTO Y DÍA
   pointRecords: get_point_records,
   // 🆕 CONFIGURACIÓN TÉCNICA DEL PUNTO

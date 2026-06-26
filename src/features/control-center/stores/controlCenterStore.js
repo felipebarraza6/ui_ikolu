@@ -23,6 +23,10 @@ export const useControlCenterStore = create((set) => ({
     pointConfig: { open: false, pointName: "" },
     flowAnalysis: { open: false, point: null },
     complianceDetail: { open: false, point: null },
+    flowHistory: { open: false, point: null },
+    nearLimitHistory: { open: false, point: null },
+    systemEvents: { open: false },
+    systemEventsPoint: { open: false, point: null },
   },
 
   setSelectedDate: (date) => set({ selectedDate: date }),
@@ -82,5 +86,13 @@ export const useControlCenterStore = create((set) => ({
   handleViewComplianceDetail: (point, type) =>
     set((state) => ({
       drawers: { ...state.drawers, complianceDetail: { open: true, point: { point, type } } },
+    })),
+  handleViewFlowHistory: (point) =>
+    set((state) => ({
+      drawers: { ...state.drawers, flowHistory: { open: true, point } },
+    })),
+  handleViewNearLimitHistory: (point) =>
+    set((state) => ({
+      drawers: { ...state.drawers, nearLimitHistory: { open: true, point } },
     })),
 }));

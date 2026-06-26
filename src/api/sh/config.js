@@ -15,6 +15,10 @@ const BASE_URL = isLocalhost
 
 export const Axios = axios.create({
   baseURL: BASE_URL,
+  timeout: 30000, // 30 segundos máximo por petición
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
 // ── Interceptor de request: inyecta token automáticamente ──
@@ -32,6 +36,20 @@ Axios.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// ── Interceptor de response: normaliza errores y evita logs ruidosos ──
+Axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.code === "ECONNABORTED" || error.code === "ERR_NETWORK") {
+      error.isNetworkError = true;
+    }
+    if (error.response?.status === 401) {
+      error.isAuthError = true;
+    }
+    return Promise.reject(error);
+  },
+);
 
 // ── Descargas: callback opcional para notificación UI ──
 let downloadCallback = null;
