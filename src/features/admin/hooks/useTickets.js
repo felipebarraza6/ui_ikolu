@@ -21,9 +21,11 @@ export const useTickets = (options = {}) => {
   const { autoLoad = true } = options;
 
   const [tickets, setTickets] = useState([]);
+  const [ticketCount, setTicketCount] = useState(0);
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
   const [clientsWithProjects, setClientsWithProjects] = useState([]);
+  const [points, setPoints] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -31,9 +33,10 @@ export const useTickets = (options = {}) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await orchestrator.tickets.get(params);
+      const res = await orchestrator.tickets.get({ page_size: 1000, ...params });
       const normalized = normalizeListResponse(res);
       setTickets(normalized.results);
+      setTicketCount(normalized.count);
       return normalized;
     } catch (err) {
       setError(err);
@@ -44,9 +47,9 @@ export const useTickets = (options = {}) => {
     }
   }, []);
 
-  const fetchStats = useCallback(async () => {
+  const fetchStats = useCallback(async (params = {}) => {
     try {
-      const res = await orchestrator.tickets.stats();
+      const res = await orchestrator.tickets.stats(params);
       setStats(res);
       return res;
     } catch (err) {
@@ -57,7 +60,7 @@ export const useTickets = (options = {}) => {
 
   const fetchUsers = useCallback(async () => {
     try {
-      const res = await orchestrator.admin.users({ is_active: true, page_size: 200 });
+      const res = await orchestrator.admin.staffUsers();
       const list = Array.isArray(res) ? res : res?.results || [];
       setUsers(list);
       return list;
@@ -79,16 +82,29 @@ export const useTickets = (options = {}) => {
     }
   }, []);
 
+  const fetchPoints = useCallback(async () => {
+    try {
+      const res = await orchestrator.admin.pointsAll();
+      const list = Array.isArray(res) ? res : res?.results || [];
+      setPoints(list);
+      return list;
+    } catch (err) {
+      console.error("[useTickets] points error:", err);
+      return [];
+    }
+  }, []);
+
   const refresh = useCallback(
     async (params = {}) => {
       await Promise.all([
         fetchTickets(params),
-        fetchStats(),
+        fetchStats(params),
         fetchUsers(),
         fetchClientsWithProjects(),
+        fetchPoints(),
       ]);
     },
-    [fetchTickets, fetchStats, fetchUsers, fetchClientsWithProjects]
+    [fetchTickets, fetchStats, fetchUsers, fetchClientsWithProjects, fetchPoints]
   );
 
   useEffect(() => {
@@ -120,6 +136,20 @@ export const useTickets = (options = {}) => {
         return res;
       } catch (err) {
         message.error(err.message || "Error al actualizar ticket");
+        throw err;
+      }
+    },
+    [refresh]
+  );
+
+  const deleteTicket = useCallback(
+    async (id) => {
+      try {
+        await orchestrator.tickets.delete(id);
+        message.success("Ticket eliminado");
+        await refresh();
+      } catch (err) {
+        message.error(err.message || "Error al eliminar ticket");
         throw err;
       }
     },
@@ -218,9 +248,11 @@ export const useTickets = (options = {}) => {
 
   return {
     tickets,
+    ticketCount,
     stats,
     users,
     clientsWithProjects,
+    points,
     loading,
     error,
     refresh,
@@ -228,6 +260,7 @@ export const useTickets = (options = {}) => {
     fetchStats,
     createTicket,
     updateTicket,
+    deleteTicket,
     assignTicket,
     changeStatus,
     getTicketById,

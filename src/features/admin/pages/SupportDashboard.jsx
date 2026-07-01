@@ -6,34 +6,35 @@ import {
   Select,
   DatePicker,
   Empty,
+  Drawer,
+  List,
+  Tag,
+  message,
 } from "antd";
-import { PlusOutlined, ReloadOutlined, FilterOutlined } from "@ant-design/icons";
+import {
+  PlusOutlined,
+  ReloadOutlined,
+  FilterOutlined,
+  WarningOutlined,
+} from "@ant-design/icons";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import { useTickets } from "../hooks/useTickets";
 import { useAdminStore } from "../stores/adminStore";
-import TicketMetrics from "../components/TicketsKanban/TicketMetrics";
 import KanbanBoard from "../components/TicketsKanban/KanbanBoard";
 import TicketDetailDrawer from "../components/TicketsKanban/TicketDetailDrawer";
 import TicketCreateDrawer from "../components/TicketsKanban/TicketCreateDrawer";
+import {
+  STATUS_FILTER_OPTIONS,
+  PRIORITY_FILTER_OPTIONS,
+  CATEGORY_OPTIONS,
+  SOURCE_FILTER_OPTIONS,
+  getTicketStatusLabel,
+  getTicketPriorityConfig,
+  isAutomaticTicket,
+} from "../constants/tickets";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
-
-const STATUS_FILTER_OPTIONS = [
-  { value: "open", label: "Abierto" },
-  { value: "in_review", label: "En Revisión" },
-  { value: "in_progress", label: "En Progreso" },
-  { value: "resolved", label: "Resuelto" },
-  { value: "closed", label: "Cerrado" },
-];
-
-const PRIORITY_FILTER_OPTIONS = [
-  { value: "low", label: "Baja" },
-  { value: "medium", label: "Media" },
-  { value: "high", label: "Alta" },
-  { value: "urgent", label: "Urgente" },
-  { value: "critical", label: "Crítica" },
-];
 
 /**
  * Dashboard de soporte con métricas, filtros y tablero Kanban de tickets.
@@ -45,16 +46,21 @@ const SupportDashboard = () => {
   const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [warningsOpen, setWarningsOpen] = useState(false);
 
   const {
     tickets,
+    ticketCount,
     stats,
     users,
     clientsWithProjects,
+    points,
     loading,
     refresh,
     changeStatus,
     assignTicket,
+    updateTicket,
+    deleteTicket,
     createTicket,
     getTicketById,
     getComments,
@@ -72,13 +78,17 @@ const SupportDashboard = () => {
     if (filters.assignedTo) params.assigned_to = filters.assignedTo;
     if (filters.category) params.category = filters.category;
     if (filters.origin) params.origin = filters.origin;
+    if (filters.source) params.source = filters.source;
     if (filters.dateRange?.[0] && filters.dateRange?.[1]) {
-      params.created_at__gte = filters.dateRange[0].format("YYYY-MM-DD");
-      params.created_at__lte = filters.dateRange[1].format("YYYY-MM-DD");
+      params.created_from = filters.dateRange[0].format("YYYY-MM-DD");
+      params.created_to = filters.dateRange[1].format("YYYY-MM-DD");
     }
-    if (filters.client) params.client = filters.client;
-    if (filters.project) params.project = filters.project;
-    if (filters.point) params.catchment_point = filters.point;
+    if (filters.project) {
+      const pointIds = pointsByProject[filters.project] || [];
+      if (pointIds.length > 0) {
+        params.point_catchment = pointIds;
+      }
+    }
     return params;
   }, [filters]);
 
@@ -110,6 +120,28 @@ const SupportDashboard = () => {
     [createTicket]
   );
 
+  const kanbanTickets = useMemo(
+    () => tickets.filter((t) => !isAutomaticTicket(t.source)),
+    [tickets]
+  );
+
+  const warningTickets = useMemo(
+    () => tickets.filter((t) => isAutomaticTicket(t.source)),
+    [tickets]
+  );
+
+  const handleConvertWarning = useCallback(
+    async (ticket) => {
+      try {
+        await updateTicket(ticket.id, { source: "APP_ADMIN" });
+        message.success("Advertencia convertida en ticket");
+      } catch (err) {
+        message.error(err.message || "Error al convertir");
+      }
+    },
+    [updateTicket]
+  );
+
   const userOptions = useMemo(
     () =>
       users.map((u) => ({
@@ -119,29 +151,41 @@ const SupportDashboard = () => {
     [users]
   );
 
-  const pointOptions = useMemo(() => {
-    const points = [];
+  const projectOptions = useMemo(() => {
+    const options = [];
     for (const client of clientsWithProjects) {
       for (const project of client.projects || []) {
-        for (const point of project.points || project.catchment_points || []) {
-          points.push({
-            value: point.id,
-            label: `${point.name || point.title || `Punto ${point.id}`} (${
-              project.name || "Proyecto"
-            })`,
-          });
-        }
+        options.push({
+          value: project.id,
+          label: `${project.name || `Proyecto ${project.id}`} (${
+            client.name || `Cliente ${client.id}`
+          })`,
+        });
       }
     }
-    return points;
+    return options;
   }, [clientsWithProjects]);
+
+  const pointsByProject = useMemo(() => {
+    const map = {};
+    for (const point of points) {
+      if (!map[point.project]) map[point.project] = [];
+      map[point.project].push(point.id);
+    }
+    return map;
+  }, [points]);
 
   return (
     <div style={{ padding: 24 }}>
       <Flex justify="space-between" align="center" style={{ marginBottom: 24 }}>
-        <Title level={3} style={{ margin: 0, color: token.colorTextHeading }}>
-          Soporte
-        </Title>
+        <Flex align="center" gap={12}>
+          <Title level={3} style={{ margin: 0, color: token.colorTextHeading }}>
+            Operaciones Soporte
+          </Title>
+          <Text type="secondary" style={{ fontSize: 14 }}>
+            {loading ? "Cargando..." : `${kanbanTickets.length} de ${ticketCount} tickets`}
+          </Text>
+        </Flex>
         <Flex gap={12}>
           <Button
             icon={<ReloadOutlined />}
@@ -151,21 +195,35 @@ const SupportDashboard = () => {
             Actualizar
           </Button>
           <Button
+            icon={<WarningOutlined />}
+            onClick={() => setWarningsOpen(true)}
+            style={{
+              background: token.colorFillTertiary,
+              borderColor: token.colorBorder,
+              color: token.colorTextHeading,
+            }}
+          >
+            Advertencias
+            {warningTickets.length > 0 && (
+              <span style={{ marginLeft: 6, color: token.colorError }}>
+                ({warningTickets.length})
+              </span>
+            )}
+          </Button>
+          <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={() => setCreateOpen(true)}
             style={{
               background: token.colorAccent,
               borderColor: token.colorAccent,
-              color: token.colorPrimary,
+              color: "#fff",
             }}
           >
             Nuevo Ticket
           </Button>
         </Flex>
       </Flex>
-
-      <TicketMetrics tickets={tickets} stats={stats} loading={loading} />
 
       <div
         style={{
@@ -200,15 +258,15 @@ const SupportDashboard = () => {
             style={{ minWidth: 160 }}
             value={filters.category || undefined}
             onChange={(v) => setFilter("category", v || null)}
-            options={filterOptions.categories.map((c) => ({ value: c, label: c }))}
+            options={CATEGORY_OPTIONS}
           />
           <Select
-            placeholder="Origen"
+            placeholder="Canal"
             allowClear
             style={{ minWidth: 160 }}
-            value={filters.origin || undefined}
-            onChange={(v) => setFilter("origin", v || null)}
-            options={filterOptions.sources.map((s) => ({ value: s, label: s }))}
+            value={filters.source || undefined}
+            onChange={(v) => setFilter("source", v || null)}
+            options={SOURCE_FILTER_OPTIONS}
           />
           <Select
             placeholder="Asignado a"
@@ -224,23 +282,27 @@ const SupportDashboard = () => {
             style={{ minWidth: 240 }}
           />
           <Select
-            placeholder="Proyecto / Punto"
+            placeholder="Proyecto"
             allowClear
             showSearch
+            optionFilterProp="label"
+            filterOption={(input, option) =>
+              String(option?.label || "").toLowerCase().includes(input.toLowerCase())
+            }
             style={{ minWidth: 240 }}
-            value={filters.point || undefined}
-            onChange={(v) => setFilter("point", v || null)}
-            options={pointOptions}
+            value={filters.project || undefined}
+            onChange={(v) => setFilter("project", v || null)}
+            options={projectOptions}
           />
           <Button onClick={resetFilters}>Limpiar</Button>
         </Flex>
       </div>
 
-      {tickets.length === 0 && !loading ? (
+      {kanbanTickets.length === 0 && !loading ? (
         <Empty description="No hay tickets para los filtros seleccionados" />
       ) : (
         <KanbanBoard
-          tickets={tickets}
+          tickets={kanbanTickets}
           onTicketClick={handleTicketClick}
           onStatusChange={handleStatusChange}
           loading={loading}
@@ -254,12 +316,66 @@ const SupportDashboard = () => {
         users={users}
         onChangeStatus={changeStatus}
         onAssign={assignTicket}
+        onUpdateTicket={updateTicket}
+        onDelete={deleteTicket}
         onCreateComment={createComment}
         onUploadAttachment={uploadAttachment}
         getTicketById={getTicketById}
         getComments={getComments}
         getAttachments={getAttachments}
       />
+
+      <Drawer
+        title="Advertencias del sistema"
+        open={warningsOpen}
+        onClose={() => setWarningsOpen(false)}
+        width={480}
+      >
+        {warningTickets.length === 0 ? (
+          <Empty description="No hay advertencias pendientes" />
+        ) : (
+          <List
+            dataSource={warningTickets}
+            renderItem={(ticket) => {
+              const priority = getTicketPriorityConfig(ticket.priority);
+              return (
+                <List.Item
+                  actions={[
+                    <Button
+                      size="small"
+                      type="primary"
+                      onClick={() => handleConvertWarning(ticket)}
+                    >
+                      Convertir a ticket
+                    </Button>,
+                  ]}
+                >
+                  <List.Item.Meta
+                    title={
+                      <Flex align="center" gap={8}>
+                        <Text strong>{ticket.title || `Ticket #${ticket.id}`}</Text>
+                        <Tag color={priority.color}>{priority.label}</Tag>
+                      </Flex>
+                    }
+                    description={
+                      <Flex vertical gap={4}>
+                        <Text type="secondary">
+                          {getTicketStatusLabel(ticket.status)} ·{" "}
+                          {ticket.point_title || `Punto ${ticket.point_catchment}`} ·{" "}
+                          {ticket.client_name || "Cliente"}
+                        </Text>
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                          Fuente: {ticket.source}
+                        </Text>
+                      </Flex>
+                    }
+                  />
+                </List.Item>
+              );
+            }}
+          />
+        )}
+      </Drawer>
 
       <TicketCreateDrawer
         open={createOpen}

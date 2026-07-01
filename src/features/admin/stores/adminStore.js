@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import dayjs from "dayjs";
 
 export const useAdminStore = create((set, get) => ({
   // Navegación
@@ -9,10 +10,12 @@ export const useAdminStore = create((set, get) => ({
   filters: {
     client: null,
     project: null,
-    point: null,
-    dateRange: null,
+    dateRange: [dayjs().startOf("month"), dayjs().endOf("day")],
     status: null,
     priority: null,
+    category: null,
+    origin: null,
+    source: null,
     assignedTo: null,
   },
   setFilter: (key, value) =>
@@ -24,10 +27,12 @@ export const useAdminStore = create((set, get) => ({
       filters: {
         client: null,
         project: null,
-        point: null,
-        dateRange: null,
+        dateRange: [dayjs().startOf("month"), dayjs().endOf("day")],
         status: null,
         priority: null,
+        category: null,
+        origin: null,
+        source: null,
         assignedTo: null,
       },
     }),

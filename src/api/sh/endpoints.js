@@ -842,6 +842,15 @@ const getUsers = async (params = {}) => {
   return rq.data;
 };
 
+/**
+ * 🆕 Usuarios del staff (soporte/admin) para asignación de tickets.
+ * Endpoint: GET /api/ik/staff_users/
+ */
+const getStaffUsers = async () => {
+  const rq = await GET(`ik/staff_users/`);
+  return rq.data;
+};
+
 const getUser = async (username) => {
   const rq = await GET(`users/${username}/`);
   return rq.data;
@@ -940,7 +949,15 @@ const getComplianceProvider = async (id) => {
 // ==========================================
 
 const getTickets = async (params = {}) => {
-  const query = new URLSearchParams(params).toString();
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach((v) => searchParams.append(key, v));
+    } else if (value != null) {
+      searchParams.append(key, value);
+    }
+  });
+  const query = searchParams.toString();
   const rq = await GET(`ik/tickets/${query ? "?" + query : ""}`);
   return rq.data;
 };
@@ -992,8 +1009,15 @@ const uploadTicketAttachment = async (id, formData) => {
   return rq.data;
 };
 
-const getTicketStats = async () => {
-  const rq = await GET(`ik/tickets/stats/`);
+const deleteTicket = async (id) => {
+  const rq = await Axios.delete(`ik/tickets/${id}/`);
+  return rq.data;
+};
+
+const getTicketStats = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const url = query ? `ik/tickets/stats/?${query}` : `ik/tickets/stats/`;
+  const rq = await GET(url);
   return rq.data;
 };
 
@@ -1174,6 +1198,16 @@ const getCatchmentPointsByProject = async (projectId) => {
   return rq.data;
 };
 
+/**
+ * 🆕 Puntos de un proyecto desde el centro de control.
+ * Endpoint: GET /api/ik/control_center/project_points/?project_id=<id>
+ * Respuesta: { points: [{ id, name }, ...] }
+ */
+const getProjectPointsControlCenter = async (projectId) => {
+  const rq = await GET(`ik/control_center/project_points/?project_id=${projectId}`);
+  return rq.data;
+};
+
 // ==========================================
 // PUNTOS DE CAPTACIÓN UNIFICADOS → /api/points/
 // ==========================================
@@ -1349,6 +1383,7 @@ const sh = {
     getById: getTicket,
     create: createTicket,
     update: updateTicket,
+    delete: deleteTicket,
     assign: assignTicket,
     changeStatus: changeTicketStatus,
     getComments: getTicketComments,
@@ -1394,6 +1429,8 @@ const sh = {
     deleteCatchmentPoint,
     clientsWithProjects: getClientsWithProjects,
     pointsByProject: getCatchmentPointsByProject,
+    projectPoints: getProjectPointsControlCenter,
+    staffUsers: getStaffUsers,
     getPointsAll: get_catchment_points_all,
   },
   // 🆕 NUEVO: Endpoints para lazy loading de puntos

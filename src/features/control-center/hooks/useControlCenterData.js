@@ -117,6 +117,7 @@ export const useControlCenterData = (options = {}) => {
 
     try {
       const rawGeneral = await orchestrator.controlCenterGeneralStats(signal).catch((err) => {
+        if (err.name === "AbortError" || err?.message?.includes("canceled")) throw err;
         console.warn("[useControlCenterData] Endpoint general_stats no disponible:", err?.message || err);
         return null;
       });
@@ -133,6 +134,7 @@ export const useControlCenterData = (options = {}) => {
       let mergedGeneral = rawGeneral;
       if (!hasData) {
         const rawDashboard = await orchestrator.dashboardStats(signal).catch((err) => {
+          if (err.name === "AbortError" || err?.message?.includes("canceled")) throw err;
           console.warn("[useControlCenterData] Fallback dashboard_stats no disponible:", err?.message || err);
           return null;
         });
@@ -172,6 +174,7 @@ export const useControlCenterData = (options = {}) => {
       if (complianceNature) params.type_dga = complianceNature;
 
       const rawCompliance = await orchestrator.complianceList(params, signal).catch((err) => {
+        if (err.name === "AbortError" || err?.message?.includes("canceled")) throw err;
         console.warn("[useControlCenterData] Endpoint compliance no disponible:", err?.message || err);
         return null;
       });
@@ -219,6 +222,7 @@ export const useControlCenterData = (options = {}) => {
       if (selectedProject) dailyParams.project_id = selectedProject;
 
       const rawDailySummary = await orchestrator.controlCenterDailySummary(dailyParams, signal).catch((err) => {
+        if (err.name === "AbortError" || err?.message?.includes("canceled")) throw err;
         console.warn("[useControlCenterData] Endpoint daily_summary no disponible:", err?.message || err);
         return null;
       });
@@ -252,6 +256,7 @@ export const useControlCenterData = (options = {}) => {
       if (orderBy) params.order_by = orderBy;
 
       const rawList = await orchestrator.controlCenterList(params, signal).catch((err) => {
+        if (err.name === "AbortError" || err?.message?.includes("canceled")) throw err;
         console.warn("[useControlCenterData] Endpoint list no disponible:", err?.message || err);
         return null;
       });
@@ -271,18 +276,41 @@ export const useControlCenterData = (options = {}) => {
   }, [selectedDate, selectedProject, listPage, listOrderBy]);
 
   // Carga inicial: según la pestaña activa.
+  // Se marca initialLoadDone solo cuando las peticiones iniciales terminan de verdad;
+  // si el efecto se limpia por un re-render o desmontaje (abort), no se marca para
+  // permitir que la siguiente ejecución vuelva a intentar cargar los datos.
   useEffect(() => {
     if (!isAuth || initialLoadDone) return;
     const controller = new AbortController();
-    fetchBaseData(controller.signal);
-    if (activeTab === "compliance") {
-      fetchCompliance(controller.signal);
-    } else {
-      fetchDailySummary(controller.signal);
-      fetchList(controller.signal);
-    }
-    setInitialLoadDone(true);
-    return () => controller.abort();
+    let aborted = false;
+
+    const loadInitial = async () => {
+      try {
+        await fetchBaseData(controller.signal);
+        if (activeTab === "compliance") {
+          await fetchCompliance(controller.signal);
+        } else {
+          await Promise.all([
+            fetchDailySummary(controller.signal),
+            fetchList(controller.signal),
+          ]);
+        }
+      } catch (err) {
+        if (err.name !== "AbortError" && !err?.message?.includes("canceled")) {
+          console.error("[useControlCenterData] Error en carga inicial:", err);
+        }
+      } finally {
+        if (mountedRef.current && !aborted) {
+          setInitialLoadDone(true);
+        }
+      }
+    };
+
+    loadInitial();
+    return () => {
+      aborted = true;
+      controller.abort();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuth, initialLoadDone, activeTab]);
 

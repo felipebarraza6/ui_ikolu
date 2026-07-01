@@ -2,6 +2,7 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import PerformanceDashboard from "./pages/PerformanceDashboard";
 import SupportDashboard from "./pages/SupportDashboard";
+import SupportIndicatorsPage from "./pages/SupportIndicatorsPage";
 import OperationalDashboard from "./pages/OperationalDashboard";
 import ClientsPage from "./pages/ClientsPage";
 import ProjectsPage from "./pages/ProjectsPage";
@@ -21,7 +22,9 @@ const AdminRouter = () => {
       <Route path="/" element={<Navigate to="/admin/performance" replace />} />
       <Route path="/performance" element={<PerformanceDashboard />} />
       <Route path="/operational" element={<OperationalDashboard />} />
-      <Route path="/support" element={<SupportDashboard />} />
+      <Route path="/support" element={<Navigate to="/admin/support/kanban" replace />} />
+      <Route path="/support/kanban" element={<SupportDashboard />} />
+      <Route path="/support/indicators" element={<SupportIndicatorsPage />} />
       <Route path="/clients" element={<ClientsPage />} />
       <Route path="/projects" element={<ProjectsPage />} />
       <Route path="/points" element={<PointsPage />} />

@@ -17,7 +17,15 @@ import {
 export const ADMIN_MENU = [
   { key: "/admin/performance", icon: BarChartOutlined, label: "Rendimiento" },
   { key: "/admin/operational", icon: ToolOutlined, label: "Operacional" },
-  { key: "/admin/support", icon: CustomerServiceOutlined, label: "Soporte" },
+  {
+    key: "/admin/support",
+    icon: CustomerServiceOutlined,
+    label: "SLA",
+    children: [
+      { key: "/admin/support/kanban", icon: CustomerServiceOutlined, label: "Kanban" },
+      { key: "/admin/support/indicators", icon: BarChartOutlined, label: "Indicadores" },
+    ],
+  },
   { key: "/admin/clients", icon: TeamOutlined, label: "Clientes" },
   { key: "/admin/projects", icon: ProjectOutlined, label: "Proyectos" },
   { key: "/admin/points", icon: EnvironmentOutlined, label: "Puntos" },

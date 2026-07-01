@@ -11,6 +11,8 @@ const SmartKPICard = ({
   gradient = "linear-gradient(-45deg, #203562, #3A68AA, #4D7FBD, #85A2D1)",
   onClick,
   style = {},
+  valueStyle = {},
+  labelStyle = {},
   wave = false,
   loading = false,
 }) => {
@@ -91,13 +93,14 @@ const SmartKPICard = ({
         )}
         <Text
           style={{
-            fontSize: 12,
+            fontSize: 11,
             color: "rgba(255, 255, 255, 0.7)",
             fontFamily: "'Roboto', sans-serif",
             fontWeight: 500,
             letterSpacing: "0.05em",
             textTransform: "uppercase",
             marginBottom: 2,
+            ...labelStyle,
           }}
         >
           {label}
@@ -108,12 +111,13 @@ const SmartKPICard = ({
           ) : (
             <Text
               style={{
-                fontSize: 28,
+                fontSize: 26,
                 color: "#fff",
                 fontFamily: "'Lato', sans-serif",
                 fontWeight: 800,
                 lineHeight: 1.1,
                 textShadow: "0 0 20px rgba(32, 53, 98, 0.5)",
+                ...valueStyle,
               }}
             >
               {value}

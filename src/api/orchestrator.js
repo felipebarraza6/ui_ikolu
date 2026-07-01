@@ -583,13 +583,14 @@ export const tickets = {
   getById: (id) => sh.tickets.getById(id),
   create: (data) => sh.tickets.create(data),
   update: (id, data) => sh.tickets.update(id, data),
+  delete: (id) => sh.tickets.delete(id),
   assign: (id, assignedTo) => sh.tickets.assign(id, assignedTo),
   changeStatus: (id, status) => sh.tickets.changeStatus(id, status),
   getComments: (id, page) => sh.tickets.getComments(id, page),
   createComment: (id, data) => sh.tickets.createComment(id, data),
   getAttachments: (id) => sh.tickets.getAttachments(id),
   uploadAttachment: (id, formData) => sh.tickets.uploadAttachment(id, formData),
-  stats: () => sh.tickets.stats(),
+  stats: (params) => sh.tickets.stats(params),
 };
 
 export const alerts = {
@@ -625,7 +626,7 @@ export const admin = {
   deleteProject: (id) => sh.admin.deleteProject(id),
   points: (params) => sh.points.list(params),
   pointsAll: async () => {
-    const res = await sh.points.list({ page_size: 1000 });
+    const res = await sh.admin.getPointsAll();
     return Array.isArray(res) ? res : (res.results || res.data || []);
   },
   pointById: (id) => sh.points.get(id),
@@ -634,6 +635,8 @@ export const admin = {
   deletePoint: (id) => sh.points.delete(id),
   clientsWithProjects: () => sh.admin.clientsWithProjects(),
   pointsByProject: (projectId) => sh.points.list({ project: projectId, page_size: 1000 }),
+  projectPoints: (projectId) => sh.admin.projectPoints(projectId),
+  staffUsers: () => sh.admin.staffUsers(),
   users: (params) => sh.getUsers(params),
   userById: (username) => sh.getUser(username),
   signupUser: (data) => sh.signupUser(data),

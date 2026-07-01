@@ -15,6 +15,8 @@ import {
   Empty,
   Descriptions,
   Tag,
+  DatePicker,
+  Popconfirm,
 } from "antd";
 import {
   UserOutlined,
@@ -23,22 +25,29 @@ import {
   InfoCircleOutlined,
   HistoryOutlined,
   UploadOutlined,
+  ToolOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
+import dayjs from "dayjs";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { SmartBadge, SmartButton } from "../../../../shared/ui";
 import { useIkoluToken } from "../../../../hooks/useIkoluToken";
+import { useAdminAuth } from "../../hooks/useAdminAuth";
+import {
+  STATUS_OPTIONS,
+  getTicketStatusLabel,
+  getTicketPriorityConfig,
+  getTicketCategoryLabel,
+  getTicketField,
+  getTicketDateValue,
+  formatTicketDate,
+  getSlaStatus,
+  isTicketInOT,
+} from "../../constants/tickets";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
-
-const STATUS_OPTIONS = [
-  { value: "open", label: "Abierto" },
-  { value: "in_review", label: "En Revisión" },
-  { value: "in_progress", label: "En Progreso" },
-  { value: "resolved", label: "Resuelto" },
-  { value: "closed", label: "Cerrado" },
-];
 
 const formatDateTime = (value) => {
   if (!value) return "-";
@@ -49,12 +58,39 @@ const formatDateTime = (value) => {
   }
 };
 
-const priorityColor = (priority) => {
-  const p = priority?.toLowerCase?.() || "medium";
-  if (["critical", "urgent"].includes(p)) return "error";
-  if (p === "high") return "warning";
-  if (p === "low") return "success";
-  return "processing";
+const formatDate = (value) => {
+  if (!value) return "-";
+  try {
+    return format(parseISO(value), "dd MMM yyyy", { locale: es });
+  } catch {
+    return value;
+  }
+};
+
+const formatTicketDateTime = (ticket, ...fields) => {
+  const date = getTicketDateValue(ticket, ...fields);
+  return date ? format(date, "dd MMM yyyy HH:mm", { locale: es }) : "-";
+};
+
+const formatTicketDateOnly = (ticket, ...fields) => {
+  const date = getTicketDateValue(ticket, ...fields);
+  return date ? format(date, "dd MMM yyyy", { locale: es }) : "-";
+};
+
+const SlaDetail = ({ deadline, doneAt }) => {
+  const token = useIkoluToken();
+  const status = getSlaStatus(deadline, doneAt);
+  if (!deadline && !doneAt) return <Text type="secondary">-</Text>;
+  return (
+    <Flex align="center" gap={8} wrap>
+      <Text style={{ color: status.variant === "error" ? token.colorError : token.colorText }}>
+        {deadline ? formatDateTime(deadline) : "Sin límite"}
+      </Text>
+      <Tag color={status.variant === "error" ? "error" : status.variant === "success" ? "success" : "warning"}>
+        {status.label}
+      </Tag>
+    </Flex>
+  );
 };
 
 /**
@@ -68,6 +104,8 @@ const TicketDetailDrawer = ({
   users,
   onChangeStatus,
   onAssign,
+  onUpdateTicket,
+  onDelete,
   onCreateComment,
   onUploadAttachment,
   getTicketById,
@@ -75,11 +113,15 @@ const TicketDetailDrawer = ({
   getAttachments,
 }) => {
   const token = useIkoluToken();
+  const { isStaff } = useAdminAuth();
   const [ticket, setTicket] = useState(null);
   const [comments, setComments] = useState([]);
   const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [savingOt, setSavingOt] = useState(false);
+  const [editingOt, setEditingOt] = useState(false);
   const [commentForm] = Form.useForm();
+  const [otForm] = Form.useForm();
   const [activeTab, setActiveTab] = useState("info");
 
   const load = useCallback(async () => {
@@ -103,6 +145,15 @@ const TicketDetailDrawer = ({
     if (open) load();
   }, [open, ticketId, load]);
 
+  useEffect(() => {
+    if (ticket && editingOt) {
+      otForm.setFieldsValue({
+        scheduled_date: ticket.scheduled_date ? dayjs(ticket.scheduled_date) : null,
+        visit_report: ticket.visit_report || "",
+      });
+    }
+  }, [ticket, editingOt, otForm]);
+
   const handleStatusChange = async (status) => {
     await onChangeStatus(ticketId, status);
     load();
@@ -124,10 +175,108 @@ const TicketDetailDrawer = ({
     load();
   };
 
-  const userOptions = users.map((u) => ({
-    value: u.id || u.username,
-    label: u.full_name || u.username || u.email,
-  }));
+  const handleDelete = async () => {
+    await onDelete(ticketId);
+    onClose();
+  };
+
+  const handleStartEditOt = () => {
+    otForm.setFieldsValue({
+      scheduled_date: ticket.scheduled_date ? dayjs(ticket.scheduled_date) : null,
+      visit_report: ticket.visit_report || "",
+    });
+    setEditingOt(true);
+  };
+
+  const handleCancelEditOt = () => {
+    setEditingOt(false);
+    otForm.resetFields();
+  };
+
+  const handleSaveOt = async (values) => {
+    setSavingOt(true);
+    try {
+      const payload = {};
+      if (values.scheduled_date) {
+        payload.scheduled_date = values.scheduled_date.format("YYYY-MM-DD");
+      } else {
+        payload.scheduled_date = null;
+      }
+      payload.visit_report = values.visit_report || "";
+      await onUpdateTicket(ticketId, payload);
+      setEditingOt(false);
+      await load();
+    } finally {
+      setSavingOt(false);
+    }
+  };
+
+  const userOptions = users.map((u) => {
+    const name = [u.first_name, u.last_name].filter(Boolean).join(" ") || u.full_name || u.username || u.email;
+    return {
+      value: u.id || u.username,
+      label: name,
+    };
+  });
+
+  const renderOtSection = () => {
+    if (!isStaff) return null;
+    if (!isTicketInOT(ticket?.status)) return null;
+
+    return (
+      <div
+        style={{
+          padding: 12,
+          background: token.colorFillTertiary,
+          borderRadius: token.borderRadius,
+        }}
+      >
+        <Flex align="center" gap={8} style={{ marginBottom: 12 }}>
+          <ToolOutlined style={{ color: token.colorCorporateBlue }} />
+          <Text strong style={{ color: token.colorTextHeading }}>
+            Orden de Trabajo
+          </Text>
+        </Flex>
+
+        {editingOt ? (
+          <Form form={otForm} layout="vertical" onFinish={handleSaveOt}>
+            <Form.Item name="scheduled_date" label="Fecha programada">
+              <DatePicker style={{ width: "100%" }} format="YYYY-MM-DD" />
+            </Form.Item>
+            <Form.Item name="visit_report" label="Reporte de visita">
+              <TextArea rows={4} placeholder="Detalle del reporte de visita..." />
+            </Form.Item>
+            <Flex gap={8} justify="flex-end">
+              <SmartButton variant="neutral" size="sm" onClick={handleCancelEditOt}>
+                Cancelar
+              </SmartButton>
+              <SmartButton variant="primary" size="sm" htmlType="submit" loading={savingOt}>
+                Guardar
+              </SmartButton>
+            </Flex>
+          </Form>
+        ) : (
+          <Flex vertical gap={12}>
+            <Descriptions bordered size="small" column={1}>
+              <Descriptions.Item label="Fecha programada">
+                {formatDate(ticket.scheduled_date)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Reporte de visita">
+                <Text style={{ whiteSpace: "pre-wrap" }}>
+                  {ticket.visit_report || "-"}
+                </Text>
+              </Descriptions.Item>
+            </Descriptions>
+            <Flex justify="flex-end">
+              <SmartButton variant="primary" size="sm" onClick={handleStartEditOt}>
+                Editar OT
+              </SmartButton>
+            </Flex>
+          </Flex>
+        )}
+      </div>
+    );
+  };
 
   const infoTab = ticket
     ? {
@@ -143,30 +292,52 @@ const TicketDetailDrawer = ({
               <Title level={4} style={{ margin: 0, color: token.colorTextHeading }}>
                 {ticket.title || `Ticket #${ticket.id}`}
               </Title>
-              <Tag color={priorityColor(ticket.priority)}>
-                {ticket.priority || "Sin prioridad"}
+              <Tag color={getTicketPriorityConfig(ticket.priority).color}>
+                {getTicketPriorityConfig(ticket.priority).label}
               </Tag>
             </Flex>
 
             <Descriptions bordered size="small" column={1}>
+              <Descriptions.Item label="Cliente">
+                {ticket.client_name || "-"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Punto de captación">
+                {ticket.point_title || `Punto ${ticket.point_catchment}` || "-"}
+              </Descriptions.Item>
               <Descriptions.Item label="Estado">
-                <SmartBadge variant="info">{ticket.status || "Desconocido"}</SmartBadge>
+                <SmartBadge variant="info">{getTicketStatusLabel(ticket.status)}</SmartBadge>
               </Descriptions.Item>
               <Descriptions.Item label="Categoría">
-                {ticket.category || "-"}
+                {getTicketCategoryLabel(ticket.category) || "-"}
               </Descriptions.Item>
               <Descriptions.Item label="Origen">
                 {ticket.source || ticket.origin || "-"}
               </Descriptions.Item>
               <Descriptions.Item label="Creado">
-                {formatDateTime(ticket.created_at)}
+                {formatTicketDateTime(ticket, "created", "created_at")}
+              </Descriptions.Item>
+              <Descriptions.Item label="Creado por">
+                {ticket.created_by_name || (ticket.created_by ? `Usuario ${ticket.created_by}` : ticket.source === "SISTEMA" || ticket.origin === "INTERNO" ? "Support Agent" : "-" )}
               </Descriptions.Item>
               <Descriptions.Item label="Actualizado">
-                {formatDateTime(ticket.updated_at)}
+                {formatTicketDateTime(ticket, "modified", "updated_at")}
               </Descriptions.Item>
-              <Descriptions.Item label="SLA">
-                {formatDateTime(ticket.sla_due_at)}
+              <Descriptions.Item label="SLA Respuesta">
+                <SlaDetail deadline={ticket.sla_deadline_response} doneAt={ticket.sla_responded_at} />
               </Descriptions.Item>
+              <Descriptions.Item label="SLA Resolución">
+                <SlaDetail deadline={ticket.sla_deadline_resolution} doneAt={ticket.sla_resolved_at} />
+              </Descriptions.Item>
+              {ticket.alert_trigger && (
+                <Descriptions.Item label="Alerta">
+                  Alerta #{ticket.alert_trigger}
+                </Descriptions.Item>
+              )}
+              {ticket.system_event && (
+                <Descriptions.Item label="Evento de sistema">
+                  Evento #{ticket.system_event}
+                </Descriptions.Item>
+              )}
             </Descriptions>
 
             <div>
@@ -180,10 +351,12 @@ const TicketDetailDrawer = ({
                 }}
               >
                 <Text style={{ whiteSpace: "pre-wrap" }}>
-                  {ticket.message || ticket.description || "-"}
+                  {ticket.description || "-"}
                 </Text>
               </div>
             </div>
+
+            {renderOtSection()}
 
             <Flex gap={16} wrap>
               <div>
@@ -202,18 +375,36 @@ const TicketDetailDrawer = ({
                   Asignar a
                 </Text>
                 <Select
-                  value={
-                    ticket.assigned_to
-                      ? ticket.assigned_to.id || ticket.assigned_to.username
-                      : undefined
-                  }
+                  value={ticket.assigned_to || undefined}
                   style={{ width: 220 }}
                   onChange={handleAssign}
                   options={userOptions}
                   allowClear
-                  placeholder="Seleccionar usuario"
+                  placeholder={ticket.assigned_to_name || "Seleccionar usuario"}
                 />
+                {ticket.assigned_to_name && (
+                  <Text type="secondary" style={{ fontSize: 12, display: "block", marginTop: 4 }}>
+                    Actual: {ticket.assigned_to_name}
+                  </Text>
+                )}
               </div>
+
+              {ticket.status === "ABIERTO" && (
+                <div style={{ marginLeft: "auto", alignSelf: "flex-end" }}>
+                  <Popconfirm
+                    title="¿Eliminar ticket?"
+                    description="Esta acción no se puede deshacer."
+                    onConfirm={handleDelete}
+                    okText="Eliminar"
+                    okButtonProps={{ danger: true }}
+                    cancelText="Cancelar"
+                  >
+                    <Button danger icon={<DeleteOutlined />}>
+                      Eliminar
+                    </Button>
+                  </Popconfirm>
+                </div>
+              )}
             </Flex>
           </Flex>
         ),
@@ -231,7 +422,7 @@ const TicketDetailDrawer = ({
       <Flex vertical gap={16}>
         <Form form={commentForm} onFinish={handleComment}>
           <Form.Item
-            name="text"
+            name="content"
             rules={[{ required: true, message: "Escribe un comentario" }]}
           >
             <TextArea rows={3} placeholder="Agregar comentario..." />
@@ -253,13 +444,13 @@ const TicketDetailDrawer = ({
                       {item.author_name || item.author || "Usuario"}
                     </Text>
                     <Text type="secondary" style={{ fontSize: 12 }}>
-                      {formatDateTime(item.created_at)}
+                      {formatDateTime(item.created)}
                     </Text>
                   </Flex>
                 }
                 description={
                   <Text style={{ whiteSpace: "pre-wrap" }}>
-                    {item.text || item.content || item.message}
+                    {item.content || item.text || item.message}
                   </Text>
                 }
               />
@@ -305,29 +496,33 @@ const TicketDetailDrawer = ({
     key: "activity",
     label: (
       <Flex align="center" gap={6}>
-        <HistoryOutlined /> Actividad
+        <HistoryOutlined /> Actividad ({ticket?.activity_logs?.length || 0})
       </Flex>
     ),
     children: (
       <List
-        dataSource={comments}
+        dataSource={ticket?.activity_logs || []}
         locale={{ emptyText: <Empty description="Sin actividad registrada" /> }}
         renderItem={(item) => (
           <List.Item>
             <List.Item.Meta
               avatar={<Avatar icon={<UserOutlined />} />}
               title={
-                <Text strong>
-                  {item.author_name || item.author || "Usuario"}
-                </Text>
-              }
-              description={
-                <Flex vertical>
-                  <Text>Comentó: {item.text || item.content || item.message}</Text>
+                <Flex justify="space-between">
+                  <Text strong>
+                    {item.user_name || item.user || "Usuario"}
+                  </Text>
                   <Text type="secondary" style={{ fontSize: 12 }}>
-                    {formatDateTime(item.created_at)}
+                    {formatDateTime(item.created)}
                   </Text>
                 </Flex>
+              }
+              description={
+                <Text>
+                  {item.field_name === "CREACIÓN"
+                    ? item.new_value
+                    : `Cambió ${item.field_name}: ${item.old_value || "-"} → ${item.new_value || "-"}`}
+                </Text>
               }
             />
           </List.Item>

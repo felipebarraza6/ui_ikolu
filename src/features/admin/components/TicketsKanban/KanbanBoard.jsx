@@ -1,49 +1,59 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback } from "react";
 import { Row, Col, Spin } from "antd";
 import KanbanColumn from "./KanbanColumn";
-
-const COLUMNS = [
-  { key: "new", label: "Nuevo", status: "open" },
-  { key: "review", label: "En Revisión", status: "in_review" },
-  { key: "progress", label: "En Desarrollo", status: "in_progress" },
-  { key: "resolved", label: "Resuelto", status: "resolved" },
-];
+import {
+  getTicketColumn,
+  KANBAN_COLUMNS,
+  getColumnDropStatus,
+} from "../../constants/tickets";
 
 /**
- * Determina a qué columna Kanban pertenece un ticket según su status.
- * Se ajusta dinámicamente a los estados que devuelva el backend.
- */
-const resolveTicketColumn = (ticket) => {
-  const status = ticket.status?.toLowerCase?.() || "";
-  if (["closed", "resolved"].includes(status)) return "resolved";
-  if (status === "in_progress") return "progress";
-  if (status === "in_review") return "review";
-  return "new";
-};
-
-/**
- * Tablero Kanban de tickets con 4 columnas y drag-and-drop nativo.
+ * Tablero Kanban de tickets con 5 columnas y drag-and-drop nativo.
  */
 const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading }) => {
   const columnsTickets = useMemo(() => {
-    const map = { new: [], review: [], progress: [], resolved: [] };
+    const map = Object.fromEntries(KANBAN_COLUMNS.map((column) => [column.key, []]));
     for (const ticket of tickets) {
-      const col = resolveTicketColumn(ticket);
+      const col = getTicketColumn(ticket.status);
       if (map[col]) map[col].push(ticket);
     }
     return map;
   }, [tickets]);
 
+  const handleDropTicket = useCallback(
+    (ticketId, dropStatus) => {
+      const ticket = tickets.find((t) => String(t.id) === String(ticketId));
+      const column = KANBAN_COLUMNS.find((c) => c.dropStatus === dropStatus);
+      const status = column
+        ? getColumnDropStatus(column.key, ticket?.status)
+        : dropStatus;
+      onStatusChange?.(ticketId, status);
+    },
+    [tickets, onStatusChange]
+  );
+
   return (
     <Spin spinning={loading} tip="Cargando tickets...">
-      <Row gutter={[16, 16]} style={{ minHeight: 420 }}>
-        {COLUMNS.map((column) => (
-          <Col key={column.key} xs={24} sm={12} md={12} lg={6} xl={6}>
+      <Row
+        gutter={[16, 16]}
+        style={{
+          minHeight: 420,
+          flexWrap: "nowrap",
+          overflowX: "auto",
+          paddingBottom: 8,
+        }}
+      >
+        {KANBAN_COLUMNS.map((column) => (
+          <Col
+            key={column.key}
+            flex="0 0 280px"
+            style={{ maxWidth: 280 }}
+          >
             <KanbanColumn
               column={column}
               tickets={columnsTickets[column.key] || []}
               onTicketClick={onTicketClick}
-              onDropTicket={onStatusChange}
+              onDropTicket={handleDropTicket}
             />
           </Col>
         ))}
