@@ -1,11 +1,13 @@
+// Paleta Void para el Centro de Control: blancos/grises con opacidad.
+// Solo se conservan colores semánticos para máximos/mínimos.
 export const COLORS = {
   max: '#E76F51',
   min: '#2A9D8F',
-  avg: '#85A2D1',
-  consumo: '#3A68AA',
-  caudal: '#CCCF07',
-  nivel: '#3A68AA',
-  freatico: '#85A2D1',
+  avg: 'rgba(255, 255, 255, 0.7)',
+  consumo: 'rgba(255, 255, 255, 0.85)',
+  caudal: 'rgba(255, 255, 255, 0.6)',
+  nivel: 'rgba(255, 255, 255, 0.5)',
+  freatico: 'rgba(255, 255, 255, 0.4)',
 };
 
 export const CHART_METRICS = {

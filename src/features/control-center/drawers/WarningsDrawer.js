@@ -1,10 +1,10 @@
 import React from "react";
-import { Drawer, Flex, Typography, Table, Tag, theme } from "antd";
+import { Drawer, Flex, Typography, Table, Tag } from "antd";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { format, parseISO } from "date-fns";
+import { useIkoluToken } from "../../../hooks/useIkoluToken";
 
 const { Text } = Typography;
-const { useToken } = theme;
 
 const WarningsDrawer = ({
   open,
@@ -14,7 +14,7 @@ const WarningsDrawer = ({
   selectedWarningPoint,
   setSelectedWarningPoint,
 }) => {
-  const { token } = useToken();
+  const token = useIkoluToken();
 
   const warnGradient = `linear-gradient(135deg, ${token.colorWarning} 0%, ${token.colorError} 100%)`;
 
@@ -35,8 +35,8 @@ const WarningsDrawer = ({
             <FaExclamationTriangle style={{ color: "#fff", fontSize: 16 }} />
           </div>
           <Flex vertical gap={0}>
-            <Text strong style={{ fontSize: 16, color: token.colorText }}>Warnings</Text>
-            <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>
+            <Text strong style={{ fontSize: 16, color: token.voidTextHeading }}>Warnings</Text>
+            <Text style={{ fontSize: 11, color: token.voidTextMuted }}>
               {warningsList.length} alertas activas
             </Text>
           </Flex>
@@ -46,7 +46,7 @@ const WarningsDrawer = ({
       onClose={onClose}
       open={open}
       width={{ xs: "100%", sm: "100%", md: 640 }}
-      styles={{ body: { padding: 16 } }}
+      styles={{ body: { padding: 16, background: "transparent" } }}
     >
       {warningsList.length === 0 ? (
         <Flex vertical align="center" justify="center" style={{ padding: 48, textAlign: "center" }}>
@@ -62,7 +62,7 @@ const WarningsDrawer = ({
           }}>
             <FaExclamationTriangle style={{ color: token.colorSuccess, fontSize: 24, opacity: 0.6 }} />
           </div>
-          <Text style={{ fontSize: 14, color: token.colorTextSecondary }}>Sin warnings activos</Text>
+          <Text style={{ fontSize: 14, color: token.voidTextMuted }}>Sin warnings activos</Text>
         </Flex>
       ) : (
         <>
@@ -79,10 +79,10 @@ const WarningsDrawer = ({
                     fontSize: 12,
                     padding: "4px 12px",
                     margin: 0,
-                    borderRadius: token.borderRadius,
-                    border: isActive ? `1.5px solid ${token.colorWarning}` : `1px solid ${token.colorBorder}`,
-                    background: isActive ? `${token.colorWarning}18` : token.colorFillSecondary,
-                    color: isActive ? token.colorWarning : token.colorText,
+                    borderRadius: token.voidRadius,
+                    border: isActive ? `1.5px solid ${token.colorWarning}` : `1px solid ${token.voidBorder}`,
+                    background: isActive ? `${token.colorWarning}18` : token.voidSurface,
+                    color: isActive ? token.colorWarning : token.voidTextHeading,
                     fontWeight: isActive ? 600 : 400,
                     transition: "all 0.2s ease",
                   }}
@@ -91,8 +91,8 @@ const WarningsDrawer = ({
                   {pointName}
                   <span style={{
                     marginLeft: 6,
-                    background: isActive ? warnGradient : token.colorFillQuaternary,
-                    color: isActive ? "#fff" : token.colorTextSecondary,
+                    background: isActive ? warnGradient : token.voidSurfaceHover,
+                    color: isActive ? "#fff" : token.voidTextMuted,
                     borderRadius: 10,
                     padding: "0 6px",
                     fontSize: 10,
@@ -113,7 +113,7 @@ const WarningsDrawer = ({
               dataSource={(warningsRaw[selectedWarningPoint] || []).map((w, i) => ({ ...w, key: i }))}
               size="small"
               pagination={{ pageSize: 10, size: "small" }}
-              locale={{ emptyText: "Sin warnings para este punto" }}
+              locale={{ emptyText: <span style={{ color: token.voidTextMuted }}>Sin warnings para este punto</span> }}
               columns={[
                 {
                   title: "Fecha",
@@ -121,7 +121,7 @@ const WarningsDrawer = ({
                   key: "time",
                   width: 110,
                   render: (time) => (
-                    <Text style={{ fontSize: 11, color: token.colorTextSecondary, whiteSpace: "nowrap" }}>
+                    <Text style={{ fontSize: 11, color: token.voidTextMuted, whiteSpace: "nowrap" }}>
                       {time ? format(parseISO(time), "dd/MM HH:mm") : "—"}
                     </Text>
                   ),
@@ -131,7 +131,7 @@ const WarningsDrawer = ({
                   dataIndex: "type",
                   key: "type",
                   width: 80,
-                  render: (type) => <Tag style={{ fontSize: 10, margin: 0 }}>{type}</Tag>,
+                  render: (type) => <Tag style={{ fontSize: 10, margin: 0, background: token.voidSurface, borderColor: token.voidBorder, color: token.voidTextHeading }}>{type}</Tag>,
                 },
                 {
                   title: "Severidad",
@@ -139,8 +139,8 @@ const WarningsDrawer = ({
                   key: "severity",
                   width: 90,
                   render: (sev) => {
-                    const color = sev === "ERROR" ? "red" : sev === "WARNING" ? "orange" : "blue";
-                    return <Tag color={color} style={{ fontSize: 10, margin: 0 }}>{sev}</Tag>;
+                    const color = sev === "ERROR" ? token.colorError : sev === "WARNING" ? token.colorWarning : token.voidTextHeading;
+                    return <Tag style={{ fontSize: 10, margin: 0, background: `${color}15`, borderColor: `${color}30`, color }}>{sev}</Tag>;
                   },
                 },
                 {
@@ -148,7 +148,7 @@ const WarningsDrawer = ({
                   dataIndex: "message",
                   key: "message",
                   render: (msg) => (
-                    <Text style={{ fontSize: 12, whiteSpace: "normal", wordBreak: "break-word", lineHeight: 1.4 }}>
+                    <Text style={{ fontSize: 12, whiteSpace: "normal", wordBreak: "break-word", lineHeight: 1.4, color: token.voidText }}>
                       {msg}
                     </Text>
                   ),

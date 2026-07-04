@@ -3,6 +3,9 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import PerformanceDashboard from "./pages/PerformanceDashboard";
 import SupportDashboard from "./pages/SupportDashboard";
 import SupportIndicatorsPage from "./pages/SupportIndicatorsPage";
+import MyDeskPage from "./pages/MyDeskPage";
+import TicketCategoriesPage from "./pages/TicketCategoriesPage";
+import SlaConfigsPage from "./pages/SlaConfigsPage";
 import OperationalDashboard from "./pages/OperationalDashboard";
 import ClientsPage from "./pages/ClientsPage";
 import ProjectsPage from "./pages/ProjectsPage";
@@ -22,9 +25,13 @@ const AdminRouter = () => {
       <Route path="/" element={<Navigate to="/admin/performance" replace />} />
       <Route path="/performance" element={<PerformanceDashboard />} />
       <Route path="/operational" element={<OperationalDashboard />} />
-      <Route path="/support" element={<Navigate to="/admin/support/kanban" replace />} />
-      <Route path="/support/kanban" element={<SupportDashboard />} />
+      <Route path="/support" element={<Navigate to="/admin/support/my-desk" replace />} />
+      <Route path="/support/kanban" element={<Navigate to="/admin/support/tickets" replace />} />
+      <Route path="/support/tickets" element={<SupportDashboard />} />
       <Route path="/support/indicators" element={<SupportIndicatorsPage />} />
+      <Route path="/support/my-desk" element={<MyDeskPage />} />
+      <Route path="/support/categories" element={<TicketCategoriesPage />} />
+      <Route path="/support/sla-configs" element={<SlaConfigsPage />} />
       <Route path="/clients" element={<ClientsPage />} />
       <Route path="/projects" element={<ProjectsPage />} />
       <Route path="/points" element={<PointsPage />} />

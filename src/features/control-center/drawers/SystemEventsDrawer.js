@@ -11,7 +11,6 @@ import {
   Spin,
   Empty,
   Button,
-  theme,
 } from "antd";
 import {
   FaExclamationTriangle,
@@ -26,11 +25,11 @@ import {
 } from "react-icons/fa";
 import { format, parseISO, isValid } from "date-fns";
 import { es } from "date-fns/locale/es";
+import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import orchestrator from "../../../api/orchestrator";
 
 const { Text, Title } = Typography;
 const { RangePicker } = DatePicker;
-const { useToken } = theme;
 
 const PAGE_SIZE = 20;
 
@@ -66,12 +65,12 @@ const EVENT_COLORS = {
   COUNTER_RESET: "#722ed1",
   MEASUREMENT_ERROR: "#ff4d4f",
   MASSIVE_JUMP_BLOCKED: "#eb2f96",
-  TOKEN_REFRESH: "#1890ff",
+  TOKEN_REFRESH: "#8c8c8c",
   API_ERROR: "#595959",
 };
 
 const SEVERITY_COLORS = {
-  INFO: "#1890ff",
+  INFO: "#f2f5fa",
   WARNING: "#fa8c16",
   CRITICAL: "#ff4d4f",
 };
@@ -95,7 +94,7 @@ const formatDateGroup = (iso) => {
 };
 
 const SystemEventsDrawer = ({ open, onClose, point }) => {
-  const { token } = useToken();
+  const token = useIkoluToken();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -192,7 +191,7 @@ const SystemEventsDrawer = ({ open, onClose, point }) => {
             <Title level={5} style={{ margin: 0 }}>
               {pointName ? `Eventos: ${pointName}` : "Eventos del sistema"}
             </Title>
-            <Text style={{ fontSize: 12, color: token.colorTextSecondary }}>
+            <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
               {count} evento{count !== 1 ? "s" : ""} encontrado{count !== 1 ? "s" : ""}
             </Text>
           </Flex>
@@ -201,10 +200,10 @@ const SystemEventsDrawer = ({ open, onClose, point }) => {
       open={open}
       onClose={onClose}
       width={{ xs: "100%", md: 720 }}
-      styles={{ body: { padding: "16px 20px" } }}
+      styles={{ body: { padding: "16px 20px", background: "transparent" } }}
     >
       <Flex vertical gap={14}>
-        <Flex wrap="wrap" gap={8} align="center">
+        <Flex wrap="wrap" gap={8} align="center" style={{ padding: 12, background: token.glassBg, border: `1px solid ${token.glassBorder}`, borderRadius: token.voidRadius, backdropFilter: "blur(10px)" }}>
           <Select
             mode="multiple"
             size="small"
@@ -254,16 +253,16 @@ const SystemEventsDrawer = ({ open, onClose, point }) => {
             <Spin size="large" tip="Cargando eventos..." />
           </Flex>
         ) : error ? (
-          <Flex vertical align="center" gap={8} style={{ padding: 32, textAlign: "center" }}>
+          <Flex vertical align="center" gap={8} style={{ padding: 32, textAlign: "center", background: token.glassBg, border: `1px solid ${token.glassBorder}`, borderRadius: token.voidRadius }}>
             <FaExclamationTriangle style={{ fontSize: 32, color: token.colorError }} />
             <Text strong style={{ color: token.colorError }}>Error cargando eventos</Text>
-            <Text style={{ color: token.colorTextSecondary, fontSize: 12 }}>{error.message}</Text>
+            <Text style={{ color: token.voidTextMuted, fontSize: 12 }}>{error.message}</Text>
           </Flex>
         ) : (data?.results || []).length === 0 ? (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
             description={
-              <Text style={{ color: token.colorTextSecondary }}>
+              <Text style={{ color: token.voidTextMuted }}>
                 {hasFilters ? "No hay eventos con los filtros seleccionados" : "No hay eventos registrados"}
               </Text>
             }
@@ -278,10 +277,10 @@ const SystemEventsDrawer = ({ open, onClose, point }) => {
                     strong
                     style={{
                       fontSize: 12,
-                      color: token.colorTextSecondary,
+                      color: token.voidTextMuted,
                       textTransform: "uppercase",
                       letterSpacing: 0.5,
-                      borderBottom: `1px solid ${token.colorBorder}`,
+                      borderBottom: `1px solid ${token.voidBorder}`,
                       paddingBottom: 6,
                     }}
                   >
@@ -290,17 +289,18 @@ const SystemEventsDrawer = ({ open, onClose, point }) => {
                   <Flex vertical gap={8}>
                     {events.map((event) => {
                       const Icon = EVENT_ICONS[event.event_type] || FaExclamationTriangle;
-                      const eventColor = EVENT_COLORS[event.event_type] || token.colorTextSecondary;
-                      const severityColor = SEVERITY_COLORS[event.severity] || token.colorTextSecondary;
+                      const eventColor = EVENT_COLORS[event.event_type] || token.voidTextMuted;
+                      const severityColor = SEVERITY_COLORS[event.severity] || token.voidTextMuted;
                       return (
                         <Flex
                           key={event.id}
                           gap={12}
                           style={{
                             padding: "12px 14px",
-                            borderRadius: token.borderRadius,
-                            background: token.colorBgContainer,
-                            border: `1px solid ${token.colorBorderSecondary}`,
+                            borderRadius: token.voidRadius,
+                            background: token.glassBg,
+                            border: `1px solid ${token.glassBorder}`,
+                            backdropFilter: "blur(8px)",
                             transition: "all 0.2s ease",
                           }}
                         >
@@ -321,23 +321,22 @@ const SystemEventsDrawer = ({ open, onClose, point }) => {
                           </div>
                           <Flex vertical gap={4} style={{ flex: 1, minWidth: 0 }}>
                             <Flex wrap="wrap" gap={8} align="center">
-                              <Text strong style={{ fontSize: 13, color: token.colorText }}>
+                              <Text strong style={{ fontSize: 13, color: token.voidTextHeading }}>
                                 {event.title}
                               </Text>
                               <Tag
-                                color={severityColor}
-                                style={{ margin: 0, fontSize: 10, fontWeight: 600, lineHeight: "18px" }}
+                                style={{ margin: 0, fontSize: 10, fontWeight: 600, lineHeight: "18px", background: `${severityColor}15`, borderColor: `${severityColor}30`, color: severityColor }}
                               >
                                 {event.severity}
                               </Tag>
-                              <Tag style={{ margin: 0, fontSize: 10, lineHeight: "18px" }}>
+                              <Tag style={{ margin: 0, fontSize: 10, lineHeight: "18px", background: token.voidSurface, borderColor: token.voidBorder, color: token.voidTextHeading }}>
                                 {EVENT_TYPES.find((t) => t.value === event.event_type)?.label || event.event_type}
                               </Tag>
                             </Flex>
-                            <Text style={{ fontSize: 12, color: token.colorTextSecondary, lineHeight: 1.4 }}>
+                            <Text style={{ fontSize: 12, color: token.voidText, lineHeight: 1.4 }}>
                               {event.message}
                             </Text>
-                            <Text style={{ fontSize: 11, color: token.colorTextTertiary }}>
+                            <Text style={{ fontSize: 11, color: token.voidTextMuted }}>
                               {formatDateTime(event.created)}
                               {event.point?.title && ` · ${event.point.title}`}
                             </Text>

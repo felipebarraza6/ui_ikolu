@@ -1,40 +1,42 @@
 import React from "react";
-import { Layout, Menu, Typography, Drawer } from "antd";
-import {
-  DashboardOutlined,
-  BarChartOutlined,
-  ToolOutlined,
-  CustomerServiceOutlined,
-  TeamOutlined,
-  ProjectOutlined,
-  EnvironmentOutlined,
-  BuildOutlined,
-  CloudOutlined,
-  AlertOutlined,
-  NotificationOutlined,
-  FireOutlined,
-  FileProtectOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
+import { Layout, Menu, Drawer } from "antd";
+import { DashboardOutlined } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useIkoluToken } from "../../hooks/useIkoluToken";
-import logoSrc from "../../assets/images/ikolu.png";
+import { ADMIN_MENU } from "../admin/constants/adminMenu";
+import VoidCubeLogo from "../auth/components/VoidCubeLogo";
 
 const { Sider } = Layout;
-const { Text } = Typography;
 
-const AppLogo = ({ collapsed }) => (
-  <img
-    src={logoSrc}
-    alt="Ikolu"
-    style={{
-      height: collapsed ? 28 : 36,
-      width: "auto",
-      objectFit: "contain",
-    }}
-  />
-);
+const AppLogo = ({ collapsed }) => {
+  const size = collapsed ? 36 : 50;
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <VoidCubeLogo size={size} brightness={1.45} glowSize={0.6} />
+    </div>
+  );
+};
+
+/**
+ * Convierte la definición plana de ADMIN_MENU en items compatibles con Ant Menu.
+ * Cada entry puede tener `icon` como componente React (ya instanciado) o como
+ * constructor de icono; aquí lo instanciamos para que renderice correctamente.
+ */
+const mapMenuItem = (item) => ({
+  key: item.key,
+  icon: item.icon ? <item.icon /> : null,
+  label: item.label,
+  children: item.children ? item.children.map(mapMenuItem) : undefined,
+});
 
 const buildMenuItems = (isAdmin) => [
   {
@@ -42,39 +44,7 @@ const buildMenuItems = (isAdmin) => [
     icon: <DashboardOutlined />,
     label: "Centro de Control",
   },
-  ...(isAdmin
-    ? [
-        { key: "/admin/performance", icon: <BarChartOutlined />, label: "Rendimiento" },
-        { key: "/admin/operational", icon: <ToolOutlined />, label: "Operacional" },
-        {
-          key: "/admin/support",
-          icon: <CustomerServiceOutlined />,
-          label: "SLA",
-          children: [
-            { key: "/admin/support/kanban", icon: <CustomerServiceOutlined />, label: "Kanban" },
-            { key: "/admin/support/indicators", icon: <BarChartOutlined />, label: "Indicadores" },
-          ],
-        },
-        { key: "/admin/clients", icon: <TeamOutlined />, label: "Clientes" },
-        { key: "/admin/projects", icon: <ProjectOutlined />, label: "Proyectos" },
-        { key: "/admin/points", icon: <EnvironmentOutlined />, label: "Puntos" },
-        { key: "/admin/schemes", icon: <BuildOutlined />, label: "Esquemas y Variables" },
-        { key: "/admin/providers", icon: <CloudOutlined />, label: "Proveedores" },
-        {
-          key: "/admin/alerts",
-          icon: <AlertOutlined />,
-          label: "Alertas",
-          children: [
-            { key: "/admin/alerts", icon: <AlertOutlined />, label: "Resumen" },
-            { key: "/admin/alerts/rules", icon: <AlertOutlined />, label: "Reglas" },
-            { key: "/admin/alerts/channels", icon: <NotificationOutlined />, label: "Canales" },
-            { key: "/admin/alerts/triggers", icon: <FireOutlined />, label: "Disparos" },
-          ],
-        },
-        { key: "/admin/compliance", icon: <FileProtectOutlined />, label: "Cumplimiento" },
-        { key: "/admin/users", icon: <UserOutlined />, label: "Usuarios" },
-      ]
-    : []),
+  ...(isAdmin ? ADMIN_MENU.map(mapMenuItem) : []),
 ];
 
 const SidebarContent = ({ collapsed, onMenuClick }) => {
@@ -101,36 +71,50 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
     >
       <div
         style={{
-          height: 64,
+          height: 58,
+          minHeight: 58,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: collapsed ? 0 : 12,
+          gap: collapsed ? 0 : 10,
           borderBottom: `1px solid ${token.colorHeaderBorder}`,
-          padding: "0 16px",
+          padding: "6px 16px",
+          flexShrink: 0,
         }}
       >
         <AppLogo collapsed={collapsed} />
         {!collapsed && (
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <Text
+          <div style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
+            <span
               style={{
-                color: "#ffffff",
-                fontSize: 18,
-                fontWeight: 700,
-                lineHeight: 1.2,
+                display: "block",
+                color: "#f2f5fa",
+                fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+                fontSize: 15,
+                fontWeight: 600,
+                letterSpacing: "1px",
+                textTransform: "uppercase",
+                lineHeight: 1,
               }}
             >
               Ikolu
-            </Text>
-            <Text
+            </span>
+            <span
               style={{
-                color: "rgba(255,255,255,0.65)",
-                fontSize: 10,
+                display: "block",
+                color: "#f2f5fa",
+                fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace",
+                fontSize: 17,
+                fontWeight: 700,
+                letterSpacing: "2px",
+                textTransform: "uppercase",
+                textShadow: "0 0 12px rgba(255,255,255,0.18)",
+                lineHeight: 1,
+                marginTop: 2,
               }}
             >
-              Centro de Control
-            </Text>
+              Void
+            </span>
           </div>
         )}
       </div>
@@ -159,16 +143,9 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
           textAlign: "center",
         }}
       >
-        <img
-          src={logoSrc}
-          alt="Ikolu"
-          style={{
-            height: 20,
-            width: "auto",
-            opacity: 0.4,
-            objectFit: "contain",
-          }}
-        />
+        <div style={{ opacity: 0.4, display: "inline-flex" }}>
+          <VoidCubeLogo size={24} />
+        </div>
       </div>
     </div>
   );

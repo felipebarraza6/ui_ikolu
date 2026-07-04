@@ -155,8 +155,8 @@ const PerformanceDashboard = () => {
     <div style={{ padding: token.paddingLG }}>
       <Flex justify="space-between" align="center" wrap="wrap" gap={16} style={{ marginBottom: 24 }}>
         <div>
-          <Title level={3} style={{ margin: 0, color: token.colorTextHeading }}>
-            <BarChartOutlined style={{ marginRight: 12, color: token.colorPrimary }} />
+          <Title level={3} style={{ margin: 0, color: token.voidTextHeading }}>
+            <BarChartOutlined style={{ marginRight: 12, color: token.voidTextHeading }} />
             Dashboard de Rendimiento
           </Title>
           <Text type="secondary">Estado del sistema, métricas de telemetría y cola DGA.</Text>
@@ -184,7 +184,7 @@ const PerformanceDashboard = () => {
 
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={12} sm={8} md={6}>
-          <SmartKPICard
+          <SmartKPICard variant="void"
             icon={<WifiOutlined style={{ fontSize: 18, color: "#fff" }} />}
             label="Puntos Activos"
             value={statusCounts.active}
@@ -195,7 +195,7 @@ const PerformanceDashboard = () => {
           />
         </Col>
         <Col xs={12} sm={8} md={6}>
-          <SmartKPICard
+          <SmartKPICard variant="void"
             icon={<DisconnectOutlined style={{ fontSize: 18, color: "#fff" }} />}
             label="Desconectados"
             value={statusCounts.disconnected}
@@ -205,7 +205,7 @@ const PerformanceDashboard = () => {
           />
         </Col>
         <Col xs={12} sm={8} md={6}>
-          <SmartKPICard
+          <SmartKPICard variant="void"
             icon={<QuestionCircleOutlined style={{ fontSize: 18, color: "#fff" }} />}
             label="Sin Datos"
             value={statusCounts.noData}
@@ -215,17 +215,17 @@ const PerformanceDashboard = () => {
           />
         </Col>
         <Col xs={12} sm={8} md={6}>
-          <SmartKPICard
+          <SmartKPICard variant="void"
             icon={<DatabaseOutlined style={{ fontSize: 18, color: "#fff" }} />}
             label="Registros Procesados"
             value={totalRecords.toLocaleString("es-CL")}
-            gradient={token.gradientPrimary}
+            gradient="var(--ikolu-void-text-heading)"
             loading={loading}
             wave
           />
         </Col>
         <Col xs={12} sm={8} md={6}>
-          <SmartKPICard
+          <SmartKPICard variant="void"
             icon={<ExclamationCircleOutlined style={{ fontSize: 18, color: "#fff" }} />}
             label="Errores de Procesamiento"
             value={processingErrors}
@@ -235,18 +235,18 @@ const PerformanceDashboard = () => {
           />
         </Col>
         <Col xs={12} sm={8} md={6}>
-          <SmartKPICard
+          <SmartKPICard variant="void"
             icon={<ClockCircleOutlined style={{ fontSize: 18, color: "#fff" }} />}
             label="Latencia Promedio"
             value={avgLatency ? avgLatency.toFixed(1) : 0}
             suffix="ms"
-            gradient={`linear-gradient(135deg, ${token.colorInfo} 0%, ${token.colorInfo}dd 100%)`}
+            gradient="linear-gradient(135deg, var(--ikolu-void-text-muted) 0%, var(--ikolu-void-hover) 100%)"
             loading={loading}
             wave
           />
         </Col>
         <Col xs={12} sm={8} md={6}>
-          <SmartKPICard
+          <SmartKPICard variant="void"
             icon={<SyncOutlined style={{ fontSize: 18, color: "#fff" }} />}
             label="DGA Pendientes"
             value={dgaQueue?.pending ?? dgaQueue?.pending_count ?? 0}
@@ -257,12 +257,12 @@ const PerformanceDashboard = () => {
           />
         </Col>
         <Col xs={12} sm={8} md={6}>
-          <SmartKPICard
+          <SmartKPICard variant="void"
             icon={<CloudServerOutlined style={{ fontSize: 18, color: "#fff" }} />}
             label="Servicios Saludables"
             value={servicesHealthy}
             suffix={`/${servicesTotal}`}
-            gradient={`linear-gradient(135deg, ${token.colorPrimary} 0%, ${token.colorCorporateBlueLight} 100%)`}
+            gradient="linear-gradient(135deg, var(--ikolu-void-text-heading) 0%, var(--ikolu-void-surface) 100%)"
             loading={loading}
             wave
           />

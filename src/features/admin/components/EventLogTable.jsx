@@ -13,7 +13,7 @@ import { useIkoluToken } from "../../../hooks/useIkoluToken";
 const { Text } = Typography;
 
 const levelConfig = {
-  info: { color: "blue", icon: <InfoCircleOutlined /> },
+  info: { color: "default", icon: <InfoCircleOutlined /> },
   debug: { color: "default", icon: <FileTextOutlined /> },
   warning: { color: "orange", icon: <WarningOutlined /> },
   warn: { color: "orange", icon: <WarningOutlined /> },
@@ -51,9 +51,11 @@ const EventLogTable = memo(({ data, loading, page, onPageChange }) => {
       key: "title",
       render: (v, record) => (
         <Flex vertical>
-          <Text strong>{v || record.message || record.event_type || "—"}</Text>
+          <Text strong style={{ color: token.voidTextHeading }}>
+            {v || record.message || record.event_type || "—"}
+          </Text>
           {record.message && v && (
-            <Text type="secondary" style={{ fontSize: 12 }}>
+            <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
               {record.message}
             </Text>
           )}
@@ -69,9 +71,11 @@ const EventLogTable = memo(({ data, loading, page, onPageChange }) => {
         const pointId = record.point_catchment ?? record.point_id ?? record.point;
         return (
           <Flex vertical>
-            <Text strong>{v || `Punto ${pointId || "—"}`}</Text>
+            <Text strong style={{ color: token.voidTextHeading }}>
+              {v || `Punto ${pointId || "—"}`}
+            </Text>
             {pointId && v && (
-              <Text type="secondary" style={{ fontSize: 12 }}>
+              <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
                 ID: {pointId}
               </Text>
             )}
@@ -97,10 +101,13 @@ const EventLogTable = memo(({ data, loading, page, onPageChange }) => {
 
   return (
     <SmartCard
+      variant="void"
       title={
         <Flex align="center" gap={8}>
-          <FileTextOutlined style={{ color: token.colorPrimary }} />
-          <Text strong>Registro de Eventos del Sistema</Text>
+          <FileTextOutlined style={{ color: token.voidTextHeading }} />
+          <Text strong style={{ color: token.voidTextHeading }}>
+            Registro de Eventos del Sistema
+          </Text>
         </Flex>
       }
     >

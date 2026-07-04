@@ -1,11 +1,10 @@
 import React from "react";
-import { Flex, Pagination, theme } from "antd";
+import { Flex, Pagination } from "antd";
+import { useIkoluToken } from "../../../../hooks/useIkoluToken";
 import { SkeletonTable } from "../../../../shared/ui/SmartSkeleton";
 
-const { useToken } = theme;
-
 const SkeletonCompliance = ({ pageSize = 10 }) => {
-  const { token } = useToken();
+  const token = useIkoluToken();
   return (
     <div style={{ marginBottom: 24 }}>
       {/* Toolbar skeleton */}
@@ -14,16 +13,16 @@ const SkeletonCompliance = ({ pageSize = 10 }) => {
           style={{
             width: 180,
             height: 18,
-            borderRadius: token.borderRadiusSM,
-            background: token.colorFillSecondary,
+            borderRadius: token.voidRadius,
+            background: token.voidSurface,
           }}
         />
         <div
           style={{
             width: 260,
             height: 28,
-            borderRadius: token.borderRadiusSM,
-            background: token.colorFillSecondary,
+            borderRadius: token.voidRadius,
+            background: token.voidSurface,
           }}
         />
       </Flex>

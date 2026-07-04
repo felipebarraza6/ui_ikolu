@@ -12,6 +12,9 @@ import {
   FireOutlined,
   FileProtectOutlined,
   UserOutlined,
+  CalendarOutlined,
+  TagsOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 
 export const ADMIN_MENU = [
@@ -20,10 +23,13 @@ export const ADMIN_MENU = [
   {
     key: "/admin/support",
     icon: CustomerServiceOutlined,
-    label: "SLA",
+    label: "Soporte",
     children: [
-      { key: "/admin/support/kanban", icon: CustomerServiceOutlined, label: "Kanban" },
-      { key: "/admin/support/indicators", icon: BarChartOutlined, label: "Indicadores" },
+      { key: "/admin/support/my-desk", icon: CalendarOutlined, label: "Mi Escritorio" },
+      { key: "/admin/support/tickets", icon: CustomerServiceOutlined, label: "Tickets" },
+      { key: "/admin/support/indicators", icon: BarChartOutlined, label: "Métricas SLA" },
+      { key: "/admin/support/categories", icon: TagsOutlined, label: "Categorías" },
+      { key: "/admin/support/sla-configs", icon: SettingOutlined, label: "Configuración SLA" },
     ],
   },
   { key: "/admin/clients", icon: TeamOutlined, label: "Clientes" },

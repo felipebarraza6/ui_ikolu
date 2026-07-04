@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from "react";
-import { Flex, Typography, Table, Tag, Tooltip, theme, Input, Select } from "antd";
+import { Flex, Typography, Table, Tag, Tooltip, Input, Select } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import { FaExclamationTriangle, FaChartLine } from "react-icons/fa";
 import { useAuth } from "../../../../contexts/AuthContext";
+import { useIkoluToken } from "../../../../hooks/useIkoluToken";
 import { PointHeader, ConsumptionCell, ActionButtons } from "../../components";
 
 const { Text } = Typography;
-const { useToken } = theme;
 
 const typeDgaLabels = {
   "SUPERFICIAL": "Superficial",
@@ -73,7 +73,7 @@ const pointsColumns = ({
     sorter: true,
     defaultSortOrder: "ascend",
     render: (_, record) => (
-      <PointHeader record={record} onViewPointConfig={onViewPointConfig} token={token} />
+      <PointHeader record={record} onViewPointConfig={onViewPointConfig} />
     ),
   },
   {
@@ -93,9 +93,9 @@ const pointsColumns = ({
         ? [record.compliance_type]
         : [];
       const isSma = complianceTypes.some((t) => String(t).trim().toUpperCase() === "SMA");
-      if (!standardLabel || isSma) return <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextDisabled }}>—</Text>;
+      if (!standardLabel || isSma) return <Text style={{ fontSize: token.fontSizeSM, color: token.voidTextMuted }}>—</Text>;
       return (
-        <Tag style={{ fontSize: token.fontSizeSM }}>
+        <Tag style={{ fontSize: token.fontSizeSM, background: token.voidSurface, borderColor: token.voidBorder, color: token.voidTextHeading }}>
           {standardLabel}
         </Tag>
       );
@@ -111,7 +111,7 @@ const pointsColumns = ({
     onFilter: () => true,
     filteredValue: nature ? nature.split(",") : null,
     render: (_, record) => (
-      <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextSecondary }}>
+      <Text style={{ fontSize: token.fontSizeSM, color: token.voidText }}>
         {typeDgaLabels[record.type_dga] || record.type_dga}
       </Text>
     ),
@@ -123,7 +123,7 @@ const pointsColumns = ({
     align: "center",
     sorter: true,
     render: (_, record) => (
-      <ConsumptionCell record={record} token={token} />
+      <ConsumptionCell record={record} />
     ),
   },
   {
@@ -146,16 +146,16 @@ const pointsColumns = ({
                 {Number(currentFlow).toFixed(1)}
                 <span style={{ fontSize: token.fontSizeSM, fontWeight: 400, marginLeft: 2 }}> L/s</span>
               </Text>
-              <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextSecondary }}>
+              <Text style={{ fontSize: token.fontSizeSM, color: token.voidTextMuted }}>
                 / {Number(authorizedFlow).toFixed(1)} L/s
               </Text>
             </>
           ) : currentFlow != null ? (
-            <Text strong style={{ fontSize: token.fontSize, color: token.colorText }}>
+            <Text strong style={{ fontSize: token.fontSize, color: token.voidTextHeading }}>
               {Number(currentFlow).toFixed(1)} L/s
             </Text>
           ) : (
-            <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextDisabled }}>—</Text>
+            <Text style={{ fontSize: token.fontSizeSM, color: token.voidTextMuted }}>—</Text>
           )}
         </Flex>
       );
@@ -170,12 +170,12 @@ const pointsColumns = ({
     render: (_, record) => {
       const v = record.water_table_m;
       return v != null ? (
-        <Text style={{ fontSize: token.fontSize, color: token.colorInfo }}>
+        <Text style={{ fontSize: token.fontSize, color: token.voidText }}>
           {Number(v).toFixed(2)}
           <span style={{ fontSize: token.fontSizeSM, marginLeft: 2 }}> m</span>
         </Text>
       ) : (
-        <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextDisabled }}>—</Text>
+        <Text style={{ fontSize: token.fontSizeSM, color: token.voidTextMuted }}>—</Text>
       );
     },
   },
@@ -211,7 +211,7 @@ const pointsColumns = ({
                     onViewFlowHistory?.(record);
                   }
                 }}
-                style={{ ...badgeBase, background: `${token.colorError}15`, border: `1px solid ${token.colorError}30` }}
+                style={{ ...badgeBase, background: `${token.colorError}15`, border: `1px solid ${token.colorError}30`, color: token.colorError }}
                 onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.85"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
               >
@@ -239,7 +239,7 @@ const pointsColumns = ({
                     onViewNearLimitHistory?.(record);
                   }
                 }}
-                style={{ ...badgeBase, background: `${token.colorWarning}15`, border: `1px solid ${token.colorWarning}30` }}
+                style={{ ...badgeBase, background: `${token.colorWarning}15`, border: `1px solid ${token.colorWarning}30`, color: token.colorWarning }}
                 onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.85"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
               >
@@ -298,7 +298,7 @@ const CCComplianceTable = ({
   nature = "",
   setNature,
 }) => {
-  const { token } = useToken();
+  const token = useIkoluToken();
   const { isSuperUser } = useAuth();
   const [localSearch, setLocalSearch] = useState(search);
   const isServerPaginated = total > 0 && Array.isArray(points) && !!setPage;
@@ -307,7 +307,7 @@ const CCComplianceTable = ({
     safe: { color: token.colorSuccess, label: "Dentro de límites" },
     warning: { color: token.colorWarning, label: "Cerca de superar límite" },
     critical: { color: token.colorError, label: "Incumplimiento detectado" },
-    unknown: { color: token.colorTextDisabled, label: "Sin límites configurados" },
+    unknown: { color: token.voidTextMuted, label: "Sin límites configurados" },
   };
 
   const filteredPoints = useMemo(() => {
@@ -411,7 +411,7 @@ const CCComplianceTable = ({
   return (
     <div>
       <Flex justify="space-between" align="center" wrap="wrap" gap={8} style={{ marginBottom: 12 }}>
-        <Text strong style={{ fontSize: token.fontSizeLG }}>
+        <Text strong style={{ fontSize: token.fontSizeLG, color: token.voidTextHeading }}>
           Cumplimiento normativo
         </Text>
         <Flex gap={8} wrap="wrap">
@@ -424,15 +424,15 @@ const CCComplianceTable = ({
               setPage?.(1);
             }}
             options={orderByOptions}
-            style={{ minWidth: 180 }}
+            style={{ minWidth: 180, background: token.glassBg, borderColor: token.glassBorder, borderRadius: token.voidRadius }}
           />
           <Input
-            prefix={<SearchOutlined />}
+            prefix={<SearchOutlined style={{ color: token.voidTextMuted }} />}
             placeholder="Buscar punto o código..."
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
             onPressEnter={handleSearchSubmit}
-            style={{ width: 260 }}
+            style={{ width: 260, background: token.glassBg, borderColor: token.glassBorder }}
             allowClear
             size="small"
           />
@@ -446,11 +446,12 @@ const CCComplianceTable = ({
         size="small"
         scroll={{ x: "max-content" }}
         pagination={paginationConfig}
-        locale={{ emptyText: "No hay puntos disponibles" }}
+        locale={{ emptyText: <span style={{ color: token.voidTextMuted }}>No hay puntos disponibles</span> }}
         onChange={handleTableChange}
         onRow={(record) => ({
           style: {
             borderLeft: `4px solid ${levelColorMap[record.compliance_warning?.level || "safe"]?.color || levelColorMap.safe.color}`,
+            background: token.glassBg,
           },
         })}
       />

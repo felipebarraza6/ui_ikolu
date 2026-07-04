@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from "react";
-import { Flex, Typography, Tooltip, theme } from "antd";
+import { Flex, Typography, Tooltip } from "antd";
 import { FaCheckCircle, FaShieldAlt } from "react-icons/fa";
+import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import BlinkingDot from "./BlinkingDot";
 
 const { Text } = Typography;
-const { useToken } = theme;
 
 export const createLevelConfig = (token) => ({
   safe: {
@@ -30,9 +30,9 @@ export const createLevelConfig = (token) => ({
     shortLabel: "Crítico",
   },
   unknown: {
-    color: token.colorTextDisabled,
-    bg: '#E9ECEF',
-    border: '#CED4DA',
+    color: token.voidTextMuted,
+    bg: token.voidSurface,
+    border: token.voidBorder,
     label: "Sin límites configurados",
     icon: FaShieldAlt,
     shortLabel: "N/A",
@@ -40,7 +40,7 @@ export const createLevelConfig = (token) => ({
 });
 
 const StatusBadge = ({ record, onViewComplianceDetail }) => {
-  const { token } = useToken();
+  const token = useIkoluToken();
 
   const [hasBeenClicked, setHasBeenClicked] = useState(false);
   const levelConfig = useMemo(() => createLevelConfig(token), [token]);

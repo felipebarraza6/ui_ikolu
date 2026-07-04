@@ -1,22 +1,22 @@
 import React from "react";
-import { Flex, Tooltip, theme } from "antd";
+import { Flex, Tooltip, Grid } from "antd";
 import { FaEye, FaPauseCircle, FaHeadset } from "react-icons/fa";
 import { SafetyOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
+import { useIkoluToken } from "../../../hooks/useIkoluToken";
 
-const { useToken } = theme;
-
-const btnBase = (color) => ({
-  width: 28,
-  height: 28,
+const btnBase = (color, size = 28) => ({
+  width: size,
+  height: size,
   borderRadius: "50%",
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
   cursor: "pointer",
-  border: `1.5px solid ${color}30`,
+  border: `1.5px solid ${color}35`,
   background: `${color}12`,
   color,
   transition: "all 0.2s ease",
+  backdropFilter: "blur(4px)",
 });
 
 const ActionButtons = ({
@@ -28,7 +28,9 @@ const ActionButtons = ({
   togglingCompliance,
   isSuperUser,
 }) => {
-  const { token } = useToken();
+  const token = useIkoluToken();
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
 
   const handleHover = (e, enter, color) => {
     e.currentTarget.style.transform = enter ? "scale(1.15)" : "scale(1)";
@@ -38,47 +40,48 @@ const ActionButtons = ({
 
   const isToggling = !!togglingCompliance?.[record.id];
   const complianceColor = record.complianceActive ? token.colorSuccess : token.colorError;
+  const btnSize = isMobile ? 24 : 28;
 
   return (
-    <Flex align="center" justify="center" gap={8} onClick={(e) => e.stopPropagation()}>
+    <Flex align="center" justify="center" gap={isMobile ? 6 : 8} onClick={(e) => e.stopPropagation()}>
       {record.voucher ? (
         <Tooltip title="Ver voucher">
           <div
             role="button"
             tabIndex={0}
-            style={btnBase(token.colorSuccess)}
+            style={btnBase(token.colorSuccess, btnSize)}
             onClick={() => onViewVoucher?.(record)}
             onMouseEnter={(e) => handleHover(e, true, token.colorSuccess)}
             onMouseLeave={(e) => handleHover(e, false, token.colorSuccess)}
           >
-            <FaEye style={{ fontSize: 12 }} />
+            <FaEye style={{ fontSize: isMobile ? 10 : 12 }} />
           </div>
         </Tooltip>
       ) : (
-        <div style={{ width: 28, height: 28 }} />
+        <div style={{ width: btnSize, height: btnSize }} />
       )}
       <Tooltip title="Solicitar detencion">
         <div
           role="button"
           tabIndex={0}
-          style={btnBase(token.colorError)}
+          style={btnBase(token.colorError, btnSize)}
           onClick={() => onOpenStopCompliance?.(record)}
           onMouseEnter={(e) => handleHover(e, true, token.colorError)}
           onMouseLeave={(e) => handleHover(e, false, token.colorError)}
         >
-          <FaPauseCircle style={{ fontSize: 12 }} />
+          <FaPauseCircle style={{ fontSize: isMobile ? 10 : 12 }} />
         </div>
       </Tooltip>
       <Tooltip title="Solicitar soporte">
         <div
           role="button"
           tabIndex={0}
-          style={btnBase(token.colorWarning)}
+          style={btnBase(token.colorWarning, btnSize)}
           onClick={() => onOpenSupport?.(record, "CUMPLIMIENTO")}
           onMouseEnter={(e) => handleHover(e, true, token.colorWarning)}
           onMouseLeave={(e) => handleHover(e, false, token.colorWarning)}
         >
-          <FaHeadset style={{ fontSize: 12 }} />
+          <FaHeadset style={{ fontSize: isMobile ? 10 : 12 }} />
         </div>
       </Tooltip>
       {isSuperUser && (
@@ -87,7 +90,7 @@ const ActionButtons = ({
             role="button"
             tabIndex={0}
             style={{
-              ...btnBase(complianceColor),
+              ...btnBase(complianceColor, btnSize),
               opacity: isToggling ? 0.5 : 1,
               cursor: isToggling ? "not-allowed" : "pointer",
               pointerEvents: isToggling ? "none" : "auto",
@@ -97,9 +100,9 @@ const ActionButtons = ({
             onMouseLeave={(e) => !isToggling && handleHover(e, false, complianceColor)}
           >
             {record.complianceActive ? (
-              <SafetyCertificateOutlined style={{ fontSize: 12 }} />
+              <SafetyCertificateOutlined style={{ fontSize: isMobile ? 10 : 12 }} />
             ) : (
-              <SafetyOutlined style={{ fontSize: 12 }} />
+              <SafetyOutlined style={{ fontSize: isMobile ? 10 : 12 }} />
             )}
           </div>
         </Tooltip>

@@ -1,6 +1,7 @@
-import React, { useMemo, useCallback } from "react";
-import { Row, Col, Spin } from "antd";
+import React, { useMemo, useCallback, useState } from "react";
+import { Row, Col, Spin, Select, Flex } from "antd";
 import KanbanColumn from "./KanbanColumn";
+import { useResponsive } from "../../../../hooks/useResponsive";
 import {
   getTicketColumn,
   KANBAN_COLUMNS,
@@ -9,8 +10,13 @@ import {
 
 /**
  * Tablero Kanban de tickets con 5 columnas y drag-and-drop nativo.
+ *
+ * En mobile muestra una sola columna seleccionable para evitar scroll horizontal.
  */
 const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading }) => {
+  const { isMobile } = useResponsive();
+  const [activeColumn, setActiveColumn] = useState(KANBAN_COLUMNS[0]?.key);
+
   const columnsTickets = useMemo(() => {
     const map = Object.fromEntries(KANBAN_COLUMNS.map((column) => [column.key, []]));
     for (const ticket of tickets) {
@@ -31,6 +37,37 @@ const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading }) => {
     },
     [tickets, onStatusChange]
   );
+
+  const columnOptions = useMemo(
+    () =>
+      KANBAN_COLUMNS.map((column) => ({
+        value: column.key,
+        label: `${column.label} (${columnsTickets[column.key]?.length || 0})`,
+      })),
+    [columnsTickets]
+  );
+
+  if (isMobile) {
+    const active = KANBAN_COLUMNS.find((c) => c.key === activeColumn) || KANBAN_COLUMNS[0];
+    return (
+      <Spin spinning={loading} tip="Cargando tickets...">
+        <Flex vertical gap={12}>
+          <Select
+            value={activeColumn}
+            onChange={setActiveColumn}
+            options={columnOptions}
+            style={{ width: "100%" }}
+          />
+          <KanbanColumn
+            column={active}
+            tickets={columnsTickets[active.key] || []}
+            onTicketClick={onTicketClick}
+            onDropTicket={handleDropTicket}
+          />
+        </Flex>
+      </Spin>
+    );
+  }
 
   return (
     <Spin spinning={loading} tip="Cargando tickets...">

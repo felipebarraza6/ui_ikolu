@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { Flex, Typography, Button, Table, Input, Modal, Space, Tooltip, Form, Switch, Tag } from "antd";
 import { PlusOutlined, ReloadOutlined, EditOutlined, DeleteOutlined, UserOutlined } from "@ant-design/icons";
-import { SmartCard } from "../../../shared/ui";
+import { SmartCard, SmartButton } from "../../../shared/ui";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import useAdminCrud from "../hooks/useAdminCrud";
 import CrudDrawer from "../components/CrudDrawer";
@@ -134,7 +134,7 @@ const UsersPage = () => {
       render: (_, r) => (
         <Space size={4} wrap>
           {r.is_superuser && <Tag color="gold">Superuser</Tag>}
-          {r.is_staff && <Tag color="blue">Staff</Tag>}
+          {r.is_staff && <Tag color="default">Staff</Tag>}
           {r.is_client_admin && <Tag color="purple">Client Admin</Tag>}
           {r.is_active ? <Tag color="green">Activo</Tag> : <Tag color="default">Inactivo</Tag>}
         </Space>
@@ -162,8 +162,8 @@ const UsersPage = () => {
     <div style={{ padding: token.paddingLG }}>
       <Flex justify="space-between" align="center" wrap="wrap" gap={16} style={{ marginBottom: 24 }}>
         <Flex align="center" gap={12}>
-          <UserOutlined style={{ fontSize: 24, color: token.colorPrimary }} />
-          <Title level={3} style={{ margin: 0, color: token.colorTextHeading }}>
+          <UserOutlined style={{ fontSize: 24, color: token.voidTextHeading }} />
+          <Title level={3} style={{ margin: 0, color: token.voidTextHeading }}>
             Usuarios
           </Title>
         </Flex>
@@ -178,18 +178,17 @@ const UsersPage = () => {
           <Button icon={<ReloadOutlined />} onClick={() => fetchPage(pagination.current)} loading={loading}>
             Actualizar
           </Button>
-          <Button
-            type="primary"
+          <SmartButton
+            variant="void"
             icon={<PlusOutlined />}
             onClick={handleOpenCreate}
-            style={{ background: token.colorPrimary }}
           >
             Nuevo Usuario
-          </Button>
+          </SmartButton>
         </Flex>
       </Flex>
 
-      <SmartCard>
+      <SmartCard variant="void">
         <Table
           rowKey="username"
           columns={columns}

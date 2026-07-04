@@ -33,6 +33,12 @@ const SmartCard = ({
       border: "none",
       boxShadow: "none",
     },
+    void: {
+      background: "rgba(255,255,255,0.05)",
+      border: "1px solid rgba(255,255,255,0.08)",
+      boxShadow: "0 4px 24px rgba(0,0,0,0.35)",
+      backdropFilter: "blur(10px)",
+    },
   };
 
   const variantStyle = variantStyles[variant] || variantStyles.default;

@@ -1,5 +1,7 @@
 @import "./shared/ui/SmartSkeleton/skeleton.css";
+@import "./styles/ikolu-theme-vars.css";
 @import "./styles/ocean-theme.css";
+@import "./styles/void-theme.css";
 
 body {
   margin: 0;

@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { Drawer, theme } from "antd";
+import React from "react";
+import { Drawer } from "antd";
 import { useControlCenterStore } from "./stores/controlCenterStore";
 import WarningsDrawer from "./drawers/WarningsDrawer";
 import VoucherModal from "./drawers/VoucherModal";
@@ -13,8 +13,6 @@ import { MeasurementsDrawerHeader, MeasurementsDrawerLoading } from "./drawers/M
 import { MeasurementsDrawerContentMemo } from "./measurements/MeasurementDrawer";
 import ModuleTour from "./ModuleTour";
 import { centroControlTour } from "../../config/tours";
-
-const { useToken } = theme;
 
 /**
  * ControlCenterDrawers — Aisla todos los drawers/modales del Centro de Control
@@ -37,7 +35,9 @@ const ControlCenterDrawers = ({
   setSelectedVoucher,
   dgaVerifying,
   dgaResult,
+  setDgaResult,
   dgaConsole,
+  setDgaConsole,
   voucherCopied,
   setVoucherCopied,
   handleVerifyDGA,
@@ -46,6 +46,7 @@ const ControlCenterDrawers = ({
   selectedMeasurementPoint,
   setSelectedMeasurementPoint,
   measurementsData,
+  setMeasurementsData,
   measurementsLoading,
   measurementsViewMode,
   setMeasurementsViewMode,
@@ -100,7 +101,6 @@ const ControlCenterDrawers = ({
   pointConfigName,
   setPointConfigData,
 }) => {
-  const { token } = useToken();
   const d = (name) => drawers[name] || { open: false };
 
   const warningsList = useControlCenterStore.getState().getWarningsList();
@@ -148,7 +148,6 @@ const ControlCenterDrawers = ({
         ) : (
           <MeasurementsDrawerContentMemo
             data={measurementsData}
-            token={token}
             viewMode={measurementsViewMode}
             variables={selectedMeasurementPoint?.variables || []}
             activeTab={measurementsTab}

@@ -3,7 +3,7 @@ import "./ControlCenter.css";
 import { useControlCenterStore } from "./stores/controlCenterStore";
 import { useControlCenterData } from "./hooks/useControlCenterData";
 import orchestrator from "../../api/orchestrator";
-import { Form, theme, Drawer, message } from "antd";
+import { Form, Drawer, message } from "antd";
 import CCSupportDrawer from "./drawers/SupportDrawer";
 import PointConfigDrawer from "./drawers/PointConfigDrawer";
 import SystemEventsDrawer from "./drawers/SystemEventsDrawer";
@@ -24,11 +24,8 @@ import { MeasurementsDrawerContentMemo } from "./measurements/MeasurementDrawer"
 import { extractRecordNum } from "./measurements/MeasurementUtils";
 import ControlCenterContainer from "./containers/ControlCenterContainer";
 
-const { useToken } = theme;
-
 const ControlCenter = () => {
   const { user } = useAuth();
-  const { token } = useToken();
   const location = useLocation();
   const activeTab = useMemo(() => {
     return location.pathname.includes("/compliance") ? "compliance" : "telemetry";
@@ -526,7 +523,7 @@ const ControlCenter = () => {
           <MeasurementsDrawerLoading />
         ) : (
           <MeasurementsDrawerContentMemo
-            data={measurementsData} token={token} viewMode={measurementsViewMode}
+            data={measurementsData} viewMode={measurementsViewMode}
             variables={selectedMeasurementPoint?.variables || []}
             activeTab={measurementsTab} onTabChange={setMeasurementsTab}
             totalDayConsumo={totalDayConsumo}

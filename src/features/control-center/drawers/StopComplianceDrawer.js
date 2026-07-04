@@ -1,10 +1,11 @@
 import React from "react";
-import { Drawer, Row, Col, Flex, Typography, Card, Button, Input, Form, DatePicker, Alert, theme } from "antd";
+import { Drawer, Row, Col, Flex, Typography, Card, Button, Input, Form, DatePicker, Alert } from "antd";
 import { FaPauseCircle } from "react-icons/fa";
+import { SmartButton } from "../../../shared/ui";
 import { useAuth } from "../../../contexts/AuthContext";
+import { useIkoluToken } from "../../../hooks/useIkoluToken";
 
 const { Text } = Typography;
-const { useToken } = theme;
 
 const StopComplianceDrawer = ({
   open,
@@ -16,37 +17,37 @@ const StopComplianceDrawer = ({
   showDgaAlert,
   showDgaCriticalAlert,
 }) => {
-  const { token } = useToken();
+  const token = useIkoluToken();
   const { user } = useAuth();
 
   return (
     <Drawer
       title={
         <Flex align="center" gap={8}>
-          <FaPauseCircle style={{ color: token.colorPrimary, fontSize: 16 }} />
-          <Text strong style={{ fontSize: 16 }}>Solicitud para detener cumplimiento</Text>
+          <FaPauseCircle style={{ color: token.voidTextHeading, fontSize: 16 }} />
+          <Text strong style={{ fontSize: 16, color: token.voidTextHeading }}>Solicitud para detener cumplimiento</Text>
         </Flex>
       }
       open={open}
       onClose={onClose}
       width={420}
-      styles={{ body: { padding: 20 } }}
+      styles={{ body: { padding: 20, background: "transparent" } }}
       footer={
         <Flex justify="flex-end" gap={8}>
           <Button onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="primary" loading={loading} onClick={() => form.submit()}>
+          <SmartButton variant="void" loading={loading} onClick={() => form.submit()}>
             Enviar solicitud
-          </Button>
+          </SmartButton>
         </Flex>
       }
     >
       {point && (
         <Flex vertical gap={12} style={{ marginBottom: 16 }}>
-          <Card size="small" bodyStyle={{ padding: 10 }} style={{ background: `${token.colorPrimary}06`, border: `1px solid ${token.colorPrimary}15` }}>
-            <Text strong style={{ fontSize: 13, display: "block" }}>{point.name}</Text>
-            <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>Código: {point.code}</Text>
+          <Card size="small" bodyStyle={{ padding: 10 }} style={{ background: token.glassBg, border: `1px solid ${token.glassBorder}`, borderRadius: token.voidRadius }}>
+            <Text strong style={{ fontSize: 13, display: "block", color: token.voidTextHeading }}>{point.name}</Text>
+            <Text style={{ fontSize: 11, color: token.voidTextMuted }}>Código: {point.code}</Text>
           </Card>
         </Flex>
       )}

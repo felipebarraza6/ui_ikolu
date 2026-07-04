@@ -41,8 +41,8 @@ export const ThemeProvider = ({ children }) => {
   );
 
   const contextValue = useMemo(
-    () => ({ isDark, toggleTheme, algorithm, themeConfig }),
-    [isDark, toggleTheme, algorithm, themeConfig]
+    () => ({ isDark, setIsDark, toggleTheme, algorithm, themeConfig }),
+    [isDark, setIsDark, toggleTheme, algorithm, themeConfig]
   );
 
   return (

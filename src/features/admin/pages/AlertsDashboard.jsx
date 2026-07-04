@@ -59,7 +59,7 @@ const AlertsDashboard = () => {
       value: stats.channels,
       icon: NotificationOutlined,
       path: "/admin/alerts/channels",
-      color: token.colorInfo,
+      color: token.voidTextHeading,
     },
     {
       label: "Disparos activos",
@@ -73,7 +73,7 @@ const AlertsDashboard = () => {
   return (
     <div style={{ padding: token.paddingLG }}>
       <Flex justify="space-between" align="center" style={{ marginBottom: 24 }}>
-        <Title level={3} style={{ margin: 0, color: token.colorTextHeading }}>
+        <Title level={3} style={{ margin: 0, color: token.voidTextHeading }}>
           Centro de Alertas
         </Title>
         <Button icon={<ReloadOutlined />} onClick={loadStats} loading={loading}>
@@ -89,9 +89,10 @@ const AlertsDashboard = () => {
                 hoverable
                 onClick={() => navigate(card.path)}
                 style={{
-                  background: token.colorBgElevated,
-                  border: `1px solid ${token.colorBorder}`,
-                  borderRadius: token.borderRadiusLG,
+                  background: token.glassBg,
+                  border: `1px solid ${token.glassBorder}`,
+                  borderRadius: token.voidRadius,
+                  backdropFilter: "blur(10px)",
                 }}
               >
                 <Flex align="center" gap={16}>
@@ -111,7 +112,7 @@ const AlertsDashboard = () => {
                   <Statistic
                     title={card.label}
                     value={card.value}
-                    valueStyle={{ color: token.colorTextHeading, fontWeight: 700 }}
+                    valueStyle={{ color: token.voidTextHeading, fontWeight: 700 }}
                   />
                 </Flex>
               </Card>

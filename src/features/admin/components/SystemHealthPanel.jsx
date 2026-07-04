@@ -54,14 +54,14 @@ const ServiceRow = memo(({ icon, label, status, extra }) => {
         justify="space-between"
         style={{
           padding: "10px 12px",
-          borderRadius: token.borderRadius,
-          background: token.colorFillTertiary,
-          border: `1px solid ${token.colorBorderSecondary}`,
+          borderRadius: token.voidRadius,
+          background: token.voidSurface,
+          border: `1px solid ${token.voidBorder}`,
         }}
       >
         <Flex align="center" gap={10}>
-          <Text style={{ fontSize: 16, color: token.colorPrimary }}>{icon}</Text>
-          <Text strong style={{ textTransform: "capitalize" }}>
+          <Text style={{ fontSize: 16, color: token.voidTextHeading }}>{icon}</Text>
+          <Text strong style={{ textTransform: "capitalize", color: token.voidTextHeading }}>
             {label}
           </Text>
         </Flex>
@@ -152,10 +152,13 @@ const SystemHealthPanel = memo(({ data, loading }) => {
 
   return (
     <SmartCard
+      variant="void"
       title={
         <Flex align="center" gap={8}>
-          <CloudServerOutlined style={{ color: token.colorPrimary }} />
-          <Text strong>Estado de Servicios</Text>
+          <CloudServerOutlined style={{ color: token.voidTextHeading }} />
+          <Text strong style={{ color: token.voidTextHeading }}>
+            Estado de Servicios
+          </Text>
         </Flex>
       }
       style={{ height: "100%" }}
@@ -171,20 +174,20 @@ const SystemHealthPanel = memo(({ data, loading }) => {
           {server.cpu_percent !== undefined && (
             <Flex vertical gap={8}>
               <Flex justify="space-between">
-                <Text type="secondary">CPU</Text>
-                <Text>{server.cpu_percent}%</Text>
+                <Text style={{ color: token.voidTextMuted }}>CPU</Text>
+                <Text style={{ color: token.voidText }}>{server.cpu_percent}%</Text>
               </Flex>
               <Progress percent={server.cpu_percent} size="small" status={server.cpu_percent > 90 ? "exception" : "normal"} showInfo={false} />
 
               <Flex justify="space-between">
-                <Text type="secondary">Memoria</Text>
-                <Text>{server.memory_percent}%</Text>
+                <Text style={{ color: token.voidTextMuted }}>Memoria</Text>
+                <Text style={{ color: token.voidText }}>{server.memory_percent}%</Text>
               </Flex>
               <Progress percent={parseFloat(server.memory_percent)} size="small" status={server.memory_percent > 90 ? "exception" : "normal"} showInfo={false} />
 
               <Flex justify="space-between">
-                <Text type="secondary">Disco</Text>
-                <Text>{server.disk_percent}%</Text>
+                <Text style={{ color: token.voidTextMuted }}>Disco</Text>
+                <Text style={{ color: token.voidText }}>{server.disk_percent}%</Text>
               </Flex>
               <Progress percent={parseFloat(server.disk_percent)} size="small" status={server.disk_percent > 90 ? "exception" : "normal"} showInfo={false} />
             </Flex>
@@ -199,8 +202,8 @@ const SystemHealthPanel = memo(({ data, loading }) => {
           {cronjobStats && cronjobStats.total > 0 && (
             <Flex vertical gap={8} style={{ marginTop: 8 }}>
               <Flex justify="space-between">
-                <Text type="secondary">Cronjobs</Text>
-                <Text>
+                <Text style={{ color: token.voidTextMuted }}>Cronjobs</Text>
+                <Text style={{ color: token.voidText }}>
                   {cronjobStats.healthy}/{cronjobStats.total} saludables
                 </Text>
               </Flex>
@@ -222,7 +225,7 @@ const SystemHealthPanel = memo(({ data, loading }) => {
                     />
                   ))}
                   {cronjobStats.items.length > 8 && (
-                    <Text type="secondary" style={{ fontSize: 12 }}>
+                    <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
                       +{cronjobStats.items.length - 8} cronjobs más
                     </Text>
                   )}

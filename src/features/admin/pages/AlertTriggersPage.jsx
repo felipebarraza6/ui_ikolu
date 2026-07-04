@@ -12,7 +12,7 @@ import {
   message,
 } from "antd";
 import { ReloadOutlined, CheckCircleOutlined, FireOutlined } from "@ant-design/icons";
-import { SmartCard } from "../../../shared/ui";
+import { SmartCard, SmartButton } from "../../../shared/ui";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import orchestrator from "../../../api/orchestrator";
 
@@ -149,15 +149,15 @@ const AlertTriggersPage = () => {
       align: "center",
       render: (_, record) =>
         !record.is_acknowledged && (
-          <Button
-            size="small"
-            type="primary"
+          <SmartButton
+            size="sm"
+            variant="void"
             icon={<CheckCircleOutlined />}
             loading={ackLoading === record.id}
             onClick={() => handleAcknowledge(record)}
           >
             Reconocer
-          </Button>
+          </SmartButton>
         ),
     },
   ];
@@ -167,7 +167,7 @@ const AlertTriggersPage = () => {
       <Flex justify="space-between" align="center" wrap="wrap" gap={16} style={{ marginBottom: 24 }}>
         <Flex align="center" gap={12}>
           <FireOutlined style={{ fontSize: 24, color: token.colorError }} />
-          <Title level={3} style={{ margin: 0, color: token.colorTextHeading }}>
+          <Title level={3} style={{ margin: 0, color: token.voidTextHeading }}>
             Disparos de Alerta
           </Title>
         </Flex>
@@ -189,7 +189,7 @@ const AlertTriggersPage = () => {
         </Space>
       </Flex>
 
-      <SmartCard>
+      <SmartCard variant="void">
         <Spin spinning={loading}>
           <Table
             rowKey="id"

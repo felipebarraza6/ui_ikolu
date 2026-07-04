@@ -21,6 +21,8 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
+import { SmartButton } from "../../../shared/ui";
+import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import orchestrator from "../../../api/orchestrator";
 
 const { Text } = Typography;
@@ -53,6 +55,7 @@ const formatValue = (field, value) => {
 const PointConfigDrawer = ({ open, onClose, pointName, pointId, configData, loading, onSave }) => {
   const navigate = useNavigate();
   const { isSuperUser } = useAuth();
+  const token = useIkoluToken();
 
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -139,9 +142,9 @@ const PointConfigDrawer = ({ open, onClose, pointName, pointId, configData, load
           <Button icon={<FaTimes />} onClick={() => setIsEditing(false)} disabled={saving}>
             Cancelar
           </Button>
-          <Button type="primary" icon={<FaSave />} loading={saving} onClick={handleSave}>
+          <SmartButton variant="void" icon={<FaSave />} loading={saving} onClick={handleSave}>
             Guardar cambios
-          </Button>
+          </SmartButton>
         </Flex>
       );
     }
@@ -154,9 +157,9 @@ const PointConfigDrawer = ({ open, onClose, pointName, pointId, configData, load
               Editar
             </Button>
           )}
-          <Button type="primary" icon={<FaArrowRight className="ocean-text-sm" />} onClick={handleNavigateToTelemetry}>
+          <SmartButton variant="void" icon={<FaArrowRight className="ocean-text-sm" />} onClick={handleNavigateToTelemetry}>
             Ver más en Telemetría
-          </Button>
+          </SmartButton>
         </Flex>
       </Flex>
     );
@@ -175,7 +178,7 @@ const PointConfigDrawer = ({ open, onClose, pointName, pointId, configData, load
       open={open}
       onClose={onClose}
       width={520}
-      styles={{ body: { padding: 20 } }}
+      styles={{ body: { padding: 20, background: "transparent" } }}
       footer={renderFooter()}
     >
       {loading ? (
@@ -184,7 +187,7 @@ const PointConfigDrawer = ({ open, onClose, pointName, pointId, configData, load
         </Flex>
       ) : (
         <Flex vertical gap={10}>
-          <Text className="ocean-text-base ocean-text-secondary ocean-mb-sm">
+          <Text style={{ fontSize: 13, color: token.voidTextMuted, marginBottom: 8 }}>
             {isEditing
               ? "Edita los parámetros técnicos del punto de captación."
               : "Parámetros técnicos configurados para este punto de captación."}
@@ -202,33 +205,39 @@ const PointConfigDrawer = ({ open, onClose, pointName, pointId, configData, load
                 size="small"
                 bodyStyle={{ padding: "10px 14px" }}
                 style={{
-                  border: `1px solid ${hasValue || isEditing ? 'rgba(58, 104, 170, 0.3)' : 'rgba(255, 255, 255, 0.1)'}`,
-                  background: hasValue || isEditing ? 'rgba(58, 104, 170, 0.08)' : 'rgba(255, 255, 255, 0.03)',
+                  border: `1px solid ${hasValue || isEditing ? token.voidBorderStrong : token.voidBorder}`,
+                  background: hasValue || isEditing ? token.voidSurface : token.glassBg,
+                  borderRadius: token.voidRadius,
                 }}
-                className="ocean-panel"
               >
                 <Flex align="center" gap={12}>
                   <div
-                    className={hasValue || isEditing ? "ocean-icon-badge" : "ocean-icon-badge-muted"}
                     style={{
-                      border: `1px solid ${hasValue || isEditing ? 'rgba(58, 104, 170, 0.2)' : 'rgba(255, 255, 255, 0.05)'}`,
+                      width: 36,
+                      height: 36,
+                      borderRadius: 10,
+                      background: hasValue || isEditing ? token.voidSurfaceHover : token.voidSurface,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      border: `1px solid ${hasValue || isEditing ? token.voidBorderStrong : token.voidBorder}`,
                     }}
                   >
-                    <Icon style={{ fontSize: 14, color: hasValue || isEditing ? '#CCCF07' : 'rgba(255, 255, 255, 0.3)' }} />
+                    <Icon style={{ fontSize: 14, color: hasValue || isEditing ? token.voidTextHeading : token.voidTextMuted }} />
                   </div>
                   <Flex vertical gap={1} style={{ flex: 1 }}>
-                    <Text strong className={hasValue || isEditing ? "ocean-text-base ocean-text-primary" : "ocean-text-base ocean-text-disabled"}>
+                    <Text strong style={{ fontSize: 13, color: hasValue || isEditing ? token.voidTextHeading : token.voidTextMuted }}>
                       {field.label}
                     </Text>
-                    <Text className="ocean-text-sm ocean-text-muted">{field.description}</Text>
+                    <Text style={{ fontSize: 11, color: token.voidTextMuted }}>{field.description}</Text>
                   </Flex>
                   {isEditing ? (
                     renderFieldControl(field)
                   ) : (
                     <Text
                       strong
-                      className={hasValue ? "ocean-text-lg ocean-text-cyan-light" : "ocean-text-lg ocean-text-disabled"}
-                      style={{ whiteSpace: "nowrap" }}
+                      style={{ whiteSpace: "nowrap", fontSize: 15, color: hasValue ? token.voidTextHeading : token.voidTextMuted }}
                     >
                       {hasValue ? displayValue : "No configurado"}
                     </Text>

@@ -1,4 +1,4 @@
-import { format, parseISO, isPast, isValid } from "date-fns";
+import { format, parseISO, isPast, isValid, differenceInHours } from "date-fns";
 import { es } from "date-fns/locale";
 
 /**
@@ -152,7 +152,7 @@ export const getTicketOtBadgeLabel = (ticket) => {
 
 export const TICKET_PRIORITY = {
   BAJA: { value: "BAJA", label: "Baja", color: "success", variant: "success", borderColor: "#2A9D8F" },
-  MEDIA: { value: "MEDIA", label: "Media", color: "info", variant: "info", borderColor: "#3A68AA" },
+  MEDIA: { value: "MEDIA", label: "Media", color: "default", variant: "void", borderColor: "var(--ikolu-void-text-heading)" },
   ALTA: { value: "ALTA", label: "Alta", color: "warning", variant: "warning", borderColor: "#F4A261" },
   CRITICA: { value: "CRITICA", label: "Crítica", color: "error", variant: "error", borderColor: "#E76F51" },
 };
@@ -178,12 +178,10 @@ export const getTicketPriorityConfig = (priority) => {
 // ============================================================================
 
 export const TICKET_CATEGORY = {
-  SOFTWARE: { value: "SOFTWARE", label: "Software", variant: "info" },
-  HARDWARE: { value: "HARDWARE", label: "Hardware", variant: "warning" },
-  CONECTIVIDAD: { value: "CONECTIVIDAD", label: "Conectividad", variant: "success" },
-  DGA: { value: "DGA", label: "DGA", variant: "neutral", customColor: "#9B59B6", customBg: "rgba(155, 89, 182, 0.12)", customBorder: "rgba(155, 89, 182, 0.35)" },
-  TELEMETRIA: { value: "TELEMETRIA", label: "Telemetría", variant: "accent" },
-  OT: { value: "OT", label: "Orden de Trabajo", variant: "error" },
+  SOFTWARE: { value: "SOFTWARE", label: "Software", variant: "void", color: "default", borderColor: "var(--ikolu-void-text-heading)" },
+  HARDWARE: { value: "HARDWARE", label: "Hardware", variant: "warning", color: "orange", borderColor: "#F4A261" },
+  COMPLIANCE: { value: "COMPLIANCE", label: "Cumplimiento (DGA/SMA)", variant: "success", color: "green", borderColor: "#2A9D8F" },
+  WORK_ORDER: { value: "WORK_ORDER", label: "Orden de trabajo", variant: "error", color: "red", borderColor: "#E76F51" },
 };
 
 export const CATEGORY_OPTIONS = Object.values(TICKET_CATEGORY).map(({ value, label }) => ({
@@ -191,22 +189,56 @@ export const CATEGORY_OPTIONS = Object.values(TICKET_CATEGORY).map(({ value, lab
   label,
 }));
 
+export const TICKET_CATEGORY_TYPE = {
+  SOFTWARE: { value: "SOFTWARE", label: "Software", variant: "void", color: "default", borderColor: "var(--ikolu-void-text-heading)" },
+  HARDWARE: { value: "HARDWARE", label: "Hardware", variant: "warning", color: "orange", borderColor: "#F4A261" },
+  COMPLIANCE: { value: "COMPLIANCE", label: "Cumplimiento (DGA/SMA)", variant: "success", color: "green", borderColor: "#2A9D8F" },
+  WORK_ORDER: { value: "WORK_ORDER", label: "Orden de trabajo", variant: "error", color: "red", borderColor: "#E76F51" },
+};
+
+export const CATEGORY_TYPE_OPTIONS = Object.values(TICKET_CATEGORY_TYPE).map(({ value, label }) => ({
+  value,
+  label,
+}));
+
 /**
  * Resuelve el label legible para una categoría de ticket.
+ * Acepta string u objeto; para objetos lee `category_type`, `value` o `name`.
  */
 export const getTicketCategoryLabel = (category) => {
   if (!category) return category;
-  const upper = String(category).toUpperCase();
-  return Object.values(TICKET_CATEGORY).find((c) => c.value === upper)?.label || category;
+  const raw = typeof category === "object" ? category.category_type || category.value || category.name || "" : category;
+  const upper = String(raw).toUpperCase();
+  return Object.values(TICKET_CATEGORY).find((c) => c.value === upper)?.label || raw;
 };
 
 /**
  * Devuelve la configuración visual completa para una categoría de ticket.
+ * Acepta string u objeto; para objetos lee `category_type`, `value` o `name`.
  */
 export const getTicketCategoryConfig = (category) => {
   if (!category) return TICKET_CATEGORY.SOFTWARE;
-  const upper = String(category).toUpperCase();
+  const raw = typeof category === "object" ? category.category_type || category.value || category.name || "" : category;
+  const upper = String(raw).toUpperCase();
   return Object.values(TICKET_CATEGORY).find((c) => c.value === upper) || TICKET_CATEGORY.SOFTWARE;
+};
+
+/**
+ * Resuelve el label legible para el tipo de categoría (`category_type`).
+ */
+export const getTicketCategoryTypeLabel = (categoryType) => {
+  if (!categoryType) return categoryType;
+  const upper = String(categoryType).toUpperCase();
+  return Object.values(TICKET_CATEGORY_TYPE).find((c) => c.value === upper)?.label || categoryType;
+};
+
+/**
+ * Devuelve la configuración visual para el tipo de categoría (`category_type`).
+ */
+export const getTicketCategoryTypeConfig = (categoryType) => {
+  if (!categoryType) return TICKET_CATEGORY_TYPE.SOFTWARE;
+  const upper = String(categoryType).toUpperCase();
+  return Object.values(TICKET_CATEGORY_TYPE).find((c) => c.value === upper) || TICKET_CATEGORY_TYPE.SOFTWARE;
 };
 
 // ============================================================================
@@ -297,6 +329,78 @@ export const isAutomaticTicket = (source) => {
 };
 
 // ============================================================================
+// ADJUNTOS
+// ============================================================================
+
+export const TICKET_ATTACHMENT_MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+
+export const TICKET_ATTACHMENT_ALLOWED_EXTENSIONS = [
+  ".pdf",
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".xlsx",
+  ".xls",
+  ".doc",
+  ".docx",
+  ".txt",
+  ".csv",
+];
+
+export const TICKET_ATTACHMENT_MIME_TYPES = [
+  "application/pdf",
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-excel",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "text/plain",
+  "text/csv",
+];
+
+/**
+ * Extrae la extensión de un archivo (incluyendo el punto).
+ * Acepta instancia de File o un string con el nombre.
+ */
+export const getTicketAttachmentExtension = (file) => {
+  const name = file?.name || String(file || "");
+  const match = name.match(/\.[^.]+$/);
+  return match ? match[0].toLowerCase() : "";
+};
+
+/**
+ * Valida un archivo adjunto según las reglas de tickets.
+ * Retorna { valid: true } si es válido, o { valid: false, error: string } si falla.
+ */
+export const validateTicketAttachment = (file) => {
+  if (!file || !file.name) {
+    return { valid: false, error: "No se ha seleccionado ningún archivo." };
+  }
+
+  const extension = getTicketAttachmentExtension(file);
+  if (!TICKET_ATTACHMENT_ALLOWED_EXTENSIONS.includes(extension)) {
+    const allowed = TICKET_ATTACHMENT_ALLOWED_EXTENSIONS.join(", ");
+    return {
+      valid: false,
+      error: `Extensión no permitida: ${extension || "(vacía)"}. Extensiones válidas: ${allowed}.`,
+    };
+  }
+
+  if (file.size != null && file.size > TICKET_ATTACHMENT_MAX_SIZE) {
+    const maxMb = TICKET_ATTACHMENT_MAX_SIZE / (1024 * 1024);
+    const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+    return {
+      valid: false,
+      error: `El archivo pesa ${sizeMb} MB y excede el límite máximo de ${maxMb} MB.`,
+    };
+  }
+
+  return { valid: true };
+};
+
+// ============================================================================
 // HELPERS DE FECHAS Y CAMPOS DEL BACKEND
 // ============================================================================
 
@@ -336,26 +440,77 @@ export const formatTicketDate = (ticket, formatStr, ...fields) => {
 };
 
 /**
+ * Formatea un valor de fecha/hora ISO a un formato legible.
+ * Retorna null si el valor no es parseable.
+ */
+export const formatTicketDateTime = (value, formatStr = "dd MMM yyyy HH:mm") => {
+  if (!value) return null;
+  try {
+    const date = parseISO(value);
+    if (!isValid(date)) return null;
+    return format(date, formatStr, { locale: es });
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Formatea una fecha ISO a formato corto (dd MMM yyyy).
+ */
+export const formatTicketDateShort = (value) => formatTicketDateTime(value, "dd MMM yyyy");
+
+/**
+ * Formatea una hora ISO a formato HH:mm.
+ */
+export const formatTicketTime = (value) => formatTicketDateTime(value, "HH:mm");
+
+/**
+ * Formatea una fecha de ticket para mostrar día, mes y hora.
+ * Útil para timelines y comentarios.
+ */
+export const formatTicketDateCompact = (value) => formatTicketDateTime(value, "dd MMM, HH:mm");
+
+/**
  * Calcula el estado de un SLA a partir de la fecha límite y la fecha de cumplimiento.
- * Estados: respondido/resuelto, pendiente, vencido.
+ * Estados: cumplido, no definido, vencido, próximo a vencer o a tiempo.
+ * Variantes visuales: 'success' | 'warning' | 'error' | 'default'.
  */
 export const getSlaStatus = (deadlineValue, doneAtValue) => {
   if (doneAtValue) {
-    return { label: "Cumplido", variant: "success", done: true };
+    return { label: "Cumplido", variant: "success", done: true, overdue: false };
   }
   if (!deadlineValue) {
-    return { label: "No definido", variant: "default", overdue: false };
+    return { label: "No aplica", variant: "default", overdue: false, done: false };
   }
   try {
     const deadline = parseISO(deadlineValue);
+    if (!isValid(deadline)) {
+      return { label: "No definido", variant: "default", overdue: false, done: false };
+    }
     const overdue = isPast(deadline);
+    const hoursRemaining = differenceInHours(deadline, new Date());
+    const nearDue = !overdue && hoursRemaining <= 24;
+
+    if (overdue) {
+      return { label: "Vencido", variant: "error", overdue: true, done: false, hoursRemaining };
+    }
+    if (nearDue) {
+      return {
+        label: hoursRemaining <= 1 ? "Vence pronto" : "Próximo a vencer",
+        variant: "warning",
+        overdue: false,
+        done: false,
+        hoursRemaining,
+      };
+    }
     return {
-      label: overdue ? "Vencido" : "Pendiente",
-      variant: overdue ? "error" : "warning",
-      overdue,
+      label: "A tiempo",
+      variant: "success",
+      overdue: false,
       done: false,
+      hoursRemaining,
     };
   } catch {
-    return { label: "No definido", variant: "default", overdue: false };
+    return { label: "No definido", variant: "default", overdue: false, done: false };
   }
 };

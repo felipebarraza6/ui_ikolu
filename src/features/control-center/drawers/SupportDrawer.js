@@ -1,12 +1,14 @@
 import React, { useCallback } from "react";
-import { Drawer, Form, Input, Select, Button, Flex, Typography, Card, theme, message } from "antd";
+import { Drawer, Form, Input, Select, Button, Flex, Typography, Card, message } from "antd";
 import { FaHeadset } from "react-icons/fa";
+import { SmartButton } from "../../../shared/ui";
 import { useAuth } from "../../../contexts/AuthContext";
+import { useResponsive } from "../../../hooks/useResponsive";
+import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import orchestrator from "../../../api/orchestrator";
 
 const { Text } = Typography;
 const { TextArea } = Input;
-const { useToken } = theme;
 
 const SUPPORT_TYPES = [
   { value: "TECNICO", label: "Soporte Técnico" },
@@ -24,7 +26,8 @@ const PRIORITY_OPTIONS = [
 ];
 
 const CCSupportDrawer = ({ open, onClose, point, form, loading, setLoading, contextType = "SOPORTE" }) => {
-  const { token } = useToken();
+  const token = useIkoluToken();
+  const { isMobile } = useResponsive();
   const { user } = useAuth();
 
   const handleSubmit = useCallback(async (values) => {
@@ -66,8 +69,8 @@ const CCSupportDrawer = ({ open, onClose, point, form, loading, setLoading, cont
     <Drawer
       title={
         <Flex align="center" gap={8}>
-          <FaHeadset className="ocean-icon-cyan" />
-          <Text strong className="ocean-text-xl ocean-text-primary">Solicitud de soporte</Text>
+          <FaHeadset style={{ color: token.voidTextHeading, fontSize: 16 }} />
+          <Text strong style={{ fontSize: 16, color: token.voidTextHeading }}>Solicitud de soporte</Text>
         </Flex>
       }
       open={open}
@@ -75,27 +78,27 @@ const CCSupportDrawer = ({ open, onClose, point, form, loading, setLoading, cont
         onClose();
         form.resetFields();
       }}
-      width={420}
-      styles={{ body: { padding: 20 } }}
+      width={isMobile ? "100%" : 420}
+      styles={{ body: { padding: isMobile ? 16 : 20, background: "transparent" } }}
       footer={
         <Flex justify="flex-end" gap={8}>
           <Button onClick={() => { onClose(); form.resetFields(); }}>
             Cancelar
           </Button>
-          <Button type="primary" loading={loading} onClick={() => form.submit()}>
+          <SmartButton variant="void" loading={loading} onClick={() => form.submit()}>
             Enviar solicitud
-          </Button>
+          </SmartButton>
         </Flex>
       }
     >
       {point && (
-        <Flex vertical gap={12} className="ocean-mb-md">
-          <Card size="small" bodyStyle={{ padding: 12 }} className="ocean-info-card">
-            <Text className="ocean-text-base ocean-text-primary ocean-font-semibold ocean-display-block">{point.name}</Text>
+        <Flex vertical gap={12} style={{ marginBottom: 16 }}>
+          <Card size="small" bodyStyle={{ padding: 12 }} style={{ background: token.glassBg, border: `1px solid ${token.glassBorder}`, borderRadius: token.voidRadius }}>
+            <Text strong style={{ fontSize: 13, display: "block", color: token.voidTextHeading }}>{point.name}</Text>
             {point.code ? (
-              <Text className="ocean-text-sm ocean-text-muted">Código: {point.code}</Text>
+              <Text style={{ fontSize: 12, color: token.voidTextMuted }}>Código: {point.code}</Text>
             ) : point.client ? (
-              <Text className="ocean-text-sm ocean-text-muted">Cliente: {point.client}</Text>
+              <Text style={{ fontSize: 12, color: token.voidTextMuted }}>Cliente: {point.client}</Text>
             ) : null}
           </Card>
         </Flex>

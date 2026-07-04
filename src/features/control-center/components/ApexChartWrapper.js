@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import { format, parseISO } from "date-fns";
 import ReactApexChart from "react-apexcharts";
 import { Flex } from "antd";
+import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import { COLORS } from "../constants/chartColors";
 
 const getStrokeConfig = (type, metric) => {
@@ -94,7 +95,7 @@ const buildAnnotations = (yAnnotations, avgInfo, yMin, yMax, cleanData, maxInfo,
   };
 };
 
-const buildDefaultTooltip = (token, title, metric, unit, maxInfo, minInfo, avgInfo) => {
+const buildDefaultTooltip = (voidToken, title, metric, unit, maxInfo, minInfo, avgInfo) => {
   return function({ series, seriesIndex, dataPointIndex, w }) {
     if (dataPointIndex < 0 || !w.config.series[seriesIndex]) return '';
     const point = w.config.series[seriesIndex].data[dataPointIndex];
@@ -105,18 +106,18 @@ const buildDefaultTooltip = (token, title, metric, unit, maxInfo, minInfo, avgIn
     let suffix = '';
     if (isMax) suffix = ' (MÁXIMO)';
     if (isMin) suffix = ' (MÍNIMO)';
-    
+
     const exceedsAvg = avgInfo != null && point.y > avgInfo;
     const avgDiff = avgInfo != null ? (point.y - avgInfo).toFixed(2) : null;
-    
+
     return `
-      <div style="padding: 8px 12px; background: ${token.colorBgElevated}; border-radius: 8px; box-shadow: ${"0 4px 16px rgba(0,0,0,0.15)"};">
-        <div style="font-size: 12px; color: ${token.colorTextSecondary}; margin-bottom: 4px;">${time} hrs</div>
-        <div style="font-size: 13px; color: ${token.colorText}; font-weight: 500;">
+      <div style="padding: 8px 12px; background: ${voidToken.voidSurface}; border: 1px solid ${voidToken.voidBorder}; border-radius: 8px; box-shadow: ${voidToken.voidShadow};">
+        <div style="font-size: 12px; color: ${voidToken.voidTextMuted}; margin-bottom: 4px;">${time} hrs</div>
+        <div style="font-size: 13px; color: ${voidToken.voidTextHeading}; font-weight: 500;">
           ${title || metric}${suffix}: <strong>${Number(point.y).toFixed(unit.includes('m³') ? 0 : unit.includes('L/s') ? 1 : 2)} ${unit}</strong>
         </div>
         ${avgInfo != null ? `
-        <div style="margin-top: 4px; padding-top: 4px; border-top: 1px solid ${token.colorBorder}; font-size: 11px; color: ${COLORS.avg};">
+        <div style="margin-top: 4px; padding-top: 4px; border-top: 1px solid ${voidToken.voidBorder}; font-size: 11px; color: ${COLORS.avg};">
           ${exceedsAvg ? '<span style="color:#ff4d4f">▲ Supera promedio</span>' : 'Bajo promedio'} ${avgInfo.toFixed(2)} (${avgDiff > 0 ? '+' : ''}${avgDiff})
         </div>
         ` : ''}
@@ -125,15 +126,14 @@ const buildDefaultTooltip = (token, title, metric, unit, maxInfo, minInfo, avgIn
   };
 };
 
-export const ApexChartWrapper = ({ 
-  type, 
-  data, 
-  metric, 
-  token, 
-  color, 
-  title, 
-  minInfo, 
-  maxInfo, 
+export const ApexChartWrapper = ({
+  type,
+  data,
+  metric,
+  color,
+  title,
+  minInfo,
+  maxInfo,
   avgInfo,
   unit = "",
   pointName,
@@ -162,13 +162,14 @@ export const ApexChartWrapper = ({
 }) => {
   const chartRef = useRef(null);
   const [inverted, setInverted] = useState(false);
+  const voidToken = useIkoluToken();
 
-  const chartColor = color || token.colorPrimary;
+  const chartColor = color || voidToken.voidTextHeading;
   
   if (externalSeries && externalSeries.length === 0) {
     return (
       <Flex justify="center" align="center" style={{ minHeight: 200 }} vertical>
-        <span style={{ fontSize: 12, color: token.colorTextSecondary }}>Sin datos</span>
+        <span style={{ fontSize: 12, color: voidToken.voidTextMuted }}>Sin datos</span>
       </Flex>
     );
   }
@@ -176,7 +177,7 @@ export const ApexChartWrapper = ({
   if (!externalSeries && (!data || data.length === 0)) {
     return (
       <Flex justify="center" align="center" style={{ minHeight: 200 }} vertical>
-        <span style={{ fontSize: 12, color: token.colorTextSecondary }}>Sin datos</span>
+        <span style={{ fontSize: 12, color: voidToken.voidTextMuted }}>Sin datos</span>
       </Flex>
     );
   }
@@ -194,7 +195,7 @@ export const ApexChartWrapper = ({
   if (!externalSeries && cleanData.length === 0) {
     return (
       <Flex justify="center" align="center" style={{ minHeight: 200 }} vertical>
-        <span style={{ fontSize: 12, color: token.colorTextSecondary }}>Sin datos válidos</span>
+        <span style={{ fontSize: 12, color: voidToken.voidTextMuted }}>Sin datos válidos</span>
       </Flex>
     );
   }
@@ -227,7 +228,7 @@ export const ApexChartWrapper = ({
           reset: showReset,
           customIcons: [
             ...(invertible ? [{
-              icon: `<div style="font-size: 14px; font-weight: bold; color: ${inverted ? COLORS.consumo : token.colorTextSecondary}; padding: 0 4px;">⇅</div>`,
+              icon: `<div style="font-size: 14px; font-weight: bold; color: ${inverted ? COLORS.consumo : voidToken.voidTextMuted}; padding: 0 4px;">⇅</div>`,
               title: inverted ? 'Orden: más reciente primero' : 'Orden: más antiguo primero',
               index: 'menu',
               class: 'apexcharts-toolbar-invert',
@@ -273,6 +274,8 @@ export const ApexChartWrapper = ({
     defaultLocale: 'es',
     grid: {
       padding: { left: 40, right: -10 },
+      borderColor: voidToken.voidBorder + '50',
+      strokeDashArray: 4,
     },
     colors: externalColors || [chartColor],
     stroke: externalStroke || getStrokeConfig(type, metric),
@@ -296,14 +299,14 @@ export const ApexChartWrapper = ({
       categories: series[0].data.map(d => d.x),
       labels: {
         style: {
-          colors: token.colorTextSecondary,
+          colors: voidToken.voidTextMuted,
           fontSize: '11px'
         },
         rotate: -45,
         rotateAlways: true,
       },
-      axisBorder: { color: token.colorBorder },
-      axisTicks: { color: token.colorBorder }
+      axisBorder: { color: voidToken.voidBorder },
+      axisTicks: { color: voidToken.voidBorder }
     },
     yaxis: {
       min: yMin,
@@ -312,7 +315,7 @@ export const ApexChartWrapper = ({
       reversed: forceReversed != null ? forceReversed : metric === 'water_table',
       labels: {
         style: {
-          colors: token.colorTextSecondary,
+          colors: voidToken.voidTextMuted,
           fontSize: '11px'
         },
         formatter: (value) => {
@@ -322,26 +325,22 @@ export const ApexChartWrapper = ({
       title: {
         text: unit,
         style: {
-          color: token.colorTextSecondary,
+          color: voidToken.voidTextMuted,
           fontSize: '12px',
           fontWeight: 'bold'
         }
       }
     },
-    grid: {
-      borderColor: token.colorBorder + '50',
-      strokeDashArray: 4,
-    },
     tooltip: {
-      theme: 'light',
-      custom: customTooltip || buildDefaultTooltip(token, title, metric, unit, maxInfo, minInfo, avgInfo)
+      theme: 'dark',
+      custom: customTooltip || buildDefaultTooltip(voidToken, title, metric, unit, maxInfo, minInfo, avgInfo)
     },
     legend: {
       show: showLegend,
       position: 'top',
       horizontalAlign: 'center',
       fontSize: '12px',
-      labels: { colors: token.colorText },
+      labels: { colors: voidToken.voidTextHeading },
       onItemClick: { toggleDataSeries: false },
       onItemHover: { highlightDataSeries: false }
     },

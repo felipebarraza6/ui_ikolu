@@ -1,0 +1,50 @@
+/* =====================================================
+   Ikolu Theme Variables
+   Single source of truth for the two UI families:
+   - Ocean: default Ikolu (dark hydro)
+   - Void: admin / staff routes
+   ===================================================== */
+
+:root {
+  /* ═══════════════════════════════════════════════════
+     Ocean family (Ikolu default)
+     ═══════════════════════════════════════════════════ */
+  --ikolu-ocean-bg: #050d1a;
+  --ikolu-ocean-surface: #203562;
+  --ikolu-ocean-surface-elevated: #2a4a8a;
+  --ikolu-ocean-header: #203562;
+  --ikolu-ocean-border: rgba(58, 104, 170, 0.2);
+  --ikolu-ocean-border-secondary: rgba(58, 104, 170, 0.15);
+  --ikolu-ocean-text: #ffffff;
+  --ikolu-ocean-text-secondary: rgba(255, 255, 255, 0.7);
+  --ikolu-ocean-primary: #3a68aa;
+  --ikolu-ocean-primary-hover: #4d7fbd;
+  --ikolu-ocean-accent: #85a2d1;
+  --ikolu-ocean-shadow: rgba(0, 0, 0, 0.4);
+
+  /* ═══════════════════════════════════════════════════
+     Void family (admin / staff)
+     ═══════════════════════════════════════════════════ */
+  --ikolu-void-bg: #030c18;
+  --ikolu-void-surface: rgba(255, 255, 255, 0.05);
+  --ikolu-void-surface-elevated: rgba(255, 255, 255, 0.07);
+  --ikolu-void-surface-hover: rgba(255, 255, 255, 0.07);
+  --ikolu-void-header: rgba(255, 255, 255, 0.07);
+  --ikolu-void-border: rgba(255, 255, 255, 0.08);
+  --ikolu-void-border-strong: rgba(255, 255, 255, 0.12);
+  --ikolu-void-text: #ffffff;
+  --ikolu-void-text-heading: #f2f5fa;
+  --ikolu-void-text-muted: rgba(200, 214, 240, 0.6);
+  --ikolu-void-primary: #ffffff;
+  --ikolu-void-primary-text: #030c18;
+  --ikolu-void-hover: rgba(255, 255, 255, 0.15);
+  --ikolu-void-shadow: rgba(0, 0, 0, 0.4);
+
+  /* ═══════════════════════════════════════════════════
+     Shared semantic colors
+     ═══════════════════════════════════════════════════ */
+  --ikolu-success: #2a9d8f;
+  --ikolu-warning: #f4a261;
+  --ikolu-error: #e76f51;
+  --ikolu-info: #3a68aa;
+}

@@ -1,11 +1,12 @@
 import React from "react";
-import { Drawer, Flex, Typography, Table, Button, theme } from "antd";
+import { Drawer, Flex, Typography, Table } from "antd";
 import { FaDownload, FaTimes } from "react-icons/fa";
 import { format, parseISO } from "date-fns";
+import { SmartButton } from "../../../shared/ui";
+import { useIkoluToken } from "../../../hooks/useIkoluToken";
 
 
 const { Text, Title } = Typography;
-const { useToken } = theme;
 
 const CCFlowAnalysisDrawer = ({ 
   open, 
@@ -14,7 +15,7 @@ const CCFlowAnalysisDrawer = ({
   authorizedFlow, 
   data 
 }) => {
-  const { token } = useToken();
+  const token = useIkoluToken();
   const measurements = Array.isArray(data) ? data : [];
   
   const handleExportCSV = () => {
@@ -45,18 +46,18 @@ const CCFlowAnalysisDrawer = ({
       title={
         <Flex justify="space-between" align="center">
           <div>
-            <Title level={5} style={{ margin: 0 }} className="ocean-text-xl ocean-text-primary">{pointName}</Title>
-            <Flex gap={8} align="center" className="ocean-drawer-subtitle">
-              <Text strong className="ocean-text-base ocean-text-cyan">
+            <Title level={5} style={{ margin: 0, color: token.voidTextHeading }}>{pointName}</Title>
+            <Flex gap={8} align="center" style={{ marginTop: 4 }}>
+              <Text strong style={{ fontSize: 14, color: token.voidTextHeading }}>
                 Autorizado: {authorizedFlow} L/s
               </Text>
-              <Text className="ocean-text-md ocean-text-secondary">
+              <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
                 • {measurements.length} mediciones
               </Text>
             </Flex>
           </div>
           <FaTimes 
-            className="ocean-close-icon"
+            style={{ cursor: "pointer", fontSize: 16, color: token.voidTextMuted }}
             onClick={onClose}
           />
         </Flex>
@@ -64,27 +65,26 @@ const CCFlowAnalysisDrawer = ({
       open={open}
       onClose={onClose}
       width={{ xs: "100%", md: 600 }}
-      styles={{ body: { padding: 16 } }}
+      styles={{ body: { padding: 16, background: "transparent" } }}
     >
       {measurements.length === 0 ? (
         <Flex justify="center" align="center" className="ocean-empty-state">
-          <div className="ocean-empty-icon">
+          <div style={{ width: 48, height: 48, borderRadius: "50%", background: `${token.colorWarning}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <FaDownload style={{ fontSize: 20, color: token.colorWarning }} />
           </div>
-          <Text className="ocean-text-lg ocean-text-muted">No hay mediciones disponibles</Text>
+          <Text style={{ fontSize: 14, color: token.voidTextMuted }}>No hay mediciones disponibles</Text>
         </Flex>
       ) : (
         <>
           <Flex justify="flex-end" className="ocean-drawer-actions">
-            <Button 
-              type="primary"
-              size="small" 
-              icon={<FaDownload size={12} />} 
+            <SmartButton
+              variant="void"
+              size="sm"
+              icon={<FaDownload size={12} />}
               onClick={handleExportCSV}
-              className="ocean-btn-export"
             >
               Descargar CSV
-            </Button>
+            </SmartButton>
           </Flex>
           <Table
             size="small"
@@ -95,7 +95,7 @@ const CCFlowAnalysisDrawer = ({
                 title: "Fecha/Hora",
                 dataIndex: "date",
                 render: (date) => (
-                  <Text className="ocean-text-md ocean-text-secondary">
+                  <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
                     {format(parseISO(date), "dd/MM/yyyy HH:mm")}
                   </Text>
                 ),
@@ -111,7 +111,7 @@ const CCFlowAnalysisDrawer = ({
                   return (
                     <Text 
                       strong 
-                      className={isExceeded ? "ocean-text-base ocean-text-coral" : "ocean-text-base ocean-text-teal"}
+                      style={{ fontSize: 13, color: isExceeded ? token.colorError : token.colorSuccess }}
                     >
                       {Math.round(pct)}%
                     </Text>
@@ -123,7 +123,7 @@ const CCFlowAnalysisDrawer = ({
                 align: "right",
                 width: 100,
                 render: () => (
-                  <Text strong className="ocean-text-md ocean-text-cyan">
+                  <Text strong style={{ fontSize: 12, color: token.voidTextMuted }}>
                     {Number(authorizedFlow).toFixed(1)} L/s
                   </Text>
                 ),
@@ -137,7 +137,7 @@ const CCFlowAnalysisDrawer = ({
                   return (
                     <Text 
                       strong 
-                      className={isExceeded ? "ocean-text-base ocean-text-coral" : "ocean-text-base ocean-text-primary"}
+                      style={{ fontSize: 13, color: isExceeded ? token.colorError : token.voidTextHeading }}
                     >
                       {Number(flow).toFixed(1)} L/s
                     </Text>

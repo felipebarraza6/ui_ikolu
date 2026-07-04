@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useMemo } from "react";
-import { Flex, Typography, Spin, Empty, Button, Tag, Tooltip, message } from "antd";
+import { Flex, Typography, Spin, Empty, Tag, Tooltip, message } from "antd";
 import {
   SyncOutlined,
   ClearOutlined,
@@ -10,7 +10,7 @@ import {
   ClockCircleOutlined,
 } from "@ant-design/icons";
 import ReactApexChart from "react-apexcharts";
-import { SmartCard } from "../../../shared/ui";
+import { SmartCard, SmartButton } from "../../../shared/ui";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import sh from "../../../api/sh/endpoints";
 
@@ -50,7 +50,7 @@ const DgaQueuePanel = memo(({ data, loading, onChange }) => {
         label: "Pendientes",
         value: queue.pending ?? queue.total ?? 0,
         icon: <InboxOutlined />,
-        color: token.colorInfo,
+        color: token.voidTextHeading,
       },
       {
         key: "errors",
@@ -97,7 +97,7 @@ const DgaQueuePanel = memo(({ data, loading, onChange }) => {
         fontFamily: token.fontFamily,
       },
       theme: { mode: token.isDark ? "dark" : "light" },
-      colors: [token.colorInfo, token.colorError],
+      colors: [token.voidTextHeading, token.colorError],
       plotOptions: {
         bar: { borderRadius: 4, columnWidth: "45%" },
       },
@@ -139,34 +139,38 @@ const DgaQueuePanel = memo(({ data, loading, onChange }) => {
       title={
         <Flex align="center" justify="space-between" style={{ width: "100%" }}>
           <Flex align="center" gap={8}>
-            <SyncOutlined style={{ color: token.colorPrimary }} />
-            <Text strong>Cola DGA</Text>
+            <SyncOutlined style={{ color: token.voidTextHeading }} />
+            <Text strong style={{ color: token.voidTextHeading }}>
+              Cola DGA
+            </Text>
           </Flex>
           <Flex gap={8}>
             <Tooltip title="Reencolar fallidos">
-              <Button
-                size="small"
+              <SmartButton
+                variant="voidGhost"
+                size="sm"
                 icon={<ReloadOutlined />}
                 onClick={handleRequeue}
                 loading={loading}
               >
                 Reencolar
-              </Button>
+              </SmartButton>
             </Tooltip>
             <Tooltip title="Limpiar errores">
-              <Button
-                size="small"
-                danger
+              <SmartButton
+                variant="voidGhost"
+                size="sm"
                 icon={<ClearOutlined />}
                 onClick={handleClear}
                 loading={loading}
               >
                 Limpiar
-              </Button>
+              </SmartButton>
             </Tooltip>
           </Flex>
         </Flex>
       }
+      variant="void"
       style={{ height: "100%" }}
     >
       {loading && !data ? (
@@ -188,16 +192,16 @@ const DgaQueuePanel = memo(({ data, loading, onChange }) => {
                   flex: "1 1 100px",
                   minWidth: 90,
                   padding: "12px 8px",
-                  borderRadius: token.borderRadius,
-                  background: token.colorFillTertiary,
-                  border: `1px solid ${token.colorBorderSecondary}`,
+                  borderRadius: token.voidRadius,
+                  background: token.voidSurface,
+                  border: `1px solid ${token.voidBorder}`,
                 }}
               >
                 <Text style={{ fontSize: 20, color: item.color }}>{item.icon}</Text>
                 <Text strong style={{ fontSize: 18, color: item.color }}>
                   {item.value}
                 </Text>
-                <Text type="secondary" style={{ fontSize: 12 }}>
+                <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
                   {item.label}
                 </Text>
               </Flex>
@@ -219,7 +223,7 @@ const DgaQueuePanel = memo(({ data, loading, onChange }) => {
             </Paragraph>
           )}
           {data.next_retry && (
-            <Tag color="processing" style={{ alignSelf: "flex-start" }}>
+            <Tag color="default" style={{ alignSelf: "flex-start" }}>
               Próximo reintento: {data.next_retry}
             </Tag>
           )}

@@ -17,21 +17,21 @@ export const createIkoluTheme = (algorithm = null, isDark = false) => {
     colorInfo: c.semantic.info,
 
     // === Fondos y superficies ===
-    colorBgLayout: isDark ? c.primary[900] : c.neutral[50],
-    colorBgContainer: isDark ? "#0A0E1A" : "#ffffff",
-    colorBgElevated: isDark ? "#0F1629" : "#ffffff",
-    colorBgSpotlight: isDark ? "#2c2c2c" : "#1f1f1f",
+    colorBgLayout: isDark ? "#030c18" : c.neutral[50],
+    colorBgContainer: isDark ? "rgba(255,255,255,0.05)" : "#ffffff",
+    colorBgElevated: isDark ? "rgba(255,255,255,0.07)" : "#ffffff",
+    colorBgSpotlight: isDark ? "#0a1525" : "#1f1f1f",
     colorTextLightSolid: "#ffffff",
 
     // === Textos ===
-    colorText: isDark ? c.neutral[50] : c.neutral[900],
-    colorTextSecondary: isDark ? c.neutral[300] : c.neutral[600],
-    colorTextTertiary: isDark ? c.neutral[400] : c.neutral[500],
-    colorTextQuaternary: isDark ? c.neutral[500] : c.neutral[400],
+    colorText: isDark ? "rgba(242,245,250,0.90)" : c.neutral[900],
+    colorTextSecondary: isDark ? "rgba(200,214,240,0.60)" : c.neutral[600],
+    colorTextTertiary: isDark ? "rgba(200,214,240,0.45)" : c.neutral[500],
+    colorTextQuaternary: isDark ? "rgba(200,214,240,0.30)" : c.neutral[400],
 
     // === Bordes ===
-    colorBorder: isDark ? "#1A1F3A" : c.neutral[200],
-    colorBorderSecondary: isDark ? "#162036" : c.neutral[100],
+    colorBorder: isDark ? "rgba(255,255,255,0.08)" : c.neutral[200],
+    colorBorderSecondary: isDark ? "rgba(255,255,255,0.06)" : c.neutral[100],
 
     // === Otros ===
     borderRadius: 8,
@@ -54,40 +54,40 @@ export const createIkoluTheme = (algorithm = null, isDark = false) => {
         colorBgContainer: token.colorBgContainer,
       },
       Layout: {
-        colorBgHeader: isDark ? c.primary[800] : c.primary[500],
+        colorBgHeader: isDark ? "#030c18" : c.primary[500],
         colorBgBody: token.colorBgLayout,
-        colorBgTrigger: isDark ? c.primary[900] : c.primary[600],
+        colorBgTrigger: isDark ? "#030c18" : c.primary[600],
       },
       Table: {
-        headerBg: isDark ? c.primary[800] : c.primary[500],
+        headerBg: isDark ? "rgba(255,255,255,0.07)" : c.primary[500],
         headerColor: "#ffffff",
-        headerSortActiveBg: isDark ? c.primary[800] : c.primary[500],
-        headerSortHoverBg: isDark ? c.primary[700] : c.primary[400],
-        rowHoverBg: isDark ? "#1A1F3A" : c.neutral[100],
+        headerSortActiveBg: isDark ? "rgba(255,255,255,0.09)" : c.primary[500],
+        headerSortHoverBg: isDark ? "rgba(255,255,255,0.11)" : c.primary[400],
+        rowHoverBg: isDark ? "rgba(255,255,255,0.04)" : c.neutral[100],
         colorBgContainer: token.colorBgContainer,
       },
       Menu: {
-        darkItemBg: c.primary[800],
-        darkSubMenuItemBg: c.primary[900],
-        darkItemSelectedBg: "rgba(255,255,255,0.15)",
-        darkItemColor: c.neutral[200],
+        darkItemBg: "#030c18",
+        darkSubMenuItemBg: "#030c18",
+        darkItemSelectedBg: "rgba(255,255,255,0.12)",
+        darkItemColor: "rgba(242,245,250,0.80)",
         darkItemSelectedColor: "#ffffff",
       },
       Input: {
-        colorBgContainer: isDark ? "#0F1629" : "#ffffff",
+        colorBgContainer: isDark ? "rgba(255,255,255,0.05)" : "#ffffff",
         colorBorder: token.colorBorder,
         colorText: token.colorText,
       },
       Select: {
-        colorBgContainer: isDark ? "#0F1629" : "#ffffff",
+        colorBgContainer: isDark ? "rgba(255,255,255,0.05)" : "#ffffff",
         colorBorder: token.colorBorder,
         colorText: token.colorText,
       },
       Modal: {
-        colorBgElevated: isDark ? "#0F1629" : "#ffffff",
+        colorBgElevated: isDark ? "rgba(255,255,255,0.07)" : "#ffffff",
       },
       Drawer: {
-        colorBgElevated: isDark ? "#0F1629" : "#ffffff",
+        colorBgElevated: isDark ? "rgba(255,255,255,0.07)" : "#ffffff",
       },
       Button: {
         colorPrimary: token.colorPrimary,

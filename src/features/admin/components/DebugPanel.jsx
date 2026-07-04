@@ -21,17 +21,26 @@ const DebugPanel = ({ debug }) => {
     <Collapse
       activeKey={activeKey}
       onChange={setActiveKey}
-      style={{ marginBottom: 24, background: token.colorBgContainer }}
+      style={{
+        marginBottom: 24,
+        background: token.voidSurface,
+        border: `1px solid ${token.voidBorder}`,
+        borderRadius: token.voidRadius,
+        overflow: "hidden",
+      }}
     >
       <Panel
         header={
           <Flex align="center" gap={8}>
-            <Text strong>Debug de endpoints</Text>
+            <Text strong style={{ color: token.voidTextHeading }}>
+              Debug de endpoints
+            </Text>
             {hasErrors && <Tag color="error">{Object.keys(errors).length} errores</Tag>}
             {hasResponses && <Tag color="success">{Object.keys(responses).length} ok</Tag>}
           </Flex>
         }
         key="debug"
+        style={{ background: "transparent" }}
       >
         {hasErrors && (
           <Alert

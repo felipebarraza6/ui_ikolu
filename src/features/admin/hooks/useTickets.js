@@ -1,46 +1,119 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { message } from "antd";
 import orchestrator from "../../../api/orchestrator";
+import { useAdminAuth } from "./useAdminAuth";
+import { validateTicketAttachment } from "../constants/tickets";
 
 /**
  * Normaliza respuestas paginadas o arrays planos del backend.
  */
 const normalizeListResponse = (res) => {
   if (Array.isArray(res)) return { results: res, count: res.length };
+  const results =
+    res?.results || res?.data || res?.attachments || res?.comments || [];
   return {
-    results: res?.results || res?.data || [],
-    count: res?.count ?? res?.results?.length ?? 0,
+    results,
+    count: res?.count ?? results.length,
   };
 };
 
 /**
- * Hook para gestionar tickets de soporte en el módulo admin.
- * Centraliza fetching, mutaciones y opciones derivadas para filtros.
+ * Resuelve el ID de una categoría a partir del payload o de las categorías
+ * cargadas. Soporta category como número (id) o string (category_type/name).
+ */
+const resolveCategoryId = (category, categories = []) => {
+  if (category == null) return category;
+  if (typeof category === "number") return category;
+  if (!Number.isNaN(Number(category)) && String(category).trim() !== "") {
+    return Number(category);
+  }
+  const value = String(category).toUpperCase();
+  const found = categories.find(
+    (c) =>
+      String(c.id) === String(category) ||
+      String(c.category_type).toUpperCase() === value ||
+      String(c.name).toUpperCase() === value
+  );
+  return found ? found.id : category;
+};
+
+/**
+ * Hook para gestionar tickets de soporte.
+ *
+ * Se enfoca únicamente en tickets: listado general, Mi Escritorio, stats,
+ * comentarios, adjuntos y mutaciones. Los catálogos (usuarios, clientes,
+ * puntos, categorías) deben cargarse con hooks especializados para no
+ * saturar el backend con requests innecesarios.
  */
 export const useTickets = (options = {}) => {
-  const { autoLoad = true } = options;
+  const { autoLoad = false } = options;
+  const { isStaff } = useAdminAuth();
 
   const [tickets, setTickets] = useState([]);
   const [ticketCount, setTicketCount] = useState(0);
+  const [warningTickets, setWarningTickets] = useState([]);
   const [stats, setStats] = useState(null);
-  const [users, setUsers] = useState([]);
-  const [clientsWithProjects, setClientsWithProjects] = useState([]);
-  const [points, setPoints] = useState([]);
+  const [myDeskTickets, setMyDeskTickets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchTickets = useCallback(async (params = {}) => {
+  const fetchTickets = useCallback(async (rawParams = {}) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await orchestrator.tickets.get({ page_size: 1000, ...params });
-      const normalized = normalizeListResponse(res);
+      const params = { ...rawParams };
+
+      // Compatibilidad: componentes antiguos usan point_catchment/created_at__*
+      if (params.point_catchment != null && params.point_id == null) {
+        params.point_id = params.point_catchment;
+      }
+      delete params.point_catchment;
+
+      if (params.created_at__gte != null && params.created_from == null) {
+        params.created_from = params.created_at__gte;
+      }
+      if (params.created_at__lte != null && params.created_to == null) {
+        params.created_to = params.created_at__lte;
+      }
+      delete params.created_at__gte;
+      delete params.created_at__lte;
+
+      const res = await orchestrator.tickets.get({ page_size: 100, ...params });
+      const normalized = normalizeListResponse(res?.tickets ? { results: res.tickets, count: res.count } : res);
       setTickets(normalized.results);
       setTicketCount(normalized.count);
       return normalized;
     } catch (err) {
       setError(err);
       message.error(err.message || "Error al cargar tickets");
+      return { results: [], count: 0 };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchWarnings = useCallback(async (rawParams = {}) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = { source: "SISTEMA", ...rawParams };
+
+      if (params.created_at__gte != null && params.created_from == null) {
+        params.created_from = params.created_at__gte;
+      }
+      if (params.created_at__lte != null && params.created_to == null) {
+        params.created_to = params.created_at__lte;
+      }
+      delete params.created_at__gte;
+      delete params.created_at__lte;
+
+      const res = await orchestrator.tickets.get({ page_size: 100, ...params });
+      const normalized = normalizeListResponse(res?.tickets ? { results: res.tickets, count: res.count } : res);
+      setWarningTickets(normalized.results);
+      return normalized;
+    } catch (err) {
+      setError(err);
+      message.error(err.message || "Error al cargar advertencias");
       return { results: [], count: 0 };
     } finally {
       setLoading(false);
@@ -58,73 +131,71 @@ export const useTickets = (options = {}) => {
     }
   }, []);
 
-  const fetchUsers = useCallback(async () => {
+  const fetchMyDesk = useCallback(async (params = {}) => {
+    setLoading(true);
+    setError(null);
     try {
-      const res = await orchestrator.admin.staffUsers();
-      const list = Array.isArray(res) ? res : res?.results || [];
-      setUsers(list);
-      return list;
+      const res = await orchestrator.tickets.myDesk({ page_size: 100, ...params });
+      const normalized = normalizeListResponse(res?.tickets ? { results: res.tickets, count: res.count } : res);
+      setMyDeskTickets(normalized.results);
+      return normalized;
     } catch (err) {
-      console.error("[useTickets] users error:", err);
-      return [];
+      setError(err);
+      message.error(err.message || "Error al cargar Mi Escritorio");
+      return { results: [], count: 0 };
+    } finally {
+      setLoading(false);
     }
   }, []);
-
-  const fetchClientsWithProjects = useCallback(async () => {
-    try {
-      const res = await orchestrator.admin.clientsWithProjects();
-      const list = Array.isArray(res) ? res : res?.results || [];
-      setClientsWithProjects(list);
-      return list;
-    } catch (err) {
-      console.error("[useTickets] clientsWithProjects error:", err);
-      return [];
-    }
-  }, []);
-
-  const fetchPoints = useCallback(async () => {
-    try {
-      const res = await orchestrator.admin.pointsAll();
-      const list = Array.isArray(res) ? res : res?.results || [];
-      setPoints(list);
-      return list;
-    } catch (err) {
-      console.error("[useTickets] points error:", err);
-      return [];
-    }
-  }, []);
-
-  const refresh = useCallback(
-    async (params = {}) => {
-      await Promise.all([
-        fetchTickets(params),
-        fetchStats(params),
-        fetchUsers(),
-        fetchClientsWithProjects(),
-        fetchPoints(),
-      ]);
-    },
-    [fetchTickets, fetchStats, fetchUsers, fetchClientsWithProjects, fetchPoints]
-  );
 
   useEffect(() => {
-    if (autoLoad) refresh();
+    if (autoLoad) fetchTickets();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoLoad]);
 
+  const refreshTickets = useCallback(
+    async (params = {}) => {
+      await fetchTickets(params);
+    },
+    [fetchTickets]
+  );
+
+  const refreshMyDesk = useCallback(
+    async (params = {}) => {
+      await fetchMyDesk(params);
+    },
+    [fetchMyDesk]
+  );
+
   const createTicket = useCallback(
-    async (data) => {
+    async (data, categories = []) => {
       try {
-        const res = await orchestrator.tickets.create(data);
+        const payload = { ...data };
+
+        if (payload.point_catchment != null && payload.points == null) {
+          payload.points = [payload.point_catchment];
+        }
+
+        if (payload.category != null) {
+          payload.category = resolveCategoryId(payload.category, categories);
+        }
+
+        if (!payload.source) payload.source = "APP_ADMIN";
+        if (!payload.origin) payload.origin = "CLIENTE";
+
+        const res = await orchestrator.tickets.create(payload);
         message.success("Ticket creado correctamente");
-        await refresh();
+        // Refresco en segundo plano para no bloquear el cierre del drawer.
+        fetchTickets().catch((refreshErr) => {
+          console.error("[useTickets] createTicket refresh error:", refreshErr);
+        });
         return res;
       } catch (err) {
         message.error(err.message || "Error al crear ticket");
         throw err;
       }
     },
-    [refresh]
+    [fetchTickets]
   );
 
   const updateTicket = useCallback(
@@ -132,14 +203,14 @@ export const useTickets = (options = {}) => {
       try {
         const res = await orchestrator.tickets.update(id, data);
         message.success("Ticket actualizado");
-        await refresh();
+        await fetchTickets();
         return res;
       } catch (err) {
         message.error(err.message || "Error al actualizar ticket");
         throw err;
       }
     },
-    [refresh]
+    [fetchTickets]
   );
 
   const deleteTicket = useCallback(
@@ -147,13 +218,13 @@ export const useTickets = (options = {}) => {
       try {
         await orchestrator.tickets.delete(id);
         message.success("Ticket eliminado");
-        await refresh();
+        await fetchTickets();
       } catch (err) {
         message.error(err.message || "Error al eliminar ticket");
         throw err;
       }
     },
-    [refresh]
+    [fetchTickets]
   );
 
   const assignTicket = useCallback(
@@ -161,14 +232,14 @@ export const useTickets = (options = {}) => {
       try {
         const res = await orchestrator.tickets.assign(id, assignedTo);
         message.success("Ticket asignado");
-        await refresh();
+        await fetchTickets();
         return res;
       } catch (err) {
         message.error(err.message || "Error al asignar ticket");
         throw err;
       }
     },
-    [refresh]
+    [fetchTickets]
   );
 
   const changeStatus = useCallback(
@@ -176,14 +247,14 @@ export const useTickets = (options = {}) => {
       try {
         const res = await orchestrator.tickets.changeStatus(id, status);
         message.success("Estado actualizado");
-        await refresh();
+        await fetchTickets();
         return res;
       } catch (err) {
         message.error(err.message || "Error al cambiar estado");
         throw err;
       }
     },
-    [refresh]
+    [fetchTickets]
   );
 
   const getTicketById = useCallback(async (id) => {
@@ -205,16 +276,23 @@ export const useTickets = (options = {}) => {
     }
   }, []);
 
-  const createComment = useCallback(async (id, data) => {
-    try {
-      const res = await orchestrator.tickets.createComment(id, data);
-      message.success("Comentario agregado");
-      return res;
-    } catch (err) {
-      message.error(err.message || "Error al agregar comentario");
-      throw err;
-    }
-  }, []);
+  const createComment = useCallback(
+    async (id, data) => {
+      try {
+        const payload = { ...data };
+        if (!isStaff && Object.prototype.hasOwnProperty.call(payload, "is_internal")) {
+          delete payload.is_internal;
+        }
+        const res = await orchestrator.tickets.createComment(id, payload);
+        message.success("Comentario agregado");
+        return res;
+      } catch (err) {
+        message.error(err.message || "Error al agregar comentario");
+        throw err;
+      }
+    },
+    [isStaff]
+  );
 
   const getAttachments = useCallback(async (id) => {
     try {
@@ -227,10 +305,13 @@ export const useTickets = (options = {}) => {
   }, []);
 
   const uploadAttachment = useCallback(async (id, file) => {
+    const validation = validateTicketAttachment(file);
+    if (!validation.valid) {
+      message.error(validation.error);
+      throw new Error(validation.error);
+    }
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await orchestrator.tickets.uploadAttachment(id, formData);
+      const res = await orchestrator.tickets.uploadAttachment(id, file);
       message.success("Adjunto subido");
       return res;
     } catch (err) {
@@ -239,25 +320,20 @@ export const useTickets = (options = {}) => {
     }
   }, []);
 
-  /** Opciones de filtros derivadas de los tickets cargados. */
-  const filterOptions = useMemo(() => {
-    const categories = [...new Set(tickets.map((t) => t.category).filter(Boolean))];
-    const sources = [...new Set(tickets.map((t) => t.source || t.origin).filter(Boolean))];
-    return { categories, sources };
-  }, [tickets]);
-
   return {
     tickets,
     ticketCount,
+    warningTickets,
     stats,
-    users,
-    clientsWithProjects,
-    points,
+    myDeskTickets,
     loading,
     error,
-    refresh,
     fetchTickets,
     fetchStats,
+    fetchMyDesk,
+    fetchWarnings,
+    refreshTickets,
+    refreshMyDesk,
     createTicket,
     updateTicket,
     deleteTicket,
@@ -268,7 +344,6 @@ export const useTickets = (options = {}) => {
     createComment,
     getAttachments,
     uploadAttachment,
-    filterOptions,
   };
 };
 

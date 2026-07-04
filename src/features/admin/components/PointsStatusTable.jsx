@@ -148,8 +148,10 @@ const PointsStatusTable = memo(({ data, loading, onChange, filters, onFiltersCha
       key: "name",
       render: (name, record) => (
         <Flex vertical>
-          <Text strong>{name || record.title || `Punto ${record.id}`}</Text>
-          <Text type="secondary" style={{ fontSize: 12 }}>
+          <Text strong style={{ color: token.voidTextHeading }}>
+            {name || record.title || `Punto ${record.id}`}
+          </Text>
+          <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
             {record.code || record.point_id || record.id}
           </Text>
         </Flex>
@@ -232,13 +234,24 @@ const PointsStatusTable = memo(({ data, loading, onChange, filters, onFiltersCha
 
   return (
     <SmartCard
+      variant="void"
       title={
-        <Flex align="center" justify="space-between" style={{ width: "100%" }}>
+        <Flex align="center" justify="space-between" style={{ width: "100%", flexWrap: "wrap", gap: 12 }}>
           <Flex align="center" gap={8}>
-            <SettingOutlined style={{ color: token.colorPrimary }} />
-            <Text strong>Estado de Puntos</Text>
+            <SettingOutlined style={{ color: token.voidTextHeading }} />
+            <Text strong style={{ color: token.voidTextHeading }}>
+              Estado de Puntos
+            </Text>
           </Flex>
-          <Space>
+          <Space
+            style={{
+              padding: "8px 12px",
+              borderRadius: token.voidRadius,
+              background: token.voidSurface,
+              border: `1px solid ${token.voidBorder}`,
+              backdropFilter: "blur(10px)",
+            }}
+          >
             <Search
               placeholder="Buscar nombre, código, cliente..."
               allowClear

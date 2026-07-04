@@ -23,6 +23,16 @@ const variantStyles = {
     borderColor: smarthydro.colors.semantic.error,
     color: "#fff",
   },
+  void: {
+    background: "#ffffff",
+    borderColor: "#ffffff",
+    color: "#030c18",
+  },
+  voidGhost: {
+    background: "rgba(255,255,255,0.07)",
+    borderColor: "rgba(255,255,255,0.12)",
+    color: "#f2f5fa",
+  },
 };
 
 const sizeMap = {

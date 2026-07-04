@@ -63,19 +63,19 @@ const OperationalDashboard = () => {
   }, []);
 
   const cards = [
-    { label: "Clientes", value: stats.clients, icon: TeamOutlined, path: "/admin/clients", color: token.colorInfo },
+    { label: "Clientes", value: stats.clients, icon: TeamOutlined, path: "/admin/clients", color: token.voidTextHeading },
     { label: "Proyectos", value: stats.projects, icon: ProjectOutlined, path: "/admin/projects", color: token.colorSuccess },
     { label: "Puntos de captación", value: stats.points, icon: EnvironmentOutlined, path: "/admin/points", color: token.colorWarning },
-    { label: "Esquemas", value: stats.schemes, icon: BuildOutlined, path: "/admin/schemes", color: token.colorPrimary },
+    { label: "Esquemas", value: stats.schemes, icon: BuildOutlined, path: "/admin/schemes", color: token.voidTextHeading },
     { label: "Variables", value: stats.variables, icon: ApartmentOutlined, path: "/admin/variables", color: token.colorError },
-    { label: "Proveedores de telemetría", value: stats.telemetryProviders, icon: CloudOutlined, path: "/admin/providers", color: token.colorTextSecondary },
+    { label: "Proveedores de telemetría", value: stats.telemetryProviders, icon: CloudOutlined, path: "/admin/providers", color: token.voidTextMuted },
     { label: "Proveedores de cumplimiento", value: stats.complianceProviders, icon: CloudOutlined, path: "/admin/providers", color: token.colorTextDisabled },
   ];
 
   return (
     <div style={{ padding: token.paddingLG }}>
       <Flex justify="space-between" align="center" style={{ marginBottom: 24 }}>
-        <Title level={3} style={{ margin: 0, color: token.colorTextHeading }}>
+        <Title level={3} style={{ margin: 0, color: token.voidTextHeading }}>
           Dashboard Operacional
         </Title>
         <Button icon={<ArrowRightOutlined />} onClick={() => navigate("/admin/performance")}>
@@ -95,9 +95,10 @@ const OperationalDashboard = () => {
                 hoverable
                 onClick={() => navigate(card.path)}
                 style={{
-                  background: token.colorBgElevated,
-                  border: `1px solid ${token.colorBorder}`,
-                  borderRadius: token.borderRadiusLG,
+                  background: token.glassBg,
+                  border: `1px solid ${token.glassBorder}`,
+                  borderRadius: token.voidRadius,
+                  backdropFilter: "blur(10px)",
                 }}
               >
                 <Flex align="center" gap={16}>
@@ -117,7 +118,7 @@ const OperationalDashboard = () => {
                   <Statistic
                     title={card.label}
                     value={card.value}
-                    valueStyle={{ color: token.colorTextHeading, fontWeight: 700 }}
+                    valueStyle={{ color: token.voidTextHeading, fontWeight: 700 }}
                   />
                 </Flex>
               </Card>

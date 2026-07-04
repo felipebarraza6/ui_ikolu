@@ -589,8 +589,24 @@ export const tickets = {
   getComments: (id, page) => sh.tickets.getComments(id, page),
   createComment: (id, data) => sh.tickets.createComment(id, data),
   getAttachments: (id) => sh.tickets.getAttachments(id),
-  uploadAttachment: (id, formData) => sh.tickets.uploadAttachment(id, formData),
+  uploadAttachment: (id, file) => sh.tickets.uploadAttachment(id, file),
   stats: (params) => sh.tickets.stats(params),
+  myDesk: (params) => sh.tickets.myDesk(params),
+  dashboard: (params) => sh.tickets.dashboard(params),
+  categories: {
+    get: (params) => sh.tickets.categories.get(params),
+    getById: (id) => sh.tickets.categories.getById(id),
+    create: (data) => sh.tickets.categories.create(data),
+    update: (id, data) => sh.tickets.categories.update(id, data),
+    delete: (id) => sh.tickets.categories.delete(id),
+  },
+  slaConfigs: {
+    get: (params) => sh.tickets.slaConfigs.get(params),
+    getById: (id) => sh.tickets.slaConfigs.getById(id),
+    create: (data) => sh.tickets.slaConfigs.create(data),
+    update: (id, data) => sh.tickets.slaConfigs.update(id, data),
+    delete: (id) => sh.tickets.slaConfigs.delete(id),
+  },
 };
 
 export const alerts = {
@@ -611,6 +627,16 @@ export const alerts = {
     get: (params) => sh.alerts.triggers.get(params),
     acknowledge: (id) => sh.alerts.triggers.acknowledge(id),
   },
+};
+
+export const requestPasswordReset = async (email) => {
+  const data = await sh.requestPasswordReset(email);
+  return data;
+};
+
+export const confirmPasswordReset = async (token, newPassword) => {
+  const data = await sh.confirmPasswordReset(token, newPassword);
+  return data;
 };
 
 export const admin = {
@@ -661,6 +687,20 @@ export const admin = {
   telemetryProviderById: (id) => sh.getTelemetryProvider(id),
   complianceProviders: (params) => sh.getComplianceProviders(params),
   complianceProviderById: (id) => sh.getComplianceProvider(id),
+  ticketCategories: {
+    get: (params) => sh.admin.ticketCategories.get(params),
+    getById: (id) => sh.admin.ticketCategories.getById(id),
+    create: (data) => sh.admin.ticketCategories.create(data),
+    update: (id, data) => sh.admin.ticketCategories.update(id, data),
+    delete: (id) => sh.admin.ticketCategories.delete(id),
+  },
+  slaConfigs: {
+    get: (params) => sh.admin.slaConfigs.get(params),
+    getById: (id) => sh.admin.slaConfigs.getById(id),
+    create: (data) => sh.admin.slaConfigs.create(data),
+    update: (id, data) => sh.admin.slaConfigs.update(id, data),
+    delete: (id) => sh.admin.slaConfigs.delete(id),
+  },
 };
 
 // ──────────────────────────────────────────
@@ -719,6 +759,8 @@ const orchestrator = {
   tickets,
   alerts,
   admin,
+  requestPasswordReset,
+  confirmPasswordReset,
   PRIORITY,
 };
 

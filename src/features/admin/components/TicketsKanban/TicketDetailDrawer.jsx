@@ -17,6 +17,9 @@ import {
   Tag,
   DatePicker,
   Popconfirm,
+  Checkbox,
+  Timeline,
+  message,
 } from "antd";
 import {
   UserOutlined,
@@ -27,23 +30,26 @@ import {
   UploadOutlined,
   ToolOutlined,
   DeleteOutlined,
+  FileOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { SmartBadge, SmartButton } from "../../../../shared/ui";
 import { useIkoluToken } from "../../../../hooks/useIkoluToken";
+import { useResponsive } from "../../../../hooks/useResponsive";
 import { useAdminAuth } from "../../hooks/useAdminAuth";
 import {
   STATUS_OPTIONS,
   getTicketStatusLabel,
   getTicketPriorityConfig,
   getTicketCategoryLabel,
-  getTicketField,
+  getTicketSourceLabel,
+  getTicketOriginLabel,
   getTicketDateValue,
-  formatTicketDate,
   getSlaStatus,
   isTicketInOT,
+  validateTicketAttachment,
 } from "../../constants/tickets";
 
 const { Title, Text } = Typography;
@@ -80,15 +86,15 @@ const formatTicketDateOnly = (ticket, ...fields) => {
 const SlaDetail = ({ deadline, doneAt }) => {
   const token = useIkoluToken();
   const status = getSlaStatus(deadline, doneAt);
-  if (!deadline && !doneAt) return <Text type="secondary">-</Text>;
+  if (!deadline && !doneAt) return <Text style={{ color: token.voidTextMuted }}>-</Text>;
   return (
     <Flex align="center" gap={8} wrap>
-      <Text style={{ color: status.variant === "error" ? token.colorError : token.colorText }}>
+      <Text style={{ color: token.voidText }}>
         {deadline ? formatDateTime(deadline) : "Sin límite"}
       </Text>
-      <Tag color={status.variant === "error" ? "error" : status.variant === "success" ? "success" : "warning"}>
+      <SmartBadge variant={status.variant} size="sm">
         {status.label}
-      </Tag>
+      </SmartBadge>
     </Flex>
   );
 };
@@ -102,6 +108,7 @@ const TicketDetailDrawer = ({
   open,
   onClose,
   users,
+  categories,
   onChangeStatus,
   onAssign,
   onUpdateTicket,
@@ -113,6 +120,7 @@ const TicketDetailDrawer = ({
   getAttachments,
 }) => {
   const token = useIkoluToken();
+  const { isMobile } = useResponsive();
   const { isStaff } = useAdminAuth();
   const [ticket, setTicket] = useState(null);
   const [comments, setComments] = useState([]);
@@ -146,6 +154,19 @@ const TicketDetailDrawer = ({
   }, [open, ticketId, load]);
 
   useEffect(() => {
+    if (!open) {
+      setTicket(null);
+      setComments([]);
+      setAttachments([]);
+      setActiveTab("info");
+      setEditingOt(false);
+      commentForm.resetFields();
+      otForm.resetFields();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  useEffect(() => {
     if (ticket && editingOt) {
       otForm.setFieldsValue({
         scheduled_date: ticket.scheduled_date ? dayjs(ticket.scheduled_date) : null,
@@ -165,12 +186,24 @@ const TicketDetailDrawer = ({
   };
 
   const handleComment = async (values) => {
-    await onCreateComment(ticketId, values);
+    const payload = {
+      content: values.content,
+    };
+    if (isStaff) {
+      if (values.is_internal) payload.is_internal = true;
+      if (values.status_change) payload.status_change = values.status_change;
+    }
+    await onCreateComment(ticketId, payload);
     commentForm.resetFields();
     load();
   };
 
   const handleUpload = async ({ file }) => {
+    const validation = validateTicketAttachment(file);
+    if (!validation.valid) {
+      message.error(validation.error);
+      return;
+    }
     await onUploadAttachment(ticketId, file);
     load();
   };
@@ -211,6 +244,15 @@ const TicketDetailDrawer = ({
     }
   };
 
+  const resolveUserName = (userId) => {
+    if (userId == null) return "Desconocido";
+    const user = users.find((u) => u.id === userId || u.username === userId);
+    if (user) {
+      return [user.first_name, user.last_name].filter(Boolean).join(" ") || user.full_name || user.username || user.email;
+    }
+    return `Usuario ${userId}`;
+  };
+
   const userOptions = users.map((u) => {
     const name = [u.first_name, u.last_name].filter(Boolean).join(" ") || u.full_name || u.username || u.email;
     return {
@@ -218,6 +260,23 @@ const TicketDetailDrawer = ({
       label: name,
     };
   });
+
+  const resolveCategoryName = (ticket) => {
+    if (!ticket) return "-";
+    if (ticket.category_detail?.name) return ticket.category_detail.name;
+    const found = categories?.find((c) => c.id === ticket.category);
+    if (found?.name) return found.name;
+    return getTicketCategoryLabel(ticket.category_detail) || `Categoría ${ticket.category}`;
+  };
+
+  const resolvePointsLabel = (ticket) => {
+    if (!ticket?.points?.length) {
+      if (ticket?.point_title) return ticket.point_title;
+      if (ticket?.point_catchment) return `Punto ${ticket.point_catchment}`;
+      return "-";
+    }
+    return ticket.points.map((p) => p.title || `Punto ${p.id}`).join(", ");
+  };
 
   const renderOtSection = () => {
     if (!isStaff) return null;
@@ -227,13 +286,15 @@ const TicketDetailDrawer = ({
       <div
         style={{
           padding: 12,
-          background: token.colorFillTertiary,
-          borderRadius: token.borderRadius,
+          background: token.glassBg,
+          borderRadius: token.voidRadius,
+          border: `1px solid ${token.glassBorder}`,
+          backdropFilter: "blur(10px)",
         }}
       >
         <Flex align="center" gap={8} style={{ marginBottom: 12 }}>
-          <ToolOutlined style={{ color: token.colorCorporateBlue }} />
-          <Text strong style={{ color: token.colorTextHeading }}>
+          <ToolOutlined style={{ color: token.voidTextHeading }} />
+          <Text strong style={{ color: token.voidTextHeading }}>
             Orden de Trabajo
           </Text>
         </Flex>
@@ -247,10 +308,10 @@ const TicketDetailDrawer = ({
               <TextArea rows={4} placeholder="Detalle del reporte de visita..." />
             </Form.Item>
             <Flex gap={8} justify="flex-end">
-              <SmartButton variant="neutral" size="sm" onClick={handleCancelEditOt}>
+              <SmartButton variant="voidGhost" size="sm" onClick={handleCancelEditOt}>
                 Cancelar
               </SmartButton>
-              <SmartButton variant="primary" size="sm" htmlType="submit" loading={savingOt}>
+              <SmartButton variant="void" size="sm" htmlType="submit" loading={savingOt}>
                 Guardar
               </SmartButton>
             </Flex>
@@ -268,7 +329,7 @@ const TicketDetailDrawer = ({
               </Descriptions.Item>
             </Descriptions>
             <Flex justify="flex-end">
-              <SmartButton variant="primary" size="sm" onClick={handleStartEditOt}>
+              <SmartButton variant="void" size="sm" onClick={handleStartEditOt}>
                 Editar OT
               </SmartButton>
             </Flex>
@@ -289,9 +350,12 @@ const TicketDetailDrawer = ({
         children: (
           <Flex vertical gap={16}>
             <Flex justify="space-between" align="flex-start" gap={12}>
-              <Title level={4} style={{ margin: 0, color: token.colorTextHeading }}>
-                {ticket.title || `Ticket #${ticket.id}`}
-              </Title>
+              <div>
+                <Text style={{ color: token.voidTextMuted }}>#{ticket.id}</Text>
+                <Title level={4} style={{ margin: 0, color: token.voidTextHeading }}>
+                  {ticket.title || `Ticket #${ticket.id}`}
+                </Title>
+              </div>
               <Tag color={getTicketPriorityConfig(ticket.priority).color}>
                 {getTicketPriorityConfig(ticket.priority).label}
               </Tag>
@@ -301,23 +365,34 @@ const TicketDetailDrawer = ({
               <Descriptions.Item label="Cliente">
                 {ticket.client_name || "-"}
               </Descriptions.Item>
-              <Descriptions.Item label="Punto de captación">
-                {ticket.point_title || `Punto ${ticket.point_catchment}` || "-"}
+              <Descriptions.Item label="Punto(s) de captación">
+                {resolvePointsLabel(ticket)}
               </Descriptions.Item>
               <Descriptions.Item label="Estado">
-                <SmartBadge variant="info">{getTicketStatusLabel(ticket.status)}</SmartBadge>
+                <SmartBadge variant="void" size="sm">
+                  {getTicketStatusLabel(ticket.status)}
+                </SmartBadge>
+              </Descriptions.Item>
+              <Descriptions.Item label="Prioridad">
+                {getTicketPriorityConfig(ticket.priority).label}
               </Descriptions.Item>
               <Descriptions.Item label="Categoría">
-                {getTicketCategoryLabel(ticket.category) || "-"}
+                {resolveCategoryName(ticket)}
               </Descriptions.Item>
               <Descriptions.Item label="Origen">
-                {ticket.source || ticket.origin || "-"}
+                {getTicketOriginLabel(ticket.origin) || ticket.origin || "-"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Canal">
+                {getTicketSourceLabel(ticket.source) || ticket.source || "-"}
               </Descriptions.Item>
               <Descriptions.Item label="Creado">
                 {formatTicketDateTime(ticket, "created", "created_at")}
               </Descriptions.Item>
               <Descriptions.Item label="Creado por">
-                {ticket.created_by_name || (ticket.created_by ? `Usuario ${ticket.created_by}` : ticket.source === "SISTEMA" || ticket.origin === "INTERNO" ? "Support Agent" : "-" )}
+                {ticket.created_by_name || (ticket.created_by ? `Usuario ${ticket.created_by}` : ticket.source === "SISTEMA" || ticket.origin === "INTERNO" ? "Sistema" : "-")}
+              </Descriptions.Item>
+              <Descriptions.Item label="Asignado a">
+                {ticket.assigned_to_name || (ticket.assigned_to ? `Usuario ${ticket.assigned_to}` : "Sin asignar")}
               </Descriptions.Item>
               <Descriptions.Item label="Actualizado">
                 {formatTicketDateTime(ticket, "modified", "updated_at")}
@@ -328,6 +403,16 @@ const TicketDetailDrawer = ({
               <Descriptions.Item label="SLA Resolución">
                 <SlaDetail deadline={ticket.sla_deadline_resolution} doneAt={ticket.sla_resolved_at} />
               </Descriptions.Item>
+              {ticket.scheduled_date && (
+                <Descriptions.Item label="Fecha programada">
+                  {formatTicketDateOnly(ticket, "scheduled_date")}
+                </Descriptions.Item>
+              )}
+              {ticket.visit_report && (
+                <Descriptions.Item label="Reporte de visita">
+                  <Text style={{ whiteSpace: "pre-wrap" }}>{ticket.visit_report}</Text>
+                </Descriptions.Item>
+              )}
               {ticket.alert_trigger && (
                 <Descriptions.Item label="Alerta">
                   Alerta #{ticket.alert_trigger}
@@ -341,16 +426,20 @@ const TicketDetailDrawer = ({
             </Descriptions>
 
             <div>
-              <Text strong>Descripción</Text>
+              <Text strong style={{ color: token.voidTextHeading }}>
+                Descripción
+              </Text>
               <div
                 style={{
                   padding: 12,
-                  background: token.colorFillTertiary,
-                  borderRadius: token.borderRadius,
+                  background: token.glassBg,
+                  borderRadius: token.voidRadius,
+                  border: `1px solid ${token.glassBorder}`,
+                  backdropFilter: "blur(10px)",
                   marginTop: 8,
                 }}
               >
-                <Text style={{ whiteSpace: "pre-wrap" }}>
+                <Text style={{ whiteSpace: "pre-wrap", color: token.voidText }}>
                   {ticket.description || "-"}
                 </Text>
               </div>
@@ -360,7 +449,7 @@ const TicketDetailDrawer = ({
 
             <Flex gap={16} wrap>
               <div>
-                <Text strong style={{ display: "block", marginBottom: 6 }}>
+                <Text strong style={{ display: "block", marginBottom: 6, color: token.voidTextHeading }}>
                   Cambiar estado
                 </Text>
                 <Select
@@ -371,7 +460,7 @@ const TicketDetailDrawer = ({
                 />
               </div>
               <div>
-                <Text strong style={{ display: "block", marginBottom: 6 }}>
+                <Text strong style={{ display: "block", marginBottom: 6, color: token.voidTextHeading }}>
                   Asignar a
                 </Text>
                 <Select
@@ -383,7 +472,7 @@ const TicketDetailDrawer = ({
                   placeholder={ticket.assigned_to_name || "Seleccionar usuario"}
                 />
                 {ticket.assigned_to_name && (
-                  <Text type="secondary" style={{ fontSize: 12, display: "block", marginTop: 4 }}>
+                  <Text style={{ fontSize: 12, display: "block", marginTop: 4, color: token.voidTextMuted }}>
                     Actual: {ticket.assigned_to_name}
                   </Text>
                 )}
@@ -420,16 +509,34 @@ const TicketDetailDrawer = ({
     ),
     children: (
       <Flex vertical gap={16}>
-        <Form form={commentForm} onFinish={handleComment}>
+        <Form form={commentForm} onFinish={handleComment} layout="vertical">
           <Form.Item
             name="content"
+            label="Comentario"
             rules={[{ required: true, message: "Escribe un comentario" }]}
           >
             <TextArea rows={3} placeholder="Agregar comentario..." />
           </Form.Item>
-          <SmartButton variant="primary" htmlType="submit" size="sm">
-            Comentar
-          </SmartButton>
+          {isStaff && (
+            <>
+              <Form.Item name="is_internal" valuePropName="checked">
+                <Checkbox>Comentario interno</Checkbox>
+              </Form.Item>
+              <Form.Item name="status_change" label="Cambiar estado (opcional)">
+                <Select
+                  allowClear
+                  options={STATUS_OPTIONS}
+                  placeholder="Sin cambio de estado"
+                  style={{ width: "100%" }}
+                />
+              </Form.Item>
+            </>
+          )}
+          <Form.Item>
+            <SmartButton variant="void" htmlType="submit" size="sm">
+              Comentar
+            </SmartButton>
+          </Form.Item>
         </Form>
         <List
           dataSource={comments}
@@ -439,17 +546,24 @@ const TicketDetailDrawer = ({
               <List.Item.Meta
                 avatar={<Avatar icon={<UserOutlined />} />}
                 title={
-                  <Flex justify="space-between">
-                    <Text strong>
-                      {item.author_name || item.author || "Usuario"}
-                    </Text>
-                    <Text type="secondary" style={{ fontSize: 12 }}>
+                  <Flex justify="space-between" align="center">
+                    <Flex align="center" gap={8}>
+                      <Text strong style={{ color: token.voidTextHeading }}>
+                        {item.author_name || item.author || "Usuario"}
+                      </Text>
+                      {item.is_internal && (
+                        <SmartBadge variant="void" size="sm">
+                          Interno
+                        </SmartBadge>
+                      )}
+                    </Flex>
+                    <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
                       {formatDateTime(item.created)}
                     </Text>
                   </Flex>
                 }
                 description={
-                  <Text style={{ whiteSpace: "pre-wrap" }}>
+                  <Text style={{ whiteSpace: "pre-wrap", color: token.voidText }}>
                     {item.content || item.text || item.message}
                   </Text>
                 }
@@ -470,23 +584,61 @@ const TicketDetailDrawer = ({
     ),
     children: (
       <Flex vertical gap={16}>
-        <Upload customRequest={handleUpload} showUploadList={false}>
-          <Button icon={<UploadOutlined />}>Subir archivo</Button>
-        </Upload>
+        <Upload.Dragger
+          customRequest={handleUpload}
+          showUploadList={false}
+          style={{
+            background: token.glassBg,
+            borderColor: token.glassBorder,
+            borderRadius: token.voidRadius,
+            backdropFilter: "blur(10px)",
+          }}
+        >
+          <Flex vertical align="center" gap={8} style={{ padding: "8px 0" }}>
+            <UploadOutlined style={{ fontSize: 28, color: token.voidTextHeading }} />
+            <Text style={{ fontSize: 14, color: token.voidTextHeading }}>
+              Haz clic o arrastra un archivo aquí
+            </Text>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              Imágenes, PDFs o documentos
+            </Text>
+          </Flex>
+        </Upload.Dragger>
         <List
           dataSource={attachments}
           locale={{ emptyText: <Empty description="Sin adjuntos" /> }}
-          renderItem={(item) => (
-            <List.Item>
-              <a
-                href={item.file || item.url || item.file_url}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {item.name || item.filename || `Adjunto ${item.id}`}
-              </a>
-            </List.Item>
-          )}
+          renderItem={(item) => {
+            const fileUrl = item.file_url || item.file || item.url;
+            const fileName = item.original_name || item.name || item.filename || `Adjunto ${item.id}`;
+            return (
+              <List.Item>
+                <List.Item.Meta
+                  avatar={<Avatar icon={<FileOutlined />} style={{ background: token.voidSurface }} />}
+                  title={
+                    <a
+                      href={fileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      download={fileName}
+                      style={{ fontWeight: 500 }}
+                    >
+                      {fileName}
+                    </a>
+                  }
+                  description={
+                    <Flex gap={16}>
+                      <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
+                        Autor: {item.uploaded_by_name || resolveUserName(item.uploaded_by)}
+                      </Text>
+                      <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
+                        Subido: {formatDateTime(item.created_at || item.created || item.uploaded_at)}
+                      </Text>
+                    </Flex>
+                  }
+                />
+              </List.Item>
+            );
+          }}
         />
       </Flex>
     ),
@@ -499,35 +651,37 @@ const TicketDetailDrawer = ({
         <HistoryOutlined /> Actividad ({ticket?.activity_logs?.length || 0})
       </Flex>
     ),
-    children: (
-      <List
-        dataSource={ticket?.activity_logs || []}
-        locale={{ emptyText: <Empty description="Sin actividad registrada" /> }}
-        renderItem={(item) => (
-          <List.Item>
-            <List.Item.Meta
-              avatar={<Avatar icon={<UserOutlined />} />}
-              title={
-                <Flex justify="space-between">
-                  <Text strong>
-                    {item.user_name || item.user || "Usuario"}
+    children: ticket?.activity_logs?.length ? (
+      <Timeline
+        mode="left"
+        items={ticket.activity_logs.map((item) => ({
+          label: (
+            <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
+              {formatDateTime(item.created)}
+            </Text>
+          ),
+          children: (
+            <div>
+              <Text strong style={{ color: token.voidTextHeading }}>
+                {item.user_name || item.user || "Sistema"}
+              </Text>
+              <div>
+                {item.field_name === "CREACIÓN" ? (
+                  <Text style={{ color: token.voidText }}>{item.new_value || "Ticket creado"}</Text>
+                ) : (
+                  <Text style={{ color: token.voidText }}>
+                    Cambió <Text strong style={{ color: token.voidTextHeading }}>{item.field_name}</Text>:{" "}
+                    <Text style={{ color: token.voidTextMuted }}>{item.old_value || "-"}</Text>{" "}
+                    → <Text style={{ color: token.voidText }}>{item.new_value || "-"}</Text>
                   </Text>
-                  <Text type="secondary" style={{ fontSize: 12 }}>
-                    {formatDateTime(item.created)}
-                  </Text>
-                </Flex>
-              }
-              description={
-                <Text>
-                  {item.field_name === "CREACIÓN"
-                    ? item.new_value
-                    : `Cambió ${item.field_name}: ${item.old_value || "-"} → ${item.new_value || "-"}`}
-                </Text>
-              }
-            />
-          </List.Item>
-        )}
+                )}
+              </div>
+            </div>
+          ),
+        }))}
       />
+    ) : (
+      <Empty description="Sin actividad registrada" />
     ),
   };
 
@@ -535,11 +689,24 @@ const TicketDetailDrawer = ({
 
   return (
     <Drawer
-      title="Detalle del Ticket"
+      title={<span style={{ color: token.voidTextHeading }}>Detalle del Ticket</span>}
       open={open}
       onClose={onClose}
-      width={640}
-      styles={{ body: { paddingBottom: 24 } }}
+      width={isMobile ? "100%" : 640}
+      styles={{
+        body: {
+          padding: isMobile ? 16 : 24,
+          paddingBottom: 24,
+          background: token.glassBg,
+          backdropFilter: "blur(10px)",
+        },
+        header: {
+          background: token.glassBg,
+          borderBottom: `1px solid ${token.glassBorder}`,
+        },
+        mask: { background: "rgba(0, 0, 0, 0.65)" },
+        content: { background: "transparent", boxShadow: token.voidShadow },
+      }}
     >
       <Spin spinning={loading} tip="Cargando ticket...">
         {ticket ? (

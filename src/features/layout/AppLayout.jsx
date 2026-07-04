@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Layout, Grid, theme } from "antd";
+import { Layout, Grid } from "antd";
+import { useIkoluToken } from "../../hooks/useIkoluToken";
 import Sidebar from "./Sidebar";
 import HeaderNav from "./HeaderNav";
 
@@ -10,10 +11,10 @@ const AppLayout = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const screens = Grid.useBreakpoint();
   const isMobile = !screens.md;
-  const { token } = theme.useToken();
+  const token = useIkoluToken();
 
   return (
-    <Layout style={{ minHeight: "100vh", background: token.colorBgLayout }}>
+    <Layout style={{ minHeight: "100vh", background: token.voidBg }}>
       <Sidebar
         collapsed={collapsed}
         setCollapsed={setCollapsed}
@@ -21,7 +22,7 @@ const AppLayout = ({ children }) => {
         mobileOpen={mobileOpen}
         setMobileOpen={setMobileOpen}
       />
-      <Layout style={{ background: token.colorBgLayout }}>
+      <Layout style={{ background: token.voidBg }}>
         <HeaderNav
           collapsed={collapsed}
           setCollapsed={setCollapsed}
@@ -34,8 +35,7 @@ const AppLayout = ({ children }) => {
           style={{
             margin: 0,
             padding: 24,
-            background: token.colorBgContainer,
-            borderRadius: token.borderRadiusLG,
+            background: token.voidBg,
             minHeight: 280,
             overflow: "auto",
           }}

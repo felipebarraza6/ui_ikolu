@@ -1,6 +1,7 @@
 import React, { memo, useEffect } from "react";
-import { Drawer, Flex, Button, Form, Spin } from "antd";
+import { Drawer, Flex, Form, Spin } from "antd";
 import { CloseOutlined, SaveOutlined } from "@ant-design/icons";
+import { SmartButton } from "../../../shared/ui";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
 
 /**
@@ -50,18 +51,24 @@ const CrudDrawer = memo(
 
     const footer = (
       <Flex justify="flex-end" gap={8}>
-        <Button icon={<CloseOutlined />} onClick={onClose} disabled={saving}>
+        <SmartButton
+          variant="voidGhost"
+          size="sm"
+          icon={<CloseOutlined />}
+          onClick={onClose}
+          disabled={saving}
+        >
           Cancelar
-        </Button>
-        <Button
-          type="primary"
+        </SmartButton>
+        <SmartButton
+          variant="void"
+          size="sm"
           icon={<SaveOutlined />}
           loading={saving}
           onClick={handleSubmit}
-          style={{ background: token.colorPrimary }}
         >
           Guardar
-        </Button>
+        </SmartButton>
       </Flex>
     );
 
@@ -74,7 +81,20 @@ const CrudDrawer = memo(
         destroyOnClose
         maskClosable={!saving}
         footer={footer}
-        styles={{ body: { padding: 16 } }}
+        styles={{
+          body: { padding: 16, background: token.voidBg },
+          header: {
+            background: token.voidSurface,
+            borderBottom: `1px solid ${token.voidBorder}`,
+            color: token.voidTextHeading,
+          },
+          footer: {
+            background: token.voidSurface,
+            borderTop: `1px solid ${token.voidBorder}`,
+          },
+          mask: { background: "rgba(0, 0, 0, 0.65)" },
+          content: { background: token.voidBg, boxShadow: token.voidShadow },
+        }}
       >
         {loading ? (
           <Flex justify="center" align="center" style={{ minHeight: 200 }}>

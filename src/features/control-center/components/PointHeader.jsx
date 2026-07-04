@@ -1,7 +1,7 @@
 import React from "react";
 import { Flex, Typography, Tag } from "antd";
 import { FaInfoCircle, FaExternalLinkAlt } from "react-icons/fa";
-
+import { useIkoluToken } from "../../../hooks/useIkoluToken";
 
 const { Text } = Typography;
 
@@ -18,7 +18,8 @@ const typeDgaLabels = {
   VOLUMEN: "Volumen",
 };
 
-const PointHeader = ({ record, onViewPointConfig, token }) => {
+const PointHeader = ({ record, onViewPointConfig }) => {
+  const token = useIkoluToken();
   const hasDga = record.compliance_type?.includes("DGA");
   const hasSma = record.compliance_type?.includes("SMA");
 
@@ -29,7 +30,7 @@ const PointHeader = ({ record, onViewPointConfig, token }) => {
           strong
           style={{
             fontSize: 12,
-            color: token?.colorText || '#212529',
+            color: token.voidTextHeading,
             lineHeight: 1.2,
             fontFamily: "'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
           }}
@@ -39,7 +40,7 @@ const PointHeader = ({ record, onViewPointConfig, token }) => {
         <FaInfoCircle
           style={{
             fontSize: 11,
-            color: token?.colorPrimary || '#203562',
+            color: token.voidTextMuted,
             cursor: "pointer",
             opacity: 0.7,
           }}
@@ -57,9 +58,9 @@ const PointHeader = ({ record, onViewPointConfig, token }) => {
               margin: 0,
               padding: "1px 5px",
               lineHeight: "15px",
-              background: `${token?.colorPrimary || '#203562'}10`,
-              border: "none",
-              color: token?.colorPrimary || '#203562',
+              background: token.voidSurface,
+              border: `1px solid ${token.voidBorder}`,
+              color: token.voidTextHeading,
               fontWeight: 600,
               fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
             }}
@@ -74,9 +75,9 @@ const PointHeader = ({ record, onViewPointConfig, token }) => {
               margin: 0,
               padding: "1px 5px",
               lineHeight: "15px",
-              background: 'rgba(42, 157, 143, 0.15)',
+              background: `${token.colorSuccess}15`,
               border: "none",
-              color: token?.colorSuccess || '#2A9D8F',
+              color: token.colorSuccess,
               fontWeight: 600,
               fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
             }}
@@ -91,7 +92,7 @@ const PointHeader = ({ record, onViewPointConfig, token }) => {
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                color: token?.colorPrimary || '#203562',
+                color: token.voidText,
                 fontSize: 11,
                 fontWeight: 600,
                 whiteSpace: "nowrap",
@@ -109,7 +110,7 @@ const PointHeader = ({ record, onViewPointConfig, token }) => {
             <Text
               style={{
                 fontSize: 11,
-                color: token?.colorTextSecondary || '#6C757D',
+                color: token.voidTextMuted,
                 fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
               }}
             >

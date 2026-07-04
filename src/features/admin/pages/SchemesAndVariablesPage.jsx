@@ -26,6 +26,7 @@ import {
   ApartmentOutlined,
 } from "@ant-design/icons";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
+import { SmartButton } from "../../../shared/ui";
 import CrudDrawer from "../components/CrudDrawer";
 import orchestrator from "../../../api/orchestrator";
 
@@ -284,7 +285,7 @@ const SchemesAndVariablesPage = () => {
       dataIndex: "name",
       key: "name",
       render: (v, r) => (
-        <Text strong={selectedScheme?.id === r.id} style={{ color: selectedScheme?.id === r.id ? token.colorPrimary : undefined }}>
+        <Text strong={selectedScheme?.id === r.id} style={{ color: selectedScheme?.id === r.id ? token.voidTextHeading : undefined }}>
           {v}
         </Text>
       ),
@@ -343,8 +344,8 @@ const SchemesAndVariablesPage = () => {
     <div style={{ padding: token.paddingLG }}>
       <Flex justify="space-between" align="center" style={{ marginBottom: 24 }}>
         <Flex align="center" gap={12}>
-          <BuildOutlined style={{ fontSize: 24, color: token.colorPrimary }} />
-          <Title level={3} style={{ margin: 0, color: token.colorTextHeading }}>
+          <BuildOutlined style={{ fontSize: 24, color: token.voidTextHeading }} />
+          <Title level={3} style={{ margin: 0, color: token.voidTextHeading }}>
             Esquemas y Variables
           </Title>
         </Flex>
@@ -356,12 +357,12 @@ const SchemesAndVariablesPage = () => {
             title={
               <Flex justify="space-between" align="center">
                 <Text strong>Esquemas</Text>
-                <Button type="primary" size="small" icon={<PlusOutlined />} onClick={openSchemeCreate}>
+                <SmartButton variant="void" size="sm" icon={<PlusOutlined />} onClick={openSchemeCreate}>
                   Nuevo
-                </Button>
+                </SmartButton>
               </Flex>
             }
-            style={{ background: token.colorBgElevated, border: `1px solid ${token.colorBorder}` }}
+            style={{ background: token.voidSurface, border: `1px solid ${token.voidBorder}` }}
           >
             <Search
               placeholder="Buscar esquema..."
@@ -399,21 +400,21 @@ const SchemesAndVariablesPage = () => {
                   <ApartmentOutlined />
                   <Text strong>Variables</Text>
                   {selectedScheme && (
-                    <Tag color="blue">{selectedScheme.name}</Tag>
+                    <Tag>{selectedScheme.name}</Tag>
                   )}
                 </Flex>
-                <Button
-                  type="primary"
-                  size="small"
+                <SmartButton
+                  variant="void"
+                  size="sm"
                   icon={<PlusOutlined />}
                   onClick={openVariableCreate}
                   disabled={!selectedScheme}
                 >
                   Nueva Variable
-                </Button>
+                </SmartButton>
               </Flex>
             }
-            style={{ background: token.colorBgElevated, border: `1px solid ${token.colorBorder}`, minHeight: "100%" }}
+            style={{ background: token.voidSurface, border: `1px solid ${token.voidBorder}`, minHeight: "100%" }}
           >
             {!selectedScheme ? (
               <Empty description="Selecciona un esquema para ver sus variables" />

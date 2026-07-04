@@ -1,47 +1,81 @@
 import React, { useState } from "react";
-import {
-  Form,
-  Input,
-  Button,
-  Card,
-  Typography,
-  message,
-  Flex,
-  theme,
-  Modal,
-} from "antd";
-import { MailOutlined, LockOutlined } from "@ant-design/icons";
+import { message, Form } from "antd";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import orchestrator from "../../api/orchestrator";
+import usePublicData from "./hooks/usePublicData";
+import BrandPanel from "./components/BrandPanel";
+import LoginFlipCard from "./components/LoginFlipCard";
+import LoginForm from "./components/LoginForm";
+import IkoluFeatures from "./components/IkoluFeatures";
+import ForgotModal from "./components/ForgotModal";
 
-const { Text, Title } = Typography;
+const keyframes = `
+@keyframes fade-up {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes modal-in {
+  0% { opacity: 0; transform: scale(0.96) translateY(12px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+`;
 
-const waveKeyframes = `
-@keyframes wave-rise {
-  0% { transform: translateY(0) scaleY(1); }
-  50% { transform: translateY(-24px) scaleY(1.08); }
-  100% { transform: translateY(0) scaleY(1); }
+const responsiveStyles = `
+.login-root {
+  display: flex;
+  min-height: 100vh;
 }
-@keyframes wave-drift {
-  0% { transform: translateX(-50%) rotate(0deg); }
-  50% { transform: translateX(-45%) rotate(2deg); }
-  100% { transform: translateX(-50%) rotate(0deg); }
+.login-brand {
+  flex: 1 1 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 48px 64px;
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
-@keyframes shimmer {
-  0% { opacity: 0.35; }
-  50% { opacity: 0.6; }
-  100% { opacity: 0.35; }
+.login-brand-content {
+  position: relative;
+  z-index: 1;
+  max-width: 560px;
+  animation: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.login-form-wrap {
+  flex: 1 1 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: #030c18;
+  position: relative;
+  overflow: hidden;
+}
+@media (max-width: 1000px) {
+  .login-brand { flex: 1 1 50%; padding: 36px 40px; }
+  .login-form-wrap { flex: 1 1 50%; padding: 32px; }
+}
+@media (max-width: 800px) {
+  .login-root { flex-direction: column; }
+  .login-brand { display: none; }
+  .login-form-wrap {
+    flex: 1;
+    padding: 32px 24px;
+    background: linear-gradient(160deg, #031020 0%, #061d38 50%, #0a2740 100%);
+  }
 }
 `;
 
 const LoginPage = () => {
-  const { token } = theme.useToken();
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { data: publicData, loading: publicLoading } = usePublicData();
+
   const [loading, setLoading] = useState(false);
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
+  const [flipped, setFlipped] = useState(false);
   const [forgotForm] = Form.useForm();
 
   const onFinish = async (values) => {
@@ -60,6 +94,11 @@ const LoginPage = () => {
   const handleForgot = async (values) => {
     setForgotLoading(true);
     try {
+      if (typeof orchestrator?.requestPasswordReset !== "function") {
+        throw new Error(
+          "Módulo de recuperación no disponible. Intenta recargar la página (Ctrl+F5)."
+        );
+      }
       await orchestrator.requestPasswordReset(values.email);
       message.success("Revisa tu correo para continuar con la recuperación");
       forgotForm.resetFields();
@@ -76,239 +115,60 @@ const LoginPage = () => {
     }
   };
 
+  const closeForgot = () => {
+    setForgotOpen(false);
+    forgotForm.resetFields();
+  };
+
+  const front = (
+    <LoginForm
+      onSubmit={onFinish}
+      loading={loading}
+      onForgot={() => setForgotOpen(true)}
+      onShowFeatures={() => setFlipped(true)}
+    />
+  );
+
+  const back = (
+    <IkoluFeatures
+      platform={publicData?.platform}
+      onBack={() => setFlipped(false)}
+    />
+  );
+
   return (
-    <Flex
-      align="center"
-      justify="center"
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(160deg, #05080f 0%, #0b1429 50%, #0a1a33 100%)",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      <style>{waveKeyframes}</style>
+    <div className="login-root">
+      <style>{keyframes}</style>
+      <style>{responsiveStyles}</style>
 
-      {/* Noir radial glow */}
-      <div
-        style={{
-          position: "absolute",
-          top: "-20%",
-          left: "-10%",
-          width: "60vw",
-          height: "60vw",
-          background: "radial-gradient(circle, rgba(32,53,98,0.35) 0%, rgba(5,8,15,0) 70%)",
-          filter: "blur(60px)",
-          pointerEvents: "none",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          bottom: "-20%",
-          right: "-10%",
-          width: "60vw",
-          height: "60vw",
-          background: "radial-gradient(circle, rgba(58,104,170,0.25) 0%, rgba(5,8,15,0) 70%)",
-          filter: "blur(70px)",
-          pointerEvents: "none",
-        }}
-      />
+      <BrandPanel data={publicData} loading={publicLoading} />
 
-      {/* Water effect layers */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          width: "200%",
-          height: "40vh",
-          background:
-            "linear-gradient(180deg, rgba(32,53,98,0) 0%, rgba(32,53,98,0.25) 40%, rgba(15,29,54,0.55) 100%)",
-          borderRadius: "50% 50% 0 0 / 60px 60px 0 0",
-          animation: "wave-drift 10s ease-in-out infinite, wave-rise 6s ease-in-out infinite",
-          filter: "blur(2px)",
-          pointerEvents: "none",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          width: "220%",
-          height: "32vh",
-          background:
-            "linear-gradient(180deg, rgba(58,104,170,0) 0%, rgba(58,104,170,0.22) 50%, rgba(32,53,98,0.45) 100%)",
-          borderRadius: "50% 50% 0 0 / 50px 50px 0 0",
-          animation:
-            "wave-drift 14s ease-in-out infinite reverse, wave-rise 8s ease-in-out infinite",
-          filter: "blur(3px)",
-          pointerEvents: "none",
-          animationDelay: "-2s",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          width: "180%",
-          height: "24vh",
-          background:
-            "linear-gradient(180deg, rgba(88,137,210,0) 0%, rgba(88,137,210,0.15) 60%, rgba(32,53,98,0.35) 100%)",
-          borderRadius: "50% 50% 0 0 / 40px 40px 0 0",
-          animation: "wave-drift 18s ease-in-out infinite, shimmer 5s ease-in-out infinite",
-          filter: "blur(4px)",
-          pointerEvents: "none",
-          animationDelay: "-4s",
-        }}
-      />
+      <div className="login-form-wrap">
+        <div
+          style={{
+            position: "absolute",
+            top: "-15%",
+            right: "-20%",
+            width: "60vw",
+            height: "60vw",
+            background:
+              "radial-gradient(circle, rgba(255,255,255,0.08) 0%, rgba(180,200,220,0.03) 45%, rgba(3,12,24,0) 70%)",
+            filter: "blur(90px)",
+            pointerEvents: "none",
+          }}
+        />
 
-      <Card
-        style={{
-          width: 420,
-          borderRadius: token.borderRadiusLG * 1.5,
-          background: "rgba(11, 20, 41, 0.72)",
-          border: "1px solid rgba(88, 137, 210, 0.22)",
-          boxShadow: "0 24px 70px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-          position: "relative",
-          zIndex: 1,
-        }}
-      >
-        <Flex vertical align="center" style={{ marginBottom: 32 }}>
-          <Title
-            level={2}
-            style={{
-              color: "#f2f5fa",
-              margin: 0,
-              fontWeight: 800,
-              letterSpacing: "0.5px",
-              textShadow: "0 2px 14px rgba(0,0,0,0.45)",
-            }}
-          >
-            ERP - Ikolu Smart
-          </Title>
-          <Text
-            style={{
-              color: "rgba(200, 214, 240, 0.55)",
-              marginTop: 8,
-              fontSize: 13,
-              letterSpacing: "1px",
-              textTransform: "uppercase",
-            }}
-          >
-            Centro de Control
-          </Text>
-        </Flex>
+        <LoginFlipCard flipped={flipped} front={front} back={back} />
+      </div>
 
-        <Form layout="vertical" onFinish={onFinish} size="large">
-          <Form.Item
-            name="email"
-            rules={[
-              { required: true, message: "Ingresa tu email" },
-              { type: "email", message: "Ingresa un email válido" },
-            ]}
-          >
-            <Input
-              prefix={
-                <MailOutlined style={{ color: "rgba(200,214,240,0.5)" }} />
-              }
-              placeholder="Email"
-              style={{
-                background: "rgba(5, 8, 15, 0.55)",
-                border: "1px solid rgba(88, 137, 210, 0.25)",
-                color: "#e8eef7",
-              }}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="password"
-            rules={[{ required: true, message: "Ingresa tu contraseña" }]}
-          >
-            <Input.Password
-              prefix={
-                <LockOutlined style={{ color: "rgba(200,214,240,0.5)" }} />
-              }
-              placeholder="Contraseña"
-              style={{
-                background: "rgba(5, 8, 15, 0.55)",
-                border: "1px solid rgba(88, 137, 210, 0.25)",
-                color: "#e8eef7",
-              }}
-            />
-          </Form.Item>
-
-          <Form.Item style={{ marginBottom: 8 }}>
-            <Button
-              type="link"
-              onClick={() => setForgotOpen(true)}
-              style={{ padding: 0, color: "rgba(200,214,240,0.6)" }}
-            >
-              ¿Olvidaste tu contraseña?
-            </Button>
-          </Form.Item>
-
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              block
-              loading={loading}
-              size="large"
-              style={{
-                background: "linear-gradient(135deg, #3a89d2 0%, #203562 100%)",
-                borderColor: "rgba(88,137,210,0.4)",
-                fontWeight: 700,
-                height: 48,
-                boxShadow: "0 8px 24px rgba(32,53,98,0.45)",
-              }}
-            >
-              Iniciar Sesión
-            </Button>
-          </Form.Item>
-        </Form>
-      </Card>
-
-      <Modal
-        title="Recuperar contraseña"
+      <ForgotModal
         open={forgotOpen}
-        onCancel={() => {
-          setForgotOpen(false);
-          forgotForm.resetFields();
-        }}
-        footer={null}
-        destroyOnClose
-      >
-        <Text type="secondary" style={{ display: "block", marginBottom: 16 }}>
-          Ingresa tu email y te enviaremos instrucciones para restablecer tu contraseña.
-        </Text>
-        <Form form={forgotForm} layout="vertical" onFinish={handleForgot}>
-          <Form.Item
-            name="email"
-            rules={[
-              { required: true, message: "Ingresa tu email" },
-              { type: "email", message: "Ingresa un email válido" },
-            ]}
-          >
-            <Input prefix={<MailOutlined />} placeholder="Email" />
-          </Form.Item>
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              block
-              loading={forgotLoading}
-            >
-              Enviar instrucciones
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
-    </Flex>
+        onCancel={closeForgot}
+        onSubmit={handleForgot}
+        loading={forgotLoading}
+        form={forgotForm}
+      />
+    </div>
   );
 };
 

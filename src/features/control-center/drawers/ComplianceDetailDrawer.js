@@ -1,10 +1,10 @@
 import React from "react";
-import { Drawer, Flex, Typography, Table, Button, Tag, Divider, theme } from "antd";
+import { Drawer, Flex, Typography, Table, Button, Tag, Divider } from "antd";
 import { FaDownload, FaTimes, FaExclamationTriangle, FaCheckCircle, FaChartLine, FaShieldAlt, FaPaperPlane } from "react-icons/fa";
 import { format, parseISO } from "date-fns";
+import { useIkoluToken } from "../../../hooks/useIkoluToken";
 
 const { Text, Title } = Typography;
-const { useToken } = theme;
 
 const levelColorMap = {
   safe: { color: "#2A9D8F", bg: "rgba(42, 157, 143, 0.1)", border: "rgba(42, 157, 143, 0.3)", icon: FaCheckCircle, label: "Dentro de límites" },
@@ -25,7 +25,7 @@ const exportToCSV = (headers, rows, filename) => {
 };
 
 const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
-  const { token } = useToken();
+  const token = useIkoluToken();
   
   if (!point) return null;
 
@@ -86,31 +86,31 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
           <Flex vertical gap={4}>
             <Flex align="center" gap={8}>
               <LevelIcon style={{ fontSize: 18, color: levelCfg.color }} />
-              <Title level={5} style={{ margin: 0 }}>{pointName}</Title>
+              <Title level={5} style={{ margin: 0, color: token.voidTextHeading }}>{pointName}</Title>
             </Flex>
             <Flex gap={8} align="center">
               {point.compliance_type?.includes("DGA") && (
-                <Tag style={{ fontSize: 10, margin: 0, padding: "1px 5px", background: "rgba(58, 104, 170, 0.15)", border: "none", color: "#85A2D1", fontWeight: 600 }}>
+                <Tag style={{ fontSize: 10, margin: 0, padding: "1px 5px", background: token.voidSurface, border: `1px solid ${token.voidBorder}`, color: token.voidTextHeading, fontWeight: 600 }}>
                   DGA
                 </Tag>
               )}
               {point.compliance_type?.includes("SMA") && (
-                <Tag style={{ fontSize: 10, margin: 0, padding: "1px 5px", background: "rgba(42, 157, 143, 0.15)", border: "none", color: "#2A9D8F", fontWeight: 600 }}>
+                <Tag style={{ fontSize: 10, margin: 0, padding: "1px 5px", background: `${token.colorSuccess}15`, border: "none", color: token.colorSuccess, fontWeight: 600 }}>
                   SMA
                 </Tag>
               )}
               {point.code && (
-                <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{point.code}</Text>
+                <Text style={{ fontSize: 11, color: token.voidTextMuted }}>{point.code}</Text>
               )}
             </Flex>
           </Flex>
-          <FaTimes style={{ cursor: "pointer", fontSize: 16, color: "#999" }} onClick={onClose} />
+          <FaTimes style={{ cursor: "pointer", fontSize: 16, color: token.voidTextMuted }} onClick={onClose} />
         </Flex>
       }
       open={open}
       onClose={onClose}
       width={{ xs: "100%", md: 720 }}
-      styles={{ body: { padding: "16px 24px" } }}
+      styles={{ body: { padding: "16px 24px", background: "transparent" } }}
     >
       <Flex vertical gap={24}>
         {/* Sección 1: Warning Actual */}
@@ -122,49 +122,49 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
             </Text>
           </Flex>
           
-          <div style={{ background: levelCfg.bg, border: `1px solid ${levelCfg.border}` }} className="ocean-panel">
+          <div style={{ background: token.glassBg, border: `1px solid ${token.glassBorder}`, borderRadius: token.voidRadius, padding: 16, backdropFilter: "blur(8px)" }}>
             {warning.messages && warning.messages.length > 0 && (
               <Flex vertical gap={8} style={{ marginBottom: 12 }}>
                 {warning.messages.map((msg, i) => (
                   <Flex key={i} align="flex-start" gap={8}>
-                    <Text style={{ fontSize: 12, color: token.colorText, lineHeight: 1.5 }}>→ {msg}</Text>
+                    <Text style={{ fontSize: 12, color: token.voidText, lineHeight: 1.5 }}>→ {msg}</Text>
                   </Flex>
                 ))}
               </Flex>
             )}
             
-            <Divider style={{ margin: "12px 0" }} />
+            <Divider style={{ margin: "12px 0", borderColor: token.voidBorder }} />
             
             <Flex gap={24}>
               {warning.flow_pct != null && (
                 <Flex vertical>
-                  <Text style={{ fontSize: 10, color: token.colorTextSecondary, textTransform: "uppercase" }}>Caudal al % del límite</Text>
+                  <Text style={{ fontSize: 10, color: token.voidTextMuted, textTransform: "uppercase" }}>Caudal al % del límite</Text>
                   <Text strong style={{ fontSize: 16, color: warning.flow_pct > 100 ? token.colorError : warning.flow_pct > 90 ? token.colorWarning : token.colorSuccess }}>
                     {warning.flow_pct.toFixed(1)}%
                   </Text>
-                  <Text style={{ fontSize: 10, color: token.colorTextSecondary }}>
+                  <Text style={{ fontSize: 10, color: token.voidTextMuted }}>
                     {flow != null && authorizedFlow > 0 ? `${Number(flow).toFixed(1)} / ${Number(authorizedFlow).toFixed(1)} L/s` : "umbral: 90%"}
                   </Text>
                 </Flex>
               )}
               
               <Flex vertical>
-                <Text style={{ fontSize: 10, color: token.colorTextSecondary, textTransform: "uppercase" }}>Consumo acumulado</Text>
+                <Text style={{ fontSize: 10, color: token.voidTextMuted, textTransform: "uppercase" }}>Consumo acumulado</Text>
                 <Text strong style={{ fontSize: 16, color: warning.pct_consumed > 100 ? token.colorError : warning.pct_consumed > 80 ? token.colorWarning : token.colorSuccess }}>
                   {warning.pct_consumed?.toFixed(1) ?? "—"}%
                 </Text>
-                <Text style={{ fontSize: 10, color: token.colorTextSecondary }}>
+                <Text style={{ fontSize: 10, color: token.voidTextMuted }}>
                   umbral: {warning.threshold_pct ?? 80}%
                 </Text>
               </Flex>
               
               {authorizedTotal > 0 && annualConsumption != null && (
                 <Flex vertical>
-                  <Text style={{ fontSize: 10, color: token.colorTextSecondary, textTransform: "uppercase" }}>Volumen anual</Text>
-                  <Text strong style={{ fontSize: 16, color: token.colorText }}>
+                  <Text style={{ fontSize: 10, color: token.voidTextMuted, textTransform: "uppercase" }}>Volumen anual</Text>
+                  <Text strong style={{ fontSize: 16, color: token.voidTextHeading }}>
                     {Math.round(annualConsumption).toLocaleString()} m³
                   </Text>
-                  <Text style={{ fontSize: 10, color: token.colorTextSecondary }}>
+                  <Text style={{ fontSize: 10, color: token.voidTextMuted }}>
                     autorizado: {Math.round(authorizedTotal).toLocaleString()} m³
                   </Text>
                 </Flex>
@@ -174,15 +174,15 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
         </div>
         
         {/* Sección 2: Histórico de Excedencias */}
-        <div style={{ padding: 16, background: token.colorBgContainer, borderRadius: token.borderRadiusLG, border: `1px solid ${token.colorBorder}` }}>
+        <div style={{ padding: 16, background: token.glassBg, borderRadius: token.voidRadius, border: `1px solid ${token.glassBorder}`, backdropFilter: "blur(8px)" }}>
           <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
             <Flex align="center" gap={10}>
-              <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255, 77, 79, 0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <FaExclamationTriangle style={{ fontSize: 14, color: "#ff4d4f" }} />
+              <div style={{ width: 32, height: 32, borderRadius: "50%", background: `${token.colorError}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <FaExclamationTriangle style={{ fontSize: 14, color: token.colorError }} />
               </div>
               <Flex vertical gap={2}>
-                <Text strong style={{ fontSize: 14 }}>Excedencias de caudal</Text>
-                <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{flowHistory.count} eventos en {format(new Date(), 'yyyy')}</Text>
+                <Text strong style={{ fontSize: 14, color: token.voidTextHeading }}>Excedencias de caudal</Text>
+                <Text style={{ fontSize: 11, color: token.voidTextMuted }}>{flowHistory.count} eventos en {format(new Date(), 'yyyy')}</Text>
               </Flex>
             </Flex>
             {flowHistory.count > 0 && (
@@ -198,10 +198,10 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
           </Flex>
 
           {flowHistory.count === 0 ? (
-            <div style={{ padding: "28px 24px", textAlign: "center", background: "rgba(42, 157, 143, 0.08)", borderRadius: token.borderRadius, border: "1px solid rgba(42, 157, 143, 0.2)" }}>
-              <FaCheckCircle style={{ fontSize: 28, color: "#2A9D8F", marginBottom: 10 }} />
-              <Text strong style={{ fontSize: 14, color: "#2A9D8F", display: "block" }}>Sin excedencias registradas</Text>
-              <Text style={{ fontSize: 12, color: token.colorTextSecondary }}>El caudal no ha superado el límite autorizado</Text>
+            <div style={{ padding: "28px 24px", textAlign: "center", background: `${token.colorSuccess}08`, borderRadius: token.voidRadius, border: `1px solid ${token.colorSuccess}30` }}>
+              <FaCheckCircle style={{ fontSize: 28, color: token.colorSuccess, marginBottom: 10 }} />
+              <Text strong style={{ fontSize: 14, color: token.colorSuccess, display: "block" }}>Sin excedencias registradas</Text>
+              <Text style={{ fontSize: 12, color: token.voidTextMuted }}>El caudal no ha superado el límite autorizado</Text>
             </div>
           ) : (
             <Table
@@ -214,7 +214,7 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
                   dataIndex: "date",
                   width: 160,
                   render: (date) => (
-                    <Text style={{ fontSize: 12 }}>
+                    <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
                       {format(parseISO(date), "dd/MM/yyyy HH:mm")}
                     </Text>
                   ),
@@ -238,7 +238,7 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
                   align: "right",
                   width: 110,
                   render: () => (
-                    <Text style={{ fontSize: 12, color: token.colorTextSecondary }}>
+                    <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
                       {Number(authorizedFlow).toFixed(1)} L/s
                     </Text>
                   ),
@@ -260,15 +260,15 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
         </div>
 
         {/* Sección 3: Histórico de Cercanías */}
-        <div style={{ padding: 16, background: token.colorBgContainer, borderRadius: token.borderRadiusLG, border: `1px solid ${token.colorBorder}` }}>
+        <div style={{ padding: 16, background: token.glassBg, borderRadius: token.voidRadius, border: `1px solid ${token.glassBorder}`, backdropFilter: "blur(8px)" }}>
           <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
             <Flex align="center" gap={10}>
-              <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(250, 140, 22, 0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <FaChartLine style={{ fontSize: 14, color: "#fa8c16" }} />
+              <div style={{ width: 32, height: 32, borderRadius: "50%", background: `${token.colorWarning}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <FaChartLine style={{ fontSize: 14, color: token.colorWarning }} />
               </div>
               <Flex vertical gap={2}>
-                <Text strong style={{ fontSize: 14 }}>Cercanías al límite</Text>
-                <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{nearLimitHistory.count} eventos en {format(new Date(), 'yyyy')}</Text>
+                <Text strong style={{ fontSize: 14, color: token.voidTextHeading }}>Cercanías al límite</Text>
+                <Text style={{ fontSize: 11, color: token.voidTextMuted }}>{nearLimitHistory.count} eventos en {format(new Date(), 'yyyy')}</Text>
               </Flex>
             </Flex>
             {nearLimitHistory.count > 0 && (
@@ -284,10 +284,10 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
           </Flex>
 
           {nearLimitHistory.count === 0 ? (
-            <div style={{ padding: "28px 24px", textAlign: "center", background: "rgba(250, 140, 22, 0.06)", borderRadius: token.borderRadius, border: "1px solid rgba(250, 140, 22, 0.2)" }}>
-              <FaChartLine style={{ fontSize: 28, color: "#fa8c16", marginBottom: 10 }} />
-              <Text strong style={{ fontSize: 14, color: "#fa8c16", display: "block" }}>Sin cercanías registradas</Text>
-              <Text style={{ fontSize: 12, color: token.colorTextSecondary }}>El caudal no ha estado cerca del límite autorizado</Text>
+            <div style={{ padding: "28px 24px", textAlign: "center", background: `${token.colorWarning}08`, borderRadius: token.voidRadius, border: `1px solid ${token.colorWarning}30` }}>
+              <FaChartLine style={{ fontSize: 28, color: token.colorWarning, marginBottom: 10 }} />
+              <Text strong style={{ fontSize: 14, color: token.colorWarning, display: "block" }}>Sin cercanías registradas</Text>
+              <Text style={{ fontSize: 12, color: token.voidTextMuted }}>El caudal no ha estado cerca del límite autorizado</Text>
             </div>
           ) : (
             <Table
@@ -300,7 +300,7 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
                   dataIndex: "date",
                   width: 160,
                   render: (date) => (
-                    <Text style={{ fontSize: 12 }}>
+                    <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
                       {format(parseISO(date), "dd/MM/yyyy HH:mm")}
                     </Text>
                   ),
@@ -324,7 +324,7 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
                   align: "right",
                   width: 110,
                   render: () => (
-                    <Text style={{ fontSize: 12, color: token.colorTextSecondary }}>
+                    <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
                       {Number(authorizedFlow).toFixed(1)} L/s
                     </Text>
                   ),
@@ -349,23 +349,23 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
         {lastSentAt && (
           <div>
             <Flex align="center" gap={8} style={{ marginBottom: 12 }}>
-              <FaPaperPlane style={{ fontSize: 14, color: token.colorPrimary }} />
-              <Text strong style={{ fontSize: 14 }}>Último envío a DGA/SMA</Text>
+              <FaPaperPlane style={{ fontSize: 14, color: token.voidTextHeading }} />
+              <Text strong style={{ fontSize: 14, color: token.voidTextHeading }}>Último envío a DGA/SMA</Text>
             </Flex>
             
-            <div className="ocean-panel" style={{ padding: 16 }}>
+            <div style={{ padding: 16, background: token.glassBg, border: `1px solid ${token.glassBorder}`, borderRadius: token.voidRadius, backdropFilter: "blur(8px)" }}>
               <Flex gap={24} wrap="wrap">
                 <Flex vertical>
-                  <Text style={{ fontSize: 10, color: token.colorTextSecondary, textTransform: "uppercase" }}>Fecha</Text>
-                  <Text strong style={{ fontSize: 14 }}>
+                  <Text style={{ fontSize: 10, color: token.voidTextMuted, textTransform: "uppercase" }}>Fecha</Text>
+                  <Text strong style={{ fontSize: 14, color: token.voidTextHeading }}>
                     {format(parseISO(lastSentAt), "dd/MM/yyyy HH:mm")}
                   </Text>
                 </Flex>
                 
                 {voucher && (
                   <Flex vertical>
-                    <Text style={{ fontSize: 10, color: token.colorTextSecondary, textTransform: "uppercase" }}>Voucher</Text>
-                    <Text strong style={{ fontSize: 14, fontFamily: "monospace", color: token.colorPrimary }}>
+                    <Text style={{ fontSize: 10, color: token.voidTextMuted, textTransform: "uppercase" }}>Voucher</Text>
+                    <Text strong style={{ fontSize: 14, fontFamily: token.voidMono, color: token.voidTextHeading }}>
                       {voucher}
                     </Text>
                   </Flex>
@@ -373,8 +373,8 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
 
                 {flow != null && (
                   <Flex vertical>
-                    <Text style={{ fontSize: 10, color: token.colorTextSecondary, textTransform: "uppercase" }}>Caudal enviado</Text>
-                    <Text strong style={{ fontSize: 14 }}>
+                    <Text style={{ fontSize: 10, color: token.voidTextMuted, textTransform: "uppercase" }}>Caudal enviado</Text>
+                    <Text strong style={{ fontSize: 14, color: token.voidTextHeading }}>
                       {Number(flow).toFixed(1)} L/s
                     </Text>
                   </Flex>
@@ -382,8 +382,8 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
 
                 {totalM3 != null && (
                   <Flex vertical>
-                    <Text style={{ fontSize: 10, color: token.colorTextSecondary, textTransform: "uppercase" }}>Total enviado</Text>
-                    <Text strong style={{ fontSize: 14 }}>
+                    <Text style={{ fontSize: 10, color: token.voidTextMuted, textTransform: "uppercase" }}>Total enviado</Text>
+                    <Text strong style={{ fontSize: 14, color: token.voidTextHeading }}>
                       {Math.round(totalM3).toLocaleString()} m³
                     </Text>
                   </Flex>

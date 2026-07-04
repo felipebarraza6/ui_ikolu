@@ -1,14 +1,15 @@
 import React from "react";
 import { Skeleton } from "antd";
 
-const SkeletonKPI = ({ gradient, style = {} }) => {
+const SkeletonKPI = ({ gradient, variant = "ocean", style = {} }) => {
+  const isVoid = variant === "void";
   return (
     <div
       style={{
-        background: gradient || "#1a1a1a",
-        borderRadius: 24,
+        background: isVoid ? "rgba(255,255,255,0.05)" : (gradient || "#1a1a1a"),
+        borderRadius: isVoid ? 16 : 24,
         padding: "20px 16px 16px 16px",
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: isVoid ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(255,255,255,0.08)",
         minHeight: 88,
         display: "flex",
         flexDirection: "column",

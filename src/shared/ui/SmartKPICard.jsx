@@ -1,5 +1,6 @@
 import React from "react";
 import { Flex, Typography, Skeleton } from "antd";
+import { useIkoluToken } from "../../hooks/useIkoluToken";
 
 const { Text } = Typography;
 
@@ -9,6 +10,7 @@ const SmartKPICard = ({
   value,
   suffix,
   gradient = "linear-gradient(-45deg, #203562, #3A68AA, #4D7FBD, #85A2D1)",
+  variant = "ocean",
   onClick,
   style = {},
   valueStyle = {},
@@ -16,15 +18,17 @@ const SmartKPICard = ({
   wave = false,
   loading = false,
 }) => {
+  const token = useIkoluToken();
+  const isVoid = variant === "void";
   return (
     <div
       onClick={onClick}
       className="ocean-card"
       style={{
-        background: gradient,
-        backgroundSize: "400% 400%",
-        animation: "gradient-flow 8s ease infinite",
-        borderRadius: 24,
+        background: isVoid ? token.voidSurface : gradient,
+        backgroundSize: isVoid ? undefined : "400% 400%",
+        animation: isVoid ? undefined : "gradient-flow 8s ease infinite",
+        borderRadius: isVoid ? token.voidRadius : 24,
         padding: "20px 16px 16px 16px",
         textAlign: "center",
         cursor: onClick ? "pointer" : "default",
@@ -37,25 +41,25 @@ const SmartKPICard = ({
         alignItems: "center",
         justifyContent: "center",
         gap: 8,
-        border: "1px solid rgba(58, 104, 170, 0.15)",
-        boxShadow: "0 4px 16px rgba(32, 53, 98, 0.12)",
+        border: isVoid ? `1px solid ${token.voidBorder}` : "1px solid rgba(58, 104, 170, 0.15)",
+        boxShadow: isVoid ? token.voidShadow : "0 4px 16px rgba(32, 53, 98, 0.12)",
         ...style,
       }}
       onMouseEnter={(e) => {
         if (onClick) {
           e.currentTarget.style.transform = "translateY(-4px)";
-          e.currentTarget.style.boxShadow = "0 8px 32px rgba(32, 53, 98, 0.25)";
-          e.currentTarget.style.borderColor = "rgba(58, 104, 170, 0.3)";
+          e.currentTarget.style.boxShadow = isVoid ? "0 8px 32px rgba(0,0,0,0.45)" : "0 8px 32px rgba(32, 53, 98, 0.25)";
+          e.currentTarget.style.borderColor = isVoid ? token.voidBorderStrong : "rgba(58, 104, 170, 0.3)";
         }
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "0 4px 16px rgba(32, 53, 98, 0.12)";
-        e.currentTarget.style.borderColor = "rgba(58, 104, 170, 0.15)";
+        e.currentTarget.style.boxShadow = isVoid ? token.voidShadow : "0 4px 16px rgba(32, 53, 98, 0.12)";
+        e.currentTarget.style.borderColor = isVoid ? token.voidBorder : "rgba(58, 104, 170, 0.15)";
       }}
     >
       {/* Wave decoration at bottom */}
-      {wave && (
+      {!isVoid && wave && (
       <div
         style={{
           position: "absolute",
@@ -78,15 +82,15 @@ const SmartKPICard = ({
             width: 40,
             height: 40,
             borderRadius: "50%",
-            background: "rgba(255, 255, 255, 0.1)",
+            background: isVoid ? "rgba(255,255,255,0.07)" : "rgba(255, 255, 255, 0.1)",
             backdropFilter: "blur(10px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             marginTop: 4,
             marginBottom: 8,
-            boxShadow: "0 0 20px rgba(204, 207, 7, 0.2)",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
+            boxShadow: isVoid ? "none" : "0 0 20px rgba(204, 207, 7, 0.2)",
+            border: isVoid ? `1px solid ${token.voidBorder}` : "1px solid rgba(255, 255, 255, 0.1)",
           }}>
             {icon}
           </div>
@@ -94,8 +98,8 @@ const SmartKPICard = ({
         <Text
           style={{
             fontSize: 11,
-            color: "rgba(255, 255, 255, 0.7)",
-            fontFamily: "'Roboto', sans-serif",
+            color: isVoid ? token.voidTextMuted : "rgba(255, 255, 255, 0.7)",
+            fontFamily: isVoid ? token.voidMono : "'Roboto', sans-serif",
             fontWeight: 500,
             letterSpacing: "0.05em",
             textTransform: "uppercase",
@@ -112,11 +116,11 @@ const SmartKPICard = ({
             <Text
               style={{
                 fontSize: 26,
-                color: "#fff",
-                fontFamily: "'Lato', sans-serif",
+                color: isVoid ? token.voidTextHeading : "#fff",
+                fontFamily: isVoid ? token.voidMono : "'Lato', sans-serif",
                 fontWeight: 800,
                 lineHeight: 1.1,
-                textShadow: "0 0 20px rgba(32, 53, 98, 0.5)",
+                textShadow: isVoid ? "none" : "0 0 20px rgba(32, 53, 98, 0.5)",
                 ...valueStyle,
               }}
             >
@@ -127,8 +131,8 @@ const SmartKPICard = ({
             <Text
               style={{
                 fontSize: 12,
-                color: "rgba(255, 255, 255, 0.6)",
-                fontFamily: "'Roboto', sans-serif",
+                color: isVoid ? token.voidTextMuted : "rgba(255, 255, 255, 0.6)",
+                fontFamily: isVoid ? token.voidMono : "'Roboto', sans-serif",
               }}
             >
               {suffix}

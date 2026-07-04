@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { Drawer, Flex, Typography, Table, Tag, theme, Skeleton } from "antd";
+import { Drawer, Flex, Typography, Table, Tag, Skeleton } from "antd";
 import { FaTimes, FaExclamationTriangle, FaChartLine } from "react-icons/fa";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale/es";
+import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import orchestrator from "../../../api/orchestrator";
 
 const { Text, Title } = Typography;
-const { useToken } = theme;
 
 const PAGE_SIZE = 20;
 
@@ -32,7 +32,7 @@ const configByType = {
 };
 
 const AuditHistoryDrawer = ({ open, onClose, point, type = "exceeded" }) => {
-  const { token } = useToken();
+  const token = useIkoluToken();
   const cfg = configByType[type] || configByType.exceeded;
   const Icon = cfg.icon;
 
@@ -82,7 +82,7 @@ const AuditHistoryDrawer = ({ open, onClose, point, type = "exceeded" }) => {
         dataIndex: "date_time",
         width: 170,
         render: (date) => (
-          <Text style={{ fontSize: 12 }}>
+          <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
             {format(parseISO(date), "dd/MM/yyyy HH:mm", { locale: es })}
           </Text>
         ),
@@ -106,7 +106,7 @@ const AuditHistoryDrawer = ({ open, onClose, point, type = "exceeded" }) => {
         align: "right",
         width: 110,
         render: () => (
-          <Text style={{ fontSize: 12, color: token.colorTextSecondary }}>
+          <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
             {Number(threshold).toFixed(1)} L/s
           </Text>
         ),
@@ -131,16 +131,16 @@ const AuditHistoryDrawer = ({ open, onClose, point, type = "exceeded" }) => {
       title={
         <Flex justify="space-between" align="center">
           <Flex vertical gap={2}>
-            <Title level={5} style={{ margin: 0 }}>{pointName}</Title>
-            <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{cfg.title}</Text>
+            <Title level={5} style={{ margin: 0, color: token.voidTextHeading }}>{pointName}</Title>
+            <Text style={{ fontSize: 11, color: token.voidTextMuted }}>{cfg.title}</Text>
           </Flex>
-          <FaTimes style={{ cursor: "pointer", fontSize: 16, color: "#999" }} onClick={onClose} />
+          <FaTimes style={{ cursor: "pointer", fontSize: 16, color: token.voidTextMuted }} onClick={onClose} />
         </Flex>
       }
       open={open}
       onClose={onClose}
       width={{ xs: "100%", md: 900 }}
-      styles={{ body: { padding: "16px 24px" } }}
+      styles={{ body: { padding: "16px 24px", background: "transparent" } }}
     >
       <Flex vertical gap={16} style={{ width: "100%" }}>
         <Flex align="center" gap={10}>
@@ -159,28 +159,28 @@ const AuditHistoryDrawer = ({ open, onClose, point, type = "exceeded" }) => {
             <Icon style={{ fontSize: 16, color: cfg.color }} />
           </div>
           <Flex vertical gap={2}>
-            <Text strong style={{ fontSize: 15 }}>{cfg.title}</Text>
-            <Text style={{ fontSize: 11, color: token.colorTextSecondary }}>{cfg.subtitle}</Text>
+            <Text strong style={{ fontSize: 15, color: token.voidTextHeading }}>{cfg.title}</Text>
+            <Text style={{ fontSize: 11, color: token.voidTextMuted }}>{cfg.subtitle}</Text>
           </Flex>
           {total > 0 && (
-            <Tag color={type === "exceeded" ? "red" : "orange"} style={{ margin: 0 }}>
+            <Tag style={{ margin: 0, background: `${cfg.color}15`, borderColor: `${cfg.color}30`, color: cfg.color }}>
               {total} eventos
             </Tag>
           )}
         </Flex>
 
         {error ? (
-          <div style={{ padding: 24, textAlign: "center", background: "rgba(255, 77, 79, 0.08)", borderRadius: token.borderRadius, border: "1px solid rgba(255, 77, 79, 0.2)" }}>
+          <div style={{ padding: 24, textAlign: "center", background: `${token.colorError}08`, borderRadius: token.voidRadius, border: `1px solid ${token.colorError}30` }}>
             <Text strong style={{ color: token.colorError }}>Error cargando historial</Text>
-            <Text style={{ fontSize: 12, color: token.colorTextSecondary, display: "block" }}>{error.message}</Text>
+            <Text style={{ fontSize: 12, color: token.voidTextMuted, display: "block" }}>{error.message}</Text>
           </div>
         ) : loading && !data ? (
           <Skeleton active paragraph={{ rows: 6 }} style={{ width: "100%" }} />
         ) : measurements.length === 0 ? (
-          <div style={{ padding: "32px 24px", textAlign: "center", background: cfg.bg, borderRadius: token.borderRadius, border: `1px solid ${cfg.border}` }}>
+          <div style={{ padding: "32px 24px", textAlign: "center", background: cfg.bg, borderRadius: token.voidRadius, border: `1px solid ${cfg.border}` }}>
             <Icon style={{ fontSize: 32, color: cfg.color, marginBottom: 12 }} />
             <Text strong style={{ fontSize: 14, color: cfg.color, display: "block" }}>Sin {cfg.title.toLowerCase()}</Text>
-            <Text style={{ fontSize: 12, color: token.colorTextSecondary }}>No se registraron eventos en los últimos 90 días</Text>
+            <Text style={{ fontSize: 12, color: token.voidTextMuted }}>No se registraron eventos en los últimos 90 días</Text>
           </div>
         ) : (
           <>

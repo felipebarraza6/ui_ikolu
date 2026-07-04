@@ -1,5 +1,5 @@
 import React, { memo, useCallback } from "react";
-import { Row, Col, Flex, Typography, theme, Segmented, Tooltip, Select, DatePicker } from "antd";
+import { Row, Col, Flex, Typography, Segmented, Tooltip, Select, DatePicker } from "antd";
 import dayjs from "dayjs";
 import {
   FaMapMarkerAlt,
@@ -8,12 +8,12 @@ import {
   FaProjectDiagram,
 } from "react-icons/fa";
 import { SmartKPICard } from "../../../shared/ui";
+import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import { BlinkingDot } from "../components";
 
 import ControlCenterChat from "../components/Chat/ControlCenterChat";
 
 const { Text } = Typography;
-const { useToken } = theme;
 
 const KPIsSection = memo(({
   overview,
@@ -35,11 +35,10 @@ const KPIsSection = memo(({
             <Tooltip title="Cantidad total de puntos de captacion registrados" placement="top">
               <div>
                 <SmartKPICard
-                  icon={<FaMapMarkerAlt style={{ fontSize: 18, color: '#ffffff' }} />}
+                  icon={<FaMapMarkerAlt style={{ fontSize: 18, color: token.voidTextHeading }} />}
                   label="Total Puntos"
                   value={overview.total_points || 0}
-                  gradient={`linear-gradient(135deg, ${token.colorPrimary} 0%, ${token.colorPrimary}dd 100%)`}
-                  wave={true}
+                  variant="void"
                   loading={loading}
                 />
               </div>
@@ -51,11 +50,11 @@ const KPIsSection = memo(({
             <Tooltip title="Puntos con telemetria funcionando en tiempo real" placement="top">
               <div>
                 <SmartKPICard
-                  icon={<BlinkingDot size={12} color="#ffffff" variant="telemetry" />}
+                  icon={<BlinkingDot size={12} color={token.voidTextHeading} variant="telemetry" />}
                   label="Telemetria Activa"
                   value={`${overview.points_with_telemetry || 0}`}
                   suffix={`/${overview.total_points || 0}`}
-                  gradient={`linear-gradient(135deg, ${token.colorInfo} 0%, ${token.colorInfo}dd 100%)`}
+                  variant="void"
                   loading={loading}
                 />
               </div>
@@ -67,10 +66,10 @@ const KPIsSection = memo(({
             <Tooltip title="Puntos con configuracion DGA/SMA completa" placement="top">
               <div>
                 <SmartKPICard
-                  icon={<FaClipboardCheck style={{ fontSize: 18, color: '#ffffff' }} />}
+                  icon={<FaClipboardCheck style={{ fontSize: 18, color: token.voidTextHeading }} />}
                   label="Cumplimiento Normativo"
                   value={overview.points_with_compliance || 0}
-                  gradient={`linear-gradient(135deg, ${token.colorSuccess} 0%, ${token.colorSuccess}dd 100%)`}
+                  variant="void"
                   loading={loading}
                 />
               </div>
@@ -82,10 +81,10 @@ const KPIsSection = memo(({
             <Tooltip title="Alertas y advertencias detectadas recientemente" placement="top">
               <div>
                 <SmartKPICard
-                  icon={<BlinkingDot size={12} color="#ffffff" variant="warning" active={hasWarnings} />}
+                  icon={<BlinkingDot size={12} color={token.voidTextHeading} variant="warning" active={hasWarnings} />}
                   label="Warnings"
                   value={warningsCount}
-                  gradient={`linear-gradient(135deg, ${token.colorWarning} 0%, ${token.colorError} 100%)`}
+                  variant="void"
                   loading={loading}
                   onClick={() => onWarningClick()}
                 />
@@ -122,7 +121,7 @@ const ControlCenterLayout = memo(({
   loading,
   tableLoading,
 }) => {
-  const { token } = useToken();
+  const token = useIkoluToken();
 
   const handleRangeChange = useCallback((dates) => {
     if (!dates || dates.length !== 2) return;
@@ -146,12 +145,14 @@ const ControlCenterLayout = memo(({
 
       <div className="ocean-tabs-container"
         style={{
-          background: token.colorBgContainer,
-          borderRadius: token.borderRadiusLG,
-          border: `1px solid ${token.colorBorder}`,
+          background: token.glassBg,
+          borderRadius: token.voidRadius,
+          border: `1px solid ${token.glassBorder}`,
+          backdropFilter: "blur(12px)",
+          boxShadow: token.voidShadow,
         }}
       >
-        <Flex justify="space-between" align="center" className="ocean-tabs-header">
+        <Flex justify="space-between" align="center" className="ocean-tabs-header" wrap="wrap" gap={12}>
           <Flex align="center" gap={12}>
             <DatePicker.RangePicker
               size="small"
@@ -163,6 +164,7 @@ const ControlCenterLayout = memo(({
               onChange={handleRangeChange}
               allowClear={false}
               format="DD/MM/YYYY"
+              style={{ background: token.glassBg, borderColor: token.glassBorder }}
             />
             {projects.length > 0 && (
               <Select
@@ -174,7 +176,7 @@ const ControlCenterLayout = memo(({
                 value={selectedProject || undefined}
                 onChange={(value) => onSelectProject(value || null)}
                 options={projects.map((p) => ({ value: p.id, label: p.name }))}
-                prefix={<FaProjectDiagram style={{ color: token.colorTextQuaternary, fontSize: 13 }} />}
+                prefix={<FaProjectDiagram style={{ color: token.voidTextMuted, fontSize: 13 }} />}
               />
             )}
           </Flex>
@@ -184,8 +186,8 @@ const ControlCenterLayout = memo(({
                 value: "telemetry",
                 label: (
                   <Flex align="center" gap={8}>
-                    <FaBroadcastTower style={{ color: token.colorInfo, fontSize: 14 }} />
-                    <span style={{ color: activeTab === "telemetry" ? token.colorInfo : token.colorTextSecondary, fontWeight: 500 }}>Telemetria</span>
+                    <FaBroadcastTower style={{ color: activeTab === "telemetry" ? token.voidTextHeading : token.voidTextMuted, fontSize: 14 }} />
+                    <span style={{ color: activeTab === "telemetry" ? token.voidTextHeading : token.voidTextMuted, fontWeight: 500 }}>Telemetria</span>
                   </Flex>
                 ),
               },
@@ -193,8 +195,8 @@ const ControlCenterLayout = memo(({
                 value: "compliance",
                 label: (
                   <Flex align="center" gap={8}>
-                    <FaClipboardCheck style={{ color: token.colorSuccess, fontSize: 14 }} />
-                    <span style={{ color: activeTab === "compliance" ? token.colorSuccess : token.colorTextSecondary, fontWeight: 500 }}>Cumplimiento</span>
+                    <FaClipboardCheck style={{ color: activeTab === "compliance" ? token.voidTextHeading : token.voidTextMuted, fontSize: 14 }} />
+                    <span style={{ color: activeTab === "compliance" ? token.voidTextHeading : token.voidTextMuted, fontWeight: 500 }}>Cumplimiento</span>
                   </Flex>
                 ),
               },
@@ -202,8 +204,8 @@ const ControlCenterLayout = memo(({
             value={activeTab}
             onChange={onTabChange}
             style={{
-              background: token.colorFillSecondary,
-              borderRadius: token.borderRadius,
+              background: token.voidSurface,
+              borderRadius: token.voidRadius,
               padding: 4,
             }}
           />

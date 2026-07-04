@@ -1,11 +1,12 @@
 import React, { useCallback, useMemo, useState, useEffect } from "react";
-import { Flex, Typography, Table, Tooltip, Tag, theme, Skeleton, Button, Select } from "antd";
+import { Flex, Typography, Table, Tooltip, Tag, Skeleton, Button, Select } from "antd";
 import { FaEye, FaHandPaper, FaHeadset, FaExclamationTriangle, FaInfoCircle, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { FormOutlined, CheckCircleOutlined, CloseCircleOutlined, MinusCircleOutlined, WifiOutlined, DisconnectOutlined } from "@ant-design/icons";
 import { format, parseISO, isSameDay } from "date-fns";
 import { es } from "date-fns/locale/es";
 import { formatInteger } from "../../../../utils/numberFormatter";
 import { SmartBadge } from "../../../../shared/ui";
+import { useIkoluToken } from "../../../../hooks/useIkoluToken";
 import SkeletonTable from "../../../../shared/ui/SmartSkeleton/SkeletonTable";
 import { useAuth } from "../../../../contexts/AuthContext";
 
@@ -36,15 +37,15 @@ const DayCardSkeleton = ({ token }) => (
     style={{
       flex: 1,
       minHeight: 100,
-      borderRadius: token.borderRadiusLG,
-      padding: token.paddingSM,
+      borderRadius: token.voidRadius,
+      padding: 12,
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
       gap: 6,
-      border: `1px solid ${token.colorBorder}`,
-      background: token.colorBgContainer,
+      border: `1px solid ${token.voidBorder}`,
+      background: token.voidSurface,
     }}
   >
     <Skeleton.Button active size="small" style={{ width: 50, height: 10 }} />
@@ -113,7 +114,7 @@ const CCWeekConsumption = ({
   loading = false,
   listLoading = false,
 }) => {
-  const { token } = theme.useToken();
+  const token = useIkoluToken();
   const { isSuperUser } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const [dayPage, setDayPage] = useState(0);
@@ -227,15 +228,15 @@ const CCWeekConsumption = ({
     justifyContent: "center",
     gap: 4,
     margin: '0 4px',
-    borderRadius: token.borderRadiusLG,
-    background: token.colorBgContainer,
-    border: `1.5px solid ${token.colorBorder}`,
+    borderRadius: token.voidRadius,
+    background: token.glassBg,
+    border: `1.5px solid ${token.glassBorder}`,
   };
 
   const dayCardActiveStyle = {
     ...dayCardStyle,
-    borderColor: `${token.colorPrimary}80`,
-    background: `${token.colorPrimary}10`,
+    borderColor: token.voidBorderStrong,
+    background: token.voidSurfaceHover,
   };
 
   const columns = useMemo(() => {
@@ -276,8 +277,8 @@ const CCWeekConsumption = ({
           if (isForm) {
             return (
               <Tooltip title="Formulario">
-                <div style={{ ...iconStyle, background: `${token.colorInfo}20` }}>
-                  <FormOutlined style={{ fontSize: 10, color: token.colorInfo }} />
+                <div style={{ ...iconStyle, background: token.voidSurface, border: `1px solid ${token.voidBorder}` }}>
+                  <FormOutlined style={{ fontSize: 10, color: token.voidTextHeading }} />
                 </div>
               </Tooltip>
             );
@@ -285,21 +286,21 @@ const CCWeekConsumption = ({
           
           if (isTelemetry) {
             return (
-              <div style={{ ...iconStyle, background: isConnected ? `${token.colorInfo}20` : `${token.colorError}20` }}>
+              <div style={{ ...iconStyle, background: token.voidSurface, border: `1px solid ${token.voidBorder}` }}>
                 <div style={{
                   width: 8,
                   height: 8,
                   borderRadius: "50%",
-                  background: isConnected ? token.colorInfo : token.colorError,
-                  animation: isConnected ? "telemetry-led-blink 2s ease-in-out infinite" : "none",
+                  background: isConnected ? token.voidTextHeading : token.colorError,
+                  animation: isConnected ? "telemetry-dot-blink 2s ease-in-out infinite" : "none",
                 }} />
               </div>
             );
           }
           
           return (
-            <div style={{ ...iconStyle, background: `${token.colorTextDisabled}20` }}>
-              <MinusCircleOutlined style={{ fontSize: 10, color: token.colorTextDisabled }} />
+            <div style={{ ...iconStyle, background: token.voidSurface, border: `1px solid ${token.voidBorder}` }}>
+              <MinusCircleOutlined style={{ fontSize: 10, color: token.voidTextMuted }} />
             </div>
           );
         },
@@ -315,9 +316,9 @@ const CCWeekConsumption = ({
           return (
             <Flex align="center" justify="space-between" style={{ width: "100%" }}>
               <Flex align="center" gap={6}>
-                <Text strong style={{ fontSize: token.fontSizeSM, color: token.colorText }}>{text}</Text>
+                <Text strong style={{ fontSize: token.fontSizeSM, color: token.voidTextHeading }}>{text}</Text>
                 <FaInfoCircle
-                  style={{ fontSize: 11, color: token.colorPrimary, cursor: "pointer", opacity: 0.7 }}
+                  style={{ fontSize: 11, color: token.voidTextMuted, cursor: "pointer", opacity: 0.7 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     onViewPointConfig(text, record.pointId);
@@ -326,9 +327,9 @@ const CCWeekConsumption = ({
               </Flex>
               {warningCount > 0 ? (
                 <SmartBadge
-                  variant="warning"
+                  variant="void"
                   size="sm"
-                  showIcon={true}
+                  showIcon={false}
                   style={{ cursor: "pointer" }}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -338,7 +339,7 @@ const CCWeekConsumption = ({
                   {warningCount}
                 </SmartBadge>
               ) : (
-                <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextDisabled }}>-</Text>
+                <Text style={{ fontSize: token.fontSizeSM, color: token.voidTextMuted }}>-</Text>
               )}
             </Flex>
           );
@@ -357,7 +358,7 @@ const CCWeekConsumption = ({
         sortDirections: ["ascend", "descend"],
         showSorterTooltip: true,
         render: (v) => (
-          <Text strong style={{ fontSize: token.fontSizeSM, color: token.colorText }}>
+          <Text strong style={{ fontSize: token.fontSizeSM, color: token.voidTextHeading }}>
             {formatInteger(v || 0)}
           </Text>
         )
@@ -374,7 +375,7 @@ const CCWeekConsumption = ({
         sortDirections: ["ascend", "descend"],
         showSorterTooltip: true,
         render: (v) => (
-          <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextSecondary }}>
+          <Text style={{ fontSize: token.fontSizeSM, color: token.voidText }}>
             {v != null ? Number(v).toFixed(1) : "—"}
           </Text>
         )
@@ -392,7 +393,7 @@ const CCWeekConsumption = ({
         sortDirections: ["ascend", "descend"],
         showSorterTooltip: true,
         render: (v) => (
-          <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextSecondary }}>
+          <Text style={{ fontSize: token.fontSizeSM, color: token.voidText }}>
             {v != null ? Number(v).toFixed(2) : "—"}
           </Text>
         )
@@ -407,10 +408,11 @@ const CCWeekConsumption = ({
       alignItems: "center",
       justifyContent: "center",
       cursor: "pointer",
-      border: `1.5px solid ${color}30`,
+      border: `1.5px solid ${color}35`,
       background: `${color}12`,
       color,
       transition: "all 0.2s ease",
+      backdropFilter: "blur(4px)",
     });
 
     cols.push({
@@ -424,7 +426,7 @@ const CCWeekConsumption = ({
       render: (v, record) => (
         <Flex align="center" justify="center" gap={6} onClick={(e) => e.stopPropagation()}>
           <Tooltip title={`Ver ${v || 0} mediciones`}>
-            <div role="button" tabIndex={0} style={btnBase(token.colorPrimary)}
+            <div role="button" tabIndex={0} style={btnBase(token.voidTextHeading)}
               onClick={() => handleViewMeasurements(record)}>
               <FaEye style={{ fontSize: 11 }} />
             </div>
@@ -475,7 +477,7 @@ const CCWeekConsumption = ({
     return (
       <div style={{ paddingLeft: 0, paddingRight: 0, paddingBottom: token.paddingMD }}>
         <Flex vertical gap={12}>
-          <Text style={{ fontSize: token.fontSizeSM, color: token.colorTextSecondary }}>
+          <Text style={{ fontSize: token.fontSizeSM, color: token.voidTextMuted }}>
             Cargando días...
           </Text>
           <Flex gap={12} align="center" style={{ width: "100%" }}>
@@ -495,7 +497,7 @@ const CCWeekConsumption = ({
   if (sortedDays.length === 0) {
     return (
       <div style={{ paddingLeft: 0, paddingRight: 0, paddingBottom: token.paddingMD }}>
-        <Text style={{ fontSize: token.fontSize, color: token.colorTextSecondary }}>Sin datos</Text>
+        <Text style={{ fontSize: token.fontSize, color: token.voidTextMuted }}>Sin datos</Text>
       </div>
     );
   }
@@ -531,18 +533,20 @@ const CCWeekConsumption = ({
                       style={isActive ? dayCardActiveStyle : dayCardStyle}
                       onMouseEnter={(e) => {
                         if (!isActive) {
-                          e.currentTarget.style.borderColor = token.colorPrimary;
+                          e.currentTarget.style.borderColor = token.voidBorderStrong;
+                          e.currentTarget.style.background = token.voidSurfaceHover;
                         }
                       }}
                       onMouseLeave={(e) => {
                         if (!isActive) {
-                          e.currentTarget.style.borderColor = token.colorBorder;
+                          e.currentTarget.style.borderColor = token.glassBorder;
+                          e.currentTarget.style.background = token.glassBg;
                         }
                       }}
                     >
                       <Text style={{
                         fontSize: token.fontSizeSM,
-                        color: isActive ? token.colorPrimary : token.colorTextSecondary,
+                        color: isActive ? token.voidTextHeading : token.voidTextMuted,
                         textTransform: "capitalize",
                         letterSpacing: 0.5,
                         whiteSpace: "nowrap",
@@ -551,7 +555,7 @@ const CCWeekConsumption = ({
                       </Text>
                       <Text strong style={{
                         fontSize: token.fontSizeLG * 1.25,
-                        color: token.colorText,
+                        color: token.voidTextHeading,
                         lineHeight: 1,
                       }}>
                         {format(parseISO(date), "dd")}
@@ -559,7 +563,7 @@ const CCWeekConsumption = ({
                       {showMonthLabel && (
                         <Text style={{
                           fontSize: token.fontSizeSM - 1,
-                          color: isActive ? token.colorPrimary : token.colorTextTertiary,
+                          color: isActive ? token.voidTextHeading : token.voidTextMuted,
                           lineHeight: 1,
                           marginTop: -2,
                         }}>
@@ -568,7 +572,7 @@ const CCWeekConsumption = ({
                       )}
                       <Text style={{
                         fontSize: token.fontSizeSM,
-                        color: isActive ? token.colorPrimary : token.colorTextTertiary,
+                        color: isActive ? token.voidTextHeading : token.voidTextMuted,
                       }}>
                         {formatInteger(total)} m³
                       </Text>
@@ -597,7 +601,7 @@ const CCWeekConsumption = ({
                   setListPage(1);
                 }}
                 options={telemetryOrderByOptions}
-                style={{ minWidth: 180 }}
+                style={{ minWidth: 180, background: token.glassBg, borderColor: token.glassBorder, borderRadius: token.voidRadius }}
               />
             </Flex>
             <TableMemo

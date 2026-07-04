@@ -1002,7 +1002,49 @@ const getTicketAttachments = async (id) => {
   return rq.data;
 };
 
-const uploadTicketAttachment = async (id, formData) => {
+const ALLOWED_ATTACHMENT_EXTENSIONS = [
+  ".pdf",
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".xlsx",
+  ".xls",
+  ".doc",
+  ".docx",
+  ".txt",
+  ".csv",
+];
+
+const MAX_ATTACHMENT_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+
+const validateTicketAttachment = (file) => {
+  if (!file) {
+    throw new Error("No se proporcionó ningún archivo.");
+  }
+
+  const fileName = file.name || "";
+  const extMatch = fileName.match(/\.([a-zA-Z0-9]+)$/);
+  const ext = extMatch ? `.${extMatch[1].toLowerCase()}` : "";
+
+  if (!ALLOWED_ATTACHMENT_EXTENSIONS.includes(ext)) {
+    throw new Error(
+      `Extensión no permitida: ${ext || "sin extensión"}. Adjuntos permitidos: ${ALLOWED_ATTACHMENT_EXTENSIONS.join(", ")}`,
+    );
+  }
+
+  if (file.size != null && file.size > MAX_ATTACHMENT_SIZE_BYTES) {
+    throw new Error(
+      `El archivo excede el tamaño máximo permitido de 10 MB (${(file.size / (1024 * 1024)).toFixed(2)} MB).`,
+    );
+  }
+};
+
+const uploadTicketAttachment = async (id, file) => {
+  validateTicketAttachment(file);
+
+  const formData = new FormData();
+  formData.append("file", file);
+
   const rq = await Axios.post(`ik/tickets/${id}/attachments/`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
@@ -1018,6 +1060,103 @@ const getTicketStats = async (params = {}) => {
   const query = new URLSearchParams(params).toString();
   const url = query ? `ik/tickets/stats/?${query}` : `ik/tickets/stats/`;
   const rq = await GET(url);
+  return rq.data;
+};
+
+const getTicketDashboard = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const url = query ? `ik/tickets/dashboard/?${query}` : `ik/tickets/dashboard/`;
+  const rq = await GET(url);
+  return rq.data;
+};
+
+const getMyDeskTickets = async (params = {}) => {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach((v) => searchParams.append(key, v));
+    } else if (value != null) {
+      searchParams.append(key, value);
+    }
+  });
+  const query = searchParams.toString();
+  const rq = await GET(`ik/tickets/my_desk/${query ? "?" + query : ""}`);
+  return rq.data;
+};
+
+// ==========================================
+// CATEGORÍAS DE TICKETS (/api/ik/ticket-categories/)
+// ==========================================
+
+const getTicketCategories = async (params = {}) => {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach((v) => searchParams.append(key, v));
+    } else if (value != null) {
+      searchParams.append(key, value);
+    }
+  });
+  const query = searchParams.toString();
+  const rq = await GET(`ik/ticket-categories/${query ? "?" + query : ""}`);
+  return rq.data;
+};
+
+const createTicketCategory = async (data) => {
+  const rq = await POST(`ik/ticket-categories/`, data);
+  return rq.data;
+};
+
+const getTicketCategory = async (id) => {
+  const rq = await GET(`ik/ticket-categories/${id}/`);
+  return rq.data;
+};
+
+const updateTicketCategory = async (id, data) => {
+  const rq = await PATCH(`ik/ticket-categories/${id}/`, data);
+  return rq.data;
+};
+
+const deleteTicketCategory = async (id) => {
+  const rq = await DELETE(`ik/ticket-categories/${id}/`);
+  return rq.data;
+};
+
+// ==========================================
+// SLA CONFIGS (/api/ik/sla-configs/)
+// ==========================================
+
+const getSlaConfigs = async (params = {}) => {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach((v) => searchParams.append(key, v));
+    } else if (value != null) {
+      searchParams.append(key, value);
+    }
+  });
+  const query = searchParams.toString();
+  const rq = await GET(`ik/sla-configs/${query ? "?" + query : ""}`);
+  return rq.data;
+};
+
+const createSlaConfig = async (data) => {
+  const rq = await POST(`ik/sla-configs/`, data);
+  return rq.data;
+};
+
+const getSlaConfig = async (id) => {
+  const rq = await GET(`ik/sla-configs/${id}/`);
+  return rq.data;
+};
+
+const updateSlaConfig = async (id, data) => {
+  const rq = await PATCH(`ik/sla-configs/${id}/`, data);
+  return rq.data;
+};
+
+const deleteSlaConfig = async (id) => {
+  const rq = await DELETE(`ik/sla-configs/${id}/`);
   return rq.data;
 };
 
@@ -1391,6 +1530,22 @@ const sh = {
     getAttachments: getTicketAttachments,
     uploadAttachment: uploadTicketAttachment,
     stats: getTicketStats,
+    myDesk: getMyDeskTickets,
+    dashboard: getTicketDashboard,
+    categories: {
+      get: getTicketCategories,
+      getById: getTicketCategory,
+      create: createTicketCategory,
+      update: updateTicketCategory,
+      delete: deleteTicketCategory,
+    },
+    slaConfigs: {
+      get: getSlaConfigs,
+      getById: getSlaConfig,
+      create: createSlaConfig,
+      update: updateSlaConfig,
+      delete: deleteSlaConfig,
+    },
   },
   alerts: {
     rules: {
@@ -1432,6 +1587,20 @@ const sh = {
     projectPoints: getProjectPointsControlCenter,
     staffUsers: getStaffUsers,
     getPointsAll: get_catchment_points_all,
+    ticketCategories: {
+      get: getTicketCategories,
+      getById: getTicketCategory,
+      create: createTicketCategory,
+      update: updateTicketCategory,
+      delete: deleteTicketCategory,
+    },
+    slaConfigs: {
+      get: getSlaConfigs,
+      getById: getSlaConfig,
+      create: createSlaConfig,
+      update: updateSlaConfig,
+      delete: deleteSlaConfig,
+    },
   },
   // 🆕 NUEVO: Endpoints para lazy loading de puntos
   getPointsAll: get_catchment_points_all,

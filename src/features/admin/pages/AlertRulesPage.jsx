@@ -22,7 +22,7 @@ import {
   DeleteOutlined,
   AlertOutlined,
 } from "@ant-design/icons";
-import { SmartCard } from "../../../shared/ui";
+import { SmartCard, SmartButton } from "../../../shared/ui";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import useAdminCrud from "../hooks/useAdminCrud";
 import CrudDrawer from "../components/CrudDrawer";
@@ -37,7 +37,7 @@ const { TextArea } = Input;
 const PAGE_SIZE = 10;
 
 const SEVERITY_OPTIONS = [
-  { value: "INFO", label: "Info", color: "blue" },
+  { value: "INFO", label: "Info", color: "default" },
   { value: "WARNING", label: "Advertencia", color: "orange" },
   { value: "ALERT", label: "Alerta", color: "red" },
   { value: "CRITICAL", label: "Crítico", color: "magenta" },
@@ -237,8 +237,8 @@ const AlertRulesPage = () => {
     <div style={{ padding: token.paddingLG }}>
       <Flex justify="space-between" align="center" wrap="wrap" gap={16} style={{ marginBottom: 24 }}>
         <Flex align="center" gap={12}>
-          <AlertOutlined style={{ fontSize: 24, color: token.colorPrimary }} />
-          <Title level={3} style={{ margin: 0, color: token.colorTextHeading }}>
+          <AlertOutlined style={{ fontSize: 24, color: token.voidTextHeading }} />
+          <Title level={3} style={{ margin: 0, color: token.voidTextHeading }}>
             Reglas de Alerta
           </Title>
         </Flex>
@@ -257,18 +257,17 @@ const AlertRulesPage = () => {
           >
             Actualizar
           </Button>
-          <Button
-            type="primary"
+          <SmartButton
+            variant="void"
             icon={<PlusOutlined />}
             onClick={handleOpenCreate}
-            style={{ background: token.colorPrimary }}
           >
             Nueva Regla
-          </Button>
+          </SmartButton>
         </Flex>
       </Flex>
 
-      <SmartCard>
+      <SmartCard variant="void">
         <Table
           rowKey="id"
           columns={columns}

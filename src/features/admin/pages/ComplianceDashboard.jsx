@@ -17,7 +17,7 @@ import {
   Space,
 } from "antd";
 import { ReloadOutlined, FileProtectOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
-import { SmartCard } from "../../../shared/ui";
+import { SmartCard, SmartButton } from "../../../shared/ui";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import orchestrator from "../../../api/orchestrator";
 
@@ -99,7 +99,7 @@ const ComplianceDashboard = () => {
       key: "type",
       render: (_, r) => (
         <Space size={4}>
-          {r.send_dga && <Tag color="blue">DGA</Tag>}
+          {r.send_dga && <Tag color="default">DGA</Tag>}
           {r.send_sma && <Tag color="purple">SMA</Tag>}
         </Space>
       ),
@@ -158,8 +158,8 @@ const ComplianceDashboard = () => {
     <div style={{ padding: token.paddingLG }}>
       <Flex justify="space-between" align="center" style={{ marginBottom: 24 }}>
         <Flex align="center" gap={12}>
-          <FileProtectOutlined style={{ fontSize: 24, color: token.colorPrimary }} />
-          <Title level={3} style={{ margin: 0, color: token.colorTextHeading }}>
+          <FileProtectOutlined style={{ fontSize: 24, color: token.voidTextHeading }} />
+          <Title level={3} style={{ margin: 0, color: token.voidTextHeading }}>
             Cumplimiento DGA / SMA
           </Title>
         </Flex>
@@ -171,12 +171,12 @@ const ComplianceDashboard = () => {
       <Spin spinning={loading}>
         <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
           <Col xs={24} sm={12} lg={6}>
-            <Card>
+            <Card style={{ background: token.glassBg, border: `1px solid ${token.glassBorder}`, borderRadius: token.voidRadius, backdropFilter: "blur(10px)" }}>
               <Statistic title="Puntos monitoreados" value={stats.total || 0} />
             </Card>
           </Col>
           <Col xs={24} sm={12} lg={6}>
-            <Card>
+            <Card style={{ background: token.glassBg, border: `1px solid ${token.glassBorder}`, borderRadius: token.voidRadius, backdropFilter: "blur(10px)" }}>
               <Statistic
                 title="Con advertencias"
                 value={stats.with_warnings || 0}
@@ -185,7 +185,7 @@ const ComplianceDashboard = () => {
             </Card>
           </Col>
           <Col xs={24} sm={12} lg={6}>
-            <Card>
+            <Card style={{ background: token.glassBg, border: `1px solid ${token.glassBorder}`, borderRadius: token.voidRadius, backdropFilter: "blur(10px)" }}>
               <Statistic
                 title="Críticos"
                 value={stats.with_critical || 0}
@@ -194,13 +194,13 @@ const ComplianceDashboard = () => {
             </Card>
           </Col>
           <Col xs={24} sm={12} lg={6}>
-            <Card>
+            <Card style={{ background: token.glassBg, border: `1px solid ${token.glassBorder}`, borderRadius: token.voidRadius, backdropFilter: "blur(10px)" }}>
               <Statistic title="Por estándar" value={Object.keys(stats.by_standard || {}).length} />
             </Card>
           </Col>
         </Row>
 
-        <SmartCard title="Puntos en seguimiento" style={{ marginBottom: 24 }}>
+        <SmartCard variant="void" title="Puntos en seguimiento" style={{ marginBottom: 24 }}>
           <Table
             rowKey="point_id"
             columns={columns}
@@ -211,7 +211,7 @@ const ComplianceDashboard = () => {
           />
         </SmartCard>
 
-        <SmartCard title="Verificar comprobante DGA">
+        <SmartCard variant="void" title="Verificar comprobante DGA">
           <Form form={form} layout="vertical" onFinish={handleVerify}>
             <Row gutter={16}>
               <Col xs={24} md={8}>
@@ -243,15 +243,15 @@ const ComplianceDashboard = () => {
               </Col>
               <Col xs={24} md={4}>
                 <Form.Item label=" ">
-                  <Button
-                    type="primary"
+                  <SmartButton
+                    variant="void"
                     htmlType="submit"
                     icon={<SafetyCertificateOutlined />}
                     loading={verifyLoading}
                     block
                   >
                     Verificar
-                  </Button>
+                  </SmartButton>
                 </Form.Item>
               </Col>
             </Row>
@@ -260,7 +260,13 @@ const ComplianceDashboard = () => {
           {verifyResult && (
             <Card
               size="small"
-              style={{ marginTop: 16, background: token.colorBgContainer }}
+              style={{
+                marginTop: 16,
+                background: token.glassBg,
+                border: `1px solid ${token.glassBorder}`,
+                borderRadius: token.voidRadius,
+                backdropFilter: "blur(10px)",
+              }}
               title={`Resultado: ${verifyResult.status === "00" ? "OK" : "Error"}`}
             >
               <Text>{verifyResult.message}</Text>

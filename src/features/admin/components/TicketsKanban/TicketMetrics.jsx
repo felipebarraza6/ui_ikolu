@@ -12,7 +12,6 @@ import {
 } from "@ant-design/icons";
 import { differenceInHours, parseISO } from "date-fns";
 import { SmartKPICard } from "../../../../shared/ui";
-import { useIkoluToken } from "../../../../hooks/useIkoluToken";
 import { isTicketClosed } from "../../constants/tickets";
 
 /**
@@ -22,12 +21,9 @@ import { isTicketClosed } from "../../constants/tickets";
  * para reflejar el universo completo, no solo la página actual.
  */
 const TicketMetrics = ({ tickets, stats, loading }) => {
-  const token = useIkoluToken();
-
-  const byStatus = stats?.by_status || {};
-  const byPriority = stats?.by_priority || {};
-
   const metrics = useMemo(() => {
+    const byStatus = stats?.by_status || {};
+    const byPriority = stats?.by_priority || {};
     const total = stats?.total ?? tickets.length ?? 0;
 
     const open = byStatus.ABIERTO || 0;
@@ -70,7 +66,7 @@ const TicketMetrics = ({ tickets, stats, loading }) => {
       resolutionRate,
       slaOverdue: (stats?.sla_overdue_response || 0) + (stats?.sla_overdue_resolution || 0),
     };
-  }, [tickets, stats, byStatus, byPriority]);
+  }, [tickets, stats]);
 
   const kpis = [
     { icon: <FileTextOutlined />, label: "Total", value: metrics.total },
@@ -87,7 +83,7 @@ const TicketMetrics = ({ tickets, stats, loading }) => {
     <Row gutter={[12, 12]} style={{ marginBottom: 24 }}>
       {kpis.map((kpi, idx) => (
         <Col key={idx} xs={12} sm={8} md={6} lg={4} xl={3}>
-          <SmartKPICard
+          <SmartKPICard variant="void"
             icon={kpi.icon}
             label={kpi.label}
             value={kpi.value}

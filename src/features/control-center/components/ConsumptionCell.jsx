@@ -1,21 +1,23 @@
 import React from "react";
 import { Flex, Typography } from "antd";
+import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import { formatInteger } from "../../../utils/numberFormatter";
 
 
 const { Text } = Typography;
 
-const ConsumptionCell = ({ record, token }) => {
+const ConsumptionCell = ({ record }) => {
+  const token = useIkoluToken();
   const pct = record.pct_consumed;
   const pctNum = pct != null ? Number(pct) : null;
   
   const color = pctNum == null
-    ? token?.colorTextDisabled
+    ? token.voidTextMuted
     : pctNum > 100
-    ? token?.colorError
+    ? token.colorError
     : pctNum > 80
-    ? token?.colorWarning
-    : token?.colorSuccess;
+    ? token.colorWarning
+    : token.colorSuccess;
 
   return (
     <Flex vertical gap={3} align="center">
@@ -37,7 +39,7 @@ const ConsumptionCell = ({ record, token }) => {
               width: "100%",
               height: 8,
               borderRadius: 4,
-              background: token?.colorFillSecondary,
+              background: token.voidSurface,
               overflow: "hidden",
               position: "relative",
             }}
@@ -70,7 +72,7 @@ const ConsumptionCell = ({ record, token }) => {
             <Text
               style={{
                 fontSize: 9,
-                color: token?.colorTextSecondary,
+                color: token.voidTextMuted,
                 fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
                 lineHeight: 1.2,
               }}
@@ -83,7 +85,7 @@ const ConsumptionCell = ({ record, token }) => {
         <Text
           style={{
             fontSize: 12,
-            color: token?.colorTextDisabled,
+            color: token.voidTextMuted,
             fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
           }}
         >

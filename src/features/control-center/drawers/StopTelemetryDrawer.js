@@ -1,10 +1,11 @@
 import React from "react";
-import { Drawer, Row, Col, Flex, Typography, Button, Input, Form, DatePicker, theme } from "antd";
+import { Drawer, Row, Col, Flex, Typography, Button, Input, Form, DatePicker } from "antd";
 import { FaHandPaper } from "react-icons/fa";
+import { SmartButton } from "../../../shared/ui";
 import { useAuth } from "../../../contexts/AuthContext";
+import { useIkoluToken } from "../../../hooks/useIkoluToken";
 
 const { Text } = Typography;
-const { useToken } = theme;
 
 const StopTelemetryDrawer = ({
   open,
@@ -14,35 +15,35 @@ const StopTelemetryDrawer = ({
   loading,
   onSubmit,
 }) => {
-  const { token } = useToken();
+  const token = useIkoluToken();
   const { user } = useAuth();
 
   return (
     <Drawer
       title={
         <Flex align="center" gap={8}>
-          <FaHandPaper style={{ color: token.colorPrimary, fontSize: 16 }} />
-          <Text strong style={{ fontSize: 16 }}>Solicitud para detener telemetría</Text>
+          <FaHandPaper style={{ color: token.voidTextHeading, fontSize: 16 }} />
+          <Text strong style={{ fontSize: 16, color: token.voidTextHeading }}>Solicitud para detener telemetría</Text>
         </Flex>
       }
       open={open}
       onClose={onClose}
       width={420}
-      styles={{ body: { padding: 20 } }}
+      styles={{ body: { padding: 20, background: "transparent" } }}
       footer={
         <Flex justify="flex-end" gap={8}>
           <Button onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="primary" loading={loading} onClick={() => form.submit()}>
+          <SmartButton variant="void" loading={loading} onClick={() => form.submit()}>
             Enviar solicitud
-          </Button>
+          </SmartButton>
         </Flex>
       }
     >
       {point && (
-        <Flex vertical style={{ marginBottom: 16 }}>
-          <Text strong style={{ fontSize: 14 }}>{point.name}</Text>
+        <Flex vertical style={{ marginBottom: 16, padding: 12, background: token.glassBg, border: `1px solid ${token.glassBorder}`, borderRadius: token.voidRadius }}>
+          <Text strong style={{ fontSize: 14, color: token.voidTextHeading }}>{point.name}</Text>
         </Flex>
       )}
       <Form form={form} layout="vertical" onFinish={onSubmit}>

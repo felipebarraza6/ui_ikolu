@@ -1,13 +1,12 @@
 import React, { useState, useMemo } from "react";
-import { Segmented, Flex, theme } from "antd";
+import { Segmented, Flex } from "antd";
 import { FaClipboardCheck, FaBroadcastTower } from "react-icons/fa";
+import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import CCComplianceTable from "./compliance/ComplianceTable";
 import CCWeekConsumption from "./telemetry/WeekConsumption";
 
-const { useToken } = theme;
-
 const CCDataTabs = ({ points, onViewVoucher, onOpenStopCompliance, onOpenSupport = () => {}, onWarningPointClick = () => {}, warningsRaw = {}, onViewMeasurements, onViewFlowAnalysis, onViewComplianceDetail, onOpenStopTelemetry, onViewPointConfig, selectedDate, onDateSelect, loading = false }) => {
-  const { token } = useToken();
+  const token = useIkoluToken();
   const [activeTab, setActiveTab] = useState("telemetria");
 
   const segmentOptions = useMemo(() => [
@@ -39,7 +38,7 @@ const CCDataTabs = ({ points, onViewVoucher, onOpenStopCompliance, onOpenSupport
           value={activeTab}
           onChange={setActiveTab}
           style={{
-            background: token.colorBgLayout,
+            background: token.voidSurface,
           }}
         />
       </Flex>

@@ -39,6 +39,12 @@ const variantConfig = {
     border: smarthydro.colors.accent[200],
     icon: null,
   },
+  void: {
+    color: "rgba(242,245,250,0.90)",
+    bg: "rgba(255,255,255,0.07)",
+    border: "rgba(255,255,255,0.10)",
+    icon: null,
+  },
 };
 
 const sizeMap = {

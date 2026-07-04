@@ -96,7 +96,7 @@ const PerformanceCharts = memo(({ telemetryMetrics, pointsStatus, loading }) => 
       },
       theme: { mode: token.isDark ? "dark" : "light" },
       stroke: { curve: "smooth", width: 3 },
-      colors: [token.colorPrimary, token.colorError],
+      colors: [token.voidTextHeading, token.colorError],
       xaxis: {
         categories: lineSeries.categories,
         labels: { style: { colors: token.colorTextSecondary } },
@@ -118,9 +118,12 @@ const PerformanceCharts = memo(({ telemetryMetrics, pointsStatus, loading }) => 
     <Row gutter={[16, 16]}>
       <Col xs={24} lg={14}>
         <SmartCard
+          variant="void"
           title={
             <Flex align="center" gap={8}>
-              <Text strong>Telemetría Procesada</Text>
+              <Text strong style={{ color: token.voidTextHeading }}>
+                Telemetría Procesada
+              </Text>
             </Flex>
           }
           style={{ height: "100%" }}
@@ -143,9 +146,12 @@ const PerformanceCharts = memo(({ telemetryMetrics, pointsStatus, loading }) => 
       </Col>
       <Col xs={24} lg={10}>
         <SmartCard
+          variant="void"
           title={
             <Flex align="center" gap={8}>
-              <Text strong>Distribución de Estado de Puntos</Text>
+              <Text strong style={{ color: token.voidTextHeading }}>
+                Distribución de Estado de Puntos
+              </Text>
             </Flex>
           }
           style={{ height: "100%" }}

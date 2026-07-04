@@ -121,8 +121,8 @@ const ProvidersPage = () => {
     <div style={{ padding: token.paddingLG }}>
       <Flex justify="space-between" align="center" wrap="wrap" gap={16} style={{ marginBottom: 24 }}>
         <Flex align="center" gap={12}>
-          <CloudOutlined style={{ fontSize: 24, color: token.colorPrimary }} />
-          <Title level={3} style={{ margin: 0, color: token.colorTextHeading }}>
+          <CloudOutlined style={{ fontSize: 24, color: token.voidTextHeading }} />
+          <Title level={3} style={{ margin: 0, color: token.voidTextHeading }}>
             Proveedores
           </Title>
         </Flex>
@@ -144,7 +144,7 @@ const ProvidersPage = () => {
         </Flex>
       </Flex>
 
-      <SmartCard>
+      <SmartCard variant="void">
         <Spin spinning={loading}>
           <Tabs activeKey={activeTab} onChange={handleTabChange}>
             <TabPane tab="Telemetría" key="telemetry">

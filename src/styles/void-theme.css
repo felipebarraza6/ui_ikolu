@@ -1,0 +1,1080 @@
+/* =====================================================
+   Void Theme - Scoped overrides for admin/staff routes
+   Applied when <html data-ikolu-theme="void"> is set by
+   RouteThemeSync on /admin/* and /control-center/* routes.
+   Keeps [data-void-theme="true"] selector for backward compatibility.
+   ===================================================== */
+
+[data-ikolu-theme="void"],
+[data-void-theme="true"] {
+  /* Void palette variables for internal reuse */
+  --void-bg-deep: var(--ikolu-void-bg);
+  --void-bg-surface: var(--ikolu-void-surface);
+  --void-bg-header: var(--ikolu-void-header);
+  --void-border: var(--ikolu-void-border);
+  --void-border-strong: var(--ikolu-void-border-strong);
+  --void-text-primary: var(--ikolu-void-text-heading);
+  --void-text-secondary: var(--ikolu-void-text-muted);
+  --void-hover: var(--ikolu-void-hover);
+
+  /* =====================================================
+     Tipografía Void — reset agresivo: todo Inter por defecto
+     ===================================================== */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+[data-ikolu-theme="void"] *,
+[data-ikolu-theme="void"] *::before,
+[data-ikolu-theme="void"] *::after,
+[data-void-theme="true"] *,
+[data-void-theme="true"] *::before,
+[data-void-theme="true"] *::after {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+[data-ikolu-theme="void"],
+[data-void-theme="true"] {
+  /* Iconos de Ant Design: nunca tocar su fuente */
+  .anticon,
+  [class^="anticon"],
+  [class*=" anticon"],
+  .ant-menu-item-icon,
+  .ant-select-selection-item-remove,
+  .ant-picker-suffix,
+  .ant-input-password-icon,
+  .ant-picker-clear,
+  .ant-notification-notice-close,
+  .ant-modal-close,
+  .ant-drawer-close,
+  .ant-collapse-arrow,
+  .ant-steps-icon,
+  .ant-radio-inner,
+  .ant-checkbox-inner,
+  .ant-switch-handle,
+  .ant-slider-handle,
+  .ant-pagination-item-link-icon,
+  .ant-tag-close-icon,
+  .ant-badge-status-dot,
+  .ant-select-arrow,
+  .ant-cascader-picker-arrow,
+  .ant-transfer-list-search-action,
+  .ant-tree-switcher,
+  .ant-tree-treenode .ant-tree-iconEle,
+  .ant-dropdown-menu-item-icon {
+    font-family: 'anticon', 'ant-design-icons', sans-serif !important;
+  }
+
+  /* Elementos que legítimamente deben ser monoespaciados */
+  code,
+  pre,
+  kbd,
+  samp,
+  .mono,
+  .font-mono {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace !important;
+  }
+
+  /* Solo títulos principales usan JetBrains Mono en Void */
+  h1, h2, h3, h4, h5, h6,
+  .ant-typography-title,
+  .ant-card-head-title,
+  .ant-modal-title,
+  .ant-drawer-title,
+  .ant-page-header-heading-title {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace !important;
+  }
+
+  /* Spin en blanco, no primary azul */
+  .ant-spin {
+    color: var(--ikolu-void-text-heading) !important;
+  }
+  .ant-spin-dot-item {
+    background-color: var(--ikolu-void-text-heading) !important;
+  }
+
+  /* =====================================================
+     Ant Design Drawer & Modal
+     ===================================================== */
+
+  .ant-drawer-content {
+    background: var(--ikolu-void-bg) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+  }
+
+  .ant-drawer-header {
+    background: var(--ikolu-void-header) !important;
+    border-bottom: 1px solid var(--ikolu-void-border) !important;
+  }
+
+  .ant-drawer-header-title {
+    color: var(--ikolu-void-text-heading) !important;
+  }
+
+  .ant-drawer-close {
+    color: rgba(255, 255, 255, 0.5) !important;
+  }
+
+  .ant-drawer-close:hover {
+    color: var(--ikolu-void-text) !important;
+    background: var(--ikolu-void-hover) !important;
+  }
+
+  .ant-drawer-body {
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+
+  .ant-drawer-mask {
+    background: rgba(3, 12, 24, 0.7) !important;
+    backdrop-filter: blur(5px) !important;
+  }
+
+  .ant-modal-content {
+    background: var(--ikolu-void-bg) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid var(--ikolu-void-border) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .ant-modal-header {
+    background: var(--ikolu-void-header) !important;
+    border-bottom: 1px solid var(--ikolu-void-border) !important;
+    border-radius: 24px 24px 0 0 !important;
+  }
+
+  .ant-modal-title {
+    color: var(--ikolu-void-text-heading) !important;
+  }
+
+  .ant-modal-close {
+    color: rgba(255, 255, 255, 0.5) !important;
+  }
+
+  .ant-modal-close:hover {
+    color: var(--ikolu-void-text) !important;
+    background: var(--ikolu-void-hover) !important;
+  }
+
+  .ant-modal-body {
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+
+  .ant-modal-mask {
+    background: rgba(3, 12, 24, 0.7) !important;
+    backdrop-filter: blur(5px) !important;
+  }
+
+  /* =====================================================
+     Ant Design Buttons
+     ===================================================== */
+
+  .ant-btn-primary {
+    background: var(--ikolu-void-primary) !important;
+    color: var(--ikolu-void-primary-text) !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+  }
+
+  .ant-btn-primary:hover,
+  .ant-btn-primary:focus {
+    background: rgba(255, 255, 255, 0.9) !important;
+    color: var(--ikolu-void-primary-text) !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35) !important;
+    transform: translateY(-1px);
+  }
+
+  .ant-btn-primary:active {
+    background: rgba(255, 255, 255, 0.85) !important;
+    color: var(--ikolu-void-primary-text) !important;
+  }
+
+  .ant-btn-default {
+    background: var(--ikolu-void-header) !important;
+    border: 1px solid var(--ikolu-void-border-strong) !important;
+    color: var(--ikolu-void-text) !important;
+  }
+
+  .ant-btn-default:hover,
+  .ant-btn-default:focus {
+    background: var(--ikolu-void-border-strong) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: var(--ikolu-void-text) !important;
+  }
+
+  .ant-btn-text {
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  .ant-btn-text:hover,
+  .ant-btn-text:focus {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--ikolu-void-text) !important;
+  }
+
+  .ant-btn-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+  }
+
+  .ant-btn-link:hover,
+  .ant-btn-link:focus {
+    color: var(--ikolu-void-text) !important;
+  }
+
+  /* =====================================================
+     Ant Design Input
+     ===================================================== */
+
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-input-textarea {
+    background: var(--ikolu-void-surface) !important;
+    border: 1px solid var(--ikolu-void-border) !important;
+    color: var(--ikolu-void-text) !important;
+  }
+
+  .ant-input::placeholder,
+  .ant-input-affix-wrapper::placeholder,
+  .ant-input-textarea::placeholder {
+    color: rgba(255, 255, 255, 0.4) !important;
+  }
+
+  .ant-input:hover,
+  .ant-input-affix-wrapper:hover,
+  .ant-input-textarea:hover {
+    border-color: var(--ikolu-void-hover) !important;
+  }
+
+  .ant-input:focus,
+  .ant-input-affix-wrapper:focus,
+  .ant-input-textarea:focus,
+  .ant-input-focused,
+  .ant-input-affix-wrapper-focused {
+    border-color: rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 0 0 3px var(--ikolu-void-border) !important;
+  }
+
+  .ant-input-affix-wrapper .anticon {
+    color: rgba(255, 255, 255, 0.5) !important;
+  }
+
+  /* =====================================================
+     Ant Design Select
+     ===================================================== */
+
+  .ant-select-selector {
+    background: var(--ikolu-void-surface) !important;
+    border: 1px solid var(--ikolu-void-border) !important;
+    color: var(--ikolu-void-text) !important;
+  }
+
+  .ant-select:hover .ant-select-selector {
+    border-color: var(--ikolu-void-hover) !important;
+  }
+
+  .ant-select-focused .ant-select-selector {
+    border-color: rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 0 0 3px var(--ikolu-void-border) !important;
+  }
+
+  .ant-select-arrow {
+    color: rgba(255, 255, 255, 0.5) !important;
+  }
+
+  .ant-select-dropdown {
+    background: var(--ikolu-void-surface-elevated) !important;
+    border: 1px solid var(--ikolu-void-border) !important;
+    backdrop-filter: blur(20px) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .ant-select-item {
+    color: rgba(255, 255, 255, 0.8) !important;
+  }
+
+  .ant-select-item:hover {
+    background: var(--ikolu-void-header) !important;
+  }
+
+  .ant-select-item-option-selected {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--ikolu-void-text) !important;
+  }
+
+  .ant-select-item-option-active {
+    background: var(--ikolu-void-header) !important;
+  }
+
+  /* =====================================================
+     Ant Design DatePicker / Pickers
+     ===================================================== */
+
+  .ant-picker {
+    background: var(--ikolu-void-surface) !important;
+    border: 1px solid var(--ikolu-void-border) !important;
+  }
+
+  .ant-picker-input > input {
+    color: var(--ikolu-void-text) !important;
+  }
+
+  .ant-picker-input > input::placeholder {
+    color: rgba(255, 255, 255, 0.4) !important;
+  }
+
+  .ant-picker-suffix,
+  .ant-picker-clear {
+    color: rgba(255, 255, 255, 0.5) !important;
+  }
+
+  .ant-picker:hover {
+    border-color: var(--ikolu-void-hover) !important;
+  }
+
+  .ant-picker-focused {
+    border-color: rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 0 0 3px var(--ikolu-void-border) !important;
+  }
+
+  .ant-picker-panel-container {
+    background: var(--ikolu-void-surface-elevated) !important;
+    border: 1px solid var(--ikolu-void-border) !important;
+    backdrop-filter: blur(20px) !important;
+  }
+
+  .ant-picker-header {
+    color: rgba(255, 255, 255, 0.8) !important;
+    border-bottom: 1px solid var(--ikolu-void-border) !important;
+  }
+
+  .ant-picker-header button {
+    color: rgba(255, 255, 255, 0.6) !important;
+  }
+
+  .ant-picker-header button:hover {
+    color: var(--ikolu-void-text) !important;
+  }
+
+  .ant-picker-cell {
+    color: rgba(255, 255, 255, 0.4) !important;
+  }
+
+  .ant-picker-cell-in-view {
+    color: rgba(255, 255, 255, 0.8) !important;
+  }
+
+  .ant-picker-cell:hover .ant-picker-cell-inner {
+    background: var(--ikolu-void-header) !important;
+  }
+
+  .ant-picker-cell-selected .ant-picker-cell-inner,
+  .ant-picker-cell-range-start .ant-picker-cell-inner,
+  .ant-picker-cell-range-end .ant-picker-cell-inner {
+    background: var(--ikolu-void-primary) !important;
+    color: var(--ikolu-void-primary-text) !important;
+  }
+
+  .ant-picker-cell-in-view.ant-picker-cell-today .ant-picker-cell-inner::before {
+    border-color: var(--ikolu-void-primary) !important;
+  }
+
+  .ant-picker-cell-range-hover:not(.ant-picker-cell-selected)::after,
+  .ant-picker-cell-range-hover-start:not(.ant-picker-cell-selected)::after,
+  .ant-picker-cell-range-hover-end:not(.ant-picker-cell-selected)::after {
+    background: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* =====================================================
+     Ant Design Form
+     ===================================================== */
+
+  .ant-form-item-label > label {
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  .ant-form-item-explain-error {
+    color: #E76F51 !important;
+  }
+
+  /* =====================================================
+     Ant Design Tabs
+     ===================================================== */
+
+  .ant-tabs-tab {
+    color: rgba(255, 255, 255, 0.5) !important;
+  }
+
+  .ant-tabs-tab:hover {
+    color: rgba(255, 255, 255, 0.8) !important;
+  }
+
+  .ant-tabs-tab-active .ant-tabs-tab-btn {
+    color: var(--ikolu-void-text-heading) !important;
+    text-shadow: none;
+  }
+
+  .ant-tabs-ink-bar {
+    background: var(--ikolu-void-primary) !important;
+    box-shadow: none;
+  }
+
+  .ant-tabs-nav::before {
+    border-bottom: 1px solid var(--ikolu-void-border) !important;
+  }
+
+  /* =====================================================
+     Ant Design Tag & Badge
+     ===================================================== */
+
+  .ant-tag {
+    background: var(--ikolu-void-header) !important;
+    border: 1px solid rgba(255, 255, 255, 0.10) !important;
+    color: var(--ikolu-void-text) !important;
+  }
+
+  .ant-badge-count,
+  .ant-badge-dot {
+    box-shadow: 0 0 0 1px var(--ikolu-void-bg) !important;
+  }
+
+  /* =====================================================
+     Ant Design Alert
+     ===================================================== */
+
+  .ant-alert-info {
+    background: var(--ikolu-void-header) !important;
+    border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  }
+
+  .ant-alert-info .ant-alert-message {
+    color: var(--ikolu-void-text-heading) !important;
+  }
+
+  .ant-alert-success {
+    background: rgba(42, 157, 143, 0.1) !important;
+    border: 1px solid rgba(42, 157, 143, 0.2) !important;
+  }
+
+  .ant-alert-warning {
+    background: rgba(244, 162, 97, 0.1) !important;
+    border: 1px solid rgba(244, 162, 97, 0.2) !important;
+  }
+
+  .ant-alert-error {
+    background: rgba(231, 111, 81, 0.1) !important;
+    border: 1px solid rgba(231, 111, 81, 0.2) !important;
+  }
+
+  /* =====================================================
+     Ant Design Segmented
+     ===================================================== */
+
+  .ant-segmented {
+    background: var(--ikolu-void-surface) !important;
+  }
+
+  .ant-segmented-item {
+    color: rgba(255, 255, 255, 0.6) !important;
+  }
+
+  .ant-segmented-item-selected {
+    background: var(--ikolu-void-border-strong) !important;
+    color: var(--ikolu-void-text) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+  }
+
+  .ant-segmented-item:hover:not(.ant-segmented-item-selected) {
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+
+  .ant-segmented-thumb {
+    background: var(--ikolu-void-border-strong) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+  }
+
+  /* =====================================================
+     Ant Design Table
+     ===================================================== */
+
+  .ant-table {
+    background: rgba(255, 255, 255, 0.03) !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+
+  .ant-table-container {
+    background: transparent !important;
+  }
+
+  .ant-table-thead > tr > th {
+    background: var(--ikolu-void-header) !important;
+    color: var(--ikolu-void-text) !important;
+    border-bottom: 1px solid var(--ikolu-void-border) !important;
+    font-weight: 600;
+  }
+
+  .ant-table-tbody > tr > td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+
+  .ant-table-tbody > tr {
+    background: transparent !important;
+    transition: background 0.2s ease;
+  }
+
+  .ant-table-tbody > tr:hover > td {
+    background: rgba(255, 255, 255, 0.04) !important;
+  }
+
+  .ant-table-tbody > tr.ant-table-row-selected > td,
+  .ant-table-tbody > tr.ant-table-row-selected:hover > td {
+    background: var(--ikolu-void-border) !important;
+  }
+
+  .ant-table-footer,
+  .ant-table-summary {
+    background: var(--ikolu-void-surface) !important;
+  }
+
+  .ant-table-pagination.ant-pagination {
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  /* =====================================================
+     Ant Design Dropdown & Menu
+     ===================================================== */
+
+  .ant-dropdown-menu,
+  .ant-menu-submenu-popup > .ant-menu {
+    background: var(--ikolu-void-surface-elevated) !important;
+    border: 1px solid var(--ikolu-void-border) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .ant-dropdown-menu-item,
+  .ant-dropdown-menu-submenu-title,
+  .ant-menu-item,
+  .ant-menu-submenu-title {
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+
+  .ant-dropdown-menu-item:hover,
+  .ant-dropdown-menu-submenu-title:hover,
+  .ant-menu-item:hover,
+  .ant-menu-submenu-title:hover,
+  .ant-menu-item-active,
+  .ant-menu-submenu-active {
+    background: var(--ikolu-void-header) !important;
+    color: var(--ikolu-void-text) !important;
+  }
+
+  .ant-dropdown-menu-item-selected,
+  .ant-menu-item-selected {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--ikolu-void-text) !important;
+  }
+
+  .ant-dropdown-menu-item-disabled,
+  .ant-menu-item-disabled {
+    color: rgba(255, 255, 255, 0.3) !important;
+  }
+
+  .ant-dropdown-menu-item-divider,
+  .ant-menu-item-divider {
+    background: var(--ikolu-void-border) !important;
+  }
+
+  /* =====================================================
+     Ant Design Tooltip
+     ===================================================== */
+
+  .ant-tooltip-inner {
+    background: var(--ikolu-void-surface-elevated) !important;
+    color: var(--ikolu-void-text) !important;
+    border: 1px solid var(--ikolu-void-border) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+  }
+
+  .ant-tooltip-arrow-content::before {
+    background: var(--ikolu-void-surface-elevated) !important;
+  }
+
+  /* =====================================================
+     Ant Design Popover
+     ===================================================== */
+
+  .ant-popover-inner {
+    background: var(--ikolu-void-surface-elevated) !important;
+    border: 1px solid var(--ikolu-void-border) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .ant-popover-title {
+    color: var(--ikolu-void-text-heading) !important;
+    border-bottom: 1px solid var(--ikolu-void-border) !important;
+  }
+
+  .ant-popover-inner-content {
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+
+  .ant-popover-arrow-content::before {
+    background: var(--ikolu-void-surface-elevated) !important;
+    border: 1px solid var(--ikolu-void-border) !important;
+  }
+
+  /* =====================================================
+     Ant Design Message & Notification
+     ===================================================== */
+
+  .ant-message-notice-content {
+    background: var(--ikolu-void-surface-elevated) !important;
+    color: var(--ikolu-void-text) !important;
+    border: 1px solid var(--ikolu-void-border) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .ant-notification-notice {
+    background: var(--ikolu-void-surface-elevated) !important;
+    border: 1px solid var(--ikolu-void-border) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .ant-notification-notice-message {
+    color: var(--ikolu-void-text-heading) !important;
+  }
+
+  .ant-notification-notice-description {
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  .ant-notification-notice-close {
+    color: rgba(255, 255, 255, 0.5) !important;
+  }
+
+  .ant-notification-notice-close:hover {
+    color: var(--ikolu-void-text) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* =====================================================
+     Ant Design Radio & Checkbox
+     ===================================================== */
+
+  .ant-radio-inner {
+    background: var(--ikolu-void-surface) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+  }
+
+  .ant-radio:hover .ant-radio-inner,
+  .ant-radio-wrapper:hover .ant-radio-inner {
+    border-color: rgba(255, 255, 255, 0.35) !important;
+  }
+
+  .ant-radio-checked .ant-radio-inner {
+    border-color: var(--ikolu-void-primary) !important;
+    background: var(--ikolu-void-primary) !important;
+  }
+
+  .ant-radio-checked .ant-radio-inner::after {
+    background: var(--ikolu-void-primary-text) !important;
+  }
+
+  .ant-radio-button-wrapper {
+    background: var(--ikolu-void-surface) !important;
+    border-color: var(--ikolu-void-border-strong) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  .ant-radio-button-wrapper:not(:first-child)::before {
+    background: var(--ikolu-void-border-strong) !important;
+  }
+
+  .ant-radio-button-wrapper:hover {
+    color: var(--ikolu-void-text) !important;
+  }
+
+  .ant-radio-button-wrapper-checked {
+    background: var(--ikolu-void-primary) !important;
+    border-color: var(--ikolu-void-primary) !important;
+    color: var(--ikolu-void-primary-text) !important;
+  }
+
+  .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled)::before {
+    background: var(--ikolu-void-primary) !important;
+  }
+
+  .ant-checkbox-inner {
+    background: var(--ikolu-void-surface) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+  }
+
+  .ant-checkbox:hover .ant-checkbox-inner,
+  .ant-checkbox-wrapper:hover .ant-checkbox-inner {
+    border-color: rgba(255, 255, 255, 0.35) !important;
+  }
+
+  .ant-checkbox-checked .ant-checkbox-inner {
+    background: var(--ikolu-void-primary) !important;
+    border-color: var(--ikolu-void-primary) !important;
+  }
+
+  .ant-checkbox-checked .ant-checkbox-inner::after {
+    border-color: var(--ikolu-void-primary-text) !important;
+  }
+
+  .ant-checkbox-indeterminate .ant-checkbox-inner::after {
+    background: var(--ikolu-void-primary) !important;
+  }
+
+  /* =====================================================
+     Ant Design Switch
+     ===================================================== */
+
+  .ant-switch {
+    background: var(--ikolu-void-hover) !important;
+  }
+
+  .ant-switch-checked {
+    background: var(--ikolu-void-primary) !important;
+  }
+
+  .ant-switch-handle::before {
+    background: var(--ikolu-void-primary-text) !important;
+  }
+
+  /* =====================================================
+     Ant Design Slider
+     ===================================================== */
+
+  .ant-slider-rail {
+    background: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .ant-slider-track {
+    background: var(--ikolu-void-primary) !important;
+  }
+
+  .ant-slider-handle {
+    background: var(--ikolu-void-primary) !important;
+    border-color: var(--ikolu-void-primary) !important;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2) !important;
+  }
+
+  .ant-slider-handle:focus {
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2) !important;
+  }
+
+  .ant-slider-dot {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: transparent !important;
+  }
+
+  .ant-slider-dot-active {
+    background: var(--ikolu-void-primary) !important;
+  }
+
+  /* =====================================================
+     Ant Design Pagination
+     ===================================================== */
+
+  .ant-pagination-item,
+  .ant-pagination-prev,
+  .ant-pagination-next,
+  .ant-pagination-jump-prev,
+  .ant-pagination-jump-next {
+    background: var(--ikolu-void-surface) !important;
+    border-color: var(--ikolu-void-border) !important;
+  }
+
+  .ant-pagination-item a,
+  .ant-pagination-prev a,
+  .ant-pagination-next a,
+  .ant-pagination-jump-prev button,
+  .ant-pagination-jump-next button,
+  .ant-pagination-prev button,
+  .ant-pagination-next button {
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  .ant-pagination-item:hover,
+  .ant-pagination-prev:hover,
+  .ant-pagination-next:hover {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+  }
+
+  .ant-pagination-item:hover a,
+  .ant-pagination-prev:hover button,
+  .ant-pagination-next:hover button {
+    color: var(--ikolu-void-text) !important;
+  }
+
+  .ant-pagination-item-active {
+    background: var(--ikolu-void-primary) !important;
+    border-color: var(--ikolu-void-primary) !important;
+  }
+
+  .ant-pagination-item-active a {
+    color: var(--ikolu-void-primary-text) !important;
+  }
+
+  /* =====================================================
+     Ant Design Steps
+     ===================================================== */
+
+  .ant-steps-item-process .ant-steps-item-icon {
+    background: var(--ikolu-void-primary) !important;
+    border-color: var(--ikolu-void-primary) !important;
+  }
+
+  .ant-steps-item-process .ant-steps-item-icon > .ant-steps-icon {
+    color: var(--ikolu-void-primary-text) !important;
+  }
+
+  .ant-steps-item-finish .ant-steps-item-icon {
+    background: transparent !important;
+    border-color: var(--ikolu-void-primary) !important;
+  }
+
+  .ant-steps-item-finish .ant-steps-item-icon > .ant-steps-icon {
+    color: var(--ikolu-void-text) !important;
+  }
+
+  .ant-steps-item-wait .ant-steps-item-icon {
+    background: var(--ikolu-void-header) !important;
+    border-color: var(--ikolu-void-border-strong) !important;
+  }
+
+  .ant-steps-item-wait .ant-steps-item-icon > .ant-steps-icon {
+    color: rgba(255, 255, 255, 0.5) !important;
+  }
+
+  .ant-steps-item-finish > .ant-steps-item-container > .ant-steps-item-tail::after {
+    background: var(--ikolu-void-primary) !important;
+  }
+
+  /* =====================================================
+     Ant Design Card & Collapse
+     ===================================================== */
+
+  .ant-card {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid var(--ikolu-void-border) !important;
+  }
+
+  .ant-card-head {
+    color: var(--ikolu-void-text-heading) !important;
+    border-bottom: 1px solid var(--ikolu-void-border) !important;
+  }
+
+  .ant-collapse {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid var(--ikolu-void-border) !important;
+  }
+
+  .ant-collapse > .ant-collapse-item {
+    border-bottom: 1px solid var(--ikolu-void-border) !important;
+  }
+
+  .ant-collapse > .ant-collapse-item > .ant-collapse-header {
+    color: var(--ikolu-void-text-heading) !important;
+  }
+
+  .ant-collapse-content {
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+    border-top: 1px solid var(--ikolu-void-border) !important;
+  }
+
+  /* =====================================================
+     Ant Design Descriptions, List, Statistic, Empty, Result
+     ===================================================== */
+
+  .ant-descriptions-title {
+    color: var(--ikolu-void-text-heading) !important;
+  }
+
+  .ant-descriptions-item-label {
+    color: rgba(255, 255, 255, 0.6) !important;
+  }
+
+  .ant-descriptions-item-content {
+    color: var(--ikolu-void-text) !important;
+  }
+
+  .ant-descriptions-bordered .ant-descriptions-item-label,
+  .ant-descriptions-bordered .ant-descriptions-item-content {
+    border: 1px solid var(--ikolu-void-border) !important;
+  }
+
+  .ant-list {
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+
+  .ant-list-bordered {
+    border: 1px solid var(--ikolu-void-border) !important;
+  }
+
+  .ant-list-item {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .ant-statistic-title {
+    color: rgba(255, 255, 255, 0.6) !important;
+  }
+
+  .ant-statistic-content {
+    color: var(--ikolu-void-text-heading) !important;
+  }
+
+  .ant-empty-description {
+    color: rgba(255, 255, 255, 0.6) !important;
+  }
+
+  .ant-result-title {
+    color: var(--ikolu-void-text-heading) !important;
+  }
+
+  .ant-result-subtitle {
+    color: rgba(255, 255, 255, 0.6) !important;
+  }
+
+  /* =====================================================
+     Ocean utility overrides (neutralise hardcoded blues)
+     ===================================================== */
+
+  .ocean-card {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid var(--ikolu-void-border) !important;
+    box-shadow: none !important;
+  }
+
+  .ocean-card::before {
+    display: none !important;
+  }
+
+  .ocean-card:hover {
+    border-color: var(--ikolu-void-border-strong) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25) !important;
+  }
+
+  .ocean-table .ant-table-thead > tr > th {
+    background: var(--ikolu-void-header) !important;
+    color: var(--ikolu-void-text) !important;
+    border-bottom: 1px solid var(--ikolu-void-border) !important;
+  }
+
+  .ocean-table .ant-table-tbody > tr:hover {
+    background: rgba(255, 255, 255, 0.04) !important;
+  }
+
+  .ocean-table .ant-table-tbody > tr > td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .ocean-table .ant-table {
+    background: rgba(255, 255, 255, 0.02) !important;
+  }
+
+  .water-button {
+    background: var(--ikolu-void-primary) !important;
+    color: var(--ikolu-void-primary-text) !important;
+  }
+
+  .water-button:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35) !important;
+  }
+
+  .water-button::after {
+    background: radial-gradient(circle, rgba(3, 12, 24, 0.15) 0%, transparent 70%) !important;
+  }
+
+  .glow-cyan,
+  .glow-cyan-strong,
+  .text-glow {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  .ocean-text-cyan,
+  .ocean-text-cyan-light,
+  .ocean-text-blue,
+  .ocean-icon-cyan,
+  .ocean-info-icon,
+  .ocean-status-icon-form-icon,
+  .ocean-text-blue {
+    color: var(--ikolu-void-text-heading) !important;
+  }
+
+  .ocean-tag-info,
+  .chat-tag-suggestion {
+    background: var(--ikolu-void-header) !important;
+    border: 1px solid rgba(255, 255, 255, 0.10) !important;
+    color: var(--ikolu-void-text) !important;
+  }
+
+  .ocean-info-card,
+  .ocean-info-card-sm,
+  .ocean-glass,
+  .ocean-panel,
+  .ocean-panel-lg,
+  .ocean-panel-sm,
+  .ocean-data-card,
+  .ocean-data-card-sm,
+  .ocean-stat-pill,
+  .ocean-metric-card,
+  .ocean-skeleton-box,
+  .ocean-modal-content,
+  .ocean-drawer-content,
+  .ocean-console {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: var(--ikolu-void-border) !important;
+  }
+
+  .ocean-metric-header,
+  .ocean-section-header,
+  .chat-header,
+  .chat-objective,
+  .chat-suggestions,
+  .chat-input-area {
+    background: var(--ikolu-void-surface) !important;
+    border-color: var(--ikolu-void-border) !important;
+  }
+
+  .ocean-table-header-cell {
+    background: var(--ikolu-void-surface) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  .ocean-status-icon-form,
+  .ocean-status-icon-telemetry {
+    background: var(--ikolu-void-header) !important;
+  }
+
+  .ocean-status-dot-active,
+  .ocean-metric-dot-blue {
+    background: var(--ikolu-void-primary) !important;
+  }
+
+  .chat-fab,
+  .chat-avatar-bot,
+  .chat-avatar-header,
+  .chat-bubble-user,
+  .chat-btn-send {
+    background: var(--ikolu-void-primary) !important;
+    color: var(--ikolu-void-primary-text) !important;
+    box-shadow: none !important;
+  }
+
+  .chat-card {
+    background: var(--ikolu-void-bg) !important;
+    border: 1px solid var(--ikolu-void-border) !important;
+  }
+
+  .chat-input {
+    border: 1.5px solid var(--ikolu-void-border) !important;
+    background: var(--ikolu-void-surface) !important;
+  }
+}

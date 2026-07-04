@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
-import { Tour, theme } from "antd";
+import { Tour } from "antd";
+import { useIkoluToken } from "../../hooks/useIkoluToken";
 import { useTours } from "../../contexts/TourContext";
-
-const { useToken } = theme;
 
 /**
  * Resuelve los targets de los steps de forma segura.
@@ -53,7 +52,7 @@ const ModuleTour = ({
   ready = true,
   children,
 }) => {
-  const { token } = useToken();
+  const token = useIkoluToken();
   const { isTourCompleted, completeTour, skipTour, activeTour } = useTours();
   const [open, setOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -71,11 +70,11 @@ const ModuleTour = ({
 
   const indicatorsRender = useCallback(
     (current, total) => (
-      <span style={{ color: token.colorPrimary, fontSize: 12 }}>
+      <span style={{ color: token.voidTextHeading, fontSize: 12 }}>
         {isTransitioning ? "..." : `${current + 1} / ${total}`}
       </span>
     ),
-    [token.colorPrimary, isTransitioning]
+    [token.voidTextHeading, isTransitioning]
   );
 
   useEffect(() => {

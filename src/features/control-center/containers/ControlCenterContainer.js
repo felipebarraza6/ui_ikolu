@@ -1,7 +1,9 @@
 import React, { useMemo, useCallback, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Flex, Typography, theme, Button } from "antd";
+import { Flex, Typography } from "antd";
 import { ExclamationCircleOutlined, ReloadOutlined } from "@ant-design/icons";
+import { SmartButton } from "../../../shared/ui";
+import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import ControlCenterLayout from "../layout/ControlCenterLayout";
 import TelemetryTab from "../tabs/telemetry";
 import ComplianceTab from "../tabs/compliance";
@@ -10,7 +12,6 @@ import SkeletonTelemetry from "../tabs/telemetry/SkeletonTelemetry";
 import { useControlCenterStore } from "../stores/controlCenterStore";
 
 const { Text, Title } = Typography;
-const { useToken } = theme;
 
 const ControlCenterContainer = ({
   onViewMeasurements,
@@ -58,7 +59,7 @@ const ControlCenterContainer = ({
   onRefresh,
 }) => {
   const navigate = useNavigate();
-  const { token } = useToken();
+  const token = useIkoluToken();
   const [changingDate, setChangingDate] = useState(false);
 
   const selectedDate = useControlCenterStore((s) => s.selectedDate);
@@ -220,15 +221,15 @@ const ControlCenterContainer = ({
     return (
       <Flex align="center" justify="center" style={{ minHeight: "50vh" }} vertical gap={16}>
         <ExclamationCircleOutlined style={{ fontSize: 48, color: token.colorError }} />
-        <Title level={4} style={{ color: token.colorTextSecondary }}>No se pudieron cargar los datos</Title>
-        <Text style={{ color: token.colorTextDisabled }}>{error.message}</Text>
-        <Button
-          type="primary"
+        <Title level={4} style={{ color: token.voidTextHeading }}>No se pudieron cargar los datos</Title>
+        <Text style={{ color: token.voidTextMuted }}>{error.message}</Text>
+        <SmartButton
+          variant="void"
           onClick={() => onRefresh && onRefresh()}
           icon={<ReloadOutlined />}
         >
           Reintentar
-        </Button>
+        </SmartButton>
       </Flex>
     );
   }
