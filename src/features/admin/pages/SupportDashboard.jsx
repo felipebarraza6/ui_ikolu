@@ -76,6 +76,8 @@ const SupportDashboard = () => {
     getAttachments,
     createComment,
     uploadAttachment,
+    confirmScheduledDate,
+    cancelScheduledDate,
   } = useTickets({ autoLoad: false });
 
   const {
@@ -477,22 +479,26 @@ const SupportDashboard = () => {
         tickets.length === 0 && !loading ? (
           <Empty description="No hay tickets para los filtros seleccionados" />
         ) : (
-          <KanbanBoard
-            tickets={tickets}
-            onTicketClick={handleTicketClick}
-            onStatusChange={handleStatusChange}
-            loading={loading}
-          />
+          <div style={{ height: "calc(100vh - 180px)", overflow: "hidden" }}>
+            <KanbanBoard
+              tickets={tickets}
+              onTicketClick={handleTicketClick}
+              onStatusChange={handleStatusChange}
+              loading={loading}
+            />
+          </div>
         )
       ) : warningTickets.length === 0 && !loading ? (
         <Empty description="No tienes alertas asignadas" />
       ) : (
-        <KanbanBoard
-          tickets={warningTickets}
-          onTicketClick={handleTicketClick}
-          onStatusChange={handleStatusChange}
-          loading={loading}
-        />
+        <div style={{ height: "calc(100vh - 180px)", overflow: "hidden" }}>
+          <KanbanBoard
+            tickets={warningTickets}
+            onTicketClick={handleTicketClick}
+            onStatusChange={handleStatusChange}
+            loading={loading}
+          />
+        </div>
       )}
 
       <TicketDetailDrawer
@@ -507,6 +513,8 @@ const SupportDashboard = () => {
         onDelete={deleteTicket}
         onCreateComment={createComment}
         onUploadAttachment={uploadAttachment}
+        onConfirmScheduledDate={confirmScheduledDate}
+        onCancelScheduledDate={cancelScheduledDate}
         getTicketById={getTicketById}
         getComments={getComments}
         getAttachments={getAttachments}

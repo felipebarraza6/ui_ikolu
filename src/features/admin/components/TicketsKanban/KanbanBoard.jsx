@@ -1,5 +1,6 @@
 import React, { useMemo, useCallback, useState } from "react";
-import { Row, Col, Spin, Select, Flex } from "antd";
+import { Row, Col, Spin, Select, Flex, Typography } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 import KanbanColumn from "./KanbanColumn";
 import { useResponsive } from "../../../../hooks/useResponsive";
 import {
@@ -7,6 +8,8 @@ import {
   KANBAN_COLUMNS,
   getColumnDropStatus,
 } from "../../constants/tickets";
+
+const { Text } = Typography;
 
 /**
  * Tablero Kanban de tickets con 5 columnas y drag-and-drop nativo.
@@ -70,11 +73,22 @@ const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading }) => {
   }
 
   return (
-    <Spin spinning={loading} tip="Cargando tickets...">
+    <div style={{ height: "100%", position: "relative" }}>
+      {loading && (
+        <div style={{
+          position: "absolute", inset: 0, zIndex: 10,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: "rgba(0,0,0,0.25)", borderRadius: 8,
+        }}>
+          <Spin indicator={<LoadingOutlined spin />} size="large">
+            <Text style={{ color: "#fff" }}>Cargando tickets...</Text>
+          </Spin>
+        </div>
+      )}
       <Row
         gutter={[16, 16]}
         style={{
-          minHeight: 420,
+          height: "100%",
           flexWrap: "nowrap",
           overflowX: "auto",
           paddingBottom: 8,
@@ -83,8 +97,8 @@ const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading }) => {
         {KANBAN_COLUMNS.map((column) => (
           <Col
             key={column.key}
-            flex="0 0 280px"
-            style={{ maxWidth: 280 }}
+            flex="1 1 0"
+            style={{ minWidth: 260, height: "100%" }}
           >
             <KanbanColumn
               column={column}
@@ -95,7 +109,7 @@ const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading }) => {
           </Col>
         ))}
       </Row>
-    </Spin>
+    </div>
   );
 };
 

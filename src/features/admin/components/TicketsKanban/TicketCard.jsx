@@ -1,9 +1,9 @@
 import React from "react";
-import { Flex, Typography, Avatar, Tooltip, Tag } from "antd";
+import { Flex, Typography, Tag } from "antd";
 import {
-  UserOutlined,
   ClockCircleOutlined,
   CalendarOutlined,
+  CheckCircleOutlined,
   ToolOutlined,
   CodeOutlined,
   SafetyOutlined,
@@ -12,7 +12,7 @@ import {
 } from "@ant-design/icons";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { SmartCard, SmartBadge } from "../../../../shared/ui";
+import { SmartCard } from "../../../../shared/ui";
 import { useIkoluToken } from "../../../../hooks/useIkoluToken";
 import { useResponsive } from "../../../../hooks/useResponsive";
 import {
@@ -25,21 +25,15 @@ import {
 
 const { Text } = Typography;
 
-/**
- * Icono según el tipo de categoría.
- */
 const CategoryIcon = ({ categoryType }) => {
   const upper = String(categoryType || "").toUpperCase();
-  if (upper === "HARDWARE") return <ToolOutlined style={{ fontSize: 10 }} />;
-  if (upper === "SOFTWARE") return <CodeOutlined style={{ fontSize: 10 }} />;
-  if (upper === "COMPLIANCE") return <SafetyOutlined style={{ fontSize: 10 }} />;
-  if (upper === "WORK_ORDER") return <CarryOutOutlined style={{ fontSize: 10 }} />;
+  if (upper === "HARDWARE") return <ToolOutlined style={{ fontSize: 9 }} />;
+  if (upper === "SOFTWARE") return <CodeOutlined style={{ fontSize: 9 }} />;
+  if (upper === "COMPLIANCE") return <SafetyOutlined style={{ fontSize: 9 }} />;
+  if (upper === "WORK_ORDER") return <CarryOutOutlined style={{ fontSize: 9 }} />;
   return null;
 };
 
-/**
- * Badge de categoría con color e icono según el tipo.
- */
 const CategoryBadge = ({ category }) => {
   const token = useIkoluToken();
   const config = getTicketCategoryConfig(category);
@@ -56,14 +50,15 @@ const CategoryBadge = ({ category }) => {
         color: tagColor,
         background: tagBg,
         border: `1px solid ${tagBorder}`,
-        borderRadius: 4,
-        fontSize: 10,
-        padding: "1px 6px",
-        lineHeight: "16px",
+        borderRadius: 3,
+        fontSize: 9,
+        padding: "0 5px",
+        lineHeight: "14px",
         fontWeight: 600,
         display: "inline-flex",
         alignItems: "center",
-        gap: 4,
+        gap: 3,
+        margin: 0,
       }}
     >
       <CategoryIcon categoryType={config.value} />
@@ -72,54 +67,22 @@ const CategoryBadge = ({ category }) => {
   );
 };
 
-/**
- * Indicador sutil de prioridad en formato píldora.
- */
-const PriorityBadge = ({ priority }) => {
-  const token = useIkoluToken();
-  const config = getTicketPriorityConfig(priority);
-  const colors = {
-    CRITICA: "#E76F51",
-    ALTA: "#F4A261",
-    MEDIA: token.voidTextHeading,
-    BAJA: "#6C757D",
-  };
-  const color = colors[String(config.value).toUpperCase()] || colors.MEDIA;
-
-  return (
-    <span
-      style={{
-        flexShrink: 0,
-        fontSize: 11,
-        fontWeight: 600,
-        color,
-        background: `${color}15`,
-        border: `1px solid ${color}40`,
-        borderRadius: 10,
-        padding: "2px 10px",
-        lineHeight: "16px",
-        whiteSpace: "nowrap",
-      }}
-    >
-      {config.label}
-    </span>
-  );
+const PriorityDot = ({ priority }) => {
+  const upper = String(priority || "").toUpperCase();
+  const colors = { CRITICA: "#E76F51", ALTA: "#F4A261", MEDIA: "var(--ikolu-void-text-heading)", BAJA: "#6C757D" };
+  const color = colors[upper] || colors.MEDIA;
+  return <span style={{ width: 7, height: 7, borderRadius: "50%", background: color, flexShrink: 0, display: "inline-block" }} />;
 };
 
-/**
- * Tarjeta draggable de ticket para el tablero Kanban.
- */
 const TicketCard = ({ ticket, onClick }) => {
   const token = useIkoluToken();
   const { isMobile } = useResponsive();
   const otBadgeLabel = getTicketOtBadgeLabel(ticket);
-  const assignedLabel = ticket.assigned_to_name || ticket.assigned_to?.full_name || ticket.assigned_to?.username || ticket.assigned_to?.email || (ticket.assigned_to ? `Usuario ${ticket.assigned_to}` : "Sin asignar");
-
   const createdAt = getTicketDateValue(ticket, "created", "created_at");
   const createdLabel = createdAt ? format(createdAt, "dd MMM", { locale: es }) : "-";
 
-  const responseSla = getSlaStatus(ticket.sla_deadline_response, ticket.sla_responded_at);
-  const resolutionSla = getSlaStatus(ticket.sla_deadline_resolution, ticket.sla_resolved_at);
+  const responseSla = getSlaStatus(ticket.sla_deadline_response, ticket.sla_responded_at, ticket.status);
+  const resolutionSla = getSlaStatus(ticket.sla_deadline_resolution, ticket.sla_resolved_at, ticket.status);
 
   const activeSlaStatuses = [responseSla, resolutionSla].filter(
     (s) => s && !s.done && s.variant !== "default"
@@ -139,16 +102,14 @@ const TicketCard = ({ ticket, onClick }) => {
     : "default";
 
   const slaLabel = (() => {
-    if (responseSla.done && resolutionSla.done) return "SLA cumplido";
-    if (activeSlaStatuses.some((s) => s.overdue)) return "SLA vencido";
+    if (responseSla.done && resolutionSla.done) return "Cumplido";
+    if (activeSlaStatuses.some((s) => s.overdue)) return "Vencido";
     if (activeSlaStatuses.some((s) => s.variant === "warning")) {
       const nearest = activeSlaStatuses.find((s) => s.variant === "warning");
-      return nearest?.hoursRemaining != null && nearest.hoursRemaining <= 1
-        ? "Vence pronto"
-        : "Próximo a vencer";
+      return nearest?.hoursRemaining != null && nearest.hoursRemaining <= 1 ? "Vence pronto" : "Próx. vencer";
     }
-    if (activeSlaStatuses.length) return "SLA a tiempo";
-    return "No aplica";
+    if (activeSlaStatuses.length) return "A tiempo";
+    return "N/A";
   })();
 
   const slaAlert = slaVariant === "error" || slaVariant === "warning";
@@ -174,101 +135,62 @@ const TicketCard = ({ ticket, onClick }) => {
       <SmartCard variant="void"
         hover
         style={{
-          marginBottom: isMobile ? 8 : 12,
-          borderLeft: `3px solid ${slaVariant === "error" ? token.colorError : priorityColor}`,
-          borderColor: slaVariant === "error" ? token.colorError : undefined,
-          boxShadow: slaVariant === "error" ? `0 0 0 1px ${token.colorErrorBorder}, 0 4px 12px ${token.colorError}18` : undefined,
+          marginBottom: 6,
+          borderLeft: `2px solid ${slaVariant === "error" ? token.colorError : priorityColor}`,
+          boxShadow: slaVariant === "error" ? `0 0 0 1px ${token.colorErrorBorder}, 0 2px 8px ${token.colorError}14` : undefined,
           overflow: "hidden",
         }}
-        bodyStyle={{ padding: isMobile ? 10 : 12 }}
+        bodyStyle={{ padding: "6px 8px" }}
       >
-        <Flex vertical gap={isMobile ? 6 : 8}>
-          <Flex justify="space-between" align="flex-start" gap={8}>
-            <Text
-              strong
-              style={{
-                fontSize: isMobile ? 13 : 14,
-                lineHeight: 1.3,
-                color: token.voidTextHeading,
-              }}
-            >
-              {ticket.title || `Ticket #${ticket.id}`}
-            </Text>
-            <PriorityBadge priority={ticket.priority} />
-          </Flex>
-
-          <Flex wrap gap={8}>
-            {ticket.category && (
-              <CategoryBadge category={ticket.category} />
-            )}
-            {otBadgeLabel && (
-              <SmartBadge size="sm" variant="accent" showIcon={false}>
-                <CalendarOutlined style={{ fontSize: 10 }} />
-                {otBadgeLabel}
-              </SmartBadge>
-            )}
-            {slaVariant === "error" && (
-              <Tag
+        <Flex vertical gap={3}>
+          <Flex justify="space-between" align="center" gap={6}>
+            <Flex align="center" gap={6} style={{ minWidth: 0, flex: 1 }}>
+              <PriorityDot priority={ticket.priority} />
+              <Text
+                strong
                 style={{
-                  color: token.colorError,
-                  background: token.colorErrorBg,
-                  border: `1px solid ${token.colorErrorBorder}`,
-                  borderRadius: 4,
-                  fontSize: 10,
-                  padding: "1px 6px",
-                  lineHeight: "16px",
-                  fontWeight: 600,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 4,
+                  fontSize: 12,
+                  lineHeight: 1.25,
+                  color: token.voidTextHeading,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                 }}
               >
-                <ExclamationCircleOutlined style={{ fontSize: 10 }} />
-                SLA vencido
-              </Tag>
+                {ticket.title || `Ticket #${ticket.id}`}
+              </Text>
+            </Flex>
+            {slaAlert && (
+              <ExclamationCircleOutlined style={{ fontSize: 12, color: token.colorError, flexShrink: 0 }} />
+            )}
+          </Flex>
+
+          <Flex wrap gap={4} align="center">
+            {ticket.category && <CategoryBadge category={ticket.category} />}
+            {otBadgeLabel && (
+              <Text type="secondary" style={{ fontSize: 10 }}>
+                <CalendarOutlined style={{ fontSize: 9, marginRight: 2 }} />
+                {otBadgeLabel}
+                {ticket.scheduled_date_confirmed && (
+                  <CheckCircleOutlined style={{ fontSize: 9, marginLeft: 3, color: token.colorSuccess }} />
+                )}
+              </Text>
             )}
           </Flex>
 
           <Flex justify="space-between" align="center">
-            <Tooltip title={assignedLabel}>
-              <Flex align="center" gap={6}>
-                <Avatar
-                  size="small"
-                  icon={<UserOutlined />}
-                  style={{ background: token.voidSurface }}
-                />
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  {assignedLabel}
-                </Text>
-              </Flex>
-            </Tooltip>
             <Flex align="center" gap={4}>
-              <ClockCircleOutlined
-                style={{
-                  fontSize: 12,
-                  color: slaAlert ? token.colorError : token.voidTextMuted,
-                }}
-              />
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: slaAlert ? token.colorError : token.voidTextMuted,
-                }}
-              >
-                {createdLabel}
-              </Text>
+              <ClockCircleOutlined style={{ fontSize: 10, color: token.voidTextMuted }} />
+              <Text style={{ fontSize: 10, color: token.voidTextMuted }}>{createdLabel}</Text>
             </Flex>
-          </Flex>
-
-          {hasSla && (
-            <SmartBadge
-              size="sm"
-              variant={slaVariant}
-              style={{ alignSelf: "flex-start" }}
-            >
+            <Text style={{
+              fontSize: 10,
+              fontWeight: 600,
+              color: slaVariant === "error" ? token.colorError : slaVariant === "warning" ? "#F4A261" : token.voidTextMuted,
+            }}>
               {slaLabel}
-            </SmartBadge>
-          )}
+            </Text>
+          </Flex>
         </Flex>
       </SmartCard>
     </div>

@@ -15,6 +15,7 @@ const normalizeDashboard = (res) => {
     kpis,
     charts,
     tables,
+    meta: res?.meta || res?.metadata || null,
     // Compatibilidad con la estructura anterior de stats
     stats: {
       total: kpis.tickets ?? 0,
@@ -116,6 +117,7 @@ export const useTicketIndicators = (options = {}) => {
 
   return {
     dashboard,
+    meta: dashboard?.meta || null,
     stats: dashboard?.stats || null,
     realTickets: [],
     internalTickets: [],

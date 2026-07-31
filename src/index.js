@@ -7,10 +7,14 @@ import "./styles/animations.css";
 import { ConfigProvider, App } from "antd";
 import AppStore from "./App";
 import es_ES from "antd/locale/es_ES";
+import dayjs from "dayjs";
+import "dayjs/locale/es";
 import { BrowserRouter } from "react-router-dom";
 import { createIkoluTheme } from "./theme";
 import IkoluEmotionProvider from "./theme/EmotionThemeProvider";
 import { ThemeProvider, useAppTheme } from "./contexts/ThemeContext";
+
+dayjs.locale("es");
 
 const ThemedApp = () => {
   const { algorithm, isDark } = useAppTheme();

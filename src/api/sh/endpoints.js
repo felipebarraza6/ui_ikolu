@@ -987,6 +987,16 @@ const changeTicketStatus = async (id, status) => {
   return rq.data;
 };
 
+const confirmTicketScheduledDate = async (id) => {
+  const rq = await POST(`ik/tickets/${id}/confirm-scheduled-date/`);
+  return rq.data;
+};
+
+const cancelTicketScheduledDate = async (id, reason) => {
+  const rq = await POST(`ik/tickets/${id}/cancel-scheduled-date/`, { reason: reason || "" });
+  return rq.data;
+};
+
 const getTicketComments = async (id, page = 1) => {
   const rq = await GET(`ik/tickets/${id}/comments/?page=${page}`);
   return rq.data;
@@ -1066,6 +1076,13 @@ const getTicketStats = async (params = {}) => {
 const getTicketDashboard = async (params = {}) => {
   const query = new URLSearchParams(params).toString();
   const url = query ? `ik/tickets/dashboard/?${query}` : `ik/tickets/dashboard/`;
+  const rq = await GET(url);
+  return rq.data;
+};
+
+const getTicketRanking = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const url = query ? `ik/tickets/ranking/?${query}` : `ik/tickets/ranking/`;
   const rq = await GET(url);
   return rq.data;
 };
@@ -1525,6 +1542,8 @@ const sh = {
     delete: deleteTicket,
     assign: assignTicket,
     changeStatus: changeTicketStatus,
+    confirmScheduledDate: confirmTicketScheduledDate,
+    cancelScheduledDate: cancelTicketScheduledDate,
     getComments: getTicketComments,
     createComment: createTicketComment,
     getAttachments: getTicketAttachments,
@@ -1532,6 +1551,7 @@ const sh = {
     stats: getTicketStats,
     myDesk: getMyDeskTickets,
     dashboard: getTicketDashboard,
+    ranking: getTicketRanking,
     categories: {
       get: getTicketCategories,
       getById: getTicketCategory,

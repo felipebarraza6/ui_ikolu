@@ -56,17 +56,17 @@ const KanbanColumn = ({ column, tickets, onTicketClick, onDropTicket }) => {
           ? `2px solid ${token.colorAccent}`
           : `1px dashed ${token.glassBorder}`,
         borderRadius: token.voidRadius,
-        padding: isMobile ? 10 : 12,
-        minHeight: isMobile ? 280 : 420,
+        padding: isMobile ? 8 : 10,
         height: "100%",
         display: "flex",
         flexDirection: "column",
         transition: "background 150ms ease, border 150ms ease",
         backdropFilter: "blur(10px)",
+        overflow: "hidden",
       }}
     >
-      <Flex justify="space-between" align="center" style={{ marginBottom: 12 }}>
-        <Text strong style={{ color: token.voidTextHeading }}>
+      <Flex justify="space-between" align="center" style={{ marginBottom: 8, flexShrink: 0 }}>
+        <Text strong style={{ color: token.voidTextHeading, fontSize: 13 }}>
           {column.label}
         </Text>
         <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
@@ -74,7 +74,16 @@ const KanbanColumn = ({ column, tickets, onTicketClick, onDropTicket }) => {
         </Text>
       </Flex>
 
-      <div style={{ flex: 1, overflowY: "auto" }}>
+      <div
+        className="ocean-scrollbar"
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          scrollbarWidth: "thin",
+          scrollbarColor: `rgba(255,255,255,0.1) transparent`,
+          paddingRight: 2,
+        }}
+      >
         {tickets.length === 0 ? (
           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Sin tickets" />
         ) : (

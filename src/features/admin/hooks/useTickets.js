@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { message } from "antd";
 import orchestrator from "../../../api/orchestrator";
 import { useAdminAuth } from "./useAdminAuth";
@@ -57,11 +57,17 @@ export const useTickets = (options = {}) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const lastTicketsParams = useRef({});
+  const lastMyDeskParams = useRef({});
+  const ticketsLoaded = useRef(false);
+  const myDeskLoaded = useRef(false);
+
   const fetchTickets = useCallback(async (rawParams = {}) => {
     setLoading(true);
     setError(null);
     try {
       const params = { ...rawParams };
+      lastTicketsParams.current = params;
 
       // Compatibilidad: componentes antiguos usan point_catchment/created_at__*
       if (params.point_catchment != null && params.point_id == null) {
@@ -82,6 +88,7 @@ export const useTickets = (options = {}) => {
       const normalized = normalizeListResponse(res?.tickets ? { results: res.tickets, count: res.count } : res);
       setTickets(normalized.results);
       setTicketCount(normalized.count);
+      ticketsLoaded.current = true;
       return normalized;
     } catch (err) {
       setError(err);
@@ -135,9 +142,11 @@ export const useTickets = (options = {}) => {
     setLoading(true);
     setError(null);
     try {
+      lastMyDeskParams.current = params;
       const res = await orchestrator.tickets.myDesk({ page_size: 100, ...params });
       const normalized = normalizeListResponse(res?.tickets ? { results: res.tickets, count: res.count } : res);
       setMyDeskTickets(normalized.results);
+      myDeskLoaded.current = true;
       return normalized;
     } catch (err) {
       setError(err);
@@ -167,6 +176,12 @@ export const useTickets = (options = {}) => {
     [fetchMyDesk]
   );
 
+  /** Refresca las listas que hayan sido cargadas (tickets y/o Mi Escritorio). */
+  const refreshAfterMutation = useCallback(async () => {
+    if (ticketsLoaded.current) await fetchTickets(lastTicketsParams.current);
+    if (myDeskLoaded.current) await fetchMyDesk(lastMyDeskParams.current);
+  }, [fetchTickets, fetchMyDesk]);
+
   const createTicket = useCallback(
     async (data, categories = []) => {
       try {
@@ -184,18 +199,15 @@ export const useTickets = (options = {}) => {
         if (!payload.origin) payload.origin = "CLIENTE";
 
         const res = await orchestrator.tickets.create(payload);
+        await refreshAfterMutation();
         message.success("Ticket creado correctamente");
-        // Refresco en segundo plano para no bloquear el cierre del drawer.
-        fetchTickets().catch((refreshErr) => {
-          console.error("[useTickets] createTicket refresh error:", refreshErr);
-        });
         return res;
       } catch (err) {
         message.error(err.message || "Error al crear ticket");
         throw err;
       }
     },
-    [fetchTickets]
+    [refreshAfterMutation]
   );
 
   const updateTicket = useCallback(
@@ -203,14 +215,14 @@ export const useTickets = (options = {}) => {
       try {
         const res = await orchestrator.tickets.update(id, data);
         message.success("Ticket actualizado");
-        await fetchTickets();
+        await refreshAfterMutation();
         return res;
       } catch (err) {
         message.error(err.message || "Error al actualizar ticket");
         throw err;
       }
     },
-    [fetchTickets]
+    [refreshAfterMutation]
   );
 
   const deleteTicket = useCallback(
@@ -218,13 +230,13 @@ export const useTickets = (options = {}) => {
       try {
         await orchestrator.tickets.delete(id);
         message.success("Ticket eliminado");
-        await fetchTickets();
+        await refreshAfterMutation();
       } catch (err) {
         message.error(err.message || "Error al eliminar ticket");
         throw err;
       }
     },
-    [fetchTickets]
+    [refreshAfterMutation]
   );
 
   const assignTicket = useCallback(
@@ -232,14 +244,14 @@ export const useTickets = (options = {}) => {
       try {
         const res = await orchestrator.tickets.assign(id, assignedTo);
         message.success("Ticket asignado");
-        await fetchTickets();
+        await refreshAfterMutation();
         return res;
       } catch (err) {
         message.error(err.message || "Error al asignar ticket");
         throw err;
       }
     },
-    [fetchTickets]
+    [refreshAfterMutation]
   );
 
   const changeStatus = useCallback(
@@ -247,14 +259,14 @@ export const useTickets = (options = {}) => {
       try {
         const res = await orchestrator.tickets.changeStatus(id, status);
         message.success("Estado actualizado");
-        await fetchTickets();
+        await refreshAfterMutation();
         return res;
       } catch (err) {
         message.error(err.message || "Error al cambiar estado");
         throw err;
       }
     },
-    [fetchTickets]
+    [refreshAfterMutation]
   );
 
   const getTicketById = useCallback(async (id) => {
@@ -320,6 +332,30 @@ export const useTickets = (options = {}) => {
     }
   }, []);
 
+  const confirmScheduledDate = useCallback(async (id) => {
+    try {
+      const res = await orchestrator.tickets.confirmScheduledDate(id);
+      message.success("Fecha de visita confirmada");
+      await refreshAfterMutation();
+      return res;
+    } catch (err) {
+      message.error(err.message || "Error al confirmar fecha");
+      throw err;
+    }
+  }, [refreshAfterMutation]);
+
+  const cancelScheduledDate = useCallback(async (id, reason) => {
+    try {
+      const res = await orchestrator.tickets.cancelScheduledDate(id, reason);
+      message.success("Fecha de visita cancelada");
+      await refreshAfterMutation();
+      return res;
+    } catch (err) {
+      message.error(err.message || "Error al cancelar fecha");
+      throw err;
+    }
+  }, [refreshAfterMutation]);
+
   return {
     tickets,
     ticketCount,
@@ -344,6 +380,8 @@ export const useTickets = (options = {}) => {
     createComment,
     getAttachments,
     uploadAttachment,
+    confirmScheduledDate,
+    cancelScheduledDate,
   };
 };
 

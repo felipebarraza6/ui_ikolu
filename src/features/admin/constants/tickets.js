@@ -1,4 +1,4 @@
-import { format, parseISO, isPast, isValid, differenceInHours } from "date-fns";
+import { format, parseISO, isValid, differenceInHours, startOfDay, isBefore } from "date-fns";
 import { es } from "date-fns/locale";
 
 /**
@@ -475,7 +475,12 @@ export const formatTicketDateCompact = (value) => formatTicketDateTime(value, "d
  * Estados: cumplido, no definido, vencido, próximo a vencer o a tiempo.
  * Variantes visuales: 'success' | 'warning' | 'error' | 'default'.
  */
-export const getSlaStatus = (deadlineValue, doneAtValue) => {
+const TERMINAL_STATUSES = ["RESUELTO", "CERRADO", "CANCELADO"];
+
+export const getSlaStatus = (deadlineValue, doneAtValue, status) => {
+  if (status && TERMINAL_STATUSES.includes(String(status).toUpperCase())) {
+    return { label: "Cumplido", variant: "success", done: true, overdue: false };
+  }
   if (doneAtValue) {
     return { label: "Cumplido", variant: "success", done: true, overdue: false };
   }
@@ -487,8 +492,11 @@ export const getSlaStatus = (deadlineValue, doneAtValue) => {
     if (!isValid(deadline)) {
       return { label: "No definido", variant: "default", overdue: false, done: false };
     }
-    const overdue = isPast(deadline);
-    const hoursRemaining = differenceInHours(deadline, new Date());
+    const now = new Date();
+    const deadlineDay = startOfDay(deadline);
+    const today = startOfDay(now);
+    const overdue = isBefore(deadlineDay, today);
+    const hoursRemaining = differenceInHours(deadline, now);
     const nearDue = !overdue && hoursRemaining <= 24;
 
     if (overdue) {
@@ -513,4 +521,33 @@ export const getSlaStatus = (deadlineValue, doneAtValue) => {
   } catch {
     return { label: "No definido", variant: "default", overdue: false, done: false };
   }
+};
+
+// ============================================================================
+// FILTROS DE SLA
+// ============================================================================
+
+export const SLA_FILTER_OPTIONS = [
+  { value: "overdue", label: "Vencidos" },
+  { value: "near_due", label: "Próximos a vencer" },
+  { value: "on_time", label: "A tiempo" },
+  { value: "completed", label: "Cumplidos" },
+];
+
+/**
+ * Devuelve el estado global de SLA de un ticket combinando el SLA de respuesta
+ * y el de resolución. Prioriza vencidos > próximos a vencer > a tiempo > cumplidos.
+ */
+export const getTicketOverallSla = (ticket) => {
+  if (!ticket) return "none";
+  const responseSla = getSlaStatus(ticket.sla_deadline_response, ticket.sla_responded_at, ticket.status);
+  const resolutionSla = getSlaStatus(ticket.sla_deadline_resolution, ticket.sla_resolved_at, ticket.status);
+  const active = [responseSla, resolutionSla].filter(
+    (s) => s && !s.done && s.variant !== "default"
+  );
+  if (active.some((s) => s.overdue)) return "overdue";
+  if (active.some((s) => s.variant === "warning")) return "near_due";
+  if (active.length) return "on_time";
+  if (responseSla.done || resolutionSla.done) return "completed";
+  return "none";
 };

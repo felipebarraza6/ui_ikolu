@@ -586,6 +586,8 @@ export const tickets = {
   delete: (id) => sh.tickets.delete(id),
   assign: (id, assignedTo) => sh.tickets.assign(id, assignedTo),
   changeStatus: (id, status) => sh.tickets.changeStatus(id, status),
+  confirmScheduledDate: (id) => sh.tickets.confirmScheduledDate(id),
+  cancelScheduledDate: (id, reason) => sh.tickets.cancelScheduledDate(id, reason),
   getComments: (id, page) => sh.tickets.getComments(id, page),
   createComment: (id, data) => sh.tickets.createComment(id, data),
   getAttachments: (id) => sh.tickets.getAttachments(id),
@@ -593,6 +595,7 @@ export const tickets = {
   stats: (params) => sh.tickets.stats(params),
   myDesk: (params) => sh.tickets.myDesk(params),
   dashboard: (params) => sh.tickets.dashboard(params),
+  ranking: (params) => sh.tickets.ranking(params),
   categories: {
     get: (params) => sh.tickets.categories.get(params),
     getById: (id) => sh.tickets.categories.getById(id),

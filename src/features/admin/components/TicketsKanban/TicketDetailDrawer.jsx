@@ -19,6 +19,7 @@ import {
   Popconfirm,
   Checkbox,
   Timeline,
+  Modal,
   message,
 } from "antd";
 import {
@@ -31,6 +32,9 @@ import {
   ToolOutlined,
   DeleteOutlined,
   FileOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { format, parseISO } from "date-fns";
@@ -44,6 +48,7 @@ import {
   getTicketStatusLabel,
   getTicketPriorityConfig,
   getTicketCategoryLabel,
+  getTicketCategoryTypeLabel,
   getTicketSourceLabel,
   getTicketOriginLabel,
   getTicketDateValue,
@@ -83,9 +88,68 @@ const formatTicketDateOnly = (ticket, ...fields) => {
   return date ? format(date, "dd MMM yyyy", { locale: es }) : "-";
 };
 
-const SlaDetail = ({ deadline, doneAt }) => {
+const ACTIVITY_FIELD_LABELS = {
+  title: "Título",
+  description: "Descripción",
+  status: "Estado",
+  priority: "Prioridad",
+  category: "Categoría",
+  category_type: "Tipo de categoría",
+  origin: "Origen",
+  source: "Fuente",
+  assigned_to: "Asignado a",
+  assigned_to_id: "Asignado a",
+  project_id: "Proyecto",
+  client_id: "Cliente",
+  point_id: "Punto",
+  sla_deadline_resolution: "Límite resolución",
+  sla_deadline_response: "Límite respuesta",
+  sla_responded_at: "Respuesta SLA",
+  sla_resolved_at: "Resolución SLA",
+  due_date: "Fecha límite",
+  scheduled_date: "Visita agendada",
+  created_at: "Fecha de creación",
+  updated_at: "Fecha de actualización",
+};
+
+const ACTIVITY_DATE_FIELDS = [
+  "sla_responded_at",
+  "sla_resolved_at",
+  "sla_deadline_resolution",
+  "sla_deadline_response",
+  "due_date",
+  "scheduled_date",
+  "created_at",
+  "created",
+  "updated_at",
+  "updated",
+];
+
+const cleanEnumText = (value) => {
+  const str = String(value);
+  if (!/^[A-Z0-9_]+$/.test(str)) return str;
+  return str
+    .toLowerCase()
+    .split("_")
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
+const activityFieldLabel = (fieldName) => {
+  const raw = String(fieldName || "");
+  const lower = raw.toLowerCase();
+  return ACTIVITY_FIELD_LABELS[lower] || cleanEnumText(raw) || raw;
+};
+
+const isCreationEvent = (item) => {
+  const field = String(item?.field_name || "").toUpperCase();
+  return field.includes("CREACION") || field.includes("CREACIÓN") || field === "CREATED";
+};
+
+const SlaDetail = ({ deadline, doneAt, ticketStatus }) => {
   const token = useIkoluToken();
-  const status = getSlaStatus(deadline, doneAt);
+  const status = getSlaStatus(deadline, doneAt, ticketStatus);
   if (!deadline && !doneAt) return <Text style={{ color: token.voidTextMuted }}>-</Text>;
   return (
     <Flex align="center" gap={8} wrap>
@@ -115,6 +179,8 @@ const TicketDetailDrawer = ({
   onDelete,
   onCreateComment,
   onUploadAttachment,
+  onConfirmScheduledDate,
+  onCancelScheduledDate,
   getTicketById,
   getComments,
   getAttachments,
@@ -127,6 +193,12 @@ const TicketDetailDrawer = ({
   const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [savingOt, setSavingOt] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [rescheduling, setRescheduling] = useState(false);
+  const [rescheduleDate, setRescheduleDate] = useState(null);
   const [editingOt, setEditingOt] = useState(false);
   const [commentForm] = Form.useForm();
   const [otForm] = Form.useForm();
@@ -244,6 +316,44 @@ const TicketDetailDrawer = ({
     }
   };
 
+  const handleConfirmScheduledDate = async () => {
+    if (!onConfirmScheduledDate) return;
+    setConfirming(true);
+    try {
+      const updated = await onConfirmScheduledDate(ticketId);
+      setTicket(updated);
+    } finally {
+      setConfirming(false);
+    }
+  };
+
+  const handleCancelScheduledDate = async () => {
+    if (!onCancelScheduledDate) return;
+    setCancelling(true);
+    try {
+      const updated = await onCancelScheduledDate(ticketId, cancelReason || undefined);
+      setTicket(updated);
+      setCancelModalOpen(false);
+      setCancelReason("");
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  const handleReschedule = async () => {
+    if (!rescheduleDate) return;
+    setRescheduling(true);
+    try {
+      const payload = { scheduled_date: rescheduleDate.format("YYYY-MM-DD") };
+      await onUpdateTicket(ticketId, payload);
+      setRescheduling(false);
+      setRescheduleDate(null);
+      await load();
+    } catch {
+      setRescheduling(false);
+    }
+  };
+
   const resolveUserName = (userId) => {
     if (userId == null) return "Desconocido";
     const user = users.find((u) => u.id === userId || u.username === userId);
@@ -251,6 +361,26 @@ const TicketDetailDrawer = ({
       return [user.first_name, user.last_name].filter(Boolean).join(" ") || user.full_name || user.username || user.email;
     }
     return `Usuario ${userId}`;
+  };
+
+  const formatActivityValue = (fieldName, value) => {
+    if (value === null || value === undefined || value === "") return "-";
+    const field = String(fieldName || "").toLowerCase();
+    if (field === "assigned_to" || field === "assigned_to_id") {
+      const id = Number(value);
+      return Number.isNaN(id) ? value : resolveUserName(id);
+    }
+    if (field === "status") return getTicketStatusLabel(value);
+    if (field === "priority") return getTicketPriorityConfig(value).label;
+    if (field === "category" || field === "category_id") return getTicketCategoryLabel(value);
+    if (field === "category_type") return getTicketCategoryTypeLabel(value);
+    if (field === "origin") return getTicketOriginLabel(value);
+    if (field === "source") return getTicketSourceLabel(value);
+    if (ACTIVITY_DATE_FIELDS.includes(field)) {
+      const formatted = formatDateTime(value);
+      return formatted === "-" ? value : formatted;
+    }
+    return cleanEnumText(value);
   };
 
   const userOptions = users.map((u) => {
@@ -280,7 +410,7 @@ const TicketDetailDrawer = ({
 
   const renderOtSection = () => {
     if (!isStaff) return null;
-    if (!isTicketInOT(ticket?.status)) return null;
+    if (!isTicketInOT(ticket?.status) && !ticket?.scheduled_date) return null;
 
     return (
       <div
@@ -320,7 +450,7 @@ const TicketDetailDrawer = ({
           <Flex vertical gap={12}>
             <Descriptions bordered size="small" column={1}>
               <Descriptions.Item label="Fecha programada">
-                {formatDate(ticket.scheduled_date)}
+                {ticket.scheduled_date ? formatDate(ticket.scheduled_date) : "Sin fecha"}
               </Descriptions.Item>
               <Descriptions.Item label="Reporte de visita">
                 <Text style={{ whiteSpace: "pre-wrap" }}>
@@ -328,6 +458,97 @@ const TicketDetailDrawer = ({
                 </Text>
               </Descriptions.Item>
             </Descriptions>
+
+            {ticket.scheduled_date && (
+              <div style={{
+                padding: 10,
+                background: token.glassBg,
+                borderRadius: token.voidRadius,
+                border: `1px solid ${token.glassBorder}`,
+              }}>
+                {ticket.scheduled_date_cancelled ? (
+                  <Flex vertical gap={8}>
+                    <Flex align="center" gap={8}>
+                      <CloseCircleOutlined style={{ color: token.colorError, fontSize: 14 }} />
+                      <Text style={{ color: token.colorError, fontWeight: 600 }}>
+                        Fecha cancelada
+                      </Text>
+                      {ticket.scheduled_date_cancelled_by_name && (
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                          por {ticket.scheduled_date_cancelled_by_name}
+                          {ticket.scheduled_date_cancelled_at && ` el ${formatDateTime(ticket.scheduled_date_cancelled_at)}`}
+                        </Text>
+                      )}
+                    </Flex>
+                    {ticket.scheduled_date_cancelled_reason && (
+                      <Text type="secondary" style={{ fontSize: 12, fontStyle: "italic" }}>
+                        "{ticket.scheduled_date_cancelled_reason}"
+                      </Text>
+                    )}
+                    <Flex gap={8}>
+                      <DatePicker
+                        value={rescheduleDate}
+                        onChange={setRescheduleDate}
+                        format="YYYY-MM-DD"
+                        placeholder="Nueva fecha"
+                        style={{ flex: 1 }}
+                      />
+                      <SmartButton
+                        variant="void"
+                        size="sm"
+                        loading={rescheduling}
+                        disabled={!rescheduleDate}
+                        onClick={handleReschedule}
+                      >
+                        Re-agendar
+                      </SmartButton>
+                    </Flex>
+                  </Flex>
+                ) : ticket.scheduled_date_confirmed ? (
+                  <Flex align="center" justify="space-between" gap={8}>
+                    <Flex align="center" gap={8}>
+                      <CheckCircleOutlined style={{ color: token.colorSuccess, fontSize: 14 }} />
+                      <Text style={{ color: token.colorSuccess, fontWeight: 600 }}>
+                        Confirmada
+                      </Text>
+                      {ticket.scheduled_date_confirmed_by_name && (
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                          por {ticket.scheduled_date_confirmed_by_name}
+                          {ticket.scheduled_date_confirmed_at && ` el ${formatDateTime(ticket.scheduled_date_confirmed_at)}`}
+                        </Text>
+                      )}
+                    </Flex>
+                    {onCancelScheduledDate && (
+                      <SmartButton
+                        variant="voidGhost"
+                        size="sm"
+                        danger
+                        onClick={() => setCancelModalOpen(true)}
+                      >
+                        Cancelar
+                      </SmartButton>
+                    )}
+                  </Flex>
+                ) : (
+                  <Flex align="center" justify="space-between">
+                    <Text style={{ color: token.voidTextMuted, fontSize: 13 }}>
+                      Sin confirmar
+                    </Text>
+                    {onConfirmScheduledDate && (
+                      <SmartButton
+                        variant="void"
+                        size="sm"
+                        loading={confirming}
+                        onClick={handleConfirmScheduledDate}
+                      >
+                        Confirmar fecha
+                      </SmartButton>
+                    )}
+                  </Flex>
+                )}
+              </div>
+            )}
+
             <Flex justify="flex-end">
               <SmartButton variant="void" size="sm" onClick={handleStartEditOt}>
                 Editar OT
@@ -398,10 +619,10 @@ const TicketDetailDrawer = ({
                 {formatTicketDateTime(ticket, "modified", "updated_at")}
               </Descriptions.Item>
               <Descriptions.Item label="SLA Respuesta">
-                <SlaDetail deadline={ticket.sla_deadline_response} doneAt={ticket.sla_responded_at} />
+                <SlaDetail deadline={ticket.sla_deadline_response} doneAt={ticket.sla_responded_at} ticketStatus={ticket.status} />
               </Descriptions.Item>
               <Descriptions.Item label="SLA Resolución">
-                <SlaDetail deadline={ticket.sla_deadline_resolution} doneAt={ticket.sla_resolved_at} />
+                <SlaDetail deadline={ticket.sla_deadline_resolution} doneAt={ticket.sla_resolved_at} ticketStatus={ticket.status} />
               </Descriptions.Item>
               {ticket.scheduled_date && (
                 <Descriptions.Item label="Fecha programada">
@@ -666,13 +887,13 @@ const TicketDetailDrawer = ({
                 {item.user_name || item.user || "Sistema"}
               </Text>
               <div>
-                {item.field_name === "CREACIÓN" ? (
+                {isCreationEvent(item) ? (
                   <Text style={{ color: token.voidText }}>{item.new_value || "Ticket creado"}</Text>
                 ) : (
                   <Text style={{ color: token.voidText }}>
-                    Cambió <Text strong style={{ color: token.voidTextHeading }}>{item.field_name}</Text>:{" "}
-                    <Text style={{ color: token.voidTextMuted }}>{item.old_value || "-"}</Text>{" "}
-                    → <Text style={{ color: token.voidText }}>{item.new_value || "-"}</Text>
+                    Cambió <Text strong style={{ color: token.voidTextHeading }}>{activityFieldLabel(item.field_name)}</Text>:{" "}
+                    <Text style={{ color: token.voidTextMuted }}>{formatActivityValue(item.field_name, item.old_value)}</Text>{" "}
+                    → <Text style={{ color: token.voidText }}>{formatActivityValue(item.field_name, item.new_value)}</Text>
                   </Text>
                 )}
               </div>
@@ -688,6 +909,7 @@ const TicketDetailDrawer = ({
   const items = [infoTab, commentsTab, attachmentsTab, activityTab].filter(Boolean);
 
   return (
+    <>
     <Drawer
       title={<span style={{ color: token.voidTextHeading }}>Detalle del Ticket</span>}
       open={open}
@@ -716,6 +938,44 @@ const TicketDetailDrawer = ({
         )}
       </Spin>
     </Drawer>
+
+    <Modal
+      title="Cancelar fecha de visita"
+      open={cancelModalOpen}
+      onOk={handleCancelScheduledDate}
+      onCancel={() => {
+        setCancelModalOpen(false);
+        setCancelReason("");
+      }}
+      confirmLoading={cancelling}
+      okText="Cancelar fecha"
+      okButtonProps={{ danger: true }}
+      cancelText="Volver"
+      styles={{
+        body: { background: token.glassBg },
+        header: { background: token.glassBg, borderBottom: `1px solid ${token.glassBorder}` },
+        footer: { background: token.glassBg, borderTop: `1px solid ${token.glassBorder}` },
+      }}
+    >
+      <Flex vertical gap={8}>
+        <Text style={{ color: token.voidText }}>
+          ¿Estás seguro de cancelar la visita del{" "}
+          <Text strong>{ticket?.scheduled_date ? formatDate(ticket.scheduled_date) : ""}</Text>?
+        </Text>
+        <Input.TextArea
+          placeholder="Motivo de cancelación (opcional)"
+          value={cancelReason}
+          onChange={(e) => setCancelReason(e.target.value)}
+          rows={2}
+          style={{
+            background: token.voidSurface,
+            borderColor: token.voidBorder,
+            color: token.voidText,
+          }}
+        />
+      </Flex>
+    </Modal>
+    </>
   );
 };
 
