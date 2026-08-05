@@ -75,7 +75,10 @@ const SupportDashboard = () => {
     getComments,
     getAttachments,
     createComment,
+    deleteComment,
     uploadAttachment,
+    uploadCommentAttachment,
+    tasks,
     confirmScheduledDate,
     cancelScheduledDate,
   } = useTickets({ autoLoad: false });
@@ -92,14 +95,10 @@ const SupportDashboard = () => {
     fetchCategories,
   } = useTicketCatalogs({ autoLoad: false });
 
-  /** Construye query params a partir de los filtros globales del store. */
+  /** Construye query params a partir de los filtros globales del store.
+   *  Esta pantalla siempre trabaja con tickets de cliente (origin=CLIENTE). */
   const buildQueryParams = useCallback(() => {
-    const params = {};
-    if (isSuperUser) {
-      params.origin = filters.origin ?? "CLIENTE";
-    } else if (isStaff) {
-      params.origin = "CLIENTE";
-    }
+    const params = { origin: "CLIENTE" };
     if (filters.priority) params.priority = filters.priority;
     if (filters.assignedTo) params.assigned_to = filters.assignedTo;
     if (filters.source) params.source = filters.source;
@@ -111,7 +110,7 @@ const SupportDashboard = () => {
       params.created_to = filters.dateRange[1].format("YYYY-MM-DD");
     }
     return params;
-  }, [filters, isStaff, isSuperUser]);
+  }, [filters]);
 
   const loading = ticketsLoading || catalogsLoading;
 
@@ -126,13 +125,8 @@ const SupportDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Inicializar filtro de origen con CLIENTE por defecto.
-  useEffect(() => {
-    if (isSuperUser && filters.origin == null) {
-      setFilter("origin", "CLIENTE");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Inicializar con CLIENTE por defecto ya no es necesario: buildQueryParams
+  // fija origin=CLIENTE siempre para esta pantalla.
 
   // Recargar tickets cuando cambian los filtros globales.
   useEffect(() => {
@@ -177,8 +171,8 @@ const SupportDashboard = () => {
   }, []);
 
   const handleStatusChange = useCallback(
-    async (ticketId, status) => {
-      await changeStatus(ticketId, status);
+    async (ticketId, status, workOrderCategory) => {
+      await changeStatus(ticketId, status, workOrderCategory);
     },
     [changeStatus]
   );
@@ -192,10 +186,7 @@ const SupportDashboard = () => {
 
   const handleResetFilters = useCallback(() => {
     resetFilters();
-    if (isSuperUser) {
-      setFilter("origin", "CLIENTE");
-    }
-  }, [resetFilters, setFilter, isSuperUser]);
+  }, [resetFilters]);
 
 
 
@@ -224,23 +215,24 @@ const SupportDashboard = () => {
     if (categories.length === 0) return [];
     const parents = categories.filter((c) => c.parent == null);
     const children = categories.filter((c) => c.parent != null);
+    const parentLabel = (p) => p.name || p.title || `Categoría ${p.id}`;
 
-    if (parents.length === 0) {
-      return categories.map((c) => ({
-        value: c.id,
-        label: c.name || c.title || `Categoría ${c.id}`,
-      }));
-    }
-
-    return parents.map((parent) => ({
-      label: parent.name || parent.title || `Categoría ${parent.id}`,
-      options: children
-        .filter((c) => c.parent === parent.id)
-        .map((c) => ({
-          value: c.id,
-          label: c.name || c.title || `Subcategoría ${c.id}`,
-        })),
+    // Opciones planas y buscables. Las subcategorías se muestran como
+    // "Padre / Subcategoría" para que showSearch las encuentre por nombre.
+    const options = parents.map((parent) => ({
+      value: parent.id,
+      label: parentLabel(parent),
     }));
+
+    const childOptions = children.map((child) => {
+      const parent = parents.find((p) => p.id === child.parent);
+      return {
+        value: child.id,
+        label: parent ? `${parentLabel(parent)} / ${child.name || child.title || `Subcategoría ${child.id}`}` : child.name || child.title || `Subcategoría ${child.id}`,
+      };
+    });
+
+    return [...options, ...childOptions];
   }, [categories]);
 
   const projectOptions = useMemo(() => {
@@ -290,11 +282,22 @@ const SupportDashboard = () => {
           backdropFilter: "blur(10px)",
         }}
       >
-        <Flex wrap gap={12} align="center" vertical={isMobile} style={{ width: isMobile ? "100%" : "auto" }}>
+        <Flex
+          gap={12}
+          align="center"
+          vertical={isMobile}
+          style={{
+            width: "100%",
+            flexWrap: isMobile ? "wrap" : "nowrap",
+            overflowX: isMobile ? "hidden" : "auto",
+            paddingBottom: isMobile ? 0 : 4,
+            scrollbarWidth: "thin",
+          }}
+        >
           <RangePicker
             value={filters.dateRange || null}
             onChange={(dates) => setFilter("dateRange", dates)}
-            style={{ minWidth: 240, width: isMobile ? "100%" : "auto" }}
+            style={{ minWidth: 220, width: isMobile ? "100%" : "auto", flexShrink: 0 }}
             suffixIcon={<CalendarOutlined style={{ color: token.voidTextMuted }} />}
           />
           <Select
@@ -316,7 +319,7 @@ const SupportDashboard = () => {
                 <ThunderboltOutlined style={{ color: token.voidTextMuted }} />
               )
             }
-            style={{ minWidth: 170, width: isMobile ? "100%" : "auto" }}
+            style={{ minWidth: 130, width: isMobile ? "100%" : "auto", flexShrink: 0 }}
             value={filters.priority || undefined}
             onChange={(v) => setFilter("priority", v || null)}
             options={PRIORITY_FILTER_OPTIONS}
@@ -343,23 +346,10 @@ const SupportDashboard = () => {
           {isSuperUser && (
             <>
               <Select
-                placeholder="Origen"
-                allowClear
-                prefix={<UserOutlined style={{ color: token.voidTextMuted }} />}
-                style={{ minWidth: 170, width: isMobile ? "100%" : "auto" }}
-                value={filters.origin || undefined}
-                onChange={(v) => setFilter("origin", v || null)}
-                options={[
-                  { value: "CLIENTE", label: "Cliente" },
-                  // El backend maneja "Operaciones" como origen INTERNO.
-                  { value: "INTERNO", label: "Operaciones" },
-                ]}
-              />
-              <Select
                 placeholder="Categoría"
                 allowClear
                 prefix={<TagsOutlined style={{ color: token.voidTextMuted }} />}
-                style={{ minWidth: 170, width: isMobile ? "100%" : "auto" }}
+                style={{ minWidth: 140, width: isMobile ? "100%" : "auto", flexShrink: 0 }}
                 value={filters.category || undefined}
                 onChange={(v) => setFilter("category", v || null)}
                 options={categoryOptions}
@@ -377,7 +367,7 @@ const SupportDashboard = () => {
                 showSearch
                 optionFilterProp="label"
                 prefix={<ProjectOutlined style={{ color: token.voidTextMuted }} />}
-                style={{ minWidth: 170, width: isMobile ? "100%" : "auto" }}
+                style={{ minWidth: 150, width: isMobile ? "100%" : "auto", flexShrink: 0 }}
                 value={filters.project || undefined}
                 onChange={handleProjectChange}
                 options={projectOptions}
@@ -388,7 +378,7 @@ const SupportDashboard = () => {
                 showSearch
                 optionFilterProp="label"
                 prefix={<EnvironmentOutlined style={{ color: token.voidTextMuted }} />}
-                style={{ minWidth: 170, width: isMobile ? "100%" : "auto" }}
+                style={{ minWidth: 140, width: isMobile ? "100%" : "auto", flexShrink: 0 }}
                 value={filters.point || undefined}
                 onChange={(v) => setFilter("point", v || null)}
                 options={pointOptions}
@@ -400,7 +390,7 @@ const SupportDashboard = () => {
             placeholder="Canal"
             allowClear
             prefix={<MessageOutlined style={{ color: token.voidTextMuted }} />}
-            style={{ minWidth: 170, width: isMobile ? "100%" : "auto" }}
+            style={{ minWidth: 130, width: isMobile ? "100%" : "auto", flexShrink: 0 }}
             value={filters.source || undefined}
             onChange={(v) => setFilter("source", v || null)}
             options={SOURCE_FILTER_OPTIONS}
@@ -409,7 +399,7 @@ const SupportDashboard = () => {
             placeholder="Asignado a"
             allowClear
             prefix={<UserOutlined style={{ color: token.voidTextMuted }} />}
-            style={{ minWidth: 170, width: isMobile ? "100%" : "auto" }}
+            style={{ minWidth: 140, width: isMobile ? "100%" : "auto", flexShrink: 0 }}
             value={filters.assignedTo || undefined}
             onChange={(v) => setFilter("assignedTo", v || null)}
             options={userOptions}
@@ -421,7 +411,7 @@ const SupportDashboard = () => {
             gap={8}
             align="center"
             justify={isMobile ? "flex-end" : "center"}
-            style={{ marginLeft: isMobile ? 0 : "auto" }}
+            style={{ marginLeft: isMobile ? 0 : "auto", flexShrink: 0 }}
           >
             <Button
               icon={<ReloadOutlined />}
@@ -451,10 +441,10 @@ const SupportDashboard = () => {
               title="Limpiar filtros"
             />
             {isSuperUser && (
-              <div style={{ display: "inline-flex" }}>
+              <div style={{ display: "inline-flex", marginRight: 6, marginTop: 3 }}>
                 <Badge
                   count={warningTickets.length}
-                  offset={[8, -8]}
+                  overflowCount={99}
                   showZero={false}
                 >
                   <Button
@@ -485,6 +475,7 @@ const SupportDashboard = () => {
               onTicketClick={handleTicketClick}
               onStatusChange={handleStatusChange}
               loading={loading}
+              workOrderCategories={categories}
             />
           </div>
         )
@@ -497,6 +488,7 @@ const SupportDashboard = () => {
             onTicketClick={handleTicketClick}
             onStatusChange={handleStatusChange}
             loading={loading}
+            workOrderCategories={categories}
           />
         </div>
       )}
@@ -512,12 +504,19 @@ const SupportDashboard = () => {
         onUpdateTicket={updateTicket}
         onDelete={deleteTicket}
         onCreateComment={createComment}
+        onDeleteComment={deleteComment}
         onUploadAttachment={uploadAttachment}
+        onUploadCommentAttachment={uploadCommentAttachment}
         onConfirmScheduledDate={confirmScheduledDate}
         onCancelScheduledDate={cancelScheduledDate}
         getTicketById={getTicketById}
         getComments={getComments}
         getAttachments={getAttachments}
+        getTasks={tasks.get}
+        onCreateTask={tasks.create}
+        onUpdateTask={tasks.update}
+        onDeleteTask={tasks.delete}
+        onUploadTaskAttachment={tasks.uploadAttachment}
       />
 
       <Drawer

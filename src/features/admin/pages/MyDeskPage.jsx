@@ -4,6 +4,7 @@ import {
   Typography,
   Button,
   Select,
+  Input,
   DatePicker,
   Empty,
   Calendar,
@@ -17,6 +18,7 @@ import {
 import {
   ReloadOutlined,
   FilterOutlined,
+  SearchOutlined,
   ClockCircleOutlined,
   CheckCircleOutlined,
   FileTextOutlined,
@@ -37,7 +39,6 @@ import KanbanBoard from "../components/TicketsKanban/KanbanBoard";
 import TicketDetailDrawer from "../components/TicketsKanban/TicketDetailDrawer";
 import { SmartKPICard } from "../../../shared/ui";
 import {
-  STATUS_FILTER_OPTIONS,
   PRIORITY_FILTER_OPTIONS,
   SLA_FILTER_OPTIONS,
   getTicketPriorityConfig,
@@ -59,10 +60,9 @@ const MyDeskPage = () => {
   const { isMobile } = useResponsive();
 
   const [filters, setFilters] = useState({
-    status: null,
+    searchId: "",
     priority: null,
     category: null,
-    scheduledDate: null,
     scope: null,
     createdRange: null,
     sla: null,
@@ -83,7 +83,10 @@ const MyDeskPage = () => {
     updateTicket,
     deleteTicket,
     createComment,
+    deleteComment,
     uploadAttachment,
+    uploadCommentAttachment,
+    tasks,
     getTicketById,
     getComments,
     getAttachments,
@@ -102,13 +105,10 @@ const MyDeskPage = () => {
   /** Construye los query params para /api/ik/tickets/my_desk/. */
   const buildQueryParams = useCallback(() => {
     const params = {};
-    if (filters.status) params.status = filters.status;
+    if (filters.searchId) params.id = filters.searchId;
     if (filters.priority) params.priority = filters.priority;
     if (filters.category) params.category = filters.category;
     if (filters.scope) params.scope = filters.scope;
-    if (filters.scheduledDate) {
-      params.scheduled_date = filters.scheduledDate.format("YYYY-MM-DD");
-    }
     if (filters.createdRange) {
       if (filters.createdRange[0]) params.created_from = filters.createdRange[0].format("YYYY-MM-DD");
       if (filters.createdRange[1]) params.created_to = filters.createdRange[1].format("YYYY-MM-DD");
@@ -142,8 +142,8 @@ const MyDeskPage = () => {
   }, []);
 
   const handleStatusChange = useCallback(
-    async (ticketId, status) => {
-      await changeStatus(ticketId, status);
+    async (ticketId, status, workOrderCategory) => {
+      await changeStatus(ticketId, status, workOrderCategory);
       fetchMyDesk(buildQueryParams());
     },
     [changeStatus, fetchMyDesk, buildQueryParams]
@@ -155,10 +155,9 @@ const MyDeskPage = () => {
 
   const handleClearFilters = useCallback(() => {
     setFilters({
-      status: null,
+      searchId: "",
       priority: null,
       category: null,
-      scheduledDate: null,
       scope: null,
       createdRange: null,
       sla: null,
@@ -214,11 +213,20 @@ const MyDeskPage = () => {
     };
   }, [myDeskTickets]);
 
-  /** Aplica filtro de SLA del lado del cliente */
+  /** Aplica filtros del lado del cliente: SLA + búsqueda parcial por ID.
+   *  La búsqueda por ID se filtra localmente porque /my_desk/ no soporta el
+   *  parámetro `id` (solo lo soporta el listado general /tickets/). */
   const displayTickets = useMemo(() => {
-    if (!filters.sla) return myDeskTickets;
-    return myDeskTickets.filter((t) => getTicketOverallSla(t) === filters.sla);
-  }, [myDeskTickets, filters.sla]);
+    let list = myDeskTickets;
+    if (filters.sla) {
+      list = list.filter((t) => getTicketOverallSla(t) === filters.sla);
+    }
+    if (filters.searchId) {
+      const idStr = String(filters.searchId).trim();
+      list = list.filter((t) => String(t.id).includes(idStr));
+    }
+    return list;
+  }, [myDeskTickets, filters.sla, filters.searchId]);
 
   const categoryOptions = useMemo(
     () =>
@@ -420,13 +428,13 @@ const MyDeskPage = () => {
       >
         <Flex wrap gap={12} align="center" vertical={isMobile} style={{ width: isMobile ? "100%" : "auto" }}>
           <FilterOutlined style={{ color: token.voidTextMuted, display: isMobile ? "none" : "inline" }} />
-          <Select
-            placeholder="Estado"
+          <Input
             allowClear
-            style={{ minWidth: 140, width: isMobile ? "100%" : "auto" }}
-            value={filters.status || undefined}
-            onChange={(v) => handleSetFilter("status", v)}
-            options={STATUS_FILTER_OPTIONS}
+            prefix={<SearchOutlined style={{ color: token.voidTextMuted }} />}
+            placeholder="Buscar por ID de ticket..."
+            style={{ minWidth: 200, width: isMobile ? "100%" : "auto" }}
+            value={filters.searchId}
+            onChange={(e) => handleSetFilter("searchId", e.target.value)}
           />
           <Select
             placeholder="Prioridad"
@@ -445,13 +453,6 @@ const MyDeskPage = () => {
             value={filters.category || undefined}
             onChange={(v) => handleSetFilter("category", v)}
             options={categoryOptions}
-          />
-          <DatePicker
-            placeholder="Fecha programada"
-            value={filters.scheduledDate}
-            onChange={(date) => handleSetFilter("scheduledDate", date)}
-            format="YYYY-MM-DD"
-            style={{ minWidth: 160, width: isMobile ? "100%" : "auto" }}
           />
           <DatePicker.RangePicker
             placeholder={["Creado desde", "Creado hasta"]}
@@ -529,6 +530,7 @@ const MyDeskPage = () => {
             onTicketClick={handleTicketClick}
             onStatusChange={handleStatusChange}
             loading={loading}
+            workOrderCategories={categories}
           />
         </div>
       )}
@@ -607,12 +609,19 @@ const MyDeskPage = () => {
         onUpdateTicket={updateTicket}
         onDelete={deleteTicket}
         onCreateComment={createComment}
+        onDeleteComment={deleteComment}
         onUploadAttachment={uploadAttachment}
+        onUploadCommentAttachment={uploadCommentAttachment}
         onConfirmScheduledDate={confirmScheduledDate}
         onCancelScheduledDate={cancelScheduledDate}
         getTicketById={getTicketById}
         getComments={getComments}
         getAttachments={getAttachments}
+        getTasks={tasks.get}
+        onCreateTask={tasks.create}
+        onUpdateTask={tasks.update}
+        onDeleteTask={tasks.delete}
+        onUploadTaskAttachment={tasks.uploadAttachment}
       />
     </div>
   );

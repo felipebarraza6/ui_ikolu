@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
   Drawer,
   Tabs,
@@ -34,7 +34,7 @@ import {
   FileOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
-  EditOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { format, parseISO } from "date-fns";
@@ -43,6 +43,7 @@ import { SmartBadge, SmartButton } from "../../../../shared/ui";
 import { useIkoluToken } from "../../../../hooks/useIkoluToken";
 import { useResponsive } from "../../../../hooks/useResponsive";
 import { useAdminAuth } from "../../hooks/useAdminAuth";
+import TasksPanel from "./TasksPanel";
 import {
   STATUS_OPTIONS,
   getTicketStatusLabel,
@@ -55,6 +56,7 @@ import {
   getSlaStatus,
   isTicketInOT,
   validateTicketAttachment,
+  filterWorkOrderCategories,
 } from "../../constants/tickets";
 
 const { Title, Text } = Typography;
@@ -178,12 +180,19 @@ const TicketDetailDrawer = ({
   onUpdateTicket,
   onDelete,
   onCreateComment,
+  onDeleteComment,
   onUploadAttachment,
+  onUploadCommentAttachment,
   onConfirmScheduledDate,
   onCancelScheduledDate,
   getTicketById,
   getComments,
   getAttachments,
+  getTasks,
+  onCreateTask,
+  onUpdateTask,
+  onDeleteTask,
+  onUploadTaskAttachment,
 }) => {
   const token = useIkoluToken();
   const { isMobile } = useResponsive();
@@ -191,6 +200,7 @@ const TicketDetailDrawer = ({
   const [ticket, setTicket] = useState(null);
   const [comments, setComments] = useState([]);
   const [attachments, setAttachments] = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [savingOt, setSavingOt] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -200,26 +210,37 @@ const TicketDetailDrawer = ({
   const [rescheduling, setRescheduling] = useState(false);
   const [rescheduleDate, setRescheduleDate] = useState(null);
   const [editingOt, setEditingOt] = useState(false);
+  const [pendingOtStatus, setPendingOtStatus] = useState(null);
+  const [otCategory, setOtCategory] = useState(null);
+  const [attachmentSearch, setAttachmentSearch] = useState("");
+  const [pendingCommentFiles, setPendingCommentFiles] = useState([]);
   const [commentForm] = Form.useForm();
   const [otForm] = Form.useForm();
   const [activeTab, setActiveTab] = useState("info");
+
+  const workOrderCategories = useMemo(
+    () => filterWorkOrderCategories(categories || []),
+    [categories]
+  );
 
   const load = useCallback(async () => {
     if (!ticketId) return;
     setLoading(true);
     try {
-      const [t, c, a] = await Promise.all([
+      const [t, c, a, tk] = await Promise.all([
         getTicketById(ticketId),
         getComments(ticketId),
         getAttachments(ticketId),
+        getTasks?.(ticketId) || Promise.resolve([]),
       ]);
       setTicket(t);
       setComments(c);
       setAttachments(a);
+      setTasks(tk);
     } finally {
       setLoading(false);
     }
-  }, [ticketId, getTicketById, getComments, getAttachments]);
+  }, [ticketId, getTicketById, getComments, getAttachments, getTasks]);
 
   useEffect(() => {
     if (open) load();
@@ -230,8 +251,13 @@ const TicketDetailDrawer = ({
       setTicket(null);
       setComments([]);
       setAttachments([]);
+      setTasks([]);
       setActiveTab("info");
       setEditingOt(false);
+      setPendingOtStatus(null);
+      setOtCategory(null);
+      setAttachmentSearch("");
+      setPendingCommentFiles([]);
       commentForm.resetFields();
       otForm.resetFields();
     }
@@ -248,7 +274,23 @@ const TicketDetailDrawer = ({
   }, [ticket, editingOt, otForm]);
 
   const handleStatusChange = async (status) => {
+    if (status === "EN_ORDEN_TRABAJO") {
+      setOtCategory(ticket?.work_order_category ?? undefined);
+      setPendingOtStatus(status);
+      return;
+    }
     await onChangeStatus(ticketId, status);
+    load();
+  };
+
+  const handleConfirmOtStatus = async () => {
+    if (!otCategory) {
+      message.error("Selecciona la categoría de la orden de trabajo");
+      return;
+    }
+    await onChangeStatus(ticketId, pendingOtStatus, otCategory);
+    setPendingOtStatus(null);
+    setOtCategory(null);
     load();
   };
 
@@ -262,12 +304,43 @@ const TicketDetailDrawer = ({
       content: values.content,
     };
     if (isStaff) {
-      if (values.is_internal) payload.is_internal = true;
-      if (values.status_change) payload.status_change = values.status_change;
+      payload.is_internal = !values.is_public;
     }
-    await onCreateComment(ticketId, payload);
+    const res = await onCreateComment(ticketId, payload);
+
+    // Subir adjuntos pendientes al comentario recién creado (en paralelo)
+    const commentId = res?.id ?? res?.data?.id ?? res?.comment?.id;
+    if (commentId && pendingCommentFiles.length > 0) {
+      const uploads = pendingCommentFiles.map(async (item) => {
+        if (!onUploadCommentAttachment) return;
+        const file = item?.originFileObj || item;
+        const validation = validateTicketAttachment(file);
+        if (!validation.valid) {
+          message.error(validation.error);
+          return;
+        }
+        try {
+          await onUploadCommentAttachment(ticketId, commentId, file);
+        } catch {
+          // el hook ya notifica el error
+        }
+      });
+      await Promise.all(uploads);
+    }
+
     commentForm.resetFields();
+    setPendingCommentFiles([]);
     load();
+  };
+
+  const handleAddPendingCommentFile = (file) => {
+    const validation = validateTicketAttachment(file);
+    if (!validation.valid) {
+      message.error(validation.error);
+      return Upload.LIST_IGNORE;
+    }
+    setPendingCommentFiles((prev) => [...prev, file]);
+    return false;
   };
 
   const handleUpload = async ({ file }) => {
@@ -277,6 +350,17 @@ const TicketDetailDrawer = ({
       return;
     }
     await onUploadAttachment(ticketId, file);
+    load();
+  };
+
+  const handleCommentUpload = async (commentId, file) => {
+    const validation = validateTicketAttachment(file);
+    if (!validation.valid) {
+      message.error(validation.error);
+      return;
+    }
+    if (!onUploadCommentAttachment) return;
+    await onUploadCommentAttachment(ticketId, commentId, file);
     load();
   };
 
@@ -600,6 +684,11 @@ const TicketDetailDrawer = ({
               <Descriptions.Item label="Categoría">
                 {resolveCategoryName(ticket)}
               </Descriptions.Item>
+              {ticket.work_order_category_detail && (
+                <Descriptions.Item label="Categoría OT">
+                  {ticket.work_order_category_detail.name || `Categoría ${ticket.work_order_category}`}
+                </Descriptions.Item>
+              )}
               <Descriptions.Item label="Origen">
                 {getTicketOriginLabel(ticket.origin) || ticket.origin || "-"}
               </Descriptions.Item>
@@ -679,6 +768,28 @@ const TicketDetailDrawer = ({
                   onChange={handleStatusChange}
                   options={STATUS_OPTIONS}
                 />
+                {pendingOtStatus === "EN_ORDEN_TRABAJO" && (
+                  <Flex align="center" gap={8} wrap style={{ marginTop: 8 }}>
+                    <Select
+                      placeholder="Categoría de la OT"
+                      style={{ width: 220 }}
+                      value={otCategory}
+                      onChange={setOtCategory}
+                      options={workOrderCategories.map((c) => ({
+                        value: c.id,
+                        label: c.name || `Categoría ${c.id}`,
+                      }))}
+                      showSearch
+                      optionFilterProp="label"
+                    />
+                    <SmartButton variant="void" size="sm" onClick={handleConfirmOtStatus}>
+                      Aplicar estado OT
+                    </SmartButton>
+                    <SmartButton variant="voidGhost" size="sm" onClick={() => setPendingOtStatus(null)}>
+                      Cancelar
+                    </SmartButton>
+                  </Flex>
+                )}
               </div>
               <div>
                 <Text strong style={{ display: "block", marginBottom: 6, color: token.voidTextHeading }}>
@@ -738,55 +849,131 @@ const TicketDetailDrawer = ({
           >
             <TextArea rows={3} placeholder="Agregar comentario..." />
           </Form.Item>
+          <Form.Item label="Adjuntos" style={{ marginBottom: 8 }}>
+            <Upload
+              fileList={pendingCommentFiles}
+              beforeUpload={handleAddPendingCommentFile}
+              onRemove={(file) =>
+                setPendingCommentFiles((prev) =>
+                  prev.filter((f) => f.uid !== file.uid)
+                )
+              }
+              maxCount={5}
+            >
+              <Button size="small" type="dashed" icon={<PaperClipOutlined />}>
+                Adjuntar archivo
+              </Button>
+            </Upload>
+          </Form.Item>
           {isStaff && (
-            <>
-              <Form.Item name="is_internal" valuePropName="checked">
-                <Checkbox>Comentario interno</Checkbox>
-              </Form.Item>
-              <Form.Item name="status_change" label="Cambiar estado (opcional)">
-                <Select
-                  allowClear
-                  options={STATUS_OPTIONS}
-                  placeholder="Sin cambio de estado"
-                  style={{ width: "100%" }}
-                />
-              </Form.Item>
-            </>
+            <Form.Item name="is_public" valuePropName="checked">
+              <Checkbox>Comentario para cliente</Checkbox>
+            </Form.Item>
           )}
           <Form.Item>
-            <SmartButton variant="void" htmlType="submit" size="sm">
-              Comentar
-            </SmartButton>
+            <Flex align="center" gap={12}>
+              <SmartButton variant="void" htmlType="submit" size="sm">
+                Comentar
+              </SmartButton>
+              {isStaff && (
+                <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
+                  Por defecto es interno. Marca "Comentario para cliente" para publicarlo.
+                </Text>
+              )}
+            </Flex>
           </Form.Item>
         </Form>
         <List
           dataSource={comments}
           locale={{ emptyText: <Empty description="Sin comentarios" /> }}
           renderItem={(item) => (
-            <List.Item>
+            <List.Item
+              actions={[
+                <Text key="date" style={{ fontSize: 12, color: token.voidTextMuted }}>
+                  {formatDateTime(item.created)}
+                </Text>,
+              ]}
+            >
               <List.Item.Meta
                 avatar={<Avatar icon={<UserOutlined />} />}
                 title={
-                  <Flex justify="space-between" align="center">
-                    <Flex align="center" gap={8}>
-                      <Text strong style={{ color: token.voidTextHeading }}>
-                        {item.author_name || item.author || "Usuario"}
-                      </Text>
-                      {item.is_internal && (
-                        <SmartBadge variant="void" size="sm">
-                          Interno
-                        </SmartBadge>
-                      )}
-                    </Flex>
-                    <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
-                      {formatDateTime(item.created)}
+                  <Flex align="center" gap={8}>
+                    <Text strong style={{ color: token.voidTextHeading }}>
+                      {item.author_name || item.author || "Usuario"}
                     </Text>
+                    {item.is_internal ? (
+                      <SmartBadge variant="void" size="sm">
+                        Interno
+                      </SmartBadge>
+                    ) : (
+                      <SmartBadge variant="success" size="sm">
+                        Cliente
+                      </SmartBadge>
+                    )}
                   </Flex>
                 }
                 description={
-                  <Text style={{ whiteSpace: "pre-wrap", color: token.voidText }}>
-                    {item.content || item.text || item.message}
-                  </Text>
+                  <Flex vertical gap={6}>
+                    <Text style={{ whiteSpace: "pre-wrap", color: token.voidText }}>
+                      {item.content || item.text || item.message}
+                    </Text>
+                    {item.attachments?.length > 0 && (
+                      <Flex wrap gap={6}>
+                        {item.attachments.map((att) => {
+                          const fileUrl = att.file_url || att.file || att.url;
+                          const fileName =
+                            att.original_name || att.name || att.filename || `Adjunto ${att.id}`;
+                          return (
+                            <Tag
+                              key={att.id}
+                              style={{
+                                background: token.voidSurface,
+                                borderColor: token.voidBorder,
+                                color: token.voidTextHeading,
+                                borderRadius: 3,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 4,
+                                margin: 0,
+                              }}
+                            >
+                              <PaperClipOutlined style={{ fontSize: 10 }} />
+                              <a
+                                href={fileUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                download={fileName}
+                                style={{ fontSize: 11 }}
+                              >
+                                {fileName}
+                              </a>
+                            </Tag>
+                          );
+                        })}
+                      </Flex>
+                    )}
+                    {isStaff && onUploadCommentAttachment && (
+                      <Upload
+                        showUploadList={false}
+                        customRequest={({ file }) => handleCommentUpload(item.id, file)}
+                      >
+                        <Button
+                          size="small"
+                          type="text"
+                          icon={<PaperClipOutlined />}
+                          style={{
+                            alignSelf: "flex-start",
+                            color: token.voidTextMuted,
+                            fontSize: 12,
+                            padding: 0,
+                            height: "auto",
+                          }}
+                        >
+                          Adjuntar archivo
+                        </Button>
+                      </Upload>
+                    )}
+                  </Flex>
                 }
               />
             </List.Item>
@@ -795,6 +982,15 @@ const TicketDetailDrawer = ({
       </Flex>
     ),
   };
+
+  const filteredAttachments = useMemo(() => {
+    if (!attachmentSearch?.trim()) return attachments;
+    const term = attachmentSearch.trim().toLowerCase();
+    return attachments.filter((item) => {
+      const name = item.original_name || item.name || item.filename || "";
+      return String(name).toLowerCase().includes(term);
+    });
+  }, [attachments, attachmentSearch]);
 
   const attachmentsTab = {
     key: "attachments",
@@ -825,9 +1021,22 @@ const TicketDetailDrawer = ({
             </Text>
           </Flex>
         </Upload.Dragger>
+        {attachments.length > 0 && (
+          <Input
+            allowClear
+            prefix={<SearchOutlined style={{ color: token.voidTextMuted }} />}
+            placeholder="Filtrar adjuntos por nombre..."
+            value={attachmentSearch}
+            onChange={(e) => setAttachmentSearch(e.target.value)}
+          />
+        )}
         <List
-          dataSource={attachments}
-          locale={{ emptyText: <Empty description="Sin adjuntos" /> }}
+          dataSource={filteredAttachments}
+          locale={{
+            emptyText: (
+              <Empty description={attachments.length ? "Sin coincidencias" : "Sin adjuntos"} />
+            ),
+          }}
           renderItem={(item) => {
             const fileUrl = item.file_url || item.file || item.url;
             const fileName = item.original_name || item.name || item.filename || `Adjunto ${item.id}`;
@@ -906,7 +1115,30 @@ const TicketDetailDrawer = ({
     ),
   };
 
-  const items = [infoTab, commentsTab, attachmentsTab, activityTab].filter(Boolean);
+  const tasksTab = {
+    key: "tasks",
+    label: (
+      <Flex align="center" gap={6}>
+        <ToolOutlined /> Tareas ({tasks.length})
+      </Flex>
+    ),
+    children: (
+      <TasksPanel
+        ticketId={ticketId}
+        tasks={tasks}
+        loading={loading}
+        onCreate={onCreateTask}
+        onUpdate={onUpdateTask}
+        onDelete={onDeleteTask}
+        onUploadAttachment={onUploadTaskAttachment}
+        users={users}
+        isStaff={isStaff}
+        token={token}
+      />
+    ),
+  };
+
+  const items = [infoTab, commentsTab, tasksTab, attachmentsTab, activityTab].filter(Boolean);
 
   return (
     <>

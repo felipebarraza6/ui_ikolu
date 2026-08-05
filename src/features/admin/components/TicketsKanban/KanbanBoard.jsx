@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback, useState } from "react";
-import { Row, Col, Spin, Select, Flex, Typography } from "antd";
+import { Row, Col, Spin, Select, Flex, Typography, Modal, Empty } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import KanbanColumn from "./KanbanColumn";
 import { useResponsive } from "../../../../hooks/useResponsive";
@@ -7,6 +7,7 @@ import {
   getTicketColumn,
   KANBAN_COLUMNS,
   getColumnDropStatus,
+  filterWorkOrderCategories,
 } from "../../constants/tickets";
 
 const { Text } = Typography;
@@ -16,9 +17,16 @@ const { Text } = Typography;
  *
  * En mobile muestra una sola columna seleccionable para evitar scroll horizontal.
  */
-const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading }) => {
+const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading, workOrderCategories = [] }) => {
   const { isMobile } = useResponsive();
   const [activeColumn, setActiveColumn] = useState(KANBAN_COLUMNS[0]?.key);
+  const [otDrop, setOtDrop] = useState(null);
+  const [otDropCategory, setOtDropCategory] = useState(null);
+
+  const woCategories = useMemo(
+    () => filterWorkOrderCategories(workOrderCategories || []),
+    [workOrderCategories]
+  );
 
   const columnsTickets = useMemo(() => {
     const map = Object.fromEntries(KANBAN_COLUMNS.map((column) => [column.key, []]));
@@ -31,6 +39,12 @@ const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading }) => {
 
   const handleDropTicket = useCallback(
     (ticketId, dropStatus) => {
+      if (dropStatus === "EN_ORDEN_TRABAJO") {
+        const ticket = tickets.find((t) => String(t.id) === String(ticketId));
+        setOtDropCategory(ticket?.work_order_category ?? undefined);
+        setOtDrop({ ticketId, status: dropStatus });
+        return;
+      }
       const ticket = tickets.find((t) => String(t.id) === String(ticketId));
       const column = KANBAN_COLUMNS.find((c) => c.dropStatus === dropStatus);
       const status = column
@@ -41,6 +55,16 @@ const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading }) => {
     [tickets, onStatusChange]
   );
 
+  const handleConfirmOtDrop = async () => {
+    if (!otDrop) return;
+    if (!otDropCategory) {
+      return;
+    }
+    await onStatusChange?.(otDrop.ticketId, otDrop.status, otDropCategory);
+    setOtDrop(null);
+    setOtDropCategory(null);
+  };
+
   const columnOptions = useMemo(
     () =>
       KANBAN_COLUMNS.map((column) => ({
@@ -48,6 +72,44 @@ const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading }) => {
         label: `${column.label} (${columnsTickets[column.key]?.length || 0})`,
       })),
     [columnsTickets]
+  );
+
+  const renderOtModal = (
+    <Modal
+      title="Pasar ticket a En OT"
+      open={!!otDrop}
+      onOk={handleConfirmOtDrop}
+      onCancel={() => {
+        setOtDrop(null);
+        setOtDropCategory(null);
+      }}
+      okText="Aplicar"
+      okButtonProps={{ disabled: !otDropCategory }}
+      cancelText="Cancelar"
+    >
+      <Flex vertical gap={8}>
+        <Text type="secondary">
+          Para mover el ticket a la columna En OT debes seleccionar la categoría de orden de trabajo.
+        </Text>
+        {woCategories.length === 0 ? (
+          <Empty description="No hay categorías de tipo WORK_ORDER. Créalas en Categorías." image={Empty.PRESENTED_IMAGE_SIMPLE} />
+        ) : (
+          <Select
+            placeholder="Categoría de la OT"
+            style={{ width: "100%" }}
+            value={otDropCategory}
+            onChange={setOtDropCategory}
+            options={woCategories.map((c) => ({
+              value: c.id,
+              label: c.name || `Categoría ${c.id}`,
+            }))}
+            showSearch
+            optionFilterProp="label"
+            autoFocus
+          />
+        )}
+      </Flex>
+    </Modal>
   );
 
   if (isMobile) {
@@ -68,6 +130,7 @@ const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading }) => {
             onDropTicket={handleDropTicket}
           />
         </Flex>
+        {renderOtModal}
       </Spin>
     );
   }
@@ -109,6 +172,7 @@ const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading }) => {
           </Col>
         ))}
       </Row>
+      {renderOtModal}
     </div>
   );
 };

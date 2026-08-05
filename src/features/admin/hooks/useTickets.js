@@ -255,9 +255,9 @@ export const useTickets = (options = {}) => {
   );
 
   const changeStatus = useCallback(
-    async (id, status) => {
+    async (id, status, workOrderCategory) => {
       try {
-        const res = await orchestrator.tickets.changeStatus(id, status);
+        const res = await orchestrator.tickets.changeStatus(id, status, workOrderCategory);
         message.success("Estado actualizado");
         await refreshAfterMutation();
         return res;
@@ -304,6 +304,25 @@ export const useTickets = (options = {}) => {
       }
     },
     [isStaff]
+  );
+
+  const deleteComment = useCallback(
+    async (ticketId, commentId) => {
+      try {
+        await orchestrator.tickets.deleteComment(ticketId, commentId);
+        message.success("Comentario eliminado");
+        return true;
+      } catch (err) {
+        const status = err?.response?.status;
+        message.error(
+          status === 404
+            ? "El backend no soporta borrar comentarios (endpoint no encontrado)"
+            : err.message || "Error al eliminar comentario"
+        );
+        return false;
+      }
+    },
+    []
   );
 
   const getAttachments = useCallback(async (id) => {
@@ -356,6 +375,104 @@ export const useTickets = (options = {}) => {
     }
   }, [refreshAfterMutation]);
 
+  // ──────────────────────────────────────────
+  // TAREAS POR TICKET
+  // ──────────────────────────────────────────
+
+  const getTasks = useCallback(async (id, page = 1) => {
+    try {
+      const res = await orchestrator.tickets.tasks.get(id, page);
+      return normalizeListResponse(res).results;
+    } catch (err) {
+      message.error(err.message || "Error al cargar tareas");
+      return [];
+    }
+  }, []);
+
+  const createTask = useCallback(
+    async (id, data) => {
+      try {
+        const payload = { ...data };
+        if (payload.assigned_to === undefined || payload.assigned_to === null || payload.assigned_to === "") {
+          delete payload.assigned_to;
+        }
+        const res = await orchestrator.tickets.tasks.create(id, payload);
+        message.success("Tarea creada");
+        return res;
+      } catch (err) {
+        message.error(err.message || "Error al crear tarea");
+        throw err;
+      }
+    },
+    []
+  );
+
+  const updateTask = useCallback(async (id, data) => {
+    try {
+      const payload = { ...data };
+      if (payload.assigned_to === undefined || payload.assigned_to === null || payload.assigned_to === "") {
+        delete payload.assigned_to;
+      }
+      const res = await orchestrator.tickets.tasks.update(id, payload);
+      message.success("Tarea actualizada");
+      return res;
+    } catch (err) {
+      message.error(err.message || "Error al actualizar tarea");
+      throw err;
+    }
+  }, []);
+
+  const deleteTask = useCallback(async (id) => {
+    try {
+      await orchestrator.tickets.tasks.delete(id);
+      message.success("Tarea eliminada");
+    } catch (err) {
+      message.error(err.message || "Error al eliminar tarea");
+      throw err;
+    }
+  }, []);
+
+  const uploadTaskAttachment = useCallback(async (id, file) => {
+    const validation = validateTicketAttachment(file);
+    if (!validation.valid) {
+      message.error(validation.error);
+      throw new Error(validation.error);
+    }
+    try {
+      const res = await orchestrator.tickets.tasks.uploadAttachment(id, file);
+      message.success("Adjunto subido a la tarea");
+      return res;
+    } catch (err) {
+      message.error(err.message || "Error al subir adjunto a la tarea");
+      throw err;
+    }
+  }, []);
+
+  const uploadCommentAttachment = useCallback(async (ticketId, commentId, file) => {
+    const validation = validateTicketAttachment(file);
+    if (!validation.valid) {
+      message.error(validation.error);
+      throw new Error(validation.error);
+    }
+    try {
+      const res = await orchestrator.tickets.uploadCommentAttachment(ticketId, commentId, file);
+      message.success("Adjunto subido al comentario");
+      return res;
+    } catch (err) {
+      message.error(err.message || "Error al subir adjunto al comentario");
+      throw err;
+    }
+  }, []);
+
+  const getFiles = useCallback(async (params = {}) => {
+    try {
+      return await orchestrator.tickets.files(params);
+    } catch (err) {
+      message.error(err.message || "Error al cargar archivos");
+      throw err;
+    }
+  }, []);
+
   return {
     tickets,
     ticketCount,
@@ -378,8 +495,18 @@ export const useTickets = (options = {}) => {
     getTicketById,
     getComments,
     createComment,
+    deleteComment,
     getAttachments,
     uploadAttachment,
+    uploadCommentAttachment,
+    tasks: {
+      get: getTasks,
+      create: createTask,
+      update: updateTask,
+      delete: deleteTask,
+      uploadAttachment: uploadTaskAttachment,
+    },
+    getFiles,
     confirmScheduledDate,
     cancelScheduledDate,
   };

@@ -15,6 +15,7 @@ import {
   CalendarOutlined,
   TagsOutlined,
   SettingOutlined,
+  FolderOpenOutlined,
 } from "@ant-design/icons";
 
 export const ADMIN_MENU = [
@@ -28,6 +29,7 @@ export const ADMIN_MENU = [
       { key: "/admin/support/my-desk", icon: CalendarOutlined, label: "Mi Escritorio" },
       { key: "/admin/support/tickets", icon: CustomerServiceOutlined, label: "Tickets" },
       { key: "/admin/support/indicators", icon: BarChartOutlined, label: "Métricas SLA" },
+      { key: "/admin/support/files", icon: FolderOpenOutlined, label: "Archivos" },
       { key: "/admin/support/categories", icon: TagsOutlined, label: "Categorías" },
       { key: "/admin/support/sla-configs", icon: SettingOutlined, label: "Configuración SLA" },
     ],

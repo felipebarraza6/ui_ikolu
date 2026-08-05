@@ -14,9 +14,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { SmartCard } from "../../../../shared/ui";
 import { useIkoluToken } from "../../../../hooks/useIkoluToken";
-import { useResponsive } from "../../../../hooks/useResponsive";
 import {
-  getTicketPriorityConfig,
   getTicketCategoryConfig,
   getTicketOtBadgeLabel,
   getTicketDateValue,
@@ -76,7 +74,6 @@ const PriorityDot = ({ priority }) => {
 
 const TicketCard = ({ ticket, onClick }) => {
   const token = useIkoluToken();
-  const { isMobile } = useResponsive();
   const otBadgeLabel = getTicketOtBadgeLabel(ticket);
   const createdAt = getTicketDateValue(ticket, "created", "created_at");
   const createdLabel = createdAt ? format(createdAt, "dd MMM", { locale: es }) : "-";
@@ -87,11 +84,6 @@ const TicketCard = ({ ticket, onClick }) => {
   const activeSlaStatuses = [responseSla, resolutionSla].filter(
     (s) => s && !s.done && s.variant !== "default"
   );
-  const hasSla =
-    ticket.sla_deadline_response ||
-    ticket.sla_deadline_resolution ||
-    responseSla.done ||
-    resolutionSla.done;
 
   const slaVariant = activeSlaStatuses.some((s) => s.overdue)
     ? "error"
@@ -167,6 +159,24 @@ const TicketCard = ({ ticket, onClick }) => {
 
           <Flex wrap gap={4} align="center">
             {ticket.category && <CategoryBadge category={ticket.category} />}
+            {ticket.work_order_category_detail?.name && (
+              <Tag
+                style={{
+                  color: token.voidTextHeading,
+                  background: token.voidSurface,
+                  border: `1px solid ${token.voidBorderStrong}`,
+                  borderRadius: 3,
+                  fontSize: 9,
+                  padding: "0 5px",
+                  lineHeight: "14px",
+                  fontWeight: 600,
+                  margin: 0,
+                }}
+                icon={<CarryOutOutlined style={{ fontSize: 9 }} />}
+              >
+                OT: {ticket.work_order_category_detail.name}
+              </Tag>
+            )}
             {otBadgeLabel && (
               <Text type="secondary" style={{ fontSize: 10 }}>
                 <CalendarOutlined style={{ fontSize: 9, marginRight: 2 }} />

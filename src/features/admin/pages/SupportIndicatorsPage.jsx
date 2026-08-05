@@ -307,7 +307,10 @@ const SupportIndicatorsPage = () => {
     updateTicket,
     deleteTicket,
     createComment,
+    deleteComment,
     uploadAttachment,
+    uploadCommentAttachment,
+    tasks,
     getTicketById,
     getComments,
     getAttachments,
@@ -413,18 +416,18 @@ const SupportIndicatorsPage = () => {
   }, []);
 
   const handleChangeStatus = useCallback(
-    async (ticketId, status) => {
-      await changeStatus(ticketId, status);
+    async (ticketId, status, workOrderCategory) => {
+      await changeStatus(ticketId, status, workOrderCategory);
       refresh(buildQueryParams());
     },
     [changeStatus, refresh, buildQueryParams]
   );
 
   const handleQuickStatusChange = useCallback(
-    async (ticket, status) => {
+    async (ticket, status, workOrderCategory) => {
       setChangingStatusId(ticket.id);
       try {
-        await changeStatus(ticket.id, status);
+        await changeStatus(ticket.id, status, workOrderCategory);
         refresh(buildQueryParams());
       } finally {
         setChangingStatusId(null);
@@ -915,12 +918,19 @@ const SupportIndicatorsPage = () => {
         onUpdateTicket={handleUpdateTicket}
         onDelete={handleDeleteTicket}
         onCreateComment={createComment}
+        onDeleteComment={deleteComment}
         onUploadAttachment={uploadAttachment}
+        onUploadCommentAttachment={uploadCommentAttachment}
         onConfirmScheduledDate={handleConfirmScheduledDate}
         onCancelScheduledDate={handleCancelScheduledDate}
         getTicketById={getTicketById}
         getComments={getComments}
         getAttachments={getAttachments}
+        getTasks={tasks.get}
+        onCreateTask={tasks.create}
+        onUpdateTask={tasks.update}
+        onDeleteTask={tasks.delete}
+        onUploadTaskAttachment={tasks.uploadAttachment}
       />
     </div>
   );

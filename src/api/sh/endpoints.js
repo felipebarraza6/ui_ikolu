@@ -982,8 +982,12 @@ const assignTicket = async (id, assignedTo) => {
   return rq.data;
 };
 
-const changeTicketStatus = async (id, status) => {
-  const rq = await POST(`ik/tickets/${id}/status/`, { status });
+const changeTicketStatus = async (id, status, workOrderCategory) => {
+  const payload = { status };
+  if (workOrderCategory != null && workOrderCategory !== "") {
+    payload.work_order_category = workOrderCategory;
+  }
+  const rq = await POST(`ik/tickets/${id}/status/`, payload);
   return rq.data;
 };
 
@@ -1004,6 +1008,11 @@ const getTicketComments = async (id, page = 1) => {
 
 const createTicketComment = async (id, data) => {
   const rq = await POST(`ik/tickets/${id}/comments/`, data);
+  return rq.data;
+};
+
+const deleteTicketComment = async (ticketId, commentId) => {
+  const rq = await Axios.delete(`ik/tickets/${ticketId}/comments/${commentId}/`);
   return rq.data;
 };
 
@@ -1063,6 +1072,79 @@ const uploadTicketAttachment = async (id, file) => {
 
 const deleteTicket = async (id) => {
   const rq = await Axios.delete(`ik/tickets/${id}/`);
+  return rq.data;
+};
+
+// ==========================================
+// TAREAS DE TICKETS (/api/ik/tickets/<id>/tasks/)
+// ==========================================
+
+const getTicketTasks = async (id, page = 1) => {
+  const rq = await GET(`ik/tickets/${id}/tasks/?page=${page}`);
+  return rq.data;
+};
+
+const createTicketTask = async (id, data) => {
+  const rq = await POST(`ik/tickets/${id}/tasks/`, data);
+  return rq.data;
+};
+
+const getTask = async (id) => {
+  const rq = await GET(`ik/tasks/${id}/`);
+  return rq.data;
+};
+
+const updateTask = async (id, data) => {
+  const rq = await PATCH(`ik/tasks/${id}/`, data);
+  return rq.data;
+};
+
+const deleteTask = async (id) => {
+  const rq = await Axios.delete(`ik/tasks/${id}/`);
+  return rq.data;
+};
+
+const uploadTaskAttachment = async (id, file) => {
+  validateTicketAttachment(file);
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const rq = await Axios.post(`ik/tasks/${id}/attachments/`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return rq.data;
+};
+
+const uploadCommentAttachment = async (ticketId, commentId, file) => {
+  validateTicketAttachment(file);
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const rq = await Axios.post(
+    `ik/tickets/${ticketId}/comments/${commentId}/attachments/`,
+    formData,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+  return rq.data;
+};
+
+// ==========================================
+// DRIVE DE ARCHIVOS (/api/ik/files/)
+// ==========================================
+
+const getTicketFiles = async (params = {}) => {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach((v) => searchParams.append(key, v));
+    } else if (value != null) {
+      searchParams.append(key, value);
+    }
+  });
+  const query = searchParams.toString();
+  const rq = await GET(`ik/files/${query ? "?" + query : ""}`);
   return rq.data;
 };
 
@@ -1546,8 +1628,19 @@ const sh = {
     cancelScheduledDate: cancelTicketScheduledDate,
     getComments: getTicketComments,
     createComment: createTicketComment,
+    deleteComment: deleteTicketComment,
     getAttachments: getTicketAttachments,
     uploadAttachment: uploadTicketAttachment,
+    uploadCommentAttachment,
+    tasks: {
+      get: getTicketTasks,
+      create: createTicketTask,
+      getById: getTask,
+      update: updateTask,
+      delete: deleteTask,
+      uploadAttachment: uploadTaskAttachment,
+    },
+    files: getTicketFiles,
     stats: getTicketStats,
     myDesk: getMyDeskTickets,
     dashboard: getTicketDashboard,

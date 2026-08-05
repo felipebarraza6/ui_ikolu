@@ -152,7 +152,7 @@ export const getTicketOtBadgeLabel = (ticket) => {
 
 export const TICKET_PRIORITY = {
   BAJA: { value: "BAJA", label: "Baja", color: "success", variant: "success", borderColor: "#2A9D8F" },
-  MEDIA: { value: "MEDIA", label: "Media", color: "default", variant: "void", borderColor: "var(--ikolu-void-text-heading)" },
+  MEDIA: { value: "MEDIA", label: "Media", color: "default", variant: "void", borderColor: "#5B8DEF" },
   ALTA: { value: "ALTA", label: "Alta", color: "warning", variant: "warning", borderColor: "#F4A261" },
   CRITICA: { value: "CRITICA", label: "Crítica", color: "error", variant: "error", borderColor: "#E76F51" },
 };
@@ -522,6 +522,40 @@ export const getSlaStatus = (deadlineValue, doneAtValue, status) => {
     return { label: "No definido", variant: "default", overdue: false, done: false };
   }
 };
+
+// ============================================================================
+// TAREAS POR TICKET
+// ============================================================================
+
+export const TASK_STATUS = {
+  PENDIENTE: { value: "PENDIENTE", label: "Pendiente", variant: "warning" },
+  EN_PROGRESO: { value: "EN_PROGRESO", label: "En progreso", variant: "processing" },
+  COMPLETADA: { value: "COMPLETADA", label: "Completada", variant: "success" },
+  CANCELADA: { value: "CANCELADA", label: "Cancelada", variant: "default" },
+};
+
+export const TASK_STATUS_OPTIONS = Object.values(TASK_STATUS).map(({ value, label }) => ({
+  value,
+  label,
+}));
+
+export const getTaskStatusConfig = (status) => {
+  if (!status) return TASK_STATUS.PENDIENTE;
+  const upper = String(status).toUpperCase();
+  return Object.values(TASK_STATUS).find((s) => s.value === upper) || TASK_STATUS.PENDIENTE;
+};
+
+export const getTaskStatusLabel = (status) => getTaskStatusConfig(status).label;
+
+export const getTaskPriorityConfig = (priority) => getTicketPriorityConfig(priority);
+
+export const getTaskPriorityLabel = (priority) => getTaskPriorityConfig(priority).label;
+
+/**
+ * Devuelve las categorías de tipo WORK_ORDER (para asignar una OT).
+ */
+export const filterWorkOrderCategories = (categories = []) =>
+  categories.filter((c) => String(c.category_type || "").toUpperCase() === "WORK_ORDER");
 
 // ============================================================================
 // FILTROS DE SLA
