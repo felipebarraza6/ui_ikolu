@@ -1,15 +1,18 @@
-#ude build environment
-FROM node as build
+# Dependencies with Bun (fast install)
+FROM oven/bun:1-alpine AS deps
 WORKDIR /app
-ENV PATH /app/node_modules/.bin:$PATH
-COPY package.json ./
-COPY yarn.lock ./
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
 
-RUN yarn install
-COPY . ./
-RUN yarn build
+# Build environment (react-scripts/webpack on Node)
+FROM node:20-alpine AS build
+WORKDIR /app
+ENV PATH=/app/node_modules/.bin:$PATH
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN node scripts/patch-rc-components.js && npm run build
 
-# production environment
+# Production environment
 FROM nginx:stable-alpine
 COPY --from=build /app/build /usr/share/nginx/html
 RUN rm /etc/nginx/conf.d/default.conf
