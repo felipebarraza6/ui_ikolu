@@ -49,12 +49,7 @@ La configuración de Nginx está en `conf/nginx-react.conf`:
 
 ## CI
 
-`.github/workflows/ci.yml` corre en push a `main` y en PRs:
-
-1. Checkout
-2. Node 20 + cache Yarn
-3. `yarn install --frozen-lockfile --non-interactive`
-4. `yarn build`
+Sugerido: GitHub Actions con Node 20 + Yarn (`yarn install --frozen-lockfile --non-interactive` y `yarn build`). Agregar el workflow en `.github/workflows/ci.yml`.
 
 ## Estructura
 
