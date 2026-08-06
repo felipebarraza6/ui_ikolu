@@ -1,70 +1,72 @@
-# Getting Started with Create React App
+# Ikolu UI
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Frontend de la plataforma Ikolu. SPA en React 18 con Ant Design 5, React Router 6, Zustand y Axios. El build de producción se sirve con Nginx como SPA.
 
-## Available Scripts
+## Stack
 
-In the project directory, you can run:
+- React 18 + `react-scripts` 5
+- Ant Design 5 + Emotion
+- React Router 6
+- Zustand para estado local de módulos
+- Axios para API
+- Leaflet para mapas
+- Docker multi-stage: Node 20 build → Nginx runtime
 
-### `yarn start`
+## Desarrollo
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Requisitos: Node 20 y Yarn 1.22.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```bash
+yarn install
+yarn start
+```
 
-### `yarn test`
+En local, `src/api/sh/config.js` usa ruta relativa `/api/` y Create React App la proxifica al dominio configurado en `package.json` (`proxy`). En producción, el frontend apunta directo a la API HTTPS.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Scripts
 
-### `yarn build`
+```bash
+yarn start     # desarrollo
+yarn build     # build de producción en /build
+yarn test      # tests de CRA
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+El `postinstall` ejecuta `scripts/patch-rc-components.js` para parchear componentes `@rc-component/*` que gatillan loops de render en algunas versiones.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Docker
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+docker build -t ui_ikolu .
+docker run --rm -p 8080:80 ui_ikolu
+```
 
-### `yarn eject`
+La configuración de Nginx está en `conf/nginx-react.conf`:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+- `index.html` no se cachea.
+- Assets con hash (`js`/`css`) se cachean como inmutables por 1 año.
+- Imágenes/fuentes tienen cache moderado.
+- Fallback SPA a `index.html`.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## CI
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+`.github/workflows/ci.yml` corre en push a `main` y en PRs:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+1. Checkout
+2. Node 20 + cache Yarn
+3. `yarn install --frozen-lockfile --non-interactive`
+4. `yarn build`
 
-## Learn More
+## Estructura
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- `src/features/auth`: login, recuperación y guardias de rol.
+- `src/features/control-center`: dashboard operativo de telemetría/cumplimiento.
+- `src/features/admin`: backoffice y dashboards administrativos.
+- `src/api`: capa de acceso a API (`sh` + `orchestrator`).
+- `src/contexts`: auth, tema, datos globales y tours.
+- `conf`: configuración Nginx.
+- `scripts`: parches postinstall y utilidades de migración.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Notas
 
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `yarn build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- La autenticación actual guarda token en `localStorage`; cualquier endurecimiento debe hacerse junto con el backend.
+- La autorización de admin se valida en UI con `RoleGuard`, pero debe reforzarse siempre server-side.
