@@ -18,8 +18,8 @@ export const createIkoluTheme = (algorithm = null, isDark = false) => {
 
     // === Fondos y superficies ===
     colorBgLayout: isDark ? "#030c18" : c.neutral[50],
-    colorBgContainer: isDark ? "rgba(255,255,255,0.05)" : "#ffffff",
-    colorBgElevated: isDark ? "rgba(255,255,255,0.07)" : "#ffffff",
+    colorBgContainer: isDark ? "#0f1a2a" : "#ffffff",
+    colorBgElevated: isDark ? "#141f30" : "#ffffff",
     colorBgSpotlight: isDark ? "#0a1525" : "#1f1f1f",
     colorTextLightSolid: "#ffffff",
 

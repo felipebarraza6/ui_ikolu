@@ -17,13 +17,13 @@ import {
   Tag,
   DatePicker,
   Popconfirm,
-  Checkbox,
-  Timeline,
   Modal,
+  Mentions,
+  Badge,
+  Dropdown,
   message,
 } from "antd";
 import {
-  UserOutlined,
   PaperClipOutlined,
   CommentOutlined,
   InfoCircleOutlined,
@@ -31,13 +31,18 @@ import {
   UploadOutlined,
   ToolOutlined,
   DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
   FileOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
   SearchOutlined,
+  BellOutlined,
+  HeartOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { format, parseISO } from "date-fns";
+import { useNavigate } from "react-router-dom";
+import { format, formatDistanceToNow, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { SmartBadge, SmartButton } from "../../../../shared/ui";
 import { useIkoluToken } from "../../../../hooks/useIkoluToken";
@@ -181,6 +186,8 @@ const TicketDetailDrawer = ({
   onDelete,
   onCreateComment,
   onDeleteComment,
+  onUpdateComment,
+  onLikeComment,
   onUploadAttachment,
   onUploadCommentAttachment,
   onConfirmScheduledDate,
@@ -189,14 +196,17 @@ const TicketDetailDrawer = ({
   getComments,
   getAttachments,
   getTasks,
+  getTicketNotifications,
+  markTicketNotificationsRead,
   onCreateTask,
   onUpdateTask,
   onDeleteTask,
   onUploadTaskAttachment,
 }) => {
   const token = useIkoluToken();
+  const navigate = useNavigate();
   const { isMobile } = useResponsive();
-  const { isStaff } = useAdminAuth();
+  const { isStaff, user } = useAdminAuth();
   const [ticket, setTicket] = useState(null);
   const [comments, setComments] = useState([]);
   const [attachments, setAttachments] = useState([]);
@@ -214,6 +224,15 @@ const TicketDetailDrawer = ({
   const [otCategory, setOtCategory] = useState(null);
   const [attachmentSearch, setAttachmentSearch] = useState("");
   const [pendingCommentFiles, setPendingCommentFiles] = useState([]);
+  const [isPublicComment, setIsPublicComment] = useState(false);
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingCommentText, setEditingCommentText] = useState("");
+  const [replyingToCommentId, setReplyingToCommentId] = useState(null);
+  const [replyText, setReplyText] = useState("");
+  const [pendingReplyFiles, setPendingReplyFiles] = useState([]);
+  const [ticketNotifications, setTicketNotifications] = useState([]);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [commentForm] = Form.useForm();
   const [otForm] = Form.useForm();
   const [activeTab, setActiveTab] = useState("info");
@@ -221,6 +240,18 @@ const TicketDetailDrawer = ({
   const workOrderCategories = useMemo(
     () => filterWorkOrderCategories(categories || []),
     [categories]
+  );
+
+  const staffMentionOptions = useMemo(
+    () =>
+      (users || [])
+        .filter((u) => u.is_staff && u.username)
+        .map((u) => ({
+          key: u.username,
+          value: u.username,
+          label: `${u.first_name || ""} ${u.last_name || ""}`.trim() || u.full_name || u.username,
+        })),
+    [users]
   );
 
   const load = useCallback(async () => {
@@ -258,11 +289,27 @@ const TicketDetailDrawer = ({
       setOtCategory(null);
       setAttachmentSearch("");
       setPendingCommentFiles([]);
+      setIsPublicComment(false);
+      setEditingCommentId(null);
+      setEditingCommentText("");
+      setReplyingToCommentId(null);
+      setReplyText("");
+      setPendingReplyFiles([]);
+      setNotificationsOpen(false);
       commentForm.resetFields();
       otForm.resetFields();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  useEffect(() => {
+    if (open && getTicketNotifications) {
+      getTicketNotifications({ unread_only: true }).then((res) => {
+        setTicketNotifications(res?.results || res || []);
+        setUnreadNotificationsCount(res?.unread_count || 0);
+      });
+    }
+  }, [open, getTicketNotifications]);
 
   useEffect(() => {
     if (ticket && editingOt) {
@@ -304,32 +351,37 @@ const TicketDetailDrawer = ({
       content: values.content,
     };
     if (isStaff) {
-      payload.is_internal = !values.is_public;
+      payload.is_internal = !isPublicComment;
     }
     const res = await onCreateComment(ticketId, payload);
 
     // Subir adjuntos pendientes al comentario recién creado (en paralelo)
     const commentId = res?.id ?? res?.data?.id ?? res?.comment?.id;
-    if (commentId && pendingCommentFiles.length > 0) {
-      const uploads = pendingCommentFiles.map(async (item) => {
-        if (!onUploadCommentAttachment) return;
-        const file = item?.originFileObj || item;
-        const validation = validateTicketAttachment(file);
-        if (!validation.valid) {
-          message.error(validation.error);
-          return;
-        }
-        try {
-          await onUploadCommentAttachment(ticketId, commentId, file);
-        } catch {
-          // el hook ya notifica el error
-        }
-      });
-      await Promise.all(uploads);
+    if (pendingCommentFiles.length > 0) {
+      if (!commentId) {
+        message.warning("Comentario creado, pero no se pudo obtener su ID para subir adjuntos");
+      } else {
+        const uploads = pendingCommentFiles.map(async (item) => {
+          if (!onUploadCommentAttachment) return;
+          const file = item?.originFileObj || item;
+          const validation = validateTicketAttachment(file);
+          if (!validation.valid) {
+            message.error(validation.error);
+            return;
+          }
+          try {
+            await onUploadCommentAttachment(ticketId, commentId, file);
+          } catch {
+            // el hook ya notifica el error
+          }
+        });
+        await Promise.all(uploads);
+      }
     }
 
     commentForm.resetFields();
     setPendingCommentFiles([]);
+    setIsPublicComment(false);
     load();
   };
 
@@ -367,6 +419,205 @@ const TicketDetailDrawer = ({
   const handleDelete = async () => {
     await onDelete(ticketId);
     onClose();
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    await onDeleteComment(ticketId, commentId);
+    load();
+  };
+
+  const handleStartEditComment = (item) => {
+    setEditingCommentId(item.id);
+    setEditingCommentText(item.content || item.text || item.message || "");
+  };
+
+  const handleCancelEditComment = () => {
+    setEditingCommentId(null);
+    setEditingCommentText("");
+  };
+
+  const handleSaveEditComment = async (commentId) => {
+    if (!editingCommentText.trim()) return;
+    const ok = await onUpdateComment(ticketId, commentId, { content: editingCommentText.trim() });
+    if (ok) {
+      setEditingCommentId(null);
+      setEditingCommentText("");
+      load();
+    }
+  };
+
+  const handlePasteFiles = (e) => {
+    const files = Array.from(e.clipboardData?.files || []);
+    if (files.length === 0) return;
+    e.preventDefault();
+    files.forEach((file, i) => {
+      const ext = file.type?.split("/")[1] || "png";
+      const name = file.name || `pegado_${Date.now()}.${ext}`;
+      const processedFile = new File([file], name, { type: file.type });
+      const validation = validateTicketAttachment(processedFile);
+      if (!validation.valid) {
+        message.error(validation.error);
+        return;
+      }
+      processedFile.uid = `paste-${Date.now()}-${i}`;
+      setPendingCommentFiles((prev) => [...prev, processedFile]);
+    });
+  };
+
+  const formatRelativeTime = (value) => {
+    if (!value) return "";
+    try {
+      return formatDistanceToNow(parseISO(value), { addSuffix: true, locale: es });
+    } catch {
+      return value;
+    }
+  };
+
+  const getInitials = (name) => {
+    if (!name) return "?";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+  };
+
+  const buildCommentTree = (flatComments) => {
+    const byId = {};
+    const roots = [];
+    flatComments.forEach((c) => {
+      byId[c.id] = { ...c, children: [] };
+    });
+    flatComments.forEach((c) => {
+      if (c.parent_id && byId[c.parent_id]) {
+        byId[c.parent_id].children.push(byId[c.id]);
+      } else {
+        roots.push(byId[c.id]);
+      }
+    });
+    return roots;
+  };
+
+  const renderCommentContent = (text) => {
+    if (!text) return null;
+    const parts = text.split(/(#\d+)/g);
+    return parts.map((part, i) => {
+      const match = part.match(/^#(\d+)$/);
+      if (match) {
+        const id = match[1];
+        return (
+          <Button
+            key={i}
+            type="link"
+            size="small"
+            onClick={() => navigate(`/admin/support/tickets?id=${id}`)}
+            style={{
+              padding: 0,
+              height: "auto",
+              fontSize: "inherit",
+              lineHeight: "inherit",
+              color: token.colorAccent,
+            }}
+          >
+            {part}
+          </Button>
+        );
+      }
+      return <span key={i}>{part}</span>;
+    });
+  };
+
+  const handleReply = async (parentId) => {
+    if (!replyText.trim()) return;
+    const payload = { content: replyText.trim(), parent_id: parentId };
+    if (isStaff) {
+      payload.is_internal = !isPublicComment;
+    }
+    const res = await onCreateComment(ticketId, payload);
+    const commentId = res?.id ?? res?.data?.id ?? res?.comment?.id;
+    if (pendingReplyFiles.length > 0) {
+      if (!commentId) {
+        message.warning("Respuesta creada, pero no se pudo obtener su ID para subir adjuntos");
+      } else {
+        const uploads = pendingReplyFiles.map(async (item) => {
+          if (!onUploadCommentAttachment) return;
+          const file = item?.originFileObj || item;
+          const validation = validateTicketAttachment(file);
+          if (!validation.valid) {
+            message.error(validation.error);
+            return;
+          }
+          try {
+            await onUploadCommentAttachment(ticketId, commentId, file);
+          } catch {
+            // el hook ya notifica el error
+          }
+        });
+        await Promise.all(uploads);
+      }
+    }
+    setReplyingToCommentId(null);
+    setReplyText("");
+    setPendingReplyFiles([]);
+    setIsPublicComment(false);
+    load();
+  };
+
+  const handleAddPendingReplyFile = (file) => {
+    const validation = validateTicketAttachment(file);
+    if (!validation.valid) {
+      message.error(validation.error);
+      return Upload.LIST_IGNORE;
+    }
+    setPendingReplyFiles((prev) => [...prev, file]);
+    return false;
+  };
+
+  const handlePasteReplyFiles = (e) => {
+    const files = Array.from(e.clipboardData?.files || []);
+    if (files.length === 0) return;
+    e.preventDefault();
+    files.forEach((file, i) => {
+      const ext = file.type?.split("/")[1] || "png";
+      const name = file.name || `pegado_${Date.now()}.${ext}`;
+      const processedFile = new File([file], name, { type: file.type });
+      const validation = validateTicketAttachment(processedFile);
+      if (!validation.valid) {
+        message.error(validation.error);
+        return;
+      }
+      processedFile.uid = `paste-reply-${Date.now()}-${i}`;
+      setPendingReplyFiles((prev) => [...prev, processedFile]);
+    });
+  };
+
+  const handleMarkNotificationRead = async (ids) => {
+    if (!markTicketNotificationsRead || !ids || ids.length === 0) return;
+    const payload = Array.isArray(ids) ? { ids } : { id: ids };
+    try {
+      const res = await markTicketNotificationsRead(payload);
+      setUnreadNotificationsCount(res?.unread_count || 0);
+      setTicketNotifications((prev) =>
+        prev.filter((n) => (Array.isArray(ids) ? !ids.includes(n.id) : n.id !== ids))
+      );
+    } catch {
+      // hook ya notifica
+    }
+  };
+
+  const handleLikeComment = async (commentId) => {
+    if (!onLikeComment) return;
+    const res = await onLikeComment(ticketId, commentId);
+    if (!res) return;
+    setComments((prev) =>
+      prev.map((c) =>
+        c.id === commentId
+          ? { ...c, liked_by_me: res.liked, like_count: res.like_count }
+          : c
+      )
+    );
   };
 
   const handleStartEditOt = () => {
@@ -503,7 +754,7 @@ const TicketDetailDrawer = ({
           background: token.glassBg,
           borderRadius: token.voidRadius,
           border: `1px solid ${token.glassBorder}`,
-          backdropFilter: "blur(10px)",
+
         }}
       >
         <Flex align="center" gap={8} style={{ marginBottom: 12 }}>
@@ -745,7 +996,7 @@ const TicketDetailDrawer = ({
                   background: token.glassBg,
                   borderRadius: token.voidRadius,
                   border: `1px solid ${token.glassBorder}`,
-                  backdropFilter: "blur(10px)",
+        
                   marginTop: 8,
                 }}
               >
@@ -835,21 +1086,120 @@ const TicketDetailDrawer = ({
   const commentsTab = {
     key: "comments",
     label: (
-      <Flex align="center" gap={6}>
-        <CommentOutlined /> Comentarios ({comments.length})
+      <Flex align="center" gap={6} justify="space-between" style={{ width: "100%" }}>
+        <Flex align="center" gap={6}>
+          <CommentOutlined /> Comentarios ({comments.length})
+        </Flex>
+        <Dropdown
+          open={notificationsOpen}
+          onOpenChange={setNotificationsOpen}
+          trigger={["click"]}
+          dropdownRender={() => (
+            <div
+              style={{
+                background: token.voidSurface,
+                borderRadius: 12,
+                border: `1px solid ${token.voidBorder}`,
+                boxShadow: token.voidShadow,
+                padding: 12,
+                minWidth: 280,
+                maxWidth: 320,
+              }}
+            >
+              <Flex justify="space-between" align="center" style={{ marginBottom: 8 }}>
+                <Text strong style={{ color: token.voidTextHeading }}>
+                  Notificaciones
+                </Text>
+                {unreadNotificationsCount > 0 && (
+                  <Button
+                    type="link"
+                    size="small"
+                    onClick={() =>
+                      handleMarkNotificationRead(ticketNotifications.map((n) => n.id))
+                    }
+                  >
+                    Marcar todas como leídas
+                  </Button>
+                )}
+              </Flex>
+              <Flex vertical gap={8} style={{ maxHeight: 300, overflow: "auto" }}>
+                {ticketNotifications.length === 0 ? (
+                  <Text style={{ color: token.voidTextMuted, fontSize: 12 }}>
+                    Sin notificaciones
+                  </Text>
+                ) : (
+                  ticketNotifications.map((n) => (
+                    <div
+                      key={n.id}
+                      style={{
+                        padding: 10,
+                        borderRadius: 8,
+                        background: token.glassBg,
+                        cursor: "pointer",
+                      }}
+                      onClick={() => {
+                        handleMarkNotificationRead(n.id);
+                        navigate(`/admin/support/tickets?id=${n.ticket}`);
+                        setNotificationsOpen(false);
+                      }}
+                    >
+                      <Text strong style={{ color: token.voidTextHeading, fontSize: 12 }}>
+                        {n.notification_type_display}
+                      </Text>
+                      <Text style={{ color: token.voidText, fontSize: 12, display: "block" }}>
+                        {n.message}
+                      </Text>
+                      <Text style={{ color: token.voidTextMuted, fontSize: 11 }}>
+                        {formatRelativeTime(n.created)}
+                      </Text>
+                    </div>
+                  ))
+                )}
+              </Flex>
+            </div>
+          )}
+        >
+          <Badge count={unreadNotificationsCount} size="small" offset={[2, 0]}>
+            <Button
+              type="text"
+              size="small"
+              icon={<BellOutlined style={{ color: token.voidTextMuted }} />}
+              style={{ padding: "0 4px", height: 24 }}
+            />
+          </Badge>
+        </Dropdown>
       </Flex>
     ),
     children: (
-      <Flex vertical gap={16}>
+      <Flex vertical gap={20}>
         <Form form={commentForm} onFinish={handleComment} layout="vertical">
           <Form.Item
             name="content"
-            label="Comentario"
             rules={[{ required: true, message: "Escribe un comentario" }]}
+            style={{ marginBottom: 8 }}
           >
-            <TextArea rows={3} placeholder="Agregar comentario..." />
+            <Mentions
+              prefix="@"
+              options={staffMentionOptions}
+              placeholder="Escribe un comentario... @menciona usuarios (Ctrl+V para pegar archivos)"
+              onPressEnter={(e) => {
+                if (!e.shiftKey) {
+                  e.preventDefault();
+                  commentForm.submit();
+                }
+              }}
+              onPaste={handlePasteFiles}
+              rows={2}
+              variant="borderless"
+              style={{
+                background: token.voidSurface,
+                borderRadius: 8,
+                padding: "10px 12px",
+                border: `1px solid ${token.voidBorder}`,
+              }}
+            />
           </Form.Item>
-          <Form.Item label="Adjuntos" style={{ marginBottom: 8 }}>
+          <Flex align="center" gap={8} wrap>
             <Upload
               fileList={pendingCommentFiles}
               beforeUpload={handleAddPendingCommentFile}
@@ -859,126 +1209,414 @@ const TicketDetailDrawer = ({
                 )
               }
               maxCount={5}
+              showUploadList={false}
             >
-              <Button size="small" type="dashed" icon={<PaperClipOutlined />}>
-                Adjuntar archivo
-              </Button>
+              <Button
+                size="small"
+                type="text"
+                icon={<PaperClipOutlined />}
+                style={{ color: token.voidTextMuted, padding: "0 6px", height: 24 }}
+              />
             </Upload>
-          </Form.Item>
-          {isStaff && (
-            <Form.Item name="is_public" valuePropName="checked">
-              <Checkbox>Comentario para cliente</Checkbox>
-            </Form.Item>
-          )}
-          <Form.Item>
-            <Flex align="center" gap={12}>
-              <SmartButton variant="void" htmlType="submit" size="sm">
-                Comentar
-              </SmartButton>
-              {isStaff && (
-                <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
-                  Por defecto es interno. Marca "Comentario para cliente" para publicarlo.
-                </Text>
-              )}
-            </Flex>
-          </Form.Item>
-        </Form>
-        <List
-          dataSource={comments}
-          locale={{ emptyText: <Empty description="Sin comentarios" /> }}
-          renderItem={(item) => (
-            <List.Item
-              actions={[
-                <Text key="date" style={{ fontSize: 12, color: token.voidTextMuted }}>
-                  {formatDateTime(item.created)}
-                </Text>,
-              ]}
-            >
-              <List.Item.Meta
-                avatar={<Avatar icon={<UserOutlined />} />}
-                title={
-                  <Flex align="center" gap={8}>
-                    <Text strong style={{ color: token.voidTextHeading }}>
-                      {item.author_name || item.author || "Usuario"}
-                    </Text>
-                    {item.is_internal ? (
-                      <SmartBadge variant="void" size="sm">
-                        Interno
-                      </SmartBadge>
-                    ) : (
-                      <SmartBadge variant="success" size="sm">
-                        Cliente
-                      </SmartBadge>
-                    )}
-                  </Flex>
+            {pendingCommentFiles.map((file) => (
+              <Tag
+                key={file.uid}
+                closable
+                onClose={() =>
+                  setPendingCommentFiles((prev) =>
+                    prev.filter((f) => f.uid !== file.uid)
+                  )
                 }
-                description={
-                  <Flex vertical gap={6}>
-                    <Text style={{ whiteSpace: "pre-wrap", color: token.voidText }}>
-                      {item.content || item.text || item.message}
-                    </Text>
-                    {item.attachments?.length > 0 && (
-                      <Flex wrap gap={6}>
-                        {item.attachments.map((att) => {
-                          const fileUrl = att.file_url || att.file || att.url;
-                          const fileName =
-                            att.original_name || att.name || att.filename || `Adjunto ${att.id}`;
-                          return (
-                            <Tag
-                              key={att.id}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: token.voidTextMuted,
+                  fontSize: 11,
+                  margin: 0,
+                  padding: "0 4px",
+                  maxWidth: 160,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {file.name}
+              </Tag>
+            ))}
+            {isStaff && (
+              <Tag.CheckableTag
+                checked={isPublicComment}
+                onChange={(checked) => setIsPublicComment(checked)}
+                style={{
+                  borderRadius: 4,
+                  fontSize: 11,
+                  padding: "2px 8px",
+                  background: isPublicComment ? token.voidSurface : "transparent",
+                  border: isPublicComment
+                    ? `1px solid ${token.colorSuccess || "#52c41a"}`
+                    : `1px solid ${token.voidBorder}`,
+                  color: isPublicComment ? (token.colorSuccess || "#52c41a") : token.voidTextMuted,
+                  fontWeight: isPublicComment ? 600 : 400,
+                }}
+              >
+                {isPublicComment ? "✓ Para cliente" : "Para cliente"}
+              </Tag.CheckableTag>
+            )}
+            <Text style={{ fontSize: 11, color: token.voidTextMuted, marginLeft: "auto" }}>
+              Enter para enviar
+            </Text>
+          </Flex>
+        </Form>
+
+        {comments.length === 0 ? (
+          <Empty description="Sin comentarios" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+        ) : (
+          (() => {
+            const renderCommentCard = (item, depth = 0) => {
+              const isOwn = user?.id != null && String(user.id) === String(item.author);
+              const isEditing = editingCommentId === item.id;
+              const isReplying = replyingToCommentId === item.id;
+              const replyCount = item.reply_count ?? item.children?.length ?? 0;
+              return (
+                <div key={item.id} style={{ marginLeft: depth > 0 ? 24 : 0 }}>
+                  <div
+                    style={{
+                      background: token.voidSurface,
+                      borderRadius: 12,
+                      border: `1px solid ${token.voidBorder}`,
+                      padding: 12,
+                    }}
+                  >
+                    <Flex gap={12}>
+                      <Avatar
+                        style={{
+                          background: token.glassBg,
+                          color: token.voidTextHeading,
+                          flexShrink: 0,
+                        }}
+                      >
+                        {getInitials(item.author_name)}
+                      </Avatar>
+                      <Flex vertical gap={8} style={{ flex: 1, minWidth: 0 }}>
+                        <Flex justify="space-between" align="center" gap={8} wrap>
+                          <Flex align="center" gap={8} wrap>
+                            <Text strong style={{ color: token.voidTextHeading, fontSize: 13 }}>
+                              {item.author_name || item.author || "Usuario"}
+                            </Text>
+                            {item.is_internal ? (
+                              <SmartBadge variant="void" size="sm">
+                                Interno
+                              </SmartBadge>
+                            ) : (
+                              <SmartBadge variant="success" size="sm">
+                                Cliente
+                              </SmartBadge>
+                            )}
+                            <Text style={{ fontSize: 11, color: token.voidTextMuted }}>
+                              {formatRelativeTime(item.created)}
+                            </Text>
+                          </Flex>
+                          <Flex align="center" gap={4}>
+                            {onUploadCommentAttachment && (
+                              <Upload
+                                showUploadList={false}
+                                customRequest={({ file }) => handleCommentUpload(item.id, file)}
+                              >
+                                <Button
+                                  type="text"
+                                  size="small"
+                                  icon={<PlusOutlined />}
+                                  style={{
+                                    padding: "0 4px",
+                                    height: 20,
+                                    width: 20,
+                                    color: token.voidTextMuted,
+                                  }}
+                                />
+                              </Upload>
+                            )}
+                            {isOwn && !isEditing && (
+                              <Button
+                                type="text"
+                                size="small"
+                                icon={<EditOutlined />}
+                                onClick={() => handleStartEditComment(item)}
+                                style={{
+                                  padding: "0 4px",
+                                  height: 20,
+                                  width: 20,
+                                  color: token.voidTextMuted,
+                                }}
+                              />
+                            )}
+                            {isOwn && (
+                              <Popconfirm
+                                title="¿Eliminar comentario?"
+                                description="Esta acción no se puede deshacer."
+                                okText="Eliminar"
+                                okButtonProps={{ danger: true }}
+                                cancelText="Cancelar"
+                                onConfirm={() => handleDeleteComment(item.id)}
+                              >
+                                <Button
+                                  type="text"
+                                  size="small"
+                                  danger
+                                  icon={<DeleteOutlined />}
+                                  style={{ padding: "0 4px", height: 20, width: 20 }}
+                                />
+                              </Popconfirm>
+                            )}
+                          </Flex>
+                        </Flex>
+
+                        {isEditing ? (
+                          <Flex vertical gap={8}>
+                            <TextArea
+                              rows={2}
+                              value={editingCommentText}
+                              onChange={(e) => setEditingCommentText(e.target.value)}
+                              onPressEnter={(e) => {
+                                if (!e.shiftKey) {
+                                  e.preventDefault();
+                                  handleSaveEditComment(item.id);
+                                }
+                              }}
                               style={{
                                 background: token.voidSurface,
-                                borderColor: token.voidBorder,
-                                color: token.voidTextHeading,
-                                borderRadius: 3,
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 4,
-                                margin: 0,
+                                borderRadius: 6,
+                                border: `1px solid ${token.voidBorder}`,
+                                fontSize: 13,
+                              }}
+                            />
+                            <Flex gap={8}>
+                              <Button
+                                size="small"
+                                type="primary"
+                                onClick={() => handleSaveEditComment(item.id)}
+                              >
+                                Guardar
+                              </Button>
+                              <Button
+                                size="small"
+                                type="text"
+                                onClick={handleCancelEditComment}
+                              >
+                                Cancelar
+                              </Button>
+                            </Flex>
+                          </Flex>
+                        ) : (
+                          <>
+                            <div
+                              style={{
+                                color: token.voidText,
+                                fontSize: 13,
+                                lineHeight: 1.6,
+                                whiteSpace: "pre-wrap",
                               }}
                             >
-                              <PaperClipOutlined style={{ fontSize: 10 }} />
-                              <a
-                                href={fileUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                download={fileName}
-                                style={{ fontSize: 11 }}
+                              {renderCommentContent(item.content)}
+                            </div>
+                            {item.attachments?.length > 0 && (
+                              <Flex wrap gap={6}>
+                                {item.attachments.map((att) => {
+                                  const fileUrl = att.file_url || att.file || att.url;
+                                  const fileName =
+                                    att.original_name || att.name || att.filename || `Adjunto ${att.id}`;
+                                  return (
+                                    <a
+                                      key={att.id}
+                                      href={fileUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      download={fileName}
+                                      style={{
+                                        fontSize: 12,
+                                        color: token.voidTextMuted,
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        gap: 4,
+                                      }}
+                                    >
+                                      <PaperClipOutlined style={{ fontSize: 10 }} />
+                                      {fileName}
+                                    </a>
+                                  );
+                                })}
+                              </Flex>
+                            )}
+                          </>
+                        )}
+
+                        {!isEditing && (
+                          <Flex align="center" gap={12} style={{ marginTop: 4 }}>
+                            <Button
+                              type="text"
+                              size="small"
+                              onClick={() => setReplyingToCommentId(item.id)}
+                              style={{
+                                padding: 0,
+                                height: "auto",
+                                color: token.voidTextMuted,
+                                fontSize: 12,
+                              }}
+                            >
+                              Responder {replyCount > 0 && `(${replyCount})`}
+                            </Button>
+                            <Button
+                              type="text"
+                              size="small"
+                              icon={<HeartOutlined />}
+                              onClick={() => handleLikeComment(item.id)}
+                              style={{
+                                padding: 0,
+                                height: "auto",
+                                color: item.liked_by_me ? "#ff4d4f" : token.voidTextMuted,
+                                fontSize: 12,
+                                fontWeight: item.liked_by_me ? 600 : 400,
+                              }}
+                            >
+                              {item.like_count > 0 ? item.like_count : "Me gusta"}
+                            </Button>
+                          </Flex>
+                        )}
+
+                        {isReplying && (
+                          <Flex vertical gap={8} style={{ marginTop: 8 }}>
+                            <Mentions
+                              prefix="@"
+                              options={staffMentionOptions}
+                              placeholder="Escribe una respuesta... @menciona usuarios"
+                              value={replyText}
+                              onChange={setReplyText}
+                              onPressEnter={(e) => {
+                                if (!e.shiftKey) {
+                                  e.preventDefault();
+                                  handleReply(item.id);
+                                }
+                              }}
+                              onPaste={handlePasteReplyFiles}
+                              rows={2}
+                              variant="borderless"
+                              style={{
+                                background: token.voidSurface,
+                                borderRadius: 8,
+                                border: `1px solid ${token.voidBorder}`,
+                              }}
+                            />
+                            <Flex align="center" gap={8} wrap>
+                              <Upload
+                                fileList={pendingReplyFiles}
+                                beforeUpload={handleAddPendingReplyFile}
+                                onRemove={(file) =>
+                                  setPendingReplyFiles((prev) =>
+                                    prev.filter((f) => f.uid !== file.uid)
+                                  )
+                                }
+                                maxCount={5}
+                                showUploadList={false}
                               >
-                                {fileName}
-                              </a>
-                            </Tag>
-                          );
-                        })}
+                                <Button
+                                  size="small"
+                                  type="text"
+                                  icon={<PaperClipOutlined />}
+                                  style={{
+                                    color: token.voidTextMuted,
+                                    padding: "0 6px",
+                                    height: 24,
+                                  }}
+                                />
+                              </Upload>
+                              {pendingReplyFiles.map((file) => (
+                                <Tag
+                                  key={file.uid}
+                                  closable
+                                  onClose={() =>
+                                    setPendingReplyFiles((prev) =>
+                                      prev.filter((f) => f.uid !== file.uid)
+                                    )
+                                  }
+                                  style={{
+                                    background: "transparent",
+                                    border: "none",
+                                    color: token.voidTextMuted,
+                                    fontSize: 11,
+                                    margin: 0,
+                                    padding: "0 4px",
+                                    maxWidth: 160,
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  {file.name}
+                                </Tag>
+                              ))}
+                              {isStaff && (
+                                <Tag.CheckableTag
+                                  checked={isPublicComment}
+                                  onChange={(checked) => setIsPublicComment(checked)}
+                                  style={{
+                                    borderRadius: 4,
+                                    fontSize: 11,
+                                    padding: "2px 8px",
+                                    background: isPublicComment
+                                      ? token.voidSurface
+                                      : "transparent",
+                                    border: isPublicComment
+                                      ? `1px solid ${token.colorSuccess || "#52c41a"}`
+                                      : `1px solid ${token.voidBorder}`,
+                                    color: isPublicComment
+                                      ? token.colorSuccess || "#52c41a"
+                                      : token.voidTextMuted,
+                                    fontWeight: isPublicComment ? 600 : 400,
+                                  }}
+                                >
+                                  {isPublicComment ? "✓ Para cliente" : "Para cliente"}
+                                </Tag.CheckableTag>
+                              )}
+                              <Flex gap={8} style={{ marginLeft: "auto" }}>
+                                <Button
+                                  size="small"
+                                  type="text"
+                                  onClick={() => {
+                                    setReplyingToCommentId(null);
+                                    setReplyText("");
+                                    setPendingReplyFiles([]);
+                                  }}
+                                >
+                                  Cancelar
+                                </Button>
+                                <Button
+                                  size="small"
+                                  type="primary"
+                                  onClick={() => handleReply(item.id)}
+                                >
+                                  Enviar
+                                </Button>
+                              </Flex>
+                            </Flex>
+                          </Flex>
+                        )}
                       </Flex>
-                    )}
-                    {isStaff && onUploadCommentAttachment && (
-                      <Upload
-                        showUploadList={false}
-                        customRequest={({ file }) => handleCommentUpload(item.id, file)}
-                      >
-                        <Button
-                          size="small"
-                          type="text"
-                          icon={<PaperClipOutlined />}
-                          style={{
-                            alignSelf: "flex-start",
-                            color: token.voidTextMuted,
-                            fontSize: 12,
-                            padding: 0,
-                            height: "auto",
-                          }}
-                        >
-                          Adjuntar archivo
-                        </Button>
-                      </Upload>
-                    )}
-                  </Flex>
-                }
-              />
-            </List.Item>
-          )}
-        />
+                    </Flex>
+                  </div>
+                  {item.children?.length > 0 && (
+                    <Flex vertical gap={12} style={{ marginTop: 12 }}>
+                      {item.children.map((child) => renderCommentCard(child, depth + 1))}
+                    </Flex>
+                  )}
+                </div>
+              );
+            };
+            return (
+              <Flex vertical gap={12}>
+                {buildCommentTree(comments).map((root) => renderCommentCard(root))}
+              </Flex>
+            );
+          })()
+        )}
       </Flex>
     ),
   };
@@ -1008,7 +1646,7 @@ const TicketDetailDrawer = ({
             background: token.glassBg,
             borderColor: token.glassBorder,
             borderRadius: token.voidRadius,
-            backdropFilter: "blur(10px)",
+  
           }}
         >
           <Flex vertical align="center" gap={8} style={{ padding: "8px 0" }}>
@@ -1082,34 +1720,82 @@ const TicketDetailDrawer = ({
       </Flex>
     ),
     children: ticket?.activity_logs?.length ? (
-      <Timeline
-        mode="left"
-        items={ticket.activity_logs.map((item) => ({
-          label: (
-            <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
-              {formatDateTime(item.created)}
-            </Text>
-          ),
-          children: (
-            <div>
-              <Text strong style={{ color: token.voidTextHeading }}>
-                {item.user_name || item.user || "Sistema"}
-              </Text>
-              <div>
-                {isCreationEvent(item) ? (
-                  <Text style={{ color: token.voidText }}>{item.new_value || "Ticket creado"}</Text>
-                ) : (
-                  <Text style={{ color: token.voidText }}>
-                    Cambió <Text strong style={{ color: token.voidTextHeading }}>{activityFieldLabel(item.field_name)}</Text>:{" "}
-                    <Text style={{ color: token.voidTextMuted }}>{formatActivityValue(item.field_name, item.old_value)}</Text>{" "}
-                    → <Text style={{ color: token.voidText }}>{formatActivityValue(item.field_name, item.new_value)}</Text>
+      <Flex vertical gap={12}>
+        {ticket.activity_logs.map((item, idx) => {
+          const isCreation = isCreationEvent(item);
+          return (
+            <div
+              key={idx}
+              style={{
+                padding: 12,
+                background: token.voidSurface,
+                borderRadius: 10,
+                border: `1px solid ${token.voidBorder}`,
+              }}
+            >
+              <Flex align="center" gap={8} style={{ marginBottom: 6 }}>
+                <Avatar
+                  size={28}
+                  style={{
+                    background: token.colorCorporateBlue,
+                    color: "#fff",
+                    fontSize: 11,
+                  }}
+                >
+                  {(item.user_name || item.user || "S").slice(0, 2).toUpperCase()}
+                </Avatar>
+                <Text strong style={{ fontSize: 13, color: token.voidTextHeading }}>
+                  {item.user_name || item.user || "Sistema"}
+                </Text>
+                <Text style={{ fontSize: 11, color: token.voidTextMuted, marginLeft: "auto" }}>
+                  {formatRelativeTime(item.created)}
+                </Text>
+              </Flex>
+              <div style={{ paddingLeft: 36 }}>
+                {isCreation ? (
+                  <Text style={{ color: token.voidText, fontSize: 13 }}>
+                    {item.new_value || "Ticket creado"}
                   </Text>
+                ) : (
+                  <Flex vertical gap={4}>
+                    <Text style={{ color: token.voidText, fontSize: 13 }}>
+                      Cambió{" "}
+                      <Text strong style={{ color: token.voidTextHeading }}>
+                        {activityFieldLabel(item.field_name)}
+                      </Text>
+                    </Text>
+                    <Flex align="center" gap={8} wrap>
+                      <Tag
+                        style={{
+                          margin: 0,
+                          background: "transparent",
+                          border: `1px solid ${token.voidBorder}`,
+                          color: token.voidTextMuted,
+                          fontSize: 11,
+                        }}
+                      >
+                        {formatActivityValue(item.field_name, item.old_value) || "—"}
+                      </Tag>
+                      <Text style={{ color: token.voidTextMuted }}>→</Text>
+                      <Tag
+                        style={{
+                          margin: 0,
+                          background: token.colorCorporateBlue,
+                          border: "none",
+                          color: "#fff",
+                          fontSize: 11,
+                        }}
+                      >
+                        {formatActivityValue(item.field_name, item.new_value) || "—"}
+                      </Tag>
+                    </Flex>
+                  </Flex>
                 )}
               </div>
             </div>
-          ),
-        }))}
-      />
+          );
+        })}
+      </Flex>
     ) : (
       <Empty description="Sin actividad registrada" />
     ),
@@ -1143,7 +1829,7 @@ const TicketDetailDrawer = ({
   return (
     <>
     <Drawer
-      title={<span style={{ color: token.voidTextHeading }}>Detalle del Ticket</span>}
+      title={<span style={{ color: token.voidTextHeading }}>Ticket #{ticket?.id || ticketId}</span>}
       open={open}
       onClose={onClose}
       width={isMobile ? "100%" : 640}
@@ -1152,7 +1838,7 @@ const TicketDetailDrawer = ({
           padding: isMobile ? 16 : 24,
           paddingBottom: 24,
           background: token.glassBg,
-          backdropFilter: "blur(10px)",
+
         },
         header: {
           background: token.glassBg,

@@ -84,6 +84,11 @@ const MyDeskPage = () => {
     deleteTicket,
     createComment,
     deleteComment,
+    updateComment,
+    likeComment,
+    getMentionableUsers,
+    getTicketNotifications,
+    markTicketNotificationsRead,
     uploadAttachment,
     uploadCommentAttachment,
     tasks,
@@ -610,6 +615,11 @@ const MyDeskPage = () => {
         onDelete={deleteTicket}
         onCreateComment={createComment}
         onDeleteComment={deleteComment}
+        onUpdateComment={updateComment}
+        onLikeComment={likeComment}
+        getMentionableUsers={getMentionableUsers}
+        getTicketNotifications={getTicketNotifications}
+        markTicketNotificationsRead={markTicketNotificationsRead}
         onUploadAttachment={uploadAttachment}
         onUploadCommentAttachment={uploadCommentAttachment}
         onConfirmScheduledDate={confirmScheduledDate}

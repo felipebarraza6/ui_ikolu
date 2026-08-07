@@ -1016,6 +1016,33 @@ const deleteTicketComment = async (ticketId, commentId) => {
   return rq.data;
 };
 
+const updateTicketComment = async (ticketId, commentId, data) => {
+  const rq = await PATCH(`ik/tickets/${ticketId}/comments/${commentId}/`, data);
+  return rq.data;
+};
+
+const likeTicketComment = async (ticketId, commentId) => {
+  const rq = await POST(`ik/tickets/${ticketId}/comments/${commentId}/like/`);
+  return rq.data;
+};
+
+const getTicketMentionableUsers = async (ticketId) => {
+  const rq = await GET(`ik/tickets/${ticketId}/mentionable_users/`);
+  return rq.data;
+};
+
+const getTicketNotifications = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const url = query ? `ik/tickets/notifications/?${query}` : "ik/tickets/notifications/";
+  const rq = await GET(url);
+  return rq.data;
+};
+
+const markTicketNotificationsRead = async (data) => {
+  const rq = await POST("ik/tickets/notifications/mark-read/", data);
+  return rq.data;
+};
+
 const getTicketAttachments = async (id) => {
   const rq = await GET(`ik/tickets/${id}/attachments/`);
   return rq.data;
@@ -1629,6 +1656,11 @@ const sh = {
     getComments: getTicketComments,
     createComment: createTicketComment,
     deleteComment: deleteTicketComment,
+    updateComment: updateTicketComment,
+    likeComment: likeTicketComment,
+    getMentionableUsers: getTicketMentionableUsers,
+    getNotifications: getTicketNotifications,
+    markNotificationsRead: markTicketNotificationsRead,
     getAttachments: getTicketAttachments,
     uploadAttachment: uploadTicketAttachment,
     uploadCommentAttachment,

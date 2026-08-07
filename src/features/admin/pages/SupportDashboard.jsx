@@ -9,7 +9,6 @@ import {
   Drawer,
   List,
   Tag,
-  Badge,
   Skeleton,
   message,
 } from "antd";
@@ -76,6 +75,11 @@ const SupportDashboard = () => {
     getAttachments,
     createComment,
     deleteComment,
+    updateComment,
+    likeComment,
+    getMentionableUsers,
+    getTicketNotifications,
+    markTicketNotificationsRead,
     uploadAttachment,
     uploadCommentAttachment,
     tasks,
@@ -441,25 +445,22 @@ const SupportDashboard = () => {
               title="Limpiar filtros"
             />
             {isSuperUser && (
-              <div style={{ display: "inline-flex", marginRight: 6, marginTop: 3 }}>
-                <Badge
-                  count={warningTickets.length}
-                  overflowCount={99}
-                  showZero={false}
-                >
-                  <Button
-                    icon={<WarningOutlined />}
-                    onClick={() => setWarningsOpen(true)}
-                    shape="circle"
-                    title="Advertencias"
-                    style={{
-                      background: token.voidSurface,
-                      borderColor: token.voidBorder,
-                      color: token.voidTextHeading,
-                    }}
-                  />
-                </Badge>
-              </div>
+              <Button
+                icon={<WarningOutlined />}
+                onClick={() => setWarningsOpen(true)}
+                title="Advertencias"
+                style={{
+                  background: token.voidSurface,
+                  borderColor: token.voidBorder,
+                  color: token.voidTextHeading,
+                }}
+              >
+                {warningTickets.length > 0
+                  ? warningTickets.length > 9
+                    ? "9+"
+                    : warningTickets.length
+                  : null}
+              </Button>
             )}
           </Flex>
         </Flex>
@@ -505,6 +506,11 @@ const SupportDashboard = () => {
         onDelete={deleteTicket}
         onCreateComment={createComment}
         onDeleteComment={deleteComment}
+        onUpdateComment={updateComment}
+        onLikeComment={likeComment}
+        getMentionableUsers={getMentionableUsers}
+        getTicketNotifications={getTicketNotifications}
+        markTicketNotificationsRead={markTicketNotificationsRead}
         onUploadAttachment={uploadAttachment}
         onUploadCommentAttachment={uploadCommentAttachment}
         onConfirmScheduledDate={confirmScheduledDate}

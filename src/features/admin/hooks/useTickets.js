@@ -10,7 +10,7 @@ import { validateTicketAttachment } from "../constants/tickets";
 const normalizeListResponse = (res) => {
   if (Array.isArray(res)) return { results: res, count: res.length };
   const results =
-    res?.results || res?.data || res?.attachments || res?.comments || [];
+    res?.results || res?.data || res?.tasks || res?.attachments || res?.comments || [];
   return {
     results,
     count: res?.count ?? results.length,
@@ -296,7 +296,6 @@ export const useTickets = (options = {}) => {
           delete payload.is_internal;
         }
         const res = await orchestrator.tickets.createComment(id, payload);
-        message.success("Comentario agregado");
         return res;
       } catch (err) {
         message.error(err.message || "Error al agregar comentario");
@@ -324,6 +323,71 @@ export const useTickets = (options = {}) => {
     },
     []
   );
+
+  const updateComment = useCallback(
+    async (ticketId, commentId, data) => {
+      try {
+        await orchestrator.tickets.updateComment(ticketId, commentId, data);
+        return true;
+      } catch (err) {
+        const status = err?.response?.status;
+        message.error(
+          status === 404
+            ? "El backend no soporta editar comentarios (endpoint no encontrado)"
+            : err.message || "Error al editar comentario"
+        );
+        return false;
+      }
+    },
+    []
+  );
+
+  const likeComment = useCallback(
+    async (ticketId, commentId) => {
+      try {
+        const res = await orchestrator.tickets.likeComment(ticketId, commentId);
+        return res;
+      } catch (err) {
+        const status = err?.response?.status;
+        message.error(
+          status === 404
+            ? "El backend no soporta likes en comentarios (endpoint no encontrado)"
+            : err.message || "Error al dar me gusta"
+        );
+        return null;
+      }
+    },
+    []
+  );
+
+  const getMentionableUsers = useCallback(async (ticketId) => {
+    try {
+      const res = await orchestrator.tickets.getMentionableUsers(ticketId);
+      return res?.users || [];
+    } catch (err) {
+      message.error(err.message || "Error al cargar usuarios mencionables");
+      return [];
+    }
+  }, []);
+
+  const getTicketNotifications = useCallback(async (params = {}) => {
+    try {
+      const res = await orchestrator.tickets.getNotifications(params);
+      return res;
+    } catch (err) {
+      message.error(err.message || "Error al cargar notificaciones");
+      return { results: [], unread_count: 0 };
+    }
+  }, []);
+
+  const markTicketNotificationsRead = useCallback(async (data) => {
+    try {
+      return await orchestrator.tickets.markNotificationsRead(data);
+    } catch (err) {
+      message.error(err.message || "Error al marcar notificaciones");
+      throw err;
+    }
+  }, []);
 
   const getAttachments = useCallback(async (id) => {
     try {
@@ -496,6 +560,11 @@ export const useTickets = (options = {}) => {
     getComments,
     createComment,
     deleteComment,
+    updateComment,
+    likeComment,
+    getMentionableUsers,
+    getTicketNotifications,
+    markTicketNotificationsRead,
     getAttachments,
     uploadAttachment,
     uploadCommentAttachment,
