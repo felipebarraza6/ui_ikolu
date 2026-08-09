@@ -81,7 +81,8 @@ const KanbanColumn = ({ column, tickets, onTicketClick, onDropTicket }) => {
           overflowY: "auto",
           scrollbarWidth: "thin",
           scrollbarColor: `rgba(255,255,255,0.1) transparent`,
-          paddingRight: 2,
+          padding: "4px 2px 4px 4px",
+          margin: "-2px 0",
         }}
       >
         {tickets.length === 0 ? (

@@ -45,7 +45,7 @@ const SmartCard = ({
 
   const hoverStyle = hover && isHovered ? {
     boxShadow: smarthydro.shadows.xl,
-    transform: "translateY(-2px)",
+    transform: "scale(1.015)",
     transition: smarthydro.transitions.slow,
   } : {};
 

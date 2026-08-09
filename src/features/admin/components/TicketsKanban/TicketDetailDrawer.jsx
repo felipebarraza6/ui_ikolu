@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import {
   Drawer,
   Tabs,
@@ -22,6 +22,7 @@ import {
   Badge,
   Dropdown,
   message,
+  Timeline,
 } from "antd";
 import {
   PaperClipOutlined,
@@ -36,11 +37,12 @@ import {
   FileOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
-  SearchOutlined,
   BellOutlined,
   HeartOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
+import html2canvas from "html2canvas";
 import { useNavigate } from "react-router-dom";
 import { format, formatDistanceToNow, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
@@ -61,7 +63,7 @@ import {
   getSlaStatus,
   isTicketInOT,
   validateTicketAttachment,
-  filterWorkOrderCategories,
+  groupWorkOrderCategoryOptions,
 } from "../../constants/tickets";
 
 const { Title, Text } = Typography;
@@ -117,6 +119,18 @@ const ACTIVITY_FIELD_LABELS = {
   scheduled_date: "Visita agendada",
   created_at: "Fecha de creación",
   updated_at: "Fecha de actualización",
+  comment_created: "Comentario creado",
+  comment_edited: "Comentario editado",
+  comment_deleted: "Comentario eliminado",
+  attachment_created: "Adjunto agregado",
+  attachment_deleted: "Adjunto eliminado",
+  task_created: "Tarea creada",
+  task_updated: "Tarea actualizada",
+  task_deleted: "Tarea eliminada",
+  visit_report: "Reporte de visita",
+  work_order_category: "Categoría OT",
+  system_event: "Evento de sistema",
+  alert_trigger: "Alerta",
 };
 
 const ACTIVITY_DATE_FIELDS = [
@@ -236,9 +250,10 @@ const TicketDetailDrawer = ({
   const [commentForm] = Form.useForm();
   const [otForm] = Form.useForm();
   const [activeTab, setActiveTab] = useState("info");
+  const activityRef = useRef(null);
 
-  const workOrderCategories = useMemo(
-    () => filterWorkOrderCategories(categories || []),
+  const workOrderCategoryOptions = useMemo(
+    () => groupWorkOrderCategoryOptions(categories || []),
     [categories]
   );
 
@@ -341,6 +356,11 @@ const TicketDetailDrawer = ({
     load();
   };
 
+  const handleChangeOtCategory = async (categoryId) => {
+    await onChangeStatus(ticketId, "EN_ORDEN_TRABAJO", categoryId);
+    load();
+  };
+
   const handleAssign = async (userId) => {
     await onAssign(ticketId, userId);
     load();
@@ -419,6 +439,21 @@ const TicketDetailDrawer = ({
   const handleDelete = async () => {
     await onDelete(ticketId);
     onClose();
+  };
+
+  const handleDownloadActivityImage = async () => {
+    if (!activityRef.current || !ticket) return;
+    const canvas = await html2canvas(activityRef.current, {
+      backgroundColor: token.glassBg || "#0d1a2c",
+      scale: 2,
+    });
+    const url = canvas.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `actividad-ticket-${ticket.id}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   const handleDeleteComment = async (commentId) => {
@@ -726,6 +761,12 @@ const TicketDetailDrawer = ({
     };
   });
 
+  const resolveMediaUrl = (url) => {
+    if (!url) return url;
+    if (/^https?:\/\//i.test(url)) return url;
+    return `https://api.smarthydro.app${url.startsWith("/") ? "" : "/"}${url}`;
+  };
+
   const resolveCategoryName = (ticket) => {
     if (!ticket) return "-";
     if (ticket.category_detail?.name) return ticket.category_detail.name;
@@ -783,6 +824,22 @@ const TicketDetailDrawer = ({
           </Form>
         ) : (
           <Flex vertical gap={12}>
+            {isTicketInOT(ticket?.status) && (
+              <div>
+                <Text strong style={{ display: "block", marginBottom: 6, color: token.voidTextHeading }}>
+                  Categoría OT
+                </Text>
+                <Select
+                  value={ticket.work_order_category ?? undefined}
+                  style={{ width: "100%" }}
+                  onChange={handleChangeOtCategory}
+                  options={workOrderCategoryOptions}
+                  showSearch
+                  optionFilterProp="label"
+                  placeholder="Seleccionar categoría OT"
+                />
+              </div>
+            )}
             <Descriptions bordered size="small" column={1}>
               <Descriptions.Item label="Fecha programada">
                 {ticket.scheduled_date ? formatDate(ticket.scheduled_date) : "Sin fecha"}
@@ -905,178 +962,185 @@ const TicketDetailDrawer = ({
         ),
         children: (
           <Flex vertical gap={16}>
-            <Flex justify="space-between" align="flex-start" gap={12}>
-              <div>
-                <Text style={{ color: token.voidTextMuted }}>#{ticket.id}</Text>
-                <Title level={4} style={{ margin: 0, color: token.voidTextHeading }}>
-                  {ticket.title || `Ticket #${ticket.id}`}
-                </Title>
-              </div>
-              <Tag color={getTicketPriorityConfig(ticket.priority).color}>
-                {getTicketPriorityConfig(ticket.priority).label}
-              </Tag>
-            </Flex>
-
-            <Descriptions bordered size="small" column={1}>
-              <Descriptions.Item label="Cliente">
-                {ticket.client_name || "-"}
-              </Descriptions.Item>
-              <Descriptions.Item label="Punto(s) de captación">
-                {resolvePointsLabel(ticket)}
-              </Descriptions.Item>
-              <Descriptions.Item label="Estado">
-                <SmartBadge variant="void" size="sm">
-                  {getTicketStatusLabel(ticket.status)}
-                </SmartBadge>
-              </Descriptions.Item>
-              <Descriptions.Item label="Prioridad">
-                {getTicketPriorityConfig(ticket.priority).label}
-              </Descriptions.Item>
-              <Descriptions.Item label="Categoría">
-                {resolveCategoryName(ticket)}
-              </Descriptions.Item>
-              {ticket.work_order_category_detail && (
-                <Descriptions.Item label="Categoría OT">
-                  {ticket.work_order_category_detail.name || `Categoría ${ticket.work_order_category}`}
-                </Descriptions.Item>
-              )}
-              <Descriptions.Item label="Origen">
-                {getTicketOriginLabel(ticket.origin) || ticket.origin || "-"}
-              </Descriptions.Item>
-              <Descriptions.Item label="Canal">
-                {getTicketSourceLabel(ticket.source) || ticket.source || "-"}
-              </Descriptions.Item>
-              <Descriptions.Item label="Creado">
-                {formatTicketDateTime(ticket, "created", "created_at")}
-              </Descriptions.Item>
-              <Descriptions.Item label="Creado por">
-                {ticket.created_by_name || (ticket.created_by ? `Usuario ${ticket.created_by}` : ticket.source === "SISTEMA" || ticket.origin === "INTERNO" ? "Sistema" : "-")}
-              </Descriptions.Item>
-              <Descriptions.Item label="Asignado a">
-                {ticket.assigned_to_name || (ticket.assigned_to ? `Usuario ${ticket.assigned_to}` : "Sin asignar")}
-              </Descriptions.Item>
-              <Descriptions.Item label="Actualizado">
-                {formatTicketDateTime(ticket, "modified", "updated_at")}
-              </Descriptions.Item>
-              <Descriptions.Item label="SLA Respuesta">
-                <SlaDetail deadline={ticket.sla_deadline_response} doneAt={ticket.sla_responded_at} ticketStatus={ticket.status} />
-              </Descriptions.Item>
-              <Descriptions.Item label="SLA Resolución">
-                <SlaDetail deadline={ticket.sla_deadline_resolution} doneAt={ticket.sla_resolved_at} ticketStatus={ticket.status} />
-              </Descriptions.Item>
-              {ticket.scheduled_date && (
-                <Descriptions.Item label="Fecha programada">
-                  {formatTicketDateOnly(ticket, "scheduled_date")}
-                </Descriptions.Item>
-              )}
-              {ticket.visit_report && (
-                <Descriptions.Item label="Reporte de visita">
-                  <Text style={{ whiteSpace: "pre-wrap" }}>{ticket.visit_report}</Text>
-                </Descriptions.Item>
-              )}
-              {ticket.alert_trigger && (
-                <Descriptions.Item label="Alerta">
-                  Alerta #{ticket.alert_trigger}
-                </Descriptions.Item>
-              )}
-              {ticket.system_event && (
-                <Descriptions.Item label="Evento de sistema">
-                  Evento #{ticket.system_event}
-                </Descriptions.Item>
-              )}
-            </Descriptions>
-
-            <div>
-              <Text strong style={{ color: token.voidTextHeading }}>
-                Descripción
-              </Text>
-              <div
-                style={{
-                  padding: 12,
-                  background: token.glassBg,
-                  borderRadius: token.voidRadius,
-                  border: `1px solid ${token.glassBorder}`,
-        
-                  marginTop: 8,
-                }}
+            <Flex
+              wrap={isMobile ? "wrap" : "nowrap"}
+              gap={isMobile ? 16 : 24}
+              align="flex-start"
+            >
+              {/* Columna izquierda: título, descripción, acciones */}
+              <Flex
+                vertical
+                gap={16}
+                style={{ flex: isMobile ? "1 1 100%" : "1 1 55%", minWidth: isMobile ? "100%" : 0 }}
               >
-                <Text style={{ whiteSpace: "pre-wrap", color: token.voidText }}>
-                  {ticket.description || "-"}
-                </Text>
-              </div>
-            </div>
+                <Flex justify="space-between" align="flex-start" gap={12}>
+                  <div>
+                    <Text style={{ color: token.voidTextMuted }}>#{ticket.id}</Text>
+                    <Title level={4} style={{ margin: 0, color: token.voidTextHeading }}>
+                      {ticket.title || `Ticket #${ticket.id}`}
+                    </Title>
+                  </div>
+                  <Tag color={getTicketPriorityConfig(ticket.priority).color}>
+                    {getTicketPriorityConfig(ticket.priority).label}
+                  </Tag>
+                </Flex>
 
-            {renderOtSection()}
-
-            <Flex gap={16} wrap>
-              <div>
-                <Text strong style={{ display: "block", marginBottom: 6, color: token.voidTextHeading }}>
-                  Cambiar estado
-                </Text>
-                <Select
-                  value={ticket.status}
-                  style={{ width: 180 }}
-                  onChange={handleStatusChange}
-                  options={STATUS_OPTIONS}
-                />
-                {pendingOtStatus === "EN_ORDEN_TRABAJO" && (
-                  <Flex align="center" gap={8} wrap style={{ marginTop: 8 }}>
-                    <Select
-                      placeholder="Categoría de la OT"
-                      style={{ width: 220 }}
-                      value={otCategory}
-                      onChange={setOtCategory}
-                      options={workOrderCategories.map((c) => ({
-                        value: c.id,
-                        label: c.name || `Categoría ${c.id}`,
-                      }))}
-                      showSearch
-                      optionFilterProp="label"
-                    />
-                    <SmartButton variant="void" size="sm" onClick={handleConfirmOtStatus}>
-                      Aplicar estado OT
-                    </SmartButton>
-                    <SmartButton variant="voidGhost" size="sm" onClick={() => setPendingOtStatus(null)}>
-                      Cancelar
-                    </SmartButton>
-                  </Flex>
-                )}
-              </div>
-              <div>
-                <Text strong style={{ display: "block", marginBottom: 6, color: token.voidTextHeading }}>
-                  Asignar a
-                </Text>
-                <Select
-                  value={ticket.assigned_to || undefined}
-                  style={{ width: 220 }}
-                  onChange={handleAssign}
-                  options={userOptions}
-                  allowClear
-                  placeholder={ticket.assigned_to_name || "Seleccionar usuario"}
-                />
-                {ticket.assigned_to_name && (
-                  <Text style={{ fontSize: 12, display: "block", marginTop: 4, color: token.voidTextMuted }}>
-                    Actual: {ticket.assigned_to_name}
+                <div>
+                  <Text strong style={{ color: token.voidTextHeading }}>
+                    Descripción
                   </Text>
-                )}
-              </div>
-
-              {ticket.status === "ABIERTO" && (
-                <div style={{ marginLeft: "auto", alignSelf: "flex-end" }}>
-                  <Popconfirm
-                    title="¿Eliminar ticket?"
-                    description="Esta acción no se puede deshacer."
-                    onConfirm={handleDelete}
-                    okText="Eliminar"
-                    okButtonProps={{ danger: true }}
-                    cancelText="Cancelar"
+                  <div
+                    style={{
+                      padding: 12,
+                      background: token.glassBg,
+                      borderRadius: token.voidRadius,
+                      border: `1px solid ${token.glassBorder}`,
+                      marginTop: 8,
+                    }}
                   >
-                    <Button danger icon={<DeleteOutlined />}>
-                      Eliminar
-                    </Button>
-                  </Popconfirm>
+                    <Text style={{ whiteSpace: "pre-wrap", color: token.voidText }}>
+                      {ticket.description || "-"}
+                    </Text>
+                  </div>
                 </div>
-              )}
+
+                {renderOtSection()}
+
+                <Flex gap={16} wrap style={{ width: "100%" }}>
+                  <div>
+                    <Text strong style={{ display: "block", marginBottom: 6, color: token.voidTextHeading }}>
+                      Cambiar estado
+                    </Text>
+                    <Select
+                      value={ticket.status}
+                      style={{ width: 180 }}
+                      onChange={handleStatusChange}
+                      options={STATUS_OPTIONS}
+                    />
+                    {pendingOtStatus === "EN_ORDEN_TRABAJO" && (
+                      <Flex align="center" gap={8} wrap style={{ marginTop: 8 }}>
+                        <Select
+                          placeholder="Categoría de la OT"
+                          style={{ width: 220 }}
+                          value={otCategory}
+                          onChange={setOtCategory}
+                          options={workOrderCategoryOptions}
+                          showSearch
+                          optionFilterProp="label"
+                        />
+                        <SmartButton variant="void" size="sm" onClick={handleConfirmOtStatus}>
+                          Aplicar estado OT
+                        </SmartButton>
+                        <SmartButton variant="voidGhost" size="sm" onClick={() => setPendingOtStatus(null)}>
+                          Cancelar
+                        </SmartButton>
+                      </Flex>
+                    )}
+                  </div>
+                  <div>
+                    <Text strong style={{ display: "block", marginBottom: 6, color: token.voidTextHeading }}>
+                      Asignar a
+                    </Text>
+                    <Select
+                      value={ticket.assigned_to || undefined}
+                      style={{ width: 220 }}
+                      onChange={handleAssign}
+                      options={userOptions}
+                      allowClear
+                      placeholder={ticket.assigned_to_name || "Seleccionar usuario"}
+                    />
+                    {ticket.assigned_to_name && (
+                      <Text style={{ fontSize: 12, display: "block", marginTop: 4, color: token.voidTextMuted }}>
+                        Actual: {ticket.assigned_to_name}
+                      </Text>
+                    )}
+                  </div>
+
+                  {ticket.status === "ABIERTO" && (
+                    <div style={{ marginLeft: "auto", alignSelf: "flex-end" }}>
+                      <Popconfirm
+                        title="¿Eliminar ticket?"
+                        description="Esta acción no se puede deshacer."
+                        onConfirm={handleDelete}
+                        okText="Eliminar"
+                        okButtonProps={{ danger: true }}
+                        cancelText="Cancelar"
+                      >
+                        <Button danger type="text" icon={<DeleteOutlined />} aria-label="Eliminar ticket" />
+                      </Popconfirm>
+                    </div>
+                  )}
+                </Flex>
+              </Flex>
+
+              {/* Columna derecha: tabla de datos */}
+              <div style={{ flex: isMobile ? "1 1 100%" : "0 0 45%", minWidth: isMobile ? "100%" : 360 }}>
+                <Descriptions bordered size="small" column={1} style={{ width: "100%" }}>
+                  <Descriptions.Item label="Cliente">
+                    {ticket.client_name || "-"}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Punto(s) de captación">
+                    {resolvePointsLabel(ticket)}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Estado">
+                    <SmartBadge variant="void" size="sm">
+                      {getTicketStatusLabel(ticket.status)}
+                    </SmartBadge>
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Prioridad">
+                    {getTicketPriorityConfig(ticket.priority).label}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Categoría">
+                    {resolveCategoryName(ticket)}
+                  </Descriptions.Item>
+                  {ticket.work_order_category_detail && (
+                    <Descriptions.Item label="Categoría OT">
+                      {ticket.work_order_category_detail.name || `Categoría ${ticket.work_order_category}`}
+                    </Descriptions.Item>
+                  )}
+                <Descriptions.Item label="Canal">
+                  {getTicketSourceLabel(ticket.source) || ticket.source || "-"}
+                </Descriptions.Item>
+                <Descriptions.Item label="Creado">
+                    {formatTicketDateTime(ticket, "created", "created_at")}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Creado por">
+                    {ticket.created_by_name || (ticket.created_by ? `Usuario ${ticket.created_by}` : ticket.source === "SISTEMA" || ticket.origin === "INTERNO" ? "Sistema" : "-")}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Asignado a">
+                    {ticket.assigned_to_name || (ticket.assigned_to ? `Usuario ${ticket.assigned_to}` : "Sin asignar")}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Actualizado">
+                    {formatTicketDateTime(ticket, "modified", "updated_at")}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="SLA Respuesta">
+                    <SlaDetail deadline={ticket.sla_deadline_response} doneAt={ticket.sla_responded_at} ticketStatus={ticket.status} />
+                  </Descriptions.Item>
+                  <Descriptions.Item label="SLA Resolución">
+                    <SlaDetail deadline={ticket.sla_deadline_resolution} doneAt={ticket.sla_resolved_at} ticketStatus={ticket.status} />
+                  </Descriptions.Item>
+                  {ticket.scheduled_date && (
+                    <Descriptions.Item label="Fecha programada">
+                      {formatTicketDateOnly(ticket, "scheduled_date")}
+                    </Descriptions.Item>
+                  )}
+                  {ticket.visit_report && (
+                    <Descriptions.Item label="Reporte de visita">
+                      <Text style={{ whiteSpace: "pre-wrap" }}>{ticket.visit_report}</Text>
+                    </Descriptions.Item>
+                  )}
+                  {ticket.alert_trigger && (
+                    <Descriptions.Item label="Alerta">
+                      Alerta #{ticket.alert_trigger}
+                    </Descriptions.Item>
+                  )}
+                  {ticket.system_event && (
+                    <Descriptions.Item label="Evento de sistema">
+                      Evento #{ticket.system_event}
+                    </Descriptions.Item>
+                  )}
+                </Descriptions>
+              </div>
             </Flex>
           </Flex>
         ),
@@ -1421,15 +1485,13 @@ const TicketDetailDrawer = ({
                             {item.attachments?.length > 0 && (
                               <Flex wrap gap={6}>
                                 {item.attachments.map((att) => {
-                                  const fileUrl = att.file_url || att.file || att.url;
+                                  const fileUrl = resolveMediaUrl(att.file_url || att.file || att.url);
                                   const fileName =
                                     att.original_name || att.name || att.filename || `Adjunto ${att.id}`;
                                   return (
                                     <a
                                       key={att.id}
                                       href={fileUrl}
-                                      target="_blank"
-                                      rel="noreferrer"
                                       download={fileName}
                                       style={{
                                         fontSize: 12,
@@ -1661,11 +1723,12 @@ const TicketDetailDrawer = ({
         </Upload.Dragger>
         {attachments.length > 0 && (
           <Input
-            allowClear
-            prefix={<SearchOutlined style={{ color: token.voidTextMuted }} />}
+            size="small"
+            variant="borderless"
             placeholder="Filtrar adjuntos por nombre..."
             value={attachmentSearch}
             onChange={(e) => setAttachmentSearch(e.target.value)}
+            allowClear
           />
         )}
         <List
@@ -1676,7 +1739,7 @@ const TicketDetailDrawer = ({
             ),
           }}
           renderItem={(item) => {
-            const fileUrl = item.file_url || item.file || item.url;
+                    const fileUrl = resolveMediaUrl(item.file_url || item.file || item.url);
             const fileName = item.original_name || item.name || item.filename || `Adjunto ${item.id}`;
             return (
               <List.Item>
@@ -1719,85 +1782,103 @@ const TicketDetailDrawer = ({
         <HistoryOutlined /> Actividad ({ticket?.activity_logs?.length || 0})
       </Flex>
     ),
-    children: ticket?.activity_logs?.length ? (
+    children: (
       <Flex vertical gap={12}>
-        {ticket.activity_logs.map((item, idx) => {
-          const isCreation = isCreationEvent(item);
-          return (
-            <div
-              key={idx}
-              style={{
-                padding: 12,
-                background: token.voidSurface,
-                borderRadius: 10,
-                border: `1px solid ${token.voidBorder}`,
-              }}
-            >
-              <Flex align="center" gap={8} style={{ marginBottom: 6 }}>
-                <Avatar
-                  size={28}
-                  style={{
-                    background: token.colorCorporateBlue,
-                    color: "#fff",
-                    fontSize: 11,
-                  }}
-                >
-                  {(item.user_name || item.user || "S").slice(0, 2).toUpperCase()}
-                </Avatar>
-                <Text strong style={{ fontSize: 13, color: token.voidTextHeading }}>
-                  {item.user_name || item.user || "Sistema"}
-                </Text>
-                <Text style={{ fontSize: 11, color: token.voidTextMuted, marginLeft: "auto" }}>
-                  {formatRelativeTime(item.created)}
-                </Text>
-              </Flex>
-              <div style={{ paddingLeft: 36 }}>
-                {isCreation ? (
-                  <Text style={{ color: token.voidText, fontSize: 13 }}>
-                    {item.new_value || "Ticket creado"}
-                  </Text>
-                ) : (
-                  <Flex vertical gap={4}>
-                    <Text style={{ color: token.voidText, fontSize: 13 }}>
-                      Cambió{" "}
-                      <Text strong style={{ color: token.voidTextHeading }}>
-                        {activityFieldLabel(item.field_name)}
-                      </Text>
+        <Flex justify="space-between" align="center">
+          <Text strong style={{ color: token.voidTextHeading }}>
+            Actividad del ticket
+          </Text>
+          {ticket?.activity_logs?.length > 0 && (
+            <Button icon={<DownloadOutlined />} size="small" onClick={handleDownloadActivityImage}>
+              Descargar imagen
+            </Button>
+          )}
+        </Flex>
+        <div ref={activityRef}>
+            {ticket?.activity_logs?.length ? (
+              <Timeline
+                mode="left"
+                style={{ paddingTop: 8 }}
+                items={ticket.activity_logs
+                  .filter((item) => {
+                    const field = String(item.field_name || "").toLowerCase();
+                    return !field.startsWith("comment_");
+                  })
+                  .map((item, idx) => {
+                const isCreation = isCreationEvent(item);
+                return {
+                  key: idx,
+                  label: (
+                    <Text style={{ fontSize: 11, color: token.voidTextMuted }}>
+                      {formatRelativeTime(item.created)}
                     </Text>
-                    <Flex align="center" gap={8} wrap>
-                      <Tag
-                        style={{
-                          margin: 0,
-                          background: "transparent",
-                          border: `1px solid ${token.voidBorder}`,
-                          color: token.voidTextMuted,
-                          fontSize: 11,
-                        }}
-                      >
-                        {formatActivityValue(item.field_name, item.old_value) || "—"}
-                      </Tag>
-                      <Text style={{ color: token.voidTextMuted }}>→</Text>
-                      <Tag
-                        style={{
-                          margin: 0,
-                          background: token.colorCorporateBlue,
-                          border: "none",
-                          color: "#fff",
-                          fontSize: 11,
-                        }}
-                      >
-                        {formatActivityValue(item.field_name, item.new_value) || "—"}
-                      </Tag>
-                    </Flex>
-                  </Flex>
-                )}
-              </div>
-            </div>
-          );
-        })}
+                  ),
+                  children: (
+                    <div style={{ paddingBottom: 8 }}>
+                      <Flex align="center" gap={8} style={{ marginBottom: 4 }}>
+                        <Avatar
+                          size={24}
+                          style={{
+                            background: token.colorCorporateBlue,
+                            color: "#fff",
+                            fontSize: 10,
+                          }}
+                        >
+                          {(item.user_name || item.user || "S").slice(0, 2).toUpperCase()}
+                        </Avatar>
+                        <Text strong style={{ fontSize: 12, color: token.voidTextHeading }}>
+                          {item.user_name || item.user || "Sistema"}
+                        </Text>
+                      </Flex>
+                      {isCreation ? (
+                        <Text style={{ color: token.voidText, fontSize: 13 }}>
+                          {`Ticket #${ticket.id} creado`}
+                        </Text>
+                      ) : (
+                        <Flex vertical gap={4}>
+                          <Text style={{ color: token.voidText, fontSize: 13 }}>
+                            Cambió{" "}
+                            <Text strong style={{ color: token.voidTextHeading }}>
+                              {activityFieldLabel(item.field_name)}
+                            </Text>
+                          </Text>
+                          <Flex align="center" gap={8} wrap>
+                            <Tag
+                              style={{
+                                margin: 0,
+                                background: "transparent",
+                                border: `1px solid ${token.voidBorder}`,
+                                color: token.voidTextMuted,
+                                fontSize: 11,
+                              }}
+                            >
+                              {formatActivityValue(item.field_name, item.old_value) || "—"}
+                            </Tag>
+                            <Text style={{ color: token.voidTextMuted }}>→</Text>
+                            <Tag
+                              style={{
+                                margin: 0,
+                                background: token.colorCorporateBlue,
+                                border: "none",
+                                color: "#fff",
+                                fontSize: 11,
+                              }}
+                            >
+                              {formatActivityValue(item.field_name, item.new_value) || "—"}
+                            </Tag>
+                          </Flex>
+                        </Flex>
+                      )}
+                    </div>
+                  ),
+                };
+              })}
+            />
+          ) : (
+            <Empty description="Sin actividad registrada" />
+          )}
+        </div>
       </Flex>
-    ) : (
-      <Empty description="Sin actividad registrada" />
     ),
   };
 
@@ -1815,7 +1896,10 @@ const TicketDetailDrawer = ({
         loading={loading}
         onCreate={onCreateTask}
         onUpdate={onUpdateTask}
-        onDelete={onDeleteTask}
+        onDelete={async (taskId) => {
+          await onDeleteTask(taskId);
+          setTasks((prev) => prev.filter((t) => t.id !== taskId));
+        }}
         onUploadAttachment={onUploadTaskAttachment}
         users={users}
         isStaff={isStaff}
@@ -1832,7 +1916,7 @@ const TicketDetailDrawer = ({
       title={<span style={{ color: token.voidTextHeading }}>Ticket #{ticket?.id || ticketId}</span>}
       open={open}
       onClose={onClose}
-      width={isMobile ? "100%" : 640}
+      width={isMobile ? "100%" : 1000}
       styles={{
         body: {
           padding: isMobile ? 16 : 24,

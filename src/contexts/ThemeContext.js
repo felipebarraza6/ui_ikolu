@@ -1,48 +1,23 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import React, { createContext, useContext, useEffect, useMemo } from "react";
 import { theme } from "antd";
 import { createIkoluTheme } from "../theme";
-
-const THEME_KEY = "ikolu-theme";
 
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  const [isDark, setIsDark] = useState(() => {
-    try {
-      const stored = localStorage.getItem(THEME_KEY);
-      if (stored) return stored === "dark";
-      return window.matchMedia("(prefers-color-scheme: dark)").matches;
-    } catch {
-      return false;
-    }
-  });
-
   useEffect(() => {
-    try {
-      localStorage.setItem(THEME_KEY, isDark ? "dark" : "light");
-    } catch {}
+    document.body.classList.add("dark");
+    document.documentElement.setAttribute("data-theme", "dark");
+  }, []);
 
-    if (isDark) {
-      document.body.classList.add("dark");
-      document.documentElement.setAttribute("data-theme", "dark");
-    } else {
-      document.body.classList.remove("dark");
-      document.documentElement.setAttribute("data-theme", "light");
-    }
-  }, [isDark]);
+  const algorithm = theme.darkAlgorithm;
 
-  const algorithm = isDark ? theme.darkAlgorithm : theme.defaultAlgorithm;
-  const toggleTheme = useCallback(() => setIsDark((prev) => !prev), []);
-
-  // Generar config para consumo en componentes
-  const themeConfig = useMemo(
-    () => createIkoluTheme(algorithm, isDark),
-    [algorithm, isDark]
-  );
+  // Generar configuración para consumo en componentes
+  const themeConfig = useMemo(() => createIkoluTheme(algorithm, true), [algorithm]);
 
   const contextValue = useMemo(
-    () => ({ isDark, setIsDark, toggleTheme, algorithm, themeConfig }),
-    [isDark, setIsDark, toggleTheme, algorithm, themeConfig]
+    () => ({ isDark: true, setIsDark: () => {}, toggleTheme: () => {}, algorithm, themeConfig }),
+    [algorithm, themeConfig]
   );
 
   return (

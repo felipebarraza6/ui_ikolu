@@ -15,8 +15,8 @@ import { es } from "date-fns/locale";
 
 export const TICKET_STATUS = {
   ABIERTO: { value: "ABIERTO", label: "Abierto", column: "new" },
-  EN_ANALISIS: { value: "EN_ANALISIS", label: "En análisis", column: "review" },
-  EN_ORDEN_TRABAJO: { value: "EN_ORDEN_TRABAJO", label: "En OT", column: "ot" },
+  EN_ANALISIS: { value: "EN_ANALISIS", label: "Análisis", column: "review" },
+  EN_ORDEN_TRABAJO: { value: "EN_ORDEN_TRABAJO", label: "Orden de Trabajo", column: "ot" },
   ESPERA_CLIENTE: { value: "ESPERA_CLIENTE", label: "Espera cliente", column: "progress" },
   ESPERA_PROVEEDOR: { value: "ESPERA_PROVEEDOR", label: "Espera proveedor", column: "progress" },
   RESUELTO: { value: "RESUELTO", label: "Resuelto", column: "resolved" },
@@ -48,17 +48,17 @@ export const getTicketColumn = (status) => {
  */
 export const KANBAN_COLUMNS = [
   { key: "new", label: "Nuevo", statuses: ["ABIERTO"], dropStatus: "ABIERTO" },
-  { key: "review", label: "En Análisis", statuses: ["EN_ANALISIS"], dropStatus: "EN_ANALISIS" },
-  { key: "ot", label: "En OT", statuses: ["EN_ORDEN_TRABAJO"], dropStatus: "EN_ORDEN_TRABAJO" },
+  { key: "review", label: "Análisis", statuses: ["EN_ANALISIS"], dropStatus: "EN_ANALISIS" },
+  { key: "ot", label: "Orden de Trabajo", statuses: ["EN_ORDEN_TRABAJO"], dropStatus: "EN_ORDEN_TRABAJO" },
   {
     key: "progress",
-    label: "En Espera",
+    label: "Espera",
     statuses: ["ESPERA_CLIENTE", "ESPERA_PROVEEDOR"],
     dropStatus: "ESPERA_CLIENTE",
   },
   {
     key: "resolved",
-    label: "Resuelto / Cerrado",
+    label: "Completado",
     statuses: ["RESUELTO", "CERRADO", "CANCELADO"],
     dropStatus: "RESUELTO",
   },
@@ -152,9 +152,9 @@ export const getTicketOtBadgeLabel = (ticket) => {
 
 export const TICKET_PRIORITY = {
   BAJA: { value: "BAJA", label: "Baja", color: "success", variant: "success", borderColor: "#2A9D8F" },
-  MEDIA: { value: "MEDIA", label: "Media", color: "default", variant: "void", borderColor: "#5B8DEF" },
+  MEDIA: { value: "MEDIA", label: "Media", color: "blue", variant: "void", borderColor: "#5B8DEF" },
   ALTA: { value: "ALTA", label: "Alta", color: "warning", variant: "warning", borderColor: "#F4A261" },
-  CRITICA: { value: "CRITICA", label: "Crítica", color: "error", variant: "error", borderColor: "#E76F51" },
+  CRITICA: { value: "CRITICA", label: "Crítica", color: "error", variant: "error", borderColor: "#E63946" },
 };
 
 export const PRIORITY_OPTIONS = Object.values(TICKET_PRIORITY).map(({ value, label }) => ({
@@ -552,10 +552,57 @@ export const getTaskPriorityConfig = (priority) => getTicketPriorityConfig(prior
 export const getTaskPriorityLabel = (priority) => getTaskPriorityConfig(priority).label;
 
 /**
- * Devuelve las categorías de tipo WORK_ORDER (para asignar una OT).
+ * Devuelve las categorías de tipo WORK_ORDER seleccionables para una OT.
+ * Excluye las categorías padre (las que agrupan subcategorías), ya que
+ * solo existen para ordenar el catálogo.
  */
-export const filterWorkOrderCategories = (categories = []) =>
-  categories.filter((c) => String(c.category_type || "").toUpperCase() === "WORK_ORDER");
+export const filterWorkOrderCategories = (categories = []) => {
+  const workOrder = categories.filter(
+    (c) => String(c.category_type || "").toUpperCase() === "WORK_ORDER"
+  );
+  const parentIds = new Set(
+    workOrder
+      .map((c) => c.parent?.id ?? c.parent)
+      .filter((id) => id != null)
+  );
+  return workOrder.filter((c) => !parentIds.has(c.id));
+};
+
+/**
+ * Agrupa las categorías WORK_ORDER seleccionables bajo su categoría padre
+ * (p. ej. Software / Hardware), igual que la página de Categorías. Los
+ * padres solo agrupan, no se eligen. Devuelve opciones listas para un
+ * Select de Ant Design (con optgroups).
+ */
+export const groupWorkOrderCategoryOptions = (categories = []) => {
+  const workOrder = categories.filter(
+    (c) => String(c.category_type || "").toUpperCase() === "WORK_ORDER"
+  );
+  const byId = new Map(workOrder.map((c) => [c.id, c]));
+  const groups = new Map();
+  const orphans = [];
+
+  filterWorkOrderCategories(categories).forEach((c) => {
+    const parentId = c.parent?.id ?? c.parent ?? null;
+    const parent = parentId != null ? byId.get(parentId) : null;
+    if (parent) {
+      if (!groups.has(parent.id)) groups.set(parent.id, []);
+      groups.get(parent.id).push(c);
+    } else {
+      orphans.push(c);
+    }
+  });
+
+  const toOption = (c) => ({ value: c.id, label: c.name || `Categoría ${c.id}` });
+  const options = [...groups.entries()]
+    .map(([parentId, children]) => ({
+      label: byId.get(parentId)?.name || `Categoría ${parentId}`,
+      options: children.map(toOption),
+    }))
+    .sort((a, b) => String(a.label).localeCompare(String(b.label), "es"));
+  options.push(...orphans.map(toOption));
+  return options;
+};
 
 // ============================================================================
 // FILTROS DE SLA

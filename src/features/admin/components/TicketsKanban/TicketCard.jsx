@@ -106,14 +106,6 @@ const TicketCard = ({ ticket, onClick }) => {
 
   const slaAlert = slaVariant === "error" || slaVariant === "warning";
 
-  const priorityColor = (() => {
-    const upper = String(ticket.priority || "").toUpperCase();
-    if (upper === "CRITICA") return "#E76F51";
-    if (upper === "ALTA") return "#F4A261";
-    if (upper === "MEDIA") return token.voidTextHeading;
-    return "#6C757D";
-  })();
-
   return (
     <div
       draggable
@@ -122,17 +114,16 @@ const TicketCard = ({ ticket, onClick }) => {
         e.dataTransfer.effectAllowed = "move";
       }}
       onClick={() => onClick?.(ticket)}
-      style={{ cursor: "grab" }}
+      style={{ cursor: "grab", width: "100%", minWidth: 0 }}
     >
       <SmartCard variant="void"
         hover
         style={{
+          width: "100%",
           marginBottom: 6,
-          borderLeft: `2px solid ${slaVariant === "error" ? token.colorError : priorityColor}`,
-          boxShadow: slaVariant === "error" ? `0 0 0 1px ${token.colorErrorBorder}, 0 2px 8px ${token.colorError}14` : undefined,
           overflow: "hidden",
         }}
-        bodyStyle={{ padding: "6px 8px" }}
+        bodyStyle={{ padding: "6px 8px", minWidth: 0 }}
       >
         <Flex vertical gap={3}>
           <Flex justify="space-between" align="center" gap={6}>
@@ -157,7 +148,7 @@ const TicketCard = ({ ticket, onClick }) => {
             )}
           </Flex>
 
-          <Flex wrap gap={4} align="center">
+          <Flex wrap gap={4} align="center" style={{ maxWidth: "100%" }}>
             {ticket.category && <CategoryBadge category={ticket.category} />}
             {ticket.work_order_category_detail?.name && (
               <Tag
@@ -171,14 +162,18 @@ const TicketCard = ({ ticket, onClick }) => {
                   lineHeight: "14px",
                   fontWeight: 600,
                   margin: 0,
+                  maxWidth: "100%",
+                  overflow: "hidden",
                 }}
                 icon={<CarryOutOutlined style={{ fontSize: 9 }} />}
               >
-                OT: {ticket.work_order_category_detail.name}
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block", maxWidth: "100%", verticalAlign: "bottom" }}>
+                  OT: {ticket.work_order_category_detail.name}
+                </span>
               </Tag>
             )}
             {otBadgeLabel && (
-              <Text type="secondary" style={{ fontSize: 10 }}>
+              <Text type="secondary" style={{ fontSize: 10, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>
                 <CalendarOutlined style={{ fontSize: 9, marginRight: 2 }} />
                 {otBadgeLabel}
                 {ticket.scheduled_date_confirmed && (

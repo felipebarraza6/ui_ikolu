@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   Flex,
   Typography,
@@ -9,7 +9,6 @@ import {
   Empty,
   Calendar,
   Segmented,
-  Card,
   Drawer,
   List,
   Avatar,
@@ -17,10 +16,8 @@ import {
 } from "antd";
 import {
   ReloadOutlined,
-  FilterOutlined,
-  SearchOutlined,
+  PlusOutlined,
   ClockCircleOutlined,
-  CheckCircleOutlined,
   FileTextOutlined,
   ThunderboltOutlined,
   InboxOutlined,
@@ -28,15 +25,17 @@ import {
   ProjectOutlined,
   UserOutlined,
   ToolOutlined,
-  ExclamationCircleOutlined,
+  ClearOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { useParams, useNavigate } from "react-router-dom";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import { useResponsive } from "../../../hooks/useResponsive";
 import { useTickets } from "../hooks/useTickets";
 import { useTicketCatalogs } from "../hooks/useTicketCatalogs";
 import KanbanBoard from "../components/TicketsKanban/KanbanBoard";
 import TicketDetailDrawer from "../components/TicketsKanban/TicketDetailDrawer";
+import TicketCreateDrawer from "../components/TicketsKanban/TicketCreateDrawer";
 import { SmartKPICard } from "../../../shared/ui";
 import {
   PRIORITY_FILTER_OPTIONS,
@@ -47,7 +46,7 @@ import {
   isTicketClosed,
 } from "../constants/tickets";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 /**
  * Página "Mi Escritorio" para operadores de soporte.
@@ -58,13 +57,19 @@ const { Title, Text } = Typography;
 const MyDeskPage = () => {
   const token = useIkoluToken();
   const { isMobile } = useResponsive();
+  const { ticketId } = useParams();
+  const navigate = useNavigate();
+  const urlTicketId = useMemo(() => {
+    const n = Number(ticketId);
+    return Number.isInteger(n) && n > 0 ? n : null;
+  }, [ticketId]);
 
   const [filters, setFilters] = useState({
-    searchId: "",
+    searchId: urlTicketId ? String(urlTicketId) : "",
     priority: null,
     category: null,
     scope: null,
-    createdRange: null,
+    createdRange: [dayjs().startOf("month"), dayjs().endOf("month")],
     sla: null,
   });
   const [view, setView] = useState("kanban");
@@ -72,7 +77,6 @@ const MyDeskPage = () => {
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [dayTicketsOpen, setDayTicketsOpen] = useState(false);
-  const [calendarMode, setCalendarMode] = useState("month");
 
   const {
     myDeskTickets,
@@ -82,6 +86,7 @@ const MyDeskPage = () => {
     assignTicket,
     updateTicket,
     deleteTicket,
+    createTicket,
     createComment,
     deleteComment,
     updateComment,
@@ -99,12 +104,16 @@ const MyDeskPage = () => {
     cancelScheduledDate,
   } = useTickets({ autoLoad: false });
 
+  const [createOpen, setCreateOpen] = useState(false);
+
   const {
     users,
     categories,
+    clientsWithProjects,
     loading: catalogsLoading,
     fetchUsers,
     fetchCategories,
+    fetchClientsWithProjects,
   } = useTicketCatalogs({ autoLoad: false });
 
   /** Construye los query params para /api/ik/tickets/my_desk/. */
@@ -127,6 +136,7 @@ const MyDeskPage = () => {
   useEffect(() => {
     fetchUsers();
     fetchCategories();
+    fetchClientsWithProjects();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -138,8 +148,9 @@ const MyDeskPage = () => {
   const handleRefresh = useCallback(() => {
     fetchUsers();
     fetchCategories();
+    fetchClientsWithProjects();
     fetchMyDesk(buildQueryParams());
-  }, [fetchUsers, fetchCategories, fetchMyDesk, buildQueryParams]);
+  }, [fetchUsers, fetchCategories, fetchClientsWithProjects, fetchMyDesk, buildQueryParams]);
 
   const handleTicketClick = useCallback((ticket) => {
     setSelectedTicketId(ticket.id);
@@ -156,7 +167,10 @@ const MyDeskPage = () => {
 
   const handleSetFilter = useCallback((key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value || null }));
-  }, []);
+    if (key === "searchId" && !value && ticketId) {
+      navigate("/admin/support/my-desk", { replace: true });
+    }
+  }, [navigate, ticketId]);
 
   const handleClearFilters = useCallback(() => {
     setFilters({
@@ -164,10 +178,22 @@ const MyDeskPage = () => {
       priority: null,
       category: null,
       scope: null,
-      createdRange: null,
+      createdRange: [dayjs().startOf("month"), dayjs().endOf("month")],
       sla: null,
     });
-  }, []);
+    if (ticketId) {
+      navigate("/admin/support/my-desk", { replace: true });
+    }
+  }, [navigate, ticketId]);
+
+  const handleCreate = useCallback(
+    async (data) => {
+      await createTicket(data, categories);
+      setCreateOpen(false);
+      fetchMyDesk(buildQueryParams());
+    },
+    [createTicket, categories, buildQueryParams, fetchMyDesk]
+  );
 
   const metrics = useMemo(() => {
     const total = myDeskTickets.length;
@@ -218,20 +244,48 @@ const MyDeskPage = () => {
     };
   }, [myDeskTickets]);
 
-  /** Aplica filtros del lado del cliente: SLA + búsqueda parcial por ID.
+  /** Aplica filtros del lado del cliente: SLA + búsqueda por ID.
    *  La búsqueda por ID se filtra localmente porque /my_desk/ no soporta el
-   *  parámetro `id` (solo lo soporta el listado general /tickets/). */
+   *  parámetro `id` (solo lo soporta el listado general /tickets/).
+   *  Si viene un ticketId en la URL, el filtro es exacto para abrir ese ticket. */
   const displayTickets = useMemo(() => {
     let list = myDeskTickets;
+    if (filters.createdRange?.[0] && filters.createdRange?.[1]) {
+      const from = filters.createdRange[0].startOf("day");
+      const to = filters.createdRange[1].endOf("day");
+      list = list.filter((t) => {
+        const date = t.created_at ? dayjs(t.created_at) : dayjs(t.created);
+        return date.isValid() && date.valueOf() >= from.valueOf() && date.valueOf() <= to.valueOf();
+      });
+    }
     if (filters.sla) {
       list = list.filter((t) => getTicketOverallSla(t) === filters.sla);
     }
     if (filters.searchId) {
-      const idStr = String(filters.searchId).trim();
-      list = list.filter((t) => String(t.id).includes(idStr));
+      if (urlTicketId) {
+        list = list.filter((t) => t.id === urlTicketId);
+      } else {
+        const idStr = String(filters.searchId).trim();
+        list = list.filter((t) => String(t.id).includes(idStr));
+      }
     }
     return list;
-  }, [myDeskTickets, filters.sla, filters.searchId]);
+  }, [myDeskTickets, filters.sla, filters.searchId, filters.createdRange, urlTicketId]);
+
+  const openedFromUrlRef = useRef(null);
+
+  useEffect(() => {
+    if (!urlTicketId) {
+      openedFromUrlRef.current = null;
+      return;
+    }
+    if (openedFromUrlRef.current === urlTicketId) return;
+    const match = displayTickets.find((t) => t.id === urlTicketId);
+    if (match) {
+      handleTicketClick(match);
+      openedFromUrlRef.current = urlTicketId;
+    }
+  }, [urlTicketId, displayTickets, handleTicketClick]);
 
   const categoryOptions = useMemo(
     () =>
@@ -260,6 +314,11 @@ const MyDeskPage = () => {
     });
     return map;
   }, [displayTickets]);
+
+  const calendarValue = useMemo(() => {
+    if (filters.createdRange?.[0]) return filters.createdRange[0].startOf("month");
+    return dayjs().startOf("month");
+  }, [filters.createdRange]);
 
   const handleDateClick = useCallback((date) => {
     setSelectedDate(date);
@@ -353,135 +412,162 @@ const MyDeskPage = () => {
   }, [handleDateClick]);
 
   const kpis = [
-    { icon: <InboxOutlined />, label: "Mi bandeja", value: metrics.total },
+    { icon: <InboxOutlined />, label: "Total", value: metrics.total },
     { icon: <FileTextOutlined />, label: "Abiertos", value: metrics.open },
     { icon: <ClockCircleOutlined />, label: "En progreso", value: metrics.inProgress },
-    { icon: <CheckCircleOutlined />, label: "Resueltos", value: metrics.closed },
     { icon: <ThunderboltOutlined />, label: "Críticos", value: metrics.critical },
     { icon: <ToolOutlined />, label: "OT", value: metrics.otTotal },
-    { icon: <ClockCircleOutlined />, label: "OT pendientes", value: metrics.otPending },
-    { icon: <ExclamationCircleOutlined />, label: "OT vencidas", value: metrics.otOverdue },
-    { icon: <CalendarOutlined />, label: "Sin confirmar", value: metrics.otUnconfirmed },
   ];
 
   return (
-    <div style={{ padding: 24 }}>
+    <>
+      <div style={{ padding: 24, maxWidth: 1600, margin: "0 auto" }}>
       <Flex
         justify="space-between"
         align={isMobile ? "flex-start" : "center"}
         gap={isMobile ? 12 : 0}
-        style={{ marginBottom: 24 }}
+        style={{ marginBottom: 16 }}
         vertical={isMobile}
+        wrap
       >
-        <Flex align="center" gap={12} wrap>
-          <Title level={isMobile ? 4 : 3} style={{ margin: 0, color: token.voidTextHeading }}>
-            Mi Escritorio
-          </Title>
-          <Text type="secondary" style={{ fontSize: 14 }}>
-            {loading ? "Cargando..." : `${displayTickets.length} tickets`}
-          </Text>
-        </Flex>
-        <Flex gap={12} align="center" wrap>
-          <Segmented
-            value={filters.scope || "all"}
-            onChange={(v) => handleSetFilter("scope", v === "all" ? null : v)}
-            options={[
-              { value: "all", label: "Todo" },
-              { value: "assigned", label: "Mis asignaciones" },
-              { value: "category", label: "Mis responsabilidades" },
-            ]}
-          />
+        <Segmented
+          value={filters.scope || "all"}
+          onChange={(v) => handleSetFilter("scope", v === "all" ? null : v)}
+          size="small"
+          options={[
+            { value: "all", label: isMobile ? "Todo" : "Todo" },
+            { value: "assigned", label: isMobile ? "Asignados" : "Mis asignaciones" },
+            { value: "category", label: isMobile ? "Responsable" : "Mis responsabilidades" },
+          ]}
+        />
+        <Flex gap={8} align="center" wrap>
           <Segmented
             value={view}
             onChange={setView}
+            size="small"
             options={[
               { value: "kanban", icon: <ProjectOutlined /> },
               { value: "calendar", icon: <CalendarOutlined /> },
             ]}
           />
-          <Button icon={<ReloadOutlined />} onClick={handleRefresh} loading={loading}>
-            Actualizar
-          </Button>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setCreateOpen(true)}
+            shape="circle"
+            title="Nuevo ticket"
+          />
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={handleRefresh}
+            loading={loading}
+            shape="circle"
+            title="Actualizar"
+          />
         </Flex>
       </Flex>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
         {kpis.map((kpi, idx) => (
-          <div key={idx} style={{ flex: isMobile ? "1 1 140px" : "1 1 0", minWidth: isMobile ? 140 : 0 }}>
-            <SmartKPICard variant="void"
+          <div key={idx} style={{ flex: isMobile ? "1 1 calc(50% - 4px)" : "1 1 0", minWidth: isMobile ? "calc(50% - 4px)" : 0 }}>
+            <SmartKPICard
+              variant="void"
               icon={kpi.icon}
               label={kpi.label}
               value={kpi.value}
               loading={loading}
-              style={{ minHeight: 64, padding: "8px 10px 6px", gap: 2 }}
-              valueStyle={{ fontSize: isMobile ? 16 : 20 }}
-              labelStyle={{ fontSize: 9, height: 22, lineHeight: "11px" }}
+              compact
+              layout="horizontal"
+              style={{ minHeight: 40, padding: "4px 8px" }}
+              valueStyle={{ fontSize: isMobile ? 15 : 17 }}
+              labelStyle={{ fontSize: 8, height: 10, lineHeight: "10px" }}
             />
           </div>
         ))}
       </div>
 
-      <div
-        style={{
-          background: token.glassBg,
-          borderRadius: token.voidRadius,
-          border: `1px solid ${token.glassBorder}`,
-          padding: 16,
-          marginBottom: 24,
-          backdropFilter: "blur(10px)",
-        }}
-      >
-        <Flex wrap gap={12} align="center" vertical={isMobile} style={{ width: isMobile ? "100%" : "auto" }}>
-          <FilterOutlined style={{ color: token.voidTextMuted, display: isMobile ? "none" : "inline" }} />
-          <Input
-            allowClear
-            prefix={<SearchOutlined style={{ color: token.voidTextMuted }} />}
-            placeholder="Buscar por ID de ticket..."
-            style={{ minWidth: 200, width: isMobile ? "100%" : "auto" }}
-            value={filters.searchId}
-            onChange={(e) => handleSetFilter("searchId", e.target.value)}
+      <div style={{ marginBottom: 12 }}>
+        <Flex
+          wrap={isMobile ? "wrap" : "nowrap"}
+          gap={8}
+          align="flex-end"
+          style={{ width: "100%" }}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: isMobile ? "100%" : 160, flex: isMobile ? "1 1 100%" : "1 1 160px" }}>
+            <Text style={{ fontSize: 11, color: token.voidTextMuted, lineHeight: 1 }}>ID ticket</Text>
+            <Input
+              size="small"
+              placeholder="Buscar ID..."
+              value={filters.searchId}
+              onChange={(e) => handleSetFilter("searchId", e.target.value)}
+            />
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: isMobile ? "calc(33.333% - 6px)" : 120, flex: isMobile ? "1 1 calc(33.333% - 6px)" : "0 0 120px" }}>
+            <Text style={{ fontSize: 11, color: token.voidTextMuted, lineHeight: 1 }}>Prioridad</Text>
+            <Select
+              placeholder="Todas"
+              allowClear
+              value={filters.priority || undefined}
+              onChange={(v) => handleSetFilter("priority", v)}
+              options={PRIORITY_FILTER_OPTIONS}
+              size="small"
+            />
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: isMobile ? "calc(33.333% - 6px)" : 150, flex: isMobile ? "1 1 calc(33.333% - 6px)" : "1 1 150px" }}>
+            <Text style={{ fontSize: 11, color: token.voidTextMuted, lineHeight: 1 }}>Categoría</Text>
+            <Select
+              placeholder="Todas"
+              allowClear
+              showSearch
+              optionFilterProp="label"
+              value={filters.category || undefined}
+              onChange={(v) => handleSetFilter("category", v)}
+              options={categoryOptions}
+              size="small"
+            />
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: isMobile ? "calc(33.333% - 6px)" : 120, flex: isMobile ? "1 1 calc(33.333% - 6px)" : "0 0 120px" }}>
+            <Text style={{ fontSize: 11, color: token.voidTextMuted, lineHeight: 1 }}>SLA</Text>
+            <Select
+              placeholder="Todos"
+              allowClear
+              value={filters.sla || undefined}
+              onChange={(v) => handleSetFilter("sla", v)}
+              options={SLA_FILTER_OPTIONS}
+              size="small"
+            />
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: isMobile ? "100%" : 220, flex: isMobile ? "1 1 100%" : "1 1 220px" }}>
+            <Text style={{ fontSize: 11, color: token.voidTextMuted, lineHeight: 1 }}>Creado entre</Text>
+            <DatePicker.RangePicker
+              placeholder={["Desde", "Hasta"]}
+              value={filters.createdRange}
+              onChange={(dates) => handleSetFilter("createdRange", dates)}
+              format="DD/MM/YYYY"
+              style={{ width: "100%" }}
+              size="small"
+            />
+          </div>
+
+          <Button
+            icon={<ClearOutlined style={{ fontSize: 12 }} />}
+            onClick={handleClearFilters}
+            shape="circle"
+            size="small"
+            title="Limpiar filtros"
+            style={{ flex: "0 0 28px", height: 28, width: 28, minWidth: 28, alignSelf: "flex-end", padding: 0 }}
           />
-          <Select
-            placeholder="Prioridad"
-            allowClear
-            style={{ minWidth: 140, width: isMobile ? "100%" : "auto" }}
-            value={filters.priority || undefined}
-            onChange={(v) => handleSetFilter("priority", v)}
-            options={PRIORITY_FILTER_OPTIONS}
-          />
-          <Select
-            placeholder="Categoría"
-            allowClear
-            showSearch
-            optionFilterProp="label"
-            style={{ minWidth: 180, width: isMobile ? "100%" : "auto" }}
-            value={filters.category || undefined}
-            onChange={(v) => handleSetFilter("category", v)}
-            options={categoryOptions}
-          />
-          <DatePicker.RangePicker
-            placeholder={["Creado desde", "Creado hasta"]}
-            value={filters.createdRange}
-            onChange={(dates) => handleSetFilter("createdRange", dates)}
-            format="YYYY-MM-DD"
-            style={{ minWidth: 240, width: isMobile ? "100%" : "auto" }}
-          />
-          <Select
-            placeholder="SLA"
-            allowClear
-            style={{ minWidth: 160, width: isMobile ? "100%" : "auto" }}
-            value={filters.sla || undefined}
-            onChange={(v) => handleSetFilter("sla", v)}
-            options={SLA_FILTER_OPTIONS}
-          />
-          <Button onClick={handleClearFilters} style={{ width: isMobile ? "100%" : "auto" }}>Limpiar</Button>
         </Flex>
       </div>
 
       {displayTickets.length === 0 && !loading ? (
         <Empty description="No tienes tickets en tu escritorio" />
       ) : view === "calendar" ? (
-        <Card
+        <div
           className="my-desk-calendar"
           style={{
             background: token.glassBg,
@@ -522,12 +608,12 @@ const MyDeskPage = () => {
           <Calendar
             dateCellRender={dateCellRender}
             monthCellRender={monthCellRender}
-            mode={calendarMode}
-            onPanelChange={(date, mode) => setCalendarMode(mode)}
             fullscreen={!isMobile}
+            value={calendarValue}
+            headerRender={() => null}
             onSelect={handleCalendarSelect}
           />
-        </Card>
+        </div>
       ) : (
         <div style={{ height: "calc(100vh - 290px)", overflow: "hidden" }}>
           <KanbanBoard
@@ -633,7 +719,17 @@ const MyDeskPage = () => {
         onDeleteTask={tasks.delete}
         onUploadTaskAttachment={tasks.uploadAttachment}
       />
+
+      <TicketCreateDrawer
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreate={handleCreate}
+        clientsWithProjects={clientsWithProjects}
+        categories={categories}
+        loading={loading}
+      />
     </div>
+    </>
   );
 };
 

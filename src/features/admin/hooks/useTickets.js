@@ -214,7 +214,6 @@ export const useTickets = (options = {}) => {
     async (id, data) => {
       try {
         const res = await orchestrator.tickets.update(id, data);
-        message.success("Ticket actualizado");
         await refreshAfterMutation();
         return res;
       } catch (err) {
@@ -229,7 +228,6 @@ export const useTickets = (options = {}) => {
     async (id) => {
       try {
         await orchestrator.tickets.delete(id);
-        message.success("Ticket eliminado");
         await refreshAfterMutation();
       } catch (err) {
         message.error(err.message || "Error al eliminar ticket");
@@ -258,7 +256,6 @@ export const useTickets = (options = {}) => {
     async (id, status, workOrderCategory) => {
       try {
         const res = await orchestrator.tickets.changeStatus(id, status, workOrderCategory);
-        message.success("Estado actualizado");
         await refreshAfterMutation();
         return res;
       } catch (err) {

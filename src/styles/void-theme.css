@@ -224,43 +224,6 @@
   }
 
   /* =====================================================
-     Ant Design Input
-     ===================================================== */
-
-  .ant-input,
-  .ant-input-affix-wrapper,
-  .ant-input-textarea {
-    background: var(--ikolu-void-surface) !important;
-    border: 1px solid var(--ikolu-void-border) !important;
-    color: var(--ikolu-void-text) !important;
-  }
-
-  .ant-input::placeholder,
-  .ant-input-affix-wrapper::placeholder,
-  .ant-input-textarea::placeholder {
-    color: rgba(255, 255, 255, 0.4) !important;
-  }
-
-  .ant-input:hover,
-  .ant-input-affix-wrapper:hover,
-  .ant-input-textarea:hover {
-    border-color: var(--ikolu-void-hover) !important;
-  }
-
-  .ant-input:focus,
-  .ant-input-affix-wrapper:focus,
-  .ant-input-textarea:focus,
-  .ant-input-focused,
-  .ant-input-affix-wrapper-focused {
-    border-color: rgba(255, 255, 255, 0.25) !important;
-    box-shadow: 0 0 0 3px var(--ikolu-void-border) !important;
-  }
-
-  .ant-input-affix-wrapper .anticon {
-    color: rgba(255, 255, 255, 0.5) !important;
-  }
-
-  /* =====================================================
      Ant Design Select
      ===================================================== */
 

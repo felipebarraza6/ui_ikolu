@@ -275,29 +275,14 @@ const SupportDashboard = () => {
   };
 
   return (
-    <div style={{ padding: 24 }}>
-      <div
-        style={{
-          background: token.glassBg,
-          borderRadius: token.voidRadius,
-          border: `1px solid ${token.glassBorder}`,
-          padding: 16,
-          marginBottom: 24,
-          backdropFilter: "blur(10px)",
-        }}
+    <div style={{ padding: "12px 24px 24px 24px" }}>
+      <Flex
+        gap={12}
+        align="center"
+        vertical={isMobile}
+        wrap
+        style={{ width: "100%", marginBottom: 24 }}
       >
-        <Flex
-          gap={12}
-          align="center"
-          vertical={isMobile}
-          style={{
-            width: "100%",
-            flexWrap: isMobile ? "wrap" : "nowrap",
-            overflowX: isMobile ? "hidden" : "auto",
-            paddingBottom: isMobile ? 0 : 4,
-            scrollbarWidth: "thin",
-          }}
-        >
           <RangePicker
             value={filters.dateRange || null}
             onChange={(dates) => setFilter("dateRange", dates)}
@@ -377,6 +362,15 @@ const SupportDashboard = () => {
                 options={projectOptions}
               />
               <Select
+                placeholder="Canal"
+                allowClear
+                prefix={<MessageOutlined style={{ color: token.voidTextMuted }} />}
+                style={{ minWidth: 130, width: isMobile ? "100%" : "auto", flexShrink: 0 }}
+                value={filters.source || undefined}
+                onChange={(v) => setFilter("source", v || null)}
+                options={SOURCE_FILTER_OPTIONS}
+              />
+              <Select
                 placeholder={filters.project ? "Punto" : "Selecciona un proyecto"}
                 allowClear
                 showSearch
@@ -390,15 +384,17 @@ const SupportDashboard = () => {
               />
             </>
           )}
-          <Select
-            placeholder="Canal"
-            allowClear
-            prefix={<MessageOutlined style={{ color: token.voidTextMuted }} />}
-            style={{ minWidth: 130, width: isMobile ? "100%" : "auto", flexShrink: 0 }}
-            value={filters.source || undefined}
-            onChange={(v) => setFilter("source", v || null)}
-            options={SOURCE_FILTER_OPTIONS}
-          />
+          {!isSuperUser && (
+            <Select
+              placeholder="Canal"
+              allowClear
+              prefix={<MessageOutlined style={{ color: token.voidTextMuted }} />}
+              style={{ minWidth: 130, width: isMobile ? "100%" : "auto", flexShrink: 0 }}
+              value={filters.source || undefined}
+              onChange={(v) => setFilter("source", v || null)}
+              options={SOURCE_FILTER_OPTIONS}
+            />
+          )}
           <Select
             placeholder="Asignado a"
             allowClear
@@ -414,8 +410,8 @@ const SupportDashboard = () => {
           <Flex
             gap={8}
             align="center"
-            justify={isMobile ? "flex-end" : "center"}
-            style={{ marginLeft: isMobile ? 0 : "auto", flexShrink: 0 }}
+            justify={isMobile ? "flex-end" : "flex-start"}
+            style={{ marginLeft: "auto", flexShrink: 0 }}
           >
             <Button
               icon={<ReloadOutlined />}
@@ -464,7 +460,6 @@ const SupportDashboard = () => {
             )}
           </Flex>
         </Flex>
-      </div>
 
       {isStaff || isSuperUser ? (
         tickets.length === 0 && !loading ? (

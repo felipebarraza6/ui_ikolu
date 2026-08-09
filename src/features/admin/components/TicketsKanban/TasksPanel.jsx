@@ -22,6 +22,7 @@ import {
   EditOutlined,
   CloseOutlined,
   CheckOutlined,
+  CheckCircleFilled,
   ClockCircleOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
@@ -174,6 +175,14 @@ const TasksPanel = ({
     [onUploadAttachment]
   );
 
+  const handleToggleComplete = useCallback(
+    async (task) => {
+      const nextStatus = task.status === "COMPLETADA" ? "PENDIENTE" : "COMPLETADA";
+      await onUpdate(task.id, { status: nextStatus });
+    },
+    [onUpdate]
+  );
+
   return (
     <Flex vertical gap={12}>
       {isStaff && (
@@ -257,26 +266,41 @@ const TasksPanel = ({
                 actions={
                   isStaff
                     ? [
-                        <Button
-                          key="edit"
-                          type="text"
-                          size="small"
-                          icon={<EditOutlined />}
-                          onClick={() => startEdit(task)}
-                          style={{ color: token.voidTextMuted }}
-                        />,
-                        <Popconfirm
-                          key="del"
-                          title="¿Eliminar tarea?"
-                          description="Esta acción no se puede deshacer."
-                          okText="Eliminar"
-                          okButtonProps={{ danger: true }}
-                          cancelText="Cancelar"
-                          onConfirm={() => onDelete(task.id)}
-                        >
-                          <Button type="text" size="small" danger icon={<DeleteOutlined />} />
-                        </Popconfirm>,
-                      ]
+                        task.status !== "CANCELADA" && (
+                          <Button
+                            key="complete"
+                            type="text"
+                            size="small"
+                            icon={task.status === "COMPLETADA" ? <CheckCircleFilled /> : <CheckOutlined />}
+                            onClick={() => handleToggleComplete(task)}
+                            style={{ color: token.colorSuccess }}
+                            title={task.status === "COMPLETADA" ? "Descompletar" : "Marcar como completada"}
+                          />
+                        ),
+                        task.status !== "COMPLETADA" && (
+                          <Button
+                            key="edit"
+                            type="text"
+                            size="small"
+                            icon={<EditOutlined />}
+                            onClick={() => startEdit(task)}
+                            style={{ color: token.voidTextMuted }}
+                          />
+                        ),
+                        task.status !== "COMPLETADA" && (
+                          <Popconfirm
+                            key="del"
+                            title="¿Eliminar tarea?"
+                            description="Esta acción no se puede deshacer."
+                            okText="Eliminar"
+                            okButtonProps={{ danger: true }}
+                            cancelText="Cancelar"
+                            onConfirm={() => onDelete(task.id)}
+                          >
+                            <Button type="text" size="small" danger icon={<DeleteOutlined />} />
+                          </Popconfirm>
+                        ),
+                      ].filter(Boolean)
                     : []
                 }
               >
@@ -284,16 +308,24 @@ const TasksPanel = ({
                   style={{ width: "100%" }}
                   avatar={
                     <Avatar
-                      icon={<ClockCircleOutlined />}
-                      style={{
-                        background: priorityCfg.borderColor?.startsWith("var(")
-                          ? token.voidSurface
-                          : `${priorityCfg.borderColor}22`,
-                        color: priorityCfg.borderColor?.startsWith("var(")
-                          ? token.voidTextHeading
-                          : priorityCfg.borderColor,
-                        border: `1px solid ${priorityCfg.borderColor?.startsWith("var(") ? token.voidBorder : priorityCfg.borderColor}`,
-                      }}
+                      icon={task.status === "COMPLETADA" ? <CheckCircleFilled /> : <ClockCircleOutlined />}
+                      style={
+                        task.status === "COMPLETADA"
+                          ? {
+                              background: `${token.colorSuccess}22`,
+                              color: token.colorSuccess,
+                              border: `1px solid ${token.colorSuccess}55`,
+                            }
+                          : {
+                              background: priorityCfg.borderColor?.startsWith("var(")
+                                ? token.voidSurface
+                                : `${priorityCfg.borderColor}22`,
+                              color: priorityCfg.borderColor?.startsWith("var(")
+                                ? token.voidTextHeading
+                                : priorityCfg.borderColor,
+                              border: `1px solid ${priorityCfg.borderColor?.startsWith("var(") ? token.voidBorder : priorityCfg.borderColor}`,
+                            }
+                      }
                     />
                   }
                   title={
@@ -301,9 +333,11 @@ const TasksPanel = ({
                       <Text strong style={{ color: token.voidTextHeading }}>
                         {task.title || `Tarea #${task.id}`}
                       </Text>
-                      <SmartBadge variant={statusCfg.variant} size="sm">
-                        {statusCfg.label}
-                      </SmartBadge>
+                      {task.status !== "COMPLETADA" && (
+                        <SmartBadge variant={statusCfg.variant} size="sm">
+                          {statusCfg.label}
+                        </SmartBadge>
+                      )}
                       <Tag
                         style={{
                           color: priorityCfg.borderColor?.startsWith("var(") ? token.voidTextHeading : priorityCfg.borderColor,
@@ -349,7 +383,7 @@ const TasksPanel = ({
                         )}
                       </Flex>
                       <AttachmentList attachments={task.attachments} token={token} />
-                      {isStaff && (
+                      {isStaff && task.status !== "COMPLETADA" && (
                         <Upload
                           showUploadList={false}
                           customRequest={({ file }) => handleUpload(task.id, file)}

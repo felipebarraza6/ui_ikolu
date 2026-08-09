@@ -30,6 +30,7 @@ const AdminRouter = () => {
       <Route path="/support/kanban" element={<Navigate to="/admin/support/tickets" replace />} />
       <Route path="/support/tickets" element={<SupportDashboard />} />
       <Route path="/support/indicators" element={<SupportIndicatorsPage />} />
+      <Route path="/support/my-desk/:ticketId" element={<MyDeskPage />} />
       <Route path="/support/my-desk" element={<MyDeskPage />} />
       <Route path="/support/categories" element={<TicketCategoriesPage />} />
       <Route path="/support/sla-configs" element={<SlaConfigsPage />} />

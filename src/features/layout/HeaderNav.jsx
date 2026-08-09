@@ -1,27 +1,36 @@
 import React from "react";
-import { Layout, Button, Dropdown, Avatar, Typography, Space, Tooltip, Tag } from "antd";
+import { Layout, Button, Dropdown, Avatar, Typography, Space, Tag } from "antd";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   MenuOutlined,
   UserOutlined,
   LogoutOutlined,
-  BulbOutlined,
   BarChartOutlined,
 } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import { useAppTheme } from "../../contexts/ThemeContext";
 import { useIkoluToken } from "../../hooks/useIkoluToken";
 
 const { Header } = Layout;
 const { Text } = Typography;
 
+const getPageTitle = (pathname) => {
+  if (pathname.startsWith("/admin/support/my-desk")) return "Mi Escritorio";
+  if (pathname.startsWith("/admin/support/tickets")) return "Tickets";
+  if (pathname.startsWith("/admin/support/indicators")) return "Indicadores";
+  if (pathname.startsWith("/admin")) return "Administración";
+  if (pathname.startsWith("/control-center")) return "Control Center";
+  if (pathname.startsWith("/profile")) return "Mi Perfil";
+  return "";
+};
+
 const HeaderNav = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpen }) => {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { user, logout, isAdmin } = useAuth();
-  const { isDark, toggleTheme } = useAppTheme();
   const token = useIkoluToken();
+  const pageTitle = getPageTitle(pathname);
 
   const handleLogout = () => {
     navigate("/login", { replace: true });
@@ -90,28 +99,25 @@ const HeaderNav = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpe
         }}
       />
 
-      <Space align="center" size={isMobile ? "small" : "middle"}>
-        <Tooltip title={isDark ? "Modo Claro" : "Modo Oscuro"}>
-          <Button
-            type="text"
-            icon={
-              <BulbOutlined
-                style={{
-                  color: isDark ? '#FFD700' : 'rgba(255,255,255,0.85)',
-                  filter: isDark ? 'drop-shadow(0 0 3px rgba(255, 215, 0, 0.5))' : 'none',
-                  transition: 'all 0.3s ease',
-                }}
-              />
-            }
-            onClick={toggleTheme}
-            style={{ width: isMobile ? 32 : 40, height: isMobile ? 32 : 40 }}
-          />
-        </Tooltip>
+      {pageTitle && !isMobile && (
+        <Text
+          style={{
+            marginLeft: 12,
+            fontSize: 16,
+            fontWeight: 600,
+            color: 'rgba(255,255,255,0.95)',
+            letterSpacing: 0.3,
+          }}
+        >
+          {pageTitle}
+        </Text>
+      )}
 
+      <Space align="center" size={isMobile ? "small" : "middle"} style={{ marginLeft: "auto" }}>
         {!isMobile && (
           <Space size={8}>
             <Text style={{ color: 'rgba(255,255,255,0.85)' }}>
-              {user?.first_name || user?.username || "Usuario"}
+              {user?.email || user?.first_name || user?.username || "Usuario"}
             </Text>
             {isAdmin && (
               <Tag color="gold" style={{ marginInlineEnd: 0 }}>

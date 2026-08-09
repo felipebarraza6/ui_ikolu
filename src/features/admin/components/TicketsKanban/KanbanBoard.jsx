@@ -1,13 +1,14 @@
-import React, { useMemo, useCallback, useState } from "react";
-import { Row, Col, Spin, Select, Flex, Typography, Modal, Empty } from "antd";
-import { LoadingOutlined } from "@ant-design/icons";
+import React, { useMemo, useCallback, useState, useRef } from "react";
+import { Row, Col, Spin, Select, Flex, Typography, Modal, Empty, Button } from "antd";
+import { LoadingOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
 import KanbanColumn from "./KanbanColumn";
 import { useResponsive } from "../../../../hooks/useResponsive";
+import { useIkoluToken } from "../../../../hooks/useIkoluToken";
 import {
   getTicketColumn,
   KANBAN_COLUMNS,
   getColumnDropStatus,
-  filterWorkOrderCategories,
+  groupWorkOrderCategoryOptions,
 } from "../../constants/tickets";
 
 const { Text } = Typography;
@@ -18,13 +19,21 @@ const { Text } = Typography;
  * En mobile muestra una sola columna seleccionable para evitar scroll horizontal.
  */
 const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading, workOrderCategories = [] }) => {
+  const token = useIkoluToken();
   const { isMobile } = useResponsive();
   const [activeColumn, setActiveColumn] = useState(KANBAN_COLUMNS[0]?.key);
   const [otDrop, setOtDrop] = useState(null);
   const [otDropCategory, setOtDropCategory] = useState(null);
+  const boardRef = useRef(null);
 
-  const woCategories = useMemo(
-    () => filterWorkOrderCategories(workOrderCategories || []),
+  const scrollBoard = useCallback((direction) => {
+    if (boardRef.current) {
+      boardRef.current.scrollBy({ left: direction * 320, behavior: "smooth" });
+    }
+  }, []);
+
+  const woCategoryOptions = useMemo(
+    () => groupWorkOrderCategoryOptions(workOrderCategories || []),
     [workOrderCategories]
   );
 
@@ -65,15 +74,6 @@ const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading, workOrde
     setOtDropCategory(null);
   };
 
-  const columnOptions = useMemo(
-    () =>
-      KANBAN_COLUMNS.map((column) => ({
-        value: column.key,
-        label: `${column.label} (${columnsTickets[column.key]?.length || 0})`,
-      })),
-    [columnsTickets]
-  );
-
   const renderOtModal = (
     <Modal
       title="Pasar ticket a En OT"
@@ -91,7 +91,7 @@ const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading, workOrde
         <Text type="secondary">
           Para mover el ticket a la columna En OT debes seleccionar la categoría de orden de trabajo.
         </Text>
-        {woCategories.length === 0 ? (
+        {woCategoryOptions.length === 0 ? (
           <Empty description="No hay categorías de tipo WORK_ORDER. Créalas en Categorías." image={Empty.PRESENTED_IMAGE_SIMPLE} />
         ) : (
           <Select
@@ -99,10 +99,7 @@ const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading, workOrde
             style={{ width: "100%" }}
             value={otDropCategory}
             onChange={setOtDropCategory}
-            options={woCategories.map((c) => ({
-              value: c.id,
-              label: c.name || `Categoría ${c.id}`,
-            }))}
+            options={woCategoryOptions}
             showSearch
             optionFilterProp="label"
             autoFocus
@@ -113,16 +110,32 @@ const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading, workOrde
   );
 
   if (isMobile) {
-    const active = KANBAN_COLUMNS.find((c) => c.key === activeColumn) || KANBAN_COLUMNS[0];
+    const activeIndex = KANBAN_COLUMNS.findIndex((c) => c.key === activeColumn);
+    const active = KANBAN_COLUMNS[activeIndex] || KANBAN_COLUMNS[0];
+    const goLeft = () => setActiveColumn(KANBAN_COLUMNS[Math.max(0, activeIndex - 1)]?.key);
+    const goRight = () => setActiveColumn(KANBAN_COLUMNS[Math.min(KANBAN_COLUMNS.length - 1, activeIndex + 1)]?.key);
     return (
       <Spin spinning={loading} tip="Cargando tickets...">
         <Flex vertical gap={12}>
-          <Select
-            value={activeColumn}
-            onChange={setActiveColumn}
-            options={columnOptions}
-            style={{ width: "100%" }}
-          />
+          <Flex align="center" justify="space-between" gap={8}>
+            <Button
+              type="text"
+              icon={<LeftOutlined />}
+              onClick={goLeft}
+              disabled={activeIndex <= 0}
+              style={{ color: activeIndex > 0 ? "#fff" : token.voidTextMuted }}
+            />
+            <Text strong style={{ color: token.voidTextHeading, fontSize: 14 }}>
+              {active.label} ({columnsTickets[active.key]?.length || 0})
+            </Text>
+            <Button
+              type="text"
+              icon={<RightOutlined />}
+              onClick={goRight}
+              disabled={activeIndex >= KANBAN_COLUMNS.length - 1}
+              style={{ color: activeIndex < KANBAN_COLUMNS.length - 1 ? "#fff" : token.voidTextMuted }}
+            />
+          </Flex>
           <KanbanColumn
             column={active}
             tickets={columnsTickets[active.key] || []}
@@ -148,30 +161,82 @@ const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading, workOrde
           </Spin>
         </div>
       )}
-      <Row
-        gutter={[16, 16]}
+      <div
+        ref={boardRef}
         style={{
           height: "100%",
-          flexWrap: "nowrap",
           overflowX: "auto",
+          overflowY: "hidden",
           paddingBottom: 8,
         }}
       >
-        {KANBAN_COLUMNS.map((column) => (
+        <Row
+          gutter={[16, 16]}
+          style={{
+            height: "100%",
+            flexWrap: "nowrap",
+            minWidth: "max-content",
+          }}
+        >
+          {KANBAN_COLUMNS.map((column) => (
           <Col
             key={column.key}
-            flex="1 1 0"
-            style={{ minWidth: 260, height: "100%" }}
+            flex="0 0 300px"
+            style={{ width: 300, height: "100%" }}
           >
-            <KanbanColumn
-              column={column}
-              tickets={columnsTickets[column.key] || []}
-              onTicketClick={onTicketClick}
-              onDropTicket={handleDropTicket}
-            />
-          </Col>
-        ))}
-      </Row>
+              <KanbanColumn
+                column={column}
+                tickets={columnsTickets[column.key] || []}
+                onTicketClick={onTicketClick}
+                onDropTicket={handleDropTicket}
+              />
+            </Col>
+          ))}
+        </Row>
+      </div>
+
+      <Button
+        type="text"
+        icon={<LeftOutlined />}
+        onClick={() => scrollBoard(-1)}
+        style={{
+          position: "absolute",
+          left: 0,
+          top: "50%",
+          transform: "translateY(-50%)",
+          zIndex: 20,
+          height: 48,
+          width: 28,
+          background: "rgba(3, 12, 24, 0.7)",
+          borderRadius: "0 8px 8px 0",
+          color: "#fff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          border: "none",
+        }}
+      />
+      <Button
+        type="text"
+        icon={<RightOutlined />}
+        onClick={() => scrollBoard(1)}
+        style={{
+          position: "absolute",
+          right: 0,
+          top: "50%",
+          transform: "translateY(-50%)",
+          zIndex: 20,
+          height: 48,
+          width: 28,
+          background: "rgba(3, 12, 24, 0.7)",
+          borderRadius: "8px 0 0 8px",
+          color: "#fff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          border: "none",
+        }}
+      />
       {renderOtModal}
     </div>
   );

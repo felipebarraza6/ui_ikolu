@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useCallback, useEffect } from "react";
-import { Drawer, Form, Input, Select, Flex, Steps, Typography, Tag, Switch } from "antd";
+import { Drawer, Form, Input, Select, Flex, Steps, Typography, Tag, Switch, Result } from "antd";
 import { CloseCircleOutlined } from "@ant-design/icons";
 import { SmartButton } from "../../../../shared/ui";
 import { useIkoluToken } from "../../../../hooks/useIkoluToken";
@@ -42,6 +42,7 @@ const TicketCreateDrawer = ({
   const [form] = Form.useForm();
   const [currentStep, setCurrentStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [createdTicket, setCreatedTicket] = useState(null);
   const [pointsLoading, setPointsLoading] = useState(false);
   const [pointOptions, setPointOptions] = useState([]);
   const [selectedPoints, setSelectedPoints] = useState([]);
@@ -98,13 +99,8 @@ const TicketCreateDrawer = ({
   const loadPoints = useCallback(async (projectId) => {
     setPointsLoading(true);
     try {
-      let points = [];
-      if (showAllPoints) {
-        points = await orchestrator.pointsAll();
-      } else if (projectId) {
-        const res = await orchestrator.admin.projectPoints(projectId);
-        points = Array.isArray(res?.points) ? res.points : Array.isArray(res) ? res : res?.results || [];
-      }
+      const res = await orchestrator.admin.projectPoints(projectId);
+      const points = Array.isArray(res?.points) ? res.points : Array.isArray(res) ? res : res?.results || [];
       setPointOptions(
         points.map((point) => ({
           value: point.id,
@@ -117,15 +113,46 @@ const TicketCreateDrawer = ({
     } finally {
       setPointsLoading(false);
     }
-  }, [showAllPoints]);
+  }, []);
+
+  const handleToggleAllPoints = useCallback(async (checked) => {
+    setShowAllPoints(checked);
+    form.setFieldsValue({ point_catchment: undefined });
+    if (!checked) {
+      setSelectedPoints([]);
+      return;
+    }
+    setPointsLoading(true);
+    try {
+      let points = [];
+      if (selectedProject) {
+        const res = await orchestrator.admin.projectPoints(selectedProject);
+        points = Array.isArray(res?.points) ? res.points : Array.isArray(res) ? res : res?.results || [];
+      } else {
+        points = await orchestrator.admin.pointsAll();
+      }
+      const options = points.map((point) => ({
+        value: point.id,
+        label: point.name || point.title || `Punto ${point.id}`,
+      }));
+      setSelectedPoints(options.map((option) => ({ id: option.value, label: option.label })));
+      setPointOptions(options);
+    } catch (err) {
+      console.error("[TicketCreateDrawer] error loading all points:", err);
+      setPointOptions([]);
+      setSelectedPoints([]);
+    } finally {
+      setPointsLoading(false);
+    }
+  }, [form, selectedProject]);
 
   useEffect(() => {
-    if (showAllPoints || selectedProject) {
+    if (selectedProject && !showAllPoints) {
       loadPoints(selectedProject);
-    } else {
+    } else if (!selectedProject && !showAllPoints) {
       setPointOptions([]);
     }
-  }, [showAllPoints, selectedProject, loadPoints]);
+  }, [selectedProject, showAllPoints, loadPoints]);
 
   useEffect(() => {
     if (open) {
@@ -134,24 +161,28 @@ const TicketCreateDrawer = ({
         origin: "CLIENTE",
         source: "APP_ADMIN",
       });
+      setCreatedTicket(null);
     } else {
       form.resetFields();
       setCurrentStep(0);
       setPointOptions([]);
       setSelectedPoints([]);
       setShowAllPoints(false);
+      setCreatedTicket(null);
     }
   }, [open, form]);
 
   const handleClientChange = () => {
     form.setFieldsValue({ project: undefined, point_catchment: undefined });
-    if (!showAllPoints) {
-      setPointOptions([]);
-    }
+    setShowAllPoints(false);
+    setSelectedPoints([]);
+    setPointOptions([]);
   };
 
   const handleProjectChange = () => {
     form.setFieldsValue({ point_catchment: undefined });
+    setShowAllPoints(false);
+    setSelectedPoints([]);
   };
 
   const handlePointChange = (pointId) => {
@@ -234,12 +265,12 @@ const TicketCreateDrawer = ({
         payload.origin = hasPoints ? "CLIENTE" : "OPERACIONES";
       }
 
-      await onCreate(payload);
+      const res = await onCreate(payload);
+      setCreatedTicket(res?.id ? res : { id: res?.data?.id || res?.ticket?.id });
       form.resetFields();
       setCurrentStep(0);
       setPointOptions([]);
       setSelectedPoints([]);
-      onClose();
     } catch (err) {
       console.error("[TicketCreateDrawer] create error:", err);
     } finally {
@@ -262,29 +293,60 @@ const TicketCreateDrawer = ({
       }}
       footer={
         <Flex justify="end" gap={12}>
-          <SmartButton variant="voidGhost" onClick={onClose}>Cancelar</SmartButton>
-          {currentStep > 0 && <SmartButton variant="voidGhost" onClick={handlePrev}>Anterior</SmartButton>}
-          {currentStep < STEP_TITLES.length - 1 ? (
-            <SmartButton variant="void" onClick={handleNext} loading={pointsLoading}>
-              Siguiente
-            </SmartButton>
+          {createdTicket ? (
+            <>
+              <SmartButton variant="voidGhost" onClick={onClose}>Cerrar</SmartButton>
+              <SmartButton
+                variant="void"
+                onClick={() => {
+                  setCreatedTicket(null);
+                  form.resetFields();
+                  setCurrentStep(0);
+                }}
+              >
+                Crear otro ticket
+              </SmartButton>
+            </>
           ) : (
-            <SmartButton
-              variant="void"
-              onClick={() => form.submit()}
-              loading={submitting || loading}
-            >
-              Crear Ticket
-            </SmartButton>
+            <>
+              <SmartButton variant="voidGhost" onClick={onClose}>Cancelar</SmartButton>
+              {currentStep > 0 && <SmartButton variant="voidGhost" onClick={handlePrev}>Anterior</SmartButton>}
+              {currentStep < STEP_TITLES.length - 1 ? (
+                <SmartButton variant="void" onClick={handleNext} loading={pointsLoading}>
+                  Siguiente
+                </SmartButton>
+              ) : (
+                <SmartButton
+                  variant="void"
+                  onClick={() => form.submit()}
+                  loading={submitting || loading}
+                >
+                  Crear Ticket
+                </SmartButton>
+              )}
+            </>
           )}
         </Flex>
       }
     >
-      <Steps
-        current={currentStep}
-        items={STEP_TITLES.map((title) => ({ title }))}
-        style={{ marginBottom: 24 }}
-      />
+      {createdTicket ? (
+        <Result
+          status="success"
+          title={<span style={{ color: token.voidTextHeading }}>Ticket creado</span>}
+          subTitle={
+            <span style={{ color: token.voidText }}>
+              Número de ticket: <Text strong style={{ color: token.colorAccent, fontSize: 18 }}>#{createdTicket.id}</Text>
+            </span>
+          }
+          style={{ background: "transparent" }}
+        />
+      ) : (
+        <>
+          <Steps
+            current={currentStep}
+            items={STEP_TITLES.map((title) => ({ title }))}
+            style={{ marginBottom: 24 }}
+          />
       <Form
         form={form}
         layout="vertical"
@@ -417,14 +479,11 @@ const TicketCreateDrawer = ({
                   <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
                     Todos los puntos
                   </Text>
-                  <Switch
-                    size="small"
-                    checked={showAllPoints}
-                    onChange={(checked) => {
-                      setShowAllPoints(checked);
-                      form.setFieldsValue({ point_catchment: undefined });
-                    }}
-                  />
+                    <Switch
+                      size="small"
+                      checked={showAllPoints}
+                      onChange={handleToggleAllPoints}
+                    />
                 </Flex>
               </Flex>
 
@@ -488,6 +547,8 @@ const TicketCreateDrawer = ({
           </Flex>
         </div>
       </Form>
+      </>
+      )}
     </Drawer>
   );
 };

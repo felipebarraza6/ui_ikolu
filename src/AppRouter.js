@@ -1,11 +1,10 @@
-import React, { Suspense, lazy, useEffect, useRef } from "react";
+import React, { Suspense, lazy, useEffect } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Spin } from "antd";
 import LoginPage from "./features/auth/LoginPage";
 import ResetPasswordPage from "./features/auth/ResetPasswordPage";
 import RoleGuard from "./features/auth/RoleGuard";
 import { useAuth } from "./contexts/AuthContext";
-import { useAppTheme } from "./contexts/ThemeContext";
 
 const AppLayout = lazy(() => import(/* webpackPrefetch: true */ "./features/layout/AppLayout"));
 const ControlCenter = lazy(() => import(/* webpackPrefetch: true */ "./features/control-center/ControlCenter"));
@@ -45,26 +44,13 @@ const AdminLayout = ({ children }) => (
   </RoleGuard>
 );
 
-const THEME_KEY = "ikolu-theme";
-
 const RouteThemeSync = () => {
   const { pathname } = useLocation();
-  const { isDark, setIsDark } = useAppTheme();
-  const previousUserTheme = useRef(isDark);
 
   useEffect(() => {
     const isVoidRoute = pathname.startsWith("/admin") || pathname.startsWith("/control-center");
     document.documentElement.setAttribute("data-void-theme", isVoidRoute ? "true" : "false");
     document.documentElement.setAttribute("data-ikolu-theme", isVoidRoute ? "void" : "ocean");
-    if (isVoidRoute) {
-      previousUserTheme.current = isDark;
-      if (!isDark) setIsDark(true);
-    } else {
-      // Restaurar preferencia del usuario fuera de rutas admin/staff
-      const stored = localStorage.getItem(THEME_KEY);
-      const storedDark = stored ? stored === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
-      if (isDark !== storedDark) setIsDark(storedDark);
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
