@@ -1903,6 +1903,27 @@ const TicketDetailDrawer = ({
     ),
   };
 
+  const handleCreateTask = useCallback(async (ticketId, data) => {
+    await onCreateTask(ticketId, data);
+    load();
+  }, [onCreateTask, load]);
+
+  const handleUpdateTask = useCallback(async (taskId, data) => {
+    await onUpdateTask(taskId, data);
+    load();
+  }, [onUpdateTask, load]);
+
+  const handleDeleteTask = useCallback(async (taskId) => {
+    await onDeleteTask(taskId);
+    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    load();
+  }, [onDeleteTask, load]);
+
+  const handleUploadTaskAttachment = useCallback(async (taskId, file) => {
+    await onUploadTaskAttachment(taskId, file);
+    load();
+  }, [onUploadTaskAttachment, load]);
+
   const tasksTab = {
     key: "tasks",
     label: (
@@ -1915,13 +1936,10 @@ const TicketDetailDrawer = ({
         ticketId={ticketId}
         tasks={tasks}
         loading={loading}
-        onCreate={onCreateTask}
-        onUpdate={onUpdateTask}
-        onDelete={async (taskId) => {
-          await onDeleteTask(taskId);
-          setTasks((prev) => prev.filter((t) => t.id !== taskId));
-        }}
-        onUploadAttachment={onUploadTaskAttachment}
+        onCreate={handleCreateTask}
+        onUpdate={handleUpdateTask}
+        onDelete={handleDeleteTask}
+        onUploadAttachment={handleUploadTaskAttachment}
         users={users}
         isStaff={isStaff}
         token={token}

@@ -298,7 +298,12 @@ const TasksPanel = ({
                             cancelText="Cancelar"
                             onConfirm={() => onDelete(task.id)}
                           >
-                            <Button type="text" size="small" danger icon={<DeleteOutlined />} />
+                            <Button
+                              type="text"
+                              size="small"
+                              icon={<DeleteOutlined />}
+                              style={{ color: token.colorError }}
+                            />
                           </Popconfirm>
                         ),
                       ].filter(Boolean)
