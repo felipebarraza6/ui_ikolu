@@ -29,6 +29,7 @@ import dayjs from "dayjs";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { SmartButton, SmartBadge } from "../../../../shared/ui";
+import { resolveMediaUrl } from "../../../../shared/utils/resolveMediaUrl";
 import {
   TASK_STATUS_OPTIONS,
   getTaskStatusConfig,
@@ -76,7 +77,7 @@ const AttachmentList = ({ attachments, token }) => {
   return (
     <Flex wrap gap={6}>
       {attachments.map((item) => {
-        const fileUrl = item.file_url || item.file || item.url;
+        const fileUrl = resolveMediaUrl(item.file_url || item.file || item.url);
         const fileName = item.original_name || item.name || item.filename || `Adjunto ${item.id}`;
         return (
           <Tag

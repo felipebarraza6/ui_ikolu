@@ -21,6 +21,7 @@ import {
 import dayjs from "dayjs";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import { useResponsive } from "../../../hooks/useResponsive";
+import { resolveMediaUrl } from "../../../shared/utils/resolveMediaUrl";
 import { useTickets } from "../hooks/useTickets";
 import { useTicketCatalogs } from "../hooks/useTicketCatalogs";
 
@@ -160,7 +161,7 @@ const FilesDrivePage = () => {
               {icon.label}
             </span>
             <a
-              href={record.file_url}
+              href={resolveMediaUrl(record.file_url)}
               target="_blank"
               rel="noreferrer"
               download={name}

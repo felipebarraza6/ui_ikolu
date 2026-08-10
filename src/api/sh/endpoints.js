@@ -1473,6 +1473,38 @@ const getProjectPointsControlCenter = async (projectId) => {
   return rq.data;
 };
 
+const ikPointSummary = async (id) => {
+  const rq = await GET(`ik/point/${id}/summary/`);
+  return rq.data;
+};
+
+const ikPointConfig = async (id) => {
+  const rq = await GET(`ik/point/${id}/config/`);
+  return rq.data;
+};
+
+const ikPointRecords = async (id, { startDate, endDate, limit = 100 } = {}) => {
+  const query = new URLSearchParams();
+  if (startDate) query.set("start_date", startDate);
+  if (endDate) query.set("end_date", endDate);
+  if (limit != null) query.set("limit", String(limit));
+  const qs = query.toString();
+  const rq = await GET(`ik/point/${id}/records/${qs ? `?${qs}` : ""}`);
+  return rq.data;
+};
+
+const ikPointVariables = async (id) => {
+  const rq = await GET(`ik/point/${id}/variables/`);
+  return rq.data;
+};
+
+const ikPointCalendar = async (id, days = 7) => {
+  const rq = await GET(`ik/point/${id}/calendar/?days=${days}`);
+  return rq.data;
+};
+
+// ==========================================
+// PUNTOS DE CAPTACIÓN UNIFICADOS → /api/points/
 // ==========================================
 // PUNTOS DE CAPTACIÓN UNIFICADOS → /api/points/
 // ==========================================
@@ -1777,6 +1809,13 @@ const sh = {
     summary: pointsSummary,
     batchStatus: pointsBatchStatus,
     mine: pointsMine,
+  },
+  ikPoint: {
+    summary: ikPointSummary,
+    config: ikPointConfig,
+    records: ikPointRecords,
+    variables: ikPointVariables,
+    calendar: ikPointCalendar,
   },
   // 🆕 CENTRO DE CONTROL: Resumen diario agregado
   dailySummary: get_daily_summary,

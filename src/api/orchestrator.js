@@ -553,6 +553,12 @@ export const pointsVariables = (id) => sh.points.variables(id);
 export const pointsSummary = (id) => sh.points.summary(id);
 export const pointsBatchStatus = (ids) => sh.points.batchStatus(ids);
 
+export const ikPointSummary = (id) => sh.ikPoint.summary(id);
+export const ikPointConfig = (id) => sh.ikPoint.config(id);
+export const ikPointRecords = (id, options) => sh.ikPoint.records(id, options);
+export const ikPointVariables = (id) => sh.ikPoint.variables(id);
+export const ikPointCalendar = (id, days) => sh.ikPoint.calendar(id, days);
+
 export const notifications = {
   create: (data) => sh.notifications.create(data),
 };
@@ -767,6 +773,11 @@ const orchestrator = {
   pointsVariables,
   pointsSummary,
   pointsBatchStatus,
+  ikPointSummary,
+  ikPointConfig,
+  ikPointRecords,
+  ikPointVariables,
+  ikPointCalendar,
   notifications,
   systemStatus,
   resourcesStatus,

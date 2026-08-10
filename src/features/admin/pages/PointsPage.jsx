@@ -19,6 +19,7 @@ import {
   DeleteOutlined,
   EnvironmentOutlined,
 } from "@ant-design/icons";
+import { Link, useLocation } from "react-router-dom";
 import { SmartCard, SmartButton } from "../../../shared/ui";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import useAdminCrud from "../hooks/useAdminCrud";
@@ -46,6 +47,7 @@ const USERS_PAGE_SIZE = 1000;
 
 const PointsPage = () => {
   const token = useIkoluToken();
+  const location = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [searchText, setSearchText] = useState("");
@@ -206,7 +208,17 @@ const PointsPage = () => {
       title: "Nombre",
       dataIndex: "title",
       key: "title",
-      render: (v) => <Text strong>{v || `Punto sin nombre`}</Text>,
+      render: (v, record) => (
+        <Link
+          to={`/admin/points/${record.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ textDecoration: "none" }}
+        >          <Text strong style={{ color: token.colorPrimary }}>
+            {v || `Punto sin nombre`}
+          </Text>
+        </Link>
+      ),
     },
     {
       title: "Proyecto",

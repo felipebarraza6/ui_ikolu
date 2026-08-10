@@ -9,8 +9,11 @@ import SlaConfigsPage from "./pages/SlaConfigsPage";
 import FilesDrivePage from "./pages/FilesDrivePage";
 import OperationalDashboard from "./pages/OperationalDashboard";
 import ClientsPage from "./pages/ClientsPage";
+import ClientDetailPage from "./pages/ClientDetailPage";
 import ProjectsPage from "./pages/ProjectsPage";
+import ProjectDetailPage from "./pages/ProjectDetailPage";
 import PointsPage from "./pages/PointsPage";
+import PointDetailPage from "./pages/PointDetailPage";
 import AlertsDashboard from "./pages/AlertsDashboard";
 import AlertRulesPage from "./pages/AlertRulesPage";
 import AlertChannelsPage from "./pages/AlertChannelsPage";
@@ -36,8 +39,11 @@ const AdminRouter = () => {
       <Route path="/support/sla-configs" element={<SlaConfigsPage />} />
       <Route path="/support/files" element={<FilesDrivePage />} />
       <Route path="/clients" element={<ClientsPage />} />
+      <Route path="/clients/:clientId" element={<ClientDetailPage />} />
       <Route path="/projects" element={<ProjectsPage />} />
+      <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
       <Route path="/points" element={<PointsPage />} />
+      <Route path="/points/:pointId/*" element={<PointDetailPage />} />
       <Route path="/schemes" element={<SchemesAndVariablesPage />} />
       <Route path="/variables" element={<SchemesAndVariablesPage />} />
       <Route path="/providers" element={<ProvidersPage />} />

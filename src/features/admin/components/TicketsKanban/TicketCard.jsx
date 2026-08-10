@@ -9,9 +9,13 @@ import {
   SafetyOutlined,
   CarryOutOutlined,
   ExclamationCircleOutlined,
+  UserOutlined,
+  ProjectOutlined,
+  EnvironmentOutlined,
 } from "@ant-design/icons";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useParams, Link, useLocation } from "react-router-dom";
 import { SmartCard } from "../../../../shared/ui";
 import { useIkoluToken } from "../../../../hooks/useIkoluToken";
 import {
@@ -22,6 +26,141 @@ import {
 } from "../../constants/tickets";
 
 const { Text } = Typography;
+
+const tagBaseStyle = {
+  fontSize: 9,
+  padding: "0 4px",
+  lineHeight: "16px",
+  height: 16,
+  margin: 0,
+  display: "inline-flex",
+  alignItems: "center",
+  verticalAlign: "middle",
+  borderRadius: 3,
+};
+
+const EntityTag = ({ to, color, icon, children, style = {}, target, rel }) => (
+  <Link
+    to={to}
+    target={target}
+    rel={rel}
+    onClick={(e) => e.stopPropagation()}
+    style={{ textDecoration: "none", display: "inline-flex", verticalAlign: "middle" }}
+  >
+    <Tag
+      color={color}
+      icon={icon}
+      style={{ ...tagBaseStyle, cursor: "pointer", ...style }}
+    >
+      {children}
+    </Tag>
+  </Link>
+);
+
+const ReadOnlyTag = ({ color, icon, children }) => (
+  <Tag
+    color={color}
+    icon={icon}
+    style={tagBaseStyle}
+  >
+    {children}
+  </Tag>
+);
+
+const TicketEntityTags = ({ ticket }) => {
+  const tags = [];
+  const location = useLocation();
+  const makeTo = (path) => ({ pathname: path, state: { from: location.pathname + location.search } });
+  const clientId = ticket.client || ticket.client_id;
+  const clientName = ticket.client_name;
+
+  if (clientId || clientName) {
+    const label = clientName || `Cliente ${clientId}`;
+    const tag = clientId ? (
+      <EntityTag
+        key="client"
+        to={makeTo(`/admin/clients/${clientId}`)}
+        color="blue"
+        icon={<UserOutlined style={{ fontSize: 9 }} />}
+      >
+        {label}
+      </EntityTag>
+    ) : (
+      <ReadOnlyTag
+        key="client"
+        color="blue"
+        icon={<UserOutlined style={{ fontSize: 9 }} />}
+      >
+        {label}
+      </ReadOnlyTag>
+    );
+    tags.push(tag);
+  }
+
+  const projectId = ticket.project || ticket.project_id;
+  const projectName = ticket.project_name;
+
+  if (projectId || projectName) {
+    const label = projectName || `Proyecto ${projectId}`;
+    const tag = projectId ? (
+      <EntityTag
+        key="project"
+        to={makeTo(`/admin/projects/${projectId}`)}
+        color="cyan"
+        icon={<ProjectOutlined style={{ fontSize: 9 }} />}
+      >
+        {label}
+      </EntityTag>
+    ) : (
+      <ReadOnlyTag
+        key="project"
+        color="cyan"
+        icon={<ProjectOutlined style={{ fontSize: 9 }} />}
+      >
+        {label}
+      </ReadOnlyTag>
+    );
+    tags.push(tag);
+  }
+
+  if (ticket.points?.length) {
+    ticket.points.forEach((p) => {
+      tags.push(
+        <EntityTag
+          key={`point-${p.id}`}
+          to={makeTo(`/admin/points/${p.id}`)}
+          target="_blank"
+          rel="noopener noreferrer"
+          color="processing"
+          icon={<EnvironmentOutlined style={{ fontSize: 9 }} />}
+        >
+          {p.title || `Punto ${p.id}`}
+        </EntityTag>
+      );
+    });
+  } else if (ticket.point_catchment) {
+    tags.push(
+      <EntityTag
+        key="point"
+        to={makeTo(`/admin/points/${ticket.point_catchment}`)}
+        target="_blank"
+        rel="noopener noreferrer"
+        color="processing"
+        icon={<EnvironmentOutlined style={{ fontSize: 9 }} />}
+      >
+        {ticket.point_title || `Punto ${ticket.point_catchment}`}
+      </EntityTag>
+    );
+  }
+
+  if (tags.length === 0) return null;
+
+  return (
+    <Flex wrap gap={4} style={{ marginTop: 4 }}>
+      {tags}
+    </Flex>
+  );
+};
 
 const CategoryIcon = ({ categoryType }) => {
   const upper = String(categoryType || "").toUpperCase();
@@ -182,6 +321,8 @@ const TicketCard = ({ ticket, onClick }) => {
               </Text>
             )}
           </Flex>
+
+          <TicketEntityTags ticket={ticket} />
 
           <Flex justify="space-between" align="center">
             <Flex align="center" gap={4}>

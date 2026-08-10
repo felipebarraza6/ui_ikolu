@@ -43,13 +43,14 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import html2canvas from "html2canvas";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { format, formatDistanceToNow, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { SmartBadge, SmartButton } from "../../../../shared/ui";
 import { useIkoluToken } from "../../../../hooks/useIkoluToken";
 import { useResponsive } from "../../../../hooks/useResponsive";
 import { useAdminAuth } from "../../hooks/useAdminAuth";
+import { resolveMediaUrl } from "../../../../shared/utils/resolveMediaUrl";
 import TasksPanel from "./TasksPanel";
 import {
   STATUS_OPTIONS,
@@ -219,6 +220,7 @@ const TicketDetailDrawer = ({
 }) => {
   const token = useIkoluToken();
   const navigate = useNavigate();
+  const location = useLocation();
   const { isMobile } = useResponsive();
   const { isStaff, user } = useAdminAuth();
   const [ticket, setTicket] = useState(null);
@@ -761,12 +763,6 @@ const TicketDetailDrawer = ({
     };
   });
 
-  const resolveMediaUrl = (url) => {
-    if (!url) return url;
-    if (/^https?:\/\//i.test(url)) return url;
-    return `https://api.smarthydro.app${url.startsWith("/") ? "" : "/"}${url}`;
-  };
-
   const resolveCategoryName = (ticket) => {
     if (!ticket) return "-";
     if (ticket.category_detail?.name) return ticket.category_detail.name;
@@ -775,13 +771,38 @@ const TicketDetailDrawer = ({
     return getTicketCategoryLabel(ticket.category_detail) || `Categoría ${ticket.category}`;
   };
 
+  const PointTag = ({ pointId, title }) => (
+    <Link
+      to={`/admin/points/${pointId}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() => onClose()}
+      style={{ textDecoration: "none" }}
+    >
+      <Tag color="processing" style={{ cursor: "pointer" }}>
+        {title || `Punto ${pointId}`}
+      </Tag>
+    </Link>
+  );
+
   const resolvePointsLabel = (ticket) => {
-    if (!ticket?.points?.length) {
-      if (ticket?.point_title) return ticket.point_title;
-      if (ticket?.point_catchment) return `Punto ${ticket.point_catchment}`;
-      return "-";
+    if (!ticket) return "—";
+    if (ticket.points?.length) {
+      return (
+        <Flex wrap gap={6}>
+          {ticket.points.map((p) => (
+            <PointTag key={p.id} pointId={p.id} title={p.title} />
+          ))}
+        </Flex>
+      );
     }
-    return ticket.points.map((p) => p.title || `Punto ${p.id}`).join(", ");
+    if (ticket.point_catchment) {
+      return (
+        <PointTag pointId={ticket.point_catchment} title={ticket.point_title} />
+      );
+    }
+    if (ticket.point_title) return ticket.point_title;
+    return "—";
   };
 
   const renderOtSection = () => {
