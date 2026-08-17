@@ -206,8 +206,8 @@
     --text-secondary: rgba(255, 255, 255, 0.7);
     --text-muted: rgba(255, 255, 255, 0.45);
     --text-disabled: rgba(255, 255, 255, 0.25);
+}
 
-  
   .gradient-flow {
     background-size: 400% 400%;
     animation: gradient-flow 8s ease infinite;
@@ -2243,7 +2243,3 @@
   .ocean-metric-dot-muted {
     background: rgba(255, 255, 255, 0.5);
   }
-
-  
-
-}

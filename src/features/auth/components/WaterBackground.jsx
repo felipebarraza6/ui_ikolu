@@ -1,19 +1,229 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 
 /**
- * Fondo dinámico de flujo hídrico para el panel de marca.
+ * Fondo dinámico de partículas con líneas de conexión e interacción con mouse.
  *
- * Versión optimizada: menos partículas, sin blur por partícula y
- * animaciones de opacidad por CSS para reducir carga de renderizado.
+ * Canvas-based: cientos de partículas con líneas de red que reaccionan al cursor.
+ * - Partículas cercanas al mouse brillan más y crecen
+ * - Líneas se dibujan desde partículas hacia el cursor
+ * - Repulsión suave: las partículas se alejan levemente del mouse
+ * - Glow sutil en la posición del cursor
  */
 const WaterBackground = () => {
-  const flows = [
-    { path: "M-100,220 C300,180 600,260 900,220 S1500,140 1900,220", duration: 20, particles: 3 },
-    { path: "M-100,320 C350,280 650,360 950,320 S1550,240 1900,320", duration: 26, particles: 3 },
-    { path: "M-100,420 C320,460 680,380 920,420 S1520,500 1900,420", duration: 23, particles: 2 },
-    { path: "M-100,520 C380,560 620,480 960,520 S1480,600 1900,520", duration: 29, particles: 2 },
-    { path: "M-100,620 C300,580 700,660 900,620 S1540,540 1900,620", duration: 24, particles: 2 },
-  ];
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    let animationId;
+    let particles = [];
+    let w, h;
+
+    // Mouse tracking
+    const mouse = { x: -9999, y: -9999, active: false };
+    let mouseSmoothX = -9999;
+    let mouseSmoothY = -9999;
+
+    const isMobile = () => window.innerWidth < 768;
+    const getParticleCount = () => (isMobile() ? 100 : 350);
+    const CONNECTION_DISTANCE = 140;
+    const MOUSE_RADIUS = 200;
+    const MOUSE_REPEL_RADIUS = 100;
+    const MOUSE_REPEL_FORCE = 0.4;
+
+    const createParticles = () => {
+      const count = getParticleCount();
+      particles = [];
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 0.12 + Math.random() * 0.3;
+        const colorRoll = Math.random();
+        let r, g, b, baseA;
+        if (colorRoll < 0.55) {
+          r = 255; g = 255; b = 255; baseA = 0.35 + Math.random() * 0.25;
+        } else if (colorRoll < 0.82) {
+          r = 58; g = 137; b = 210; baseA = 0.3 + Math.random() * 0.25;
+        } else {
+          r = 201; g = 217; b = 54; baseA = 0.25 + Math.random() * 0.2;
+        }
+        particles.push({
+          x: Math.random() * (w || window.innerWidth),
+          y: Math.random() * (h || window.innerHeight),
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          baseRadius: 0.8 + Math.random() * 1.8,
+          r, g, b, baseA,
+          phase: Math.random() * Math.PI * 2,
+          phaseSpeed: 0.002 + Math.random() * 0.006,
+          // For smooth glow transition
+          glowIntensity: 0,
+        });
+      }
+    };
+
+    const resize = () => {
+      const dpr = window.devicePixelRatio || 1;
+      w = window.innerWidth;
+      h = window.innerHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = w + "px";
+      canvas.style.height = h + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      createParticles();
+    };
+
+    const onMouseMove = (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+      mouse.active = true;
+    };
+
+    const onMouseLeave = () => {
+      mouse.active = false;
+    };
+
+    const draw = () => {
+      ctx.clearRect(0, 0, w, h);
+
+      // Smooth mouse follow
+      if (mouse.active) {
+        mouseSmoothX += (mouse.x - mouseSmoothX) * 0.12;
+        mouseSmoothY += (mouse.y - mouseSmoothY) * 0.12;
+      } else {
+        mouseSmoothX += (-9999 - mouseSmoothX) * 0.05;
+        mouseSmoothY += (-9999 - mouseSmoothY) * 0.05;
+      }
+
+      const mx = mouseSmoothX;
+      const my = mouseSmoothY;
+
+      // Update positions + mouse interaction
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.phase += p.phaseSpeed;
+        p.x += p.vx + Math.sin(p.phase) * 0.04;
+        p.y += p.vy + Math.cos(p.phase) * 0.025;
+
+        // Mouse repulsion
+        if (mouse.active) {
+          const dxm = p.x - mx;
+          const dym = p.y - my;
+          const distMouse = Math.sqrt(dxm * dxm + dym * dym);
+          if (distMouse < MOUSE_REPEL_RADIUS && distMouse > 1) {
+            const force = (1 - distMouse / MOUSE_REPEL_RADIUS) * MOUSE_REPEL_FORCE;
+            p.x += (dxm / distMouse) * force;
+            p.y += (dym / distMouse) * force;
+          }
+          // Glow intensity smoothly transitions
+          if (distMouse < MOUSE_RADIUS) {
+            const targetGlow = 1 - distMouse / MOUSE_RADIUS;
+            p.glowIntensity += (targetGlow - p.glowIntensity) * 0.08;
+          } else {
+            p.glowIntensity += (0 - p.glowIntensity) * 0.04;
+          }
+        } else {
+          p.glowIntensity += (0 - p.glowIntensity) * 0.03;
+        }
+
+        // Wrap around edges
+        if (p.x < -10) p.x = w + 10;
+        if (p.x > w + 10) p.x = -10;
+        if (p.y < -10) p.y = h + 10;
+        if (p.y > h + 10) p.y = -10;
+      }
+
+      // Draw connections between particles
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < CONNECTION_DISTANCE) {
+            const opacity = (1 - dist / CONNECTION_DISTANCE) * 0.15;
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(58, 137, 210, ${opacity})`;
+            ctx.lineWidth = 0.4;
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Draw mouse connections (lines from particles to cursor)
+      if (mouse.active) {
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          const dxm = p.x - mx;
+          const dym = p.y - my;
+          const distMouse = Math.sqrt(dxm * dxm + dym * dym);
+          if (distMouse < MOUSE_RADIUS) {
+            const opacity = (1 - distMouse / MOUSE_RADIUS) * 0.3;
+            const gradient = ctx.createLinearGradient(p.x, p.y, mx, my);
+            gradient.addColorStop(0, `rgba(${p.r}, ${p.g}, ${p.b}, ${opacity * 0.6})`);
+            gradient.addColorStop(1, `rgba(58, 137, 210, ${opacity})`);
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(mx, my);
+            ctx.strokeStyle = gradient;
+            ctx.lineWidth = 0.6;
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Draw particles
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        const glow = p.glowIntensity;
+        const drawRadius = p.baseRadius + glow * 3;
+        const drawAlpha = p.baseA + glow * 0.5;
+
+        // Glow halo for particles near mouse
+        if (glow > 0.05) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, drawRadius + 6 * glow, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${p.r}, ${p.g}, ${p.b}, ${glow * 0.15})`;
+          ctx.fill();
+        }
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, drawRadius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${p.r}, ${p.g}, ${p.b}, ${Math.min(drawAlpha, 1)})`;
+        ctx.fill();
+      }
+
+      // Draw mouse glow
+      if (mouse.active) {
+        const glowGrad = ctx.createRadialGradient(mx, my, 0, mx, my, 120);
+        glowGrad.addColorStop(0, "rgba(58, 137, 210, 0.08)");
+        glowGrad.addColorStop(0.4, "rgba(201, 217, 54, 0.03)");
+        glowGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+        ctx.beginPath();
+        ctx.arc(mx, my, 120, 0, Math.PI * 2);
+        ctx.fillStyle = glowGrad;
+        ctx.fill();
+      }
+
+      animationId = requestAnimationFrame(draw);
+    };
+
+    resize();
+    draw();
+    window.addEventListener("resize", resize);
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseleave", onMouseLeave);
+
+    return () => {
+      cancelAnimationFrame(animationId);
+      window.removeEventListener("resize", resize);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseleave", onMouseLeave);
+    };
+  }, []);
 
   return (
     <div
@@ -61,68 +271,17 @@ const WaterBackground = () => {
         }}
       />
 
-      {/* SVG de corrientes */}
-      <svg
-        viewBox="0 0 1800 900"
-        preserveAspectRatio="xMidYMid slice"
+      {/* Canvas de partículas */}
+      <canvas
+        ref={canvasRef}
         style={{
           position: "absolute",
           inset: 0,
           width: "100%",
           height: "100%",
-          opacity: 0.85,
+          pointerEvents: "none",
         }}
-      >
-        <defs>
-          <linearGradient id="flowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="rgba(58,137,210,0)" />
-            <stop offset="30%" stopColor="rgba(58,137,210,0.15)" />
-            <stop offset="50%" stopColor="rgba(201,217,54,0.12)" />
-            <stop offset="70%" stopColor="rgba(58,137,210,0.15)" />
-            <stop offset="100%" stopColor="rgba(58,137,210,0)" />
-          </linearGradient>
-        </defs>
-
-        {flows.map((flow, flowIdx) => (
-          <g key={flowIdx}>
-            {/* Rastro de la corriente */}
-            <path
-              d={flow.path}
-              fill="none"
-              stroke="url(#flowGradient)"
-              strokeWidth={1.5 + flowIdx * 0.4}
-              strokeLinecap="round"
-              style={{ opacity: 0.35 }}
-            />
-
-            {/* Partículas viajando por la corriente */}
-            {Array.from({ length: flow.particles }).map((_, pIdx) => {
-              const size = 2 + (pIdx % 2);
-              const delay = (pIdx * flow.duration) / flow.particles;
-              const isLime = pIdx % 2 === 0;
-              return (
-                <circle
-                  key={`${flowIdx}-${pIdx}`}
-                  r={size}
-                  fill={isLime ? "rgba(201,217,54,0.65)" : "rgba(255,255,255,0.45)"}
-                  style={{
-                    willChange: "transform, opacity",
-                    opacity: 0,
-                    animation: `flow-pulse ${flow.duration}s ease-in-out ${-delay}s infinite`,
-                  }}
-                >
-                  <animateMotion
-                    dur={`${flow.duration}s`}
-                    begin={`${-delay}s`}
-                    repeatCount="indefinite"
-                    path={flow.path}
-                  />
-                </circle>
-              );
-            })}
-          </g>
-        ))}
-      </svg>
+      />
 
       {/* Niebla/planicie inferior */}
       <div
@@ -137,15 +296,6 @@ const WaterBackground = () => {
           pointerEvents: "none",
         }}
       />
-
-      <style>{`
-        @keyframes flow-pulse {
-          0% { opacity: 0; }
-          25% { opacity: 0.85; }
-          60% { opacity: 0.55; }
-          100% { opacity: 0; }
-        }
-      `}</style>
     </div>
   );
 };

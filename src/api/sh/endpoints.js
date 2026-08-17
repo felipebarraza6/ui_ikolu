@@ -6,6 +6,7 @@ import {
   POST,
   PATCH,
   Axios,
+  parseApiError,
 } from "./config";
 
 const requestPasswordReset = async (email) => {
@@ -68,15 +69,7 @@ const login = async (data) => {
   return request.data;
 };
 
-const get_history_data = async (profile) => {
-  const request = await GET(`history_data/?profile=${profile}`);
-  return request.data;
-};
 
-const get_history_data_admin = async () => {
-  const request = await GET(`history_data/`);
-  return request.data;
-};
 
 const getDataDay = async (id_profile, initialDate, finishDate) => {
   const rq = await GET(
@@ -251,18 +244,6 @@ const getDataApiShRangeDate = async (
   return rq.data;
 };
 
-const getDataApiShRangeDateToExcel = async (
-  id_profile,
-  initialDate,
-  finishDate,
-  page,
-) => {
-  const rq = await GET(
-    `interaction_detail/?catchment_point=${id_profile}&date_time_medition__date__range=${initialDate},${finishDate}&page=${page}`,
-  );
-  return rq.data;
-};
-
 const getDataApiShRangeDateAndHour = async (
   id_profile,
   initialDate,
@@ -302,7 +283,7 @@ const getDataApiShDgaSend = async (id_profile, page) => {
 const getDataApiShStructural24h = async (id_profile, year, month, day) => {
   let totalCount = 0;
   let listFormat = {};
-  const rq1 = await GET(
+  await GET(
     `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__day=${day}`,
   ).then((r) => {
     totalCount = r.data.count;
@@ -311,7 +292,7 @@ const getDataApiShStructural24h = async (id_profile, year, month, day) => {
   });
 
   if (totalCount / 10 > 1) {
-    const rq2 = await GET(
+    await GET(
       `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__day=${day}&page=2`,
     ).then((r) => {
       listFormat = {
@@ -322,7 +303,7 @@ const getDataApiShStructural24h = async (id_profile, year, month, day) => {
     });
   }
   if (totalCount / 10 > 2) {
-    const rq3 = await GET(
+    await GET(
       `interaction_detail_json/?profile_client=${id_profile}&date_time_medition__year=${year}&date_time_medition__month=${month}&date_time_medition__day=${day}&page=3`,
     ).then((r) => {
       listFormat = {
@@ -333,7 +314,6 @@ const getDataApiShStructural24h = async (id_profile, year, month, day) => {
     });
   }
 
-  let total_acumulado = 0;
   for (let i = 0; i < listFormat.results.length - 1; i++) {
     const current = listFormat.results[i];
     const next = listFormat.results[i + 1];
@@ -771,6 +751,20 @@ const get_near_limit_history = async (pointId, params = {}) => {
 };
 
 /**
+ * Endpoint: GET https://api.smarthydro.app/compliance/dga/verify/ (outside /api/)
+ * Consulta el estado de un comprobante DGA en los registros internos.
+ * Parámetros: codigo_obra, numero_comprobante, tipo_dga
+ */
+const verify_dga_voucher = async (codigoObra, numeroComprobante, tipoDga) => {
+  const query = new URLSearchParams();
+  query.set("codigo_obra", codigoObra);
+  query.set("numero_comprobante", numeroComprobante);
+  if (tipoDga) query.set("tipo_dga", tipoDga);
+  const rq = await GET(`../compliance/dga/verify/?${query.toString()}`);
+  return rq.data;
+};
+
+/**
  * 🆕 MEDICIONES POR PUNTO Y DÍA
  * Endpoint: GET /api/ik/point/{id}/records/?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD&limit=100
  * Devuelve registros detallados de un punto para un rango de fechas.
@@ -792,32 +786,7 @@ const get_point_config = async (pointId) => {
   return rq.data;
 };
 
-/**
- * 🆕 VERIFICACIÓN DGA: Validar comprobante en sistema DGA
- * Endpoint: GET /compliance/dga/verify/?codigo_obra=XXX&numero_comprobante=YYY&tipo_dga=ZZZ
- * Auth: Bearer Token o Session
- */
-const verifyDgaVoucher = async (
-  codigoObra,
-  numeroComprobante,
-  tipoDga = "SUPERFICIAL",
-) => {
-  try {
-    const response = await GET("compliance/dga/verify/", null, {
-      params: {
-        codigo_obra: codigoObra,
-        numero_comprobante: numeroComprobante,
-        tipo_dga: tipoDga,
-      },
-    });
-    return { status: response.status, ...response.data };
-  } catch (error) {
-    if (error.response) {
-      return { status: error.response.status, ...error.response.data };
-    }
-    throw error;
-  }
-};
+
 
 // ==========================================
 // USUARIOS / AUTH
@@ -1503,69 +1472,215 @@ const ikPointCalendar = async (id, days = 7) => {
   return rq.data;
 };
 
+const ikPointGaps = async (id, params = {}) => {
+  const query = new URLSearchParams();
+  if (params.start_date) query.set("start_date", params.start_date);
+  if (params.end_date) query.set("end_date", params.end_date);
+  const qs = query.toString();
+  const rq = await GET(`ik/point/${id}/gaps/${qs ? `?${qs}` : ""}`);
+  return rq.data;
+};
+
+const telemetryBackfill = async (data) => {
+  const rq = await POST(`ik/telemetry/backfill/`, data);
+  return rq.data;
+};
+
+const telemetryReprocess = async (data) => {
+  const rq = await POST(`telemetry-reprocessor/`, data);
+  return rq.data;
+};
+
+const getCounterResetLogs = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const rq = await GET(`counter_reset_logs/${query ? "?" + query : ""}`);
+  return rq.data;
+};
+
+const getCounterResetLog = async (id) => {
+  const rq = await GET(`counter_reset_logs/${id}/`);
+  return rq.data;
+};
+
+const validatePasswordResetToken = async (token) => {
+  const rq = await POST(`ik/auth/password-reset/validate/`, { token });
+  return rq.data;
+};
+
+const convertTicketToClient = async (id) => {
+  const rq = await POST(`ik/tickets/${id}/convert-to-client/`);
+  return rq.data;
+};
+
+const uploadAvatar = async (file) => {
+  const formData = new FormData();
+  formData.append("avatar", file);
+  const rq = await Axios.post(`users/me/avatar/`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return rq.data;
+};
+
+const updateNotifyEmailPreference = async (enabled) => {
+  const rq = await POST(`ik/me/notify-email/`, { notify_email: enabled });
+  return rq.data;
+};
+
+const getDgaConfigs = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const rq = await GET(`dga_data_config_catchment/${query ? "?" + query : ""}`);
+  return rq.data;
+};
+
+const getDgaConfig = async (id) => {
+  const rq = await GET(`dga_data_config_catchment/${id}/`);
+  return rq.data;
+};
+
+const createDgaConfig = async (data) => {
+  const rq = await POST(`dga_data_config_catchment/`, data);
+  return rq.data;
+};
+
+const updateDgaConfig = async (id, data) => {
+  const rq = await PATCH(`dga_data_config_catchment/${id}/`, data);
+  return rq.data;
+};
+
+const deleteDgaConfig = async (id) => {
+  const rq = await DELETE(`dga_data_config_catchment/${id}/`);
+  return rq.data;
+};
+
+// Reportes
+const reportsJsonByProject = async (projectId, pointIds) => {
+  const query = new URLSearchParams();
+  if (projectId) query.set("project_id", String(projectId));
+  if (pointIds) query.set("point_ids", String(pointIds));
+  const rq = await GET(`reports/json/by-project/?${query.toString()}`);
+  return rq.data;
+};
+
+const reportsJsonByPoint = async (pointId, year, month) => {
+  const query = new URLSearchParams();
+  if (pointId) query.set("point_id", String(pointId));
+  if (year) query.set("year", String(year));
+  if (month) query.set("month", String(month));
+  const rq = await GET(`reports/json/by-point/?${query.toString()}`);
+  return rq.data;
+};
+
+const reportsJsonLastMonth = async () => {
+  const rq = await GET(`reports/json/last-month/`);
+  return rq.data;
+};
+
+const reportsJsonLastYear = async () => {
+  const rq = await GET(`reports/json/last-year/`);
+  return rq.data;
+};
+
+const reportsJsonAnnualCompressed = async () => {
+  const rq = await GET(`reports/json/annual-compressed/`);
+  return rq.data;
+};
+
+const reportsDownloadByProject = async (projectId, filename = "reporte_proyecto.xlsx") => {
+  await DOWNLOAD(`reports/by-project/?project_id=${projectId}`, filename);
+};
+
+const reportsDownloadByPoint = async (pointId, year, month, filename = "reporte_punto.xlsx") => {
+  const query = new URLSearchParams();
+  if (pointId) query.set("point_id", String(pointId));
+  if (year) query.set("year", String(year));
+  if (month) query.set("month", String(month));
+  await DOWNLOAD(`reports/by-point/?${query.toString()}`, filename);
+};
+
+const reportsDownloadLastMonth = async (filename = "reporte_ultimo_mes.xlsx") => {
+  await DOWNLOAD(`reports/last-month/`, filename);
+};
+
+const reportsDownloadLastYear = async (filename = "reporte_ultimo_anio.xlsx") => {
+  await DOWNLOAD(`reports/last-year/`, filename);
+};
+
+const reportsDownloadAnnualCompressed = async (filename = "reporte_anual_comprimido.xlsx") => {
+  await DOWNLOAD(`reports/annual-compressed/`, filename);
+};
+
+const reportsDownloadActivePoints = async (filename = "puntos_activos.xlsx") => {
+  await DOWNLOAD(`reports/active-points/`, filename);
+};
+
 // ==========================================
 // PUNTOS DE CAPTACIÓN UNIFICADOS → /api/points/
 // ==========================================
-// PUNTOS DE CAPTACIÓN UNIFICADOS → /api/points/
+// PUNTOS DE CAPTACIÓN UNIFICADOS (catchment_point / ik/point/{id}/)
 // ==========================================
 
 const pointsList = async (params = {}) => {
+  if (params.mine) {
+    const rq = await GET(`ik/my_points/`);
+    return rq.data;
+  }
   const query = new URLSearchParams();
   if (params.project != null) query.set("project", String(params.project));
   if (params.search?.trim()) query.set("search", params.search.trim());
   if (params.page != null) query.set("page", String(params.page));
   if (params.page_size != null) query.set("page_size", String(params.page_size));
-  if (params.order_by) query.set("order_by", params.order_by);
-  if (params.mine != null) query.set("mine", String(params.mine));
+  if (params.ordering) query.set("ordering", params.ordering);
   const qs = query.toString();
-  const rq = await GET(`points/${qs ? `?${qs}` : ""}`);
+  const rq = await GET(`catchment_point/${qs ? `?${qs}` : ""}`);
   return rq.data;
 };
 
 const pointsGet = async (id) => {
-  const rq = await GET(`points/${id}/`);
+  const rq = await GET(`catchment_point/${id}/`);
   return rq.data;
 };
 
 const pointsCreate = async (data) => {
-  const rq = await POST(`points/`, data);
+  const rq = await POST(`catchment_point/`, data);
   return rq.data;
 };
 
 const pointsUpdate = async (id, data) => {
-  const rq = await PATCH(`points/${id}/`, data);
+  const rq = await PATCH(`catchment_point/${id}/`, data);
   return rq.data;
 };
 
 const pointsDelete = async (id) => {
-  const rq = await DELETE(`points/${id}/`);
+  const rq = await DELETE(`catchment_point/${id}/`);
   return rq.data;
 };
 
-const pointsRecords = async (id, { startDate, endDate, limit = 100, hours } = {}) => {
+const pointsRecords = async (id, { startDate, endDate, start_date, end_date, limit = 100, hours } = {}) => {
+  const sDate = startDate || start_date;
+  const eDate = endDate || end_date;
   const query = new URLSearchParams();
-  if (startDate) query.set("start_date", startDate);
-  if (endDate) query.set("end_date", endDate);
+  if (sDate) query.set("start_date", sDate);
+  if (eDate) query.set("end_date", eDate);
   if (limit != null) query.set("limit", String(limit));
   if (hours != null) query.set("hours", String(hours));
   const qs = query.toString();
-  const rq = await GET(`points/${id}/records/${qs ? `?${qs}` : ""}`);
+  const rq = await GET(`ik/point/${id}/records/${qs ? `?${qs}` : ""}`);
   return rq.data;
 };
 
 const pointsLatest = async (id) => {
-  const rq = await GET(`points/${id}/latest/`);
+  const rq = await GET(`ik/point/${id}/summary/`);
   return rq.data;
 };
 
 const pointStatus = async (id, thresholdMinutes) => {
   const qs = thresholdMinutes != null ? `?threshold_minutes=${thresholdMinutes}` : "";
-  const rq = await GET(`points/${id}/status/${qs}`);
+  const rq = await GET(`management/points_status/${qs}`);
   return rq.data;
 };
 
 const pointsConfig = async (id) => {
-  const rq = await GET(`points/${id}/config/`);
+  const rq = await GET(`ik/point/${id}/config/`);
   return rq.data;
 };
 
@@ -1575,20 +1690,21 @@ const pointsConfigUpdate = async (id, config) => {
 };
 
 const pointsVariables = async (id) => {
-  const rq = await GET(`points/${id}/variables/`);
+  const rq = await GET(`ik/point/${id}/variables/`);
   return rq.data;
 };
 
 const pointsSummary = async (id) => {
-  const rq = await GET(`points/${id}/summary/`);
+  const rq = await GET(`ik/point/${id}/summary/`);
   return rq.data;
 };
 
-const pointsBatchStatus = async (ids = []) => {
+const pointsBatchStatus = async (ids = [], days = 30) => {
   if (!ids.length) return { count: 0, statuses: {} };
-  const query = new URLSearchParams();
-  query.set("ids", ids.join(","));
-  const rq = await GET(`points/batch_status/?${query.toString()}`);
+  const rq = await POST(`ik/batch/stats/`, {
+    point_ids: ids,
+    days,
+  });
   return rq.data;
 };
 
@@ -1599,8 +1715,6 @@ const sh = {
   requestPasswordReset,
   confirmPasswordReset,
   getPublicAnnouncements,
-  billing_data: get_history_data,
-  billing_data_admin: get_history_data_admin,
   get_profile: get_profile,
   me: getMe,
   changePassword,
@@ -1816,7 +1930,17 @@ const sh = {
     records: ikPointRecords,
     variables: ikPointVariables,
     calendar: ikPointCalendar,
+    gaps: ikPointGaps,
   },
+  telemetry: {
+    backfill: telemetryBackfill,
+    reprocess: telemetryReprocess,
+  },
+  counterResets: {
+    list: getCounterResetLogs,
+    get: getCounterResetLog,
+  },
+  validatePasswordResetToken,
   // 🆕 CENTRO DE CONTROL: Resumen diario agregado
   dailySummary: get_daily_summary,
   dashboardStats: get_dashboard_stats,
@@ -1831,6 +1955,7 @@ const sh = {
   compliance: get_compliance,
   complianceList: get_compliance_list,
   toggleCompliance: toggle_compliance,
+  verifyDgaVoucher: verify_dga_voucher,
   // 🆕 HISTÓRICOS DE AUDITORÍA
   flowHistory: get_flow_history,
   nearLimitHistory: get_near_limit_history,
@@ -1838,8 +1963,38 @@ const sh = {
   pointRecords: get_point_records,
   // 🆕 CONFIGURACIÓN TÉCNICA DEL PUNTO
   pointConfig: get_point_config,
-  // 🆕 VERIFICACIÓN DGA
-  verifyDgaVoucher,
+  
+  // Extensiones de Usuario
+  uploadAvatar,
+  updateNotifyEmailPreference,
+
+  // Reportes Oficiales
+  reports: {
+    jsonByProject: reportsJsonByProject,
+    jsonByPoint: reportsJsonByPoint,
+    jsonLastMonth: reportsJsonLastMonth,
+    jsonLastYear: reportsJsonLastYear,
+    jsonAnnualCompressed: reportsJsonAnnualCompressed,
+    downloadByProject: reportsDownloadByProject,
+    downloadByPoint: reportsDownloadByPoint,
+    downloadLastMonth: reportsDownloadLastMonth,
+    downloadLastYear: reportsDownloadLastYear,
+    downloadAnnualCompressed: reportsDownloadAnnualCompressed,
+    downloadActivePoints: reportsDownloadActivePoints,
+  },
+
+  // CRUD DGA Config
+  dgaConfigs: {
+    list: getDgaConfigs,
+    get: getDgaConfig,
+    create: createDgaConfig,
+    update: updateDgaConfig,
+    delete: deleteDgaConfig,
+  },
+  parseApiError,
 };
+
+// Extender sub-objetos existentes para convertToClient
+sh.tickets.convertToClient = convertTicketToClient;
 
 export default sh;

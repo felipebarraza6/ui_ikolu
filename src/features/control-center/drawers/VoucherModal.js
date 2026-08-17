@@ -22,6 +22,7 @@ const VoucherModal = ({
 
   return (
     <Modal
+      className="voucher-modal"
       title={
         <Flex align="center" gap={8} wrap="wrap">
           <FaClipboardCheck style={{ color: token.voidTextHeading, fontSize: 16 }} />
@@ -39,7 +40,6 @@ const VoucherModal = ({
       footer={null}
       centered
       width="800px"
-      styles={{ body: { paddingBottom: 24, display: 'flex', flexDirection: 'column', background: "transparent" } }}
     >
       <Flex vertical gap={12}>
         {selectedVoucher?.code && selectedVoucher?.voucher && (
@@ -239,6 +239,100 @@ const VoucherModal = ({
                   <Text style={{ fontSize: 11, color: token.voidTextMuted, marginTop: 4 }}>
                     Revisa la consola para más detalles
                   </Text>
+                </Flex>
+              )}
+
+              {dgaResult && (dgaResult.status === 200 || dgaResult.valid === true) && dgaResult.status !== "00" && (
+                <Flex vertical gap={12} style={{ height: "100%" }} justify="space-between">
+                  <Flex vertical gap={12} style={{ overflowY: "auto", flex: 1 }}>
+                    <div style={{ background: `${token.colorSuccess}15`, border: `1px solid ${token.colorSuccess}30`, borderRadius: token.voidRadius, padding: "12px 14px", textAlign: "center" }}>
+                      <Text strong style={{ fontSize: 13, color: token.colorSuccess }}>✓ Comprobante verificado</Text>
+                    </div>
+                    {dgaResult.data && (
+                      <Row gutter={[10, 10]}>
+                        {dgaResult.data.caudal !== undefined && (
+                          <Col span={12}>
+                            <div style={{ background: token.voidSurface, border: `1px solid ${token.voidBorder}`, borderRadius: token.voidRadius, padding: "12px 14px", textAlign: "center" }}>
+                              <Text style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5, color: token.voidTextMuted }}>Caudal</Text>
+                              <div><Text strong style={{ fontSize: 20, color: token.voidTextHeading }}>{dgaResult.data.caudal}</Text> <Text style={{ fontSize: 12, color: token.voidTextMuted }}>L/s</Text></div>
+                            </div>
+                          </Col>
+                        )}
+                        {dgaResult.data.totalizador !== undefined && (
+                          <Col span={12}>
+                            <div style={{ background: token.voidSurface, border: `1px solid ${token.voidBorder}`, borderRadius: token.voidRadius, padding: "12px 14px", textAlign: "center" }}>
+                              <Text style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5, color: token.voidTextMuted }}>Totalizador</Text>
+                              <div><Text strong style={{ fontSize: 20, color: token.voidTextHeading }}>{dgaResult.data.totalizador}</Text> <Text style={{ fontSize: 12, color: token.voidTextMuted }}>m³</Text></div>
+                            </div>
+                          </Col>
+                        )}
+                      </Row>
+                    )}
+                    <div style={{
+                      background: token.voidBg,
+                      border: `1px solid ${token.voidBorder}`,
+                      borderRadius: token.voidRadius,
+                      padding: "12px 14px",
+                      fontFamily: token.voidMono,
+                      fontSize: 11,
+                      color: token.voidTextHeading,
+                      maxHeight: 300,
+                      overflowY: "auto",
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-all",
+                      lineHeight: 1.6,
+                    }}>
+                      {JSON.stringify(dgaResult, null, 2)}
+                    </div>
+                  </Flex>
+                  <Button
+                    size="small"
+                    block
+                    icon={<FaCopy style={{ fontSize: 11 }} />}
+                    onClick={() => {
+                      navigator.clipboard.writeText(JSON.stringify(dgaResult, null, 2));
+                      message.success("Respuesta copiada");
+                    }}
+                  >
+                    Copiar JSON
+                  </Button>
+                </Flex>
+              )}
+
+              {dgaResult && !dgaVerifying && dgaResult.status !== "00" && dgaResult.status !== "01" && dgaResult.status !== 200 && dgaResult.valid !== true && dgaResult.status && (
+                <Flex vertical gap={12} style={{ height: "100%" }} justify="space-between">
+                  <Flex vertical gap={12} style={{ overflowY: "auto", flex: 1 }}>
+                    <div style={{ background: `${token.colorPrimary}10`, border: `1px solid ${token.colorPrimary}30`, borderRadius: token.voidRadius, padding: "12px 14px", textAlign: "center" }}>
+                      <Text style={{ fontSize: 11, color: token.colorPrimary }}>Respuesta recibida</Text>
+                    </div>
+                    <div style={{
+                      background: token.voidBg,
+                      border: `1px solid ${token.voidBorder}`,
+                      borderRadius: token.voidRadius,
+                      padding: "12px 14px",
+                      fontFamily: token.voidMono,
+                      fontSize: 11,
+                      color: token.voidTextHeading,
+                      maxHeight: 400,
+                      overflowY: "auto",
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-all",
+                      lineHeight: 1.6,
+                    }}>
+                      {JSON.stringify(dgaResult, null, 2)}
+                    </div>
+                  </Flex>
+                  <Button
+                    size="small"
+                    block
+                    icon={<FaCopy style={{ fontSize: 11 }} />}
+                    onClick={() => {
+                      navigator.clipboard.writeText(JSON.stringify(dgaResult, null, 2));
+                      message.success("Respuesta copiada");
+                    }}
+                  >
+                    Copiar JSON
+                  </Button>
                 </Flex>
               )}
             </Flex>

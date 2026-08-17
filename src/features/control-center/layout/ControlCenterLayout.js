@@ -1,5 +1,5 @@
 import React, { memo, useCallback } from "react";
-import { Row, Col, Flex, Typography, Segmented, Tooltip, Select, DatePicker } from "antd";
+import { Row, Col, Flex, Segmented, Tooltip, Select, DatePicker } from "antd";
 import dayjs from "dayjs";
 import {
   FaMapMarkerAlt,
@@ -11,9 +11,6 @@ import { SmartKPICard } from "../../../shared/ui";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import { BlinkingDot } from "../components";
 
-import ControlCenterChat from "../components/Chat/ControlCenterChat";
-
-const { Text } = Typography;
 
 const KPIsSection = memo(({
   overview,
@@ -29,74 +26,62 @@ const KPIsSection = memo(({
 
   return (
     <>
-      <Row id="cc-kpi-cards" gutter={[16, 24]} className="ocean-kpi-row">
-        <Col xs={12} sm={6} md={6} className="fade-in-up" style={{ animationDelay: "0.05s" }}>
-          <div className="card-lift">
-            <Tooltip title="Cantidad total de puntos de captacion registrados" placement="top">
-              <div>
-                <SmartKPICard
-                  icon={<FaMapMarkerAlt style={{ fontSize: 18, color: token.voidTextHeading }} />}
-                  label="Total Puntos"
-                  value={overview.total_points || 0}
-                  variant="void"
-                  loading={loading}
-                />
-              </div>
-            </Tooltip>
-          </div>
+      <Row id="cc-kpi-cards" gutter={[12, 12]} className="ocean-kpi-row">
+        <Col xs={12} sm={6} md={6}>
+          <Tooltip title="Cantidad total de puntos de captacion registrados" placement="top">
+            <div>
+              <SmartKPICard
+                icon={<FaMapMarkerAlt style={{ fontSize: 18, color: token.voidTextHeading }} />}
+                label="Total Puntos"
+                value={overview.total_points || 0}
+                variant="void"
+                loading={loading}
+              />
+            </div>
+          </Tooltip>
         </Col>
-        <Col xs={12} sm={6} md={6} className="fade-in-up" style={{ animationDelay: "0.1s" }}>
-          <div className="card-lift">
-            <Tooltip title="Puntos con telemetria funcionando en tiempo real" placement="top">
-              <div>
-                <SmartKPICard
-                  icon={<BlinkingDot size={12} color={token.voidTextHeading} variant="telemetry" />}
-                  label="Telemetria Activa"
-                  value={`${overview.points_with_telemetry || 0}`}
-                  suffix={`/${overview.total_points || 0}`}
-                  variant="void"
-                  loading={loading}
-                />
-              </div>
-            </Tooltip>
-          </div>
+        <Col xs={12} sm={6} md={6}>
+          <Tooltip title="Puntos con telemetria funcionando en tiempo real" placement="top">
+            <div>
+              <SmartKPICard
+                icon={<BlinkingDot size={12} color={token.voidTextHeading} variant="telemetry" />}
+                label="Telemetria Activa"
+                value={`${overview.points_with_telemetry || 0}`}
+                suffix={`/${overview.total_points || 0}`}
+                variant="void"
+                loading={loading}
+              />
+            </div>
+          </Tooltip>
         </Col>
-        <Col xs={12} sm={6} md={6} className="fade-in-up" style={{ animationDelay: "0.15s" }}>
-          <div className="card-lift">
-            <Tooltip title="Puntos con configuracion DGA/SMA completa" placement="top">
-              <div>
-                <SmartKPICard
-                  icon={<FaClipboardCheck style={{ fontSize: 18, color: token.voidTextHeading }} />}
-                  label="Cumplimiento Normativo"
-                  value={overview.points_with_compliance || 0}
-                  variant="void"
-                  loading={loading}
-                />
-              </div>
-            </Tooltip>
-          </div>
+        <Col xs={12} sm={6} md={6}>
+          <Tooltip title="Puntos con configuracion DGA/SMA completa" placement="top">
+            <div>
+              <SmartKPICard
+                icon={<FaClipboardCheck style={{ fontSize: 18, color: token.voidTextHeading }} />}
+                label="Cumplimiento Normativo"
+                value={overview.points_with_compliance || 0}
+                variant="void"
+                loading={loading}
+              />
+            </div>
+          </Tooltip>
         </Col>
-        <Col xs={12} sm={6} md={6} className="fade-in-up" style={{ animationDelay: "0.2s" }}>
-          <div className="card-lift">
-            <Tooltip title="Alertas y advertencias detectadas recientemente" placement="top">
-              <div>
-                <SmartKPICard
-                  icon={<BlinkingDot size={12} color={token.voidTextHeading} variant="warning" active={hasWarnings} />}
-                  label="Warnings"
-                  value={warningsCount}
-                  variant="void"
-                  loading={loading}
-                  onClick={() => onWarningClick()}
-                />
-              </div>
-            </Tooltip>
-          </div>
+        <Col xs={12} sm={6} md={6}>
+          <Tooltip title="Alertas y advertencias detectadas recientemente" placement="top">
+            <div>
+              <SmartKPICard
+                icon={<BlinkingDot size={12} color={token.voidTextHeading} variant="warning" active={hasWarnings} />}
+                label="Warnings"
+                value={warningsCount}
+                variant="void"
+                loading={loading}
+                onClick={() => onWarningClick()}
+              />
+            </div>
+          </Tooltip>
         </Col>
       </Row>
-
-      {!loading && (
-        <ControlCenterChat points={points} chatQuota={chatQuota} />
-      )}
     </>
   );
 });
@@ -143,15 +128,7 @@ const ControlCenterLayout = memo(({
         token={token}
       />
 
-      <div className="ocean-tabs-container"
-        style={{
-          background: token.glassBg,
-          borderRadius: token.voidRadius,
-          border: `1px solid ${token.glassBorder}`,
-          backdropFilter: "blur(12px)",
-          boxShadow: token.voidShadow,
-        }}
-      >
+      <div className="ocean-tabs-container">
         <Flex justify="space-between" align="center" className="ocean-tabs-header" wrap="wrap" gap={12}>
           <Flex align="center" gap={12}>
             <DatePicker.RangePicker
@@ -173,9 +150,19 @@ const ControlCenterLayout = memo(({
                 showSearch
                 size="small"
                 style={{ minWidth: 220 }}
-                value={selectedProject || undefined}
-                onChange={(value) => onSelectProject(value || null)}
-                options={projects.map((p) => ({ value: p.id, label: p.name }))}
+                value={selectedProject ? String(selectedProject) : undefined}
+                onChange={(value) => onSelectProject(value ? String(value) : null)}
+                options={projects.map((p) => {
+                  const pId = p?.id ?? p?.project_id ?? p?.pk;
+                  const pName = p?.name || p?.project_name || p?.title || (pId ? `Proyecto ${pId}` : "Sin nombre");
+                  return { value: String(pId), label: String(pName) };
+                })}
+                filterOption={(input, option) =>
+                  String(option?.label || "")
+                    .toLowerCase()
+                    .includes((input || "").toLowerCase().trim())
+                }
+                optionFilterProp="label"
                 prefix={<FaProjectDiagram style={{ color: token.voidTextMuted, fontSize: 13 }} />}
               />
             )}

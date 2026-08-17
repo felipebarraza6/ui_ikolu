@@ -1,6 +1,6 @@
 import React from "react";
 import { Form, Input, Button, Typography } from "antd";
-import { MailOutlined, LockOutlined, ArrowRightOutlined } from "@ant-design/icons";
+import { MailOutlined, LockOutlined } from "@ant-design/icons";
 import VoidCubeLogo from "./VoidCubeLogo";
 
 const { Title } = Typography;
@@ -85,60 +85,27 @@ const LoginForm = ({ onSubmit, loading, onForgot, onShowFeatures }) => (
         <span
           style={{
             fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-            fontWeight: 600,
-            fontSize: "1.75rem",
-            letterSpacing: "1px",
+            fontWeight: 800,
+            fontSize: "1.9rem",
+            letterSpacing: "3px",
             textTransform: "uppercase",
-            marginRight: 8,
+            color: "#f2f5fa",
           }}
         >
           Ikolu
         </span>
-        <span
-          style={{
-            fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace",
-            fontWeight: 700,
-            fontSize: "1.85rem",
-            letterSpacing: "3px",
-            textTransform: "uppercase",
-            color: IKOLU_COLOR,
-            textShadow: "0 0 24px rgba(255,255,255,0.25)",
-          }}
-        >
-          Void
-        </span>
       </Title>
 
-      <div style={{ marginTop: 10 }}>
-        <button
-          type="button"
-          onClick={onShowFeatures}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            color: IKOLU_COLOR,
-            fontSize: 12,
-            fontWeight: 600,
-            cursor: "pointer",
-            padding: "6px 14px",
-            borderRadius: 16,
-            border: "1px solid rgba(255, 255, 255, 0.30)",
-            background: "rgba(255, 255, 255, 0.07)",
-            transition: "all 0.2s ease",
-            fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(255, 255, 255, 0.14)";
-            e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.55)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "rgba(255, 255, 255, 0.07)";
-            e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.30)";
-          }}
-        >
-          Ver novedades <ArrowRightOutlined />
-        </button>
+      <div
+        style={{
+          fontSize: 11,
+          color: "rgba(200,214,240,0.45)",
+          letterSpacing: "1.5px",
+          textTransform: "uppercase",
+          marginTop: 6,
+        }}
+      >
+        Plataforma de Gestion Hidrica
       </div>
     </div>
 

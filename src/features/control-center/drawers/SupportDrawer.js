@@ -10,14 +10,6 @@ import orchestrator from "../../../api/orchestrator";
 const { Text } = Typography;
 const { TextArea } = Input;
 
-const SUPPORT_TYPES = [
-  { value: "TECNICO", label: "Soporte Técnico" },
-  { value: "DGA", label: "Consulta DGA" },
-  { value: "INSTALACION", label: "Instalación / Mantención" },
-  { value: "DATOS", label: "Problema con Datos" },
-  { value: "OTRO", label: "Otro" },
-];
-
 const PRIORITY_OPTIONS = [
   { value: "low", label: "Baja" },
   { value: "medium", label: "Media" },

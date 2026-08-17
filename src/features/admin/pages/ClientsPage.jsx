@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback } from "react";
 import { Flex, Typography, Button, Table, Input, Modal, Space, Tooltip, Form } from "antd";
 import { PlusOutlined, ReloadOutlined, EditOutlined, DeleteOutlined, TeamOutlined } from "@ant-design/icons";
 import { SmartCard, SmartButton } from "../../../shared/ui";
@@ -81,7 +81,7 @@ const ClientsPage = () => {
       handleClose();
       fetchPage(pagination.current);
     },
-    [editing, createItem, updateItem, handleClose, fetchPage, pagination.current]
+    [editing, createItem, updateItem, handleClose, fetchPage, pagination]
   );
 
   const handleDelete = useCallback(
@@ -98,7 +98,7 @@ const ClientsPage = () => {
         },
       });
     },
-    [deleteItem, fetchPage, pagination.current]
+    [deleteItem, fetchPage, pagination]
   );
 
   const columns = [

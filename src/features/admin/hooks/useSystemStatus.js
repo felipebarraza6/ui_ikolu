@@ -5,9 +5,6 @@ import orchestrator from "../../../api/orchestrator";
 const isAbortError = (err) =>
   err?.name === "AbortError" || err?.code === "ERR_CANCELED" || err?.message?.toLowerCase().includes("abort");
 
-const isNetworkError = (err) =>
-  !err?.response && (err?.message === "Network Error" || err?.message?.toLowerCase().includes("network"));
-
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**

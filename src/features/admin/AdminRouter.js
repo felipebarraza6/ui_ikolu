@@ -7,7 +7,6 @@ import MyDeskPage from "./pages/MyDeskPage";
 import TicketCategoriesPage from "./pages/TicketCategoriesPage";
 import SlaConfigsPage from "./pages/SlaConfigsPage";
 import FilesDrivePage from "./pages/FilesDrivePage";
-import OperationalDashboard from "./pages/OperationalDashboard";
 import ClientsPage from "./pages/ClientsPage";
 import ClientDetailPage from "./pages/ClientDetailPage";
 import ProjectsPage from "./pages/ProjectsPage";
@@ -28,7 +27,6 @@ const AdminRouter = () => {
     <Routes>
       <Route path="/" element={<Navigate to="/admin/performance" replace />} />
       <Route path="/performance" element={<PerformanceDashboard />} />
-      <Route path="/operational" element={<OperationalDashboard />} />
       <Route path="/support" element={<Navigate to="/admin/support/my-desk" replace />} />
       <Route path="/support/kanban" element={<Navigate to="/admin/support/tickets" replace />} />
       <Route path="/support/tickets" element={<SupportDashboard />} />

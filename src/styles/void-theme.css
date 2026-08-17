@@ -32,9 +32,7 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
 }
 
-[data-ikolu-theme="void"],
-[data-void-theme="true"] {
-  /* Iconos de Ant Design: nunca tocar su fuente */
+/* Iconos de Ant Design: nunca tocar su fuente */
   .anticon,
   [class^="anticon"],
   [class*=" anticon"],
@@ -1040,4 +1038,3 @@
     border: 1.5px solid var(--ikolu-void-border) !important;
     background: var(--ikolu-void-surface) !important;
   }
-}

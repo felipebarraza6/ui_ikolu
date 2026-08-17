@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useMemo,
   useReducer,
+  useEffect,
 } from "react";
 import sh from "../api/sh/endpoints";
 import { clearCacheOnLogout } from "../utils/dataCache";
@@ -97,6 +98,20 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(() => {
     dispatch({ type: "LOGOUT" });
   }, []);
+
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      logout();
+    };
+    if (typeof window !== "undefined") {
+      window.addEventListener("sh-auth-unauthorized", handleUnauthorized);
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("sh-auth-unauthorized", handleUnauthorized);
+      }
+    };
+  }, [logout]);
 
   const updateUserProfile = useCallback(async (data) => {
     if (!state.user?.username) {

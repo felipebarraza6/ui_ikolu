@@ -4,7 +4,9 @@ import { SearchOutlined } from "@ant-design/icons";
 import { FaExclamationTriangle, FaChartLine } from "react-icons/fa";
 import { useAuth } from "../../../../contexts/AuthContext";
 import { useIkoluToken } from "../../../../hooks/useIkoluToken";
-import { PointHeader, ConsumptionCell, ActionButtons } from "../../components";
+import PointHeader from "../../components/PointHeader";
+import ConsumptionCell from "../../components/ConsumptionCell";
+import ActionButtons from "../../components/ActionButtons";
 
 const { Text } = Typography;
 
@@ -30,11 +32,6 @@ const standardFilterOptions = [
   { text: "Sin estandar", value: "SIN_ESTANDAR" },
 ];
 
-const natureFilterOptions = [
-  { text: "Superficial", value: "SUPERFICIAL" },
-  { text: "Subterráneo", value: "SUBTERRANEO" },
-];
-
 const orderByOptions = [
   { value: "default", label: "Default (activos primero)" },
   { value: "pct_consumed_desc", label: "% consumido ↓" },
@@ -57,6 +54,7 @@ const pointsColumns = ({
   onStopCompliance,
   onOpenSupport,
   onViewPointConfig,
+  onViewComplianceInfo,
   onViewFlowHistory,
   onViewNearLimitHistory,
   onToggleCompliance,
@@ -65,21 +63,22 @@ const pointsColumns = ({
   nature,
   token,
   isSuperUser,
+  projects,
 }) => [
   {
     title: "Punto",
     key: "point_name",
-    width: 100,
+    width: 180,
     sorter: true,
     defaultSortOrder: "ascend",
     render: (_, record) => (
-      <PointHeader record={record} onViewPointConfig={onViewPointConfig} />
+      <PointHeader record={record} onViewPointConfig={() => onViewComplianceInfo?.(record)} projects={projects} />
     ),
   },
   {
-    title: "Estándar",
+    title: "Tipo",
     key: "standard",
-    width: 95,
+    width: 120,
     align: "center",
     responsive: ["md"],
     filters: standardFilterOptions,
@@ -93,28 +92,31 @@ const pointsColumns = ({
         ? [record.compliance_type]
         : [];
       const isSma = complianceTypes.some((t) => String(t).trim().toUpperCase() === "SMA");
-      if (!standardLabel || isSma) return <Text style={{ fontSize: token.fontSizeSM, color: token.voidTextMuted }}>—</Text>;
+      const natureLabel = typeDgaLabels[record.type_dga] || record.type_dga;
+
       return (
-        <Tag style={{ fontSize: token.fontSizeSM, background: token.voidSurface, borderColor: token.voidBorder, color: token.voidTextHeading }}>
-          {standardLabel}
-        </Tag>
+        <Flex vertical gap={2} align="center">
+          {standardLabel && !isSma ? (
+            <Tag
+              style={{
+                fontSize: token.fontSizeSM,
+                background: token.voidSurface,
+                borderColor: token.voidBorder,
+                color: token.voidTextHeading,
+                margin: 0,
+              }}
+            >
+              {standardLabel}
+            </Tag>
+          ) : null}
+          {natureLabel ? (
+            <Text style={{ fontSize: token.fontSizeSM, color: token.voidTextMuted }}>
+              {natureLabel}
+            </Text>
+          ) : null}
+        </Flex>
       );
     },
-  },
-  {
-    title: "Naturaleza",
-    key: "nature",
-    width: 95,
-    align: "center",
-    responsive: ["md"],
-    filters: natureFilterOptions,
-    onFilter: () => true,
-    filteredValue: nature ? nature.split(",") : null,
-    render: (_, record) => (
-      <Text style={{ fontSize: token.fontSizeSM, color: token.voidText }}>
-        {typeDgaLabels[record.type_dga] || record.type_dga}
-      </Text>
-    ),
   },
   {
     title: "Consumo",
@@ -257,7 +259,7 @@ const pointsColumns = ({
   {
     title: "",
     key: "actions",
-    width: isSuperUser ? 180 : 120,
+    width: isSuperUser ? 180 : 140,
     align: "center",
     fixed: "right",
     render: (_, record) => (
@@ -280,6 +282,7 @@ const CCComplianceTable = ({
   onOpenStopCompliance,
   onOpenSupport = () => {},
   onViewPointConfig,
+  onViewComplianceInfo,
   onViewFlowHistory,
   onViewNearLimitHistory,
   onToggleCompliance,
@@ -297,6 +300,7 @@ const CCComplianceTable = ({
   setStandard,
   nature = "",
   setNature,
+  projects = [],
 }) => {
   const token = useIkoluToken();
   const { isSuperUser } = useAuth();
@@ -311,7 +315,6 @@ const CCComplianceTable = ({
   };
 
   const filteredPoints = useMemo(() => {
-    // Si hay paginación backend, el servidor ya filtró; no filtrar localmente.
     if (isServerPaginated) return points;
     if (!search.trim()) return points;
     const q = search.toLowerCase();
@@ -336,6 +339,7 @@ const CCComplianceTable = ({
       onStopCompliance: onOpenStopCompliance,
       onOpenSupport,
       onViewPointConfig,
+      onViewComplianceInfo,
       onViewFlowHistory,
       onViewNearLimitHistory,
       onToggleCompliance,
@@ -344,6 +348,7 @@ const CCComplianceTable = ({
       nature,
       token,
       isSuperUser,
+      projects,
     });
     return allColumns.filter(col => {
       if (col.key === "flow" && !activeVars.hasFlow) return false;
@@ -351,10 +356,9 @@ const CCComplianceTable = ({
       if (col.key === "water_table" && !activeVars.hasLevel) return false;
       return true;
     });
-  }, [onViewVoucher, onOpenStopCompliance, onOpenSupport, onViewPointConfig, onViewFlowHistory, onViewNearLimitHistory, onToggleCompliance, togglingCompliance, standard, nature, token, isSuperUser, activeVars]);
+  }, [onViewVoucher, onOpenStopCompliance, onOpenSupport, onViewPointConfig, onViewComplianceInfo, onViewFlowHistory, onViewNearLimitHistory, onToggleCompliance, togglingCompliance, standard, nature, token, isSuperUser, activeVars, projects]);
 
   const handleTableChange = (_pagination, filters, sorter) => {
-    // Filtros de estándar y naturaleza (backend).
     if (setStandard) {
       const standardFilters = filters?.standard;
       const nextStandard = standardFilters?.length ? standardFilters.join(",") : "";
@@ -374,7 +378,6 @@ const CCComplianceTable = ({
 
     if (!setOrderBy) return;
     const sortState = Array.isArray(sorter) ? sorter[0] : sorter;
-    // Solo los campos soportados por el backend.
     const fieldMap = {
       point_name: "point_name",
       consumption: "pct_consumed",
@@ -442,7 +445,7 @@ const CCComplianceTable = ({
         loading={loading}
         dataSource={filteredPoints}
         columns={columns}
-        rowKey="id"
+        rowKey={(r) => r.id ?? r.point_id ?? r.pk ?? r.key ?? Math.random().toString()}
         size="small"
         scroll={{ x: "max-content" }}
         pagination={paginationConfig}

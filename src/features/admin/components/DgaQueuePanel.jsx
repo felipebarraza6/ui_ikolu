@@ -12,7 +12,7 @@ import {
 import ReactApexChart from "react-apexcharts";
 import { SmartCard, SmartButton } from "../../../shared/ui";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
-import sh from "../../../api/sh/endpoints";
+import orchestrator from "../../../api/orchestrator";
 
 const { Text, Paragraph } = Typography;
 
@@ -21,7 +21,7 @@ const DgaQueuePanel = memo(({ data, loading, onChange }) => {
 
   const handleRequeue = useCallback(async () => {
     try {
-      await sh.management.requeueDga({ only_errors: true });
+      await orchestrator.management.requeueDga({ only_errors: true });
       message.success("DGA fallidos reencolados correctamente");
       onChange?.();
     } catch (err) {
@@ -32,7 +32,7 @@ const DgaQueuePanel = memo(({ data, loading, onChange }) => {
 
   const handleClear = useCallback(async () => {
     try {
-      await sh.management.clearDgaQueue({ only_errors: true });
+      await orchestrator.management.clearDgaQueue({ only_errors: true });
       message.success("Errores de cola DGA limpiados");
       onChange?.();
     } catch (err) {
@@ -76,15 +76,15 @@ const DgaQueuePanel = memo(({ data, loading, onChange }) => {
     ];
   }, [data, token]);
 
-  const byPoint = data?.by_point || [];
   const chartData = useMemo(() => {
+    const byPoint = data?.by_point || [];
     const categories = byPoint.map((p) =>
       p.point_name || p.name || p.title || `Punto ${p.point_id || p.id}`
     );
     const pending = byPoint.map((p) => p.pending ?? p.pending_count ?? 0);
     const errors = byPoint.map((p) => p.errors ?? p.error_count ?? p.failed ?? 0);
     return { categories, pending, errors };
-  }, [byPoint]);
+  }, [data?.by_point]);
 
   const chartOptions = useMemo(
     () => ({

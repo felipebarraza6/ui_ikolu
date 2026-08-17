@@ -66,7 +66,10 @@ const ModuleTour = ({
     currentStepRef.current = currentStep;
   }, [currentStep]);
 
-  const resolvedSteps = useMemo(() => resolveStepTargets(steps), [steps, refreshKey]);
+  const resolvedSteps = useMemo(() => {
+    void refreshKey;
+    return resolveStepTargets(steps);
+  }, [steps, refreshKey]);
 
   const indicatorsRender = useCallback(
     (current, total) => (

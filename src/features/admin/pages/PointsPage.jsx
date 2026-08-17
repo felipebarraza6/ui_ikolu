@@ -19,7 +19,7 @@ import {
   DeleteOutlined,
   EnvironmentOutlined,
 } from "@ant-design/icons";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { SmartCard, SmartButton } from "../../../shared/ui";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import useAdminCrud from "../hooks/useAdminCrud";
@@ -47,7 +47,6 @@ const USERS_PAGE_SIZE = 1000;
 
 const PointsPage = () => {
   const token = useIkoluToken();
-  const location = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [searchText, setSearchText] = useState("");
@@ -173,7 +172,7 @@ const PointsPage = () => {
       handleClose();
       fetchPage(pagination.current);
     },
-    [editing, createItem, updateItem, handleClose, fetchPage, pagination.current]
+    [editing, createItem, updateItem, handleClose, fetchPage, pagination]
   );
 
   const handleDelete = useCallback(
@@ -190,7 +189,7 @@ const PointsPage = () => {
         },
       });
     },
-    [deleteItem, fetchPage, pagination.current]
+    [deleteItem, fetchPage, pagination]
   );
 
   const getUserLabel = useCallback(

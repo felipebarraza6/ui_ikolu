@@ -78,11 +78,11 @@ ServiceRow.displayName = "ServiceRow";
 const SystemHealthPanel = memo(({ data, loading }) => {
   const token = useIkoluToken();
 
-  const server = data?.server || {};
-  const database = data?.database || {};
-  const redis = data?.redis || {};
-  const external = data?.external_services || {};
-  const cronjobs = data?.cronjobs || {};
+  const server = data?.server;
+  const database = data?.database;
+  const redis = data?.redis;
+  const external = data?.external_services;
+  const cronjobs = data?.cronjobs;
 
   const cronjobStats = useMemo(() => {
     if (!cronjobs) return null;
@@ -106,38 +106,42 @@ const SystemHealthPanel = memo(({ data, loading }) => {
 
   const services = React.useMemo(() => {
     const list = [];
+    const s = server || {};
+    const db = database || {};
+    const r = redis || {};
+    const ext = external || {};
 
-    if (server.cpu_percent !== undefined || server.memory_percent !== undefined) {
+    if (s.cpu_percent !== undefined || s.memory_percent !== undefined) {
       list.push({
         key: "server",
         icon: <CloudServerOutlined />,
         label: "Servidor",
         status: getStatus("healthy"),
-        extra: `CPU ${server.cpu_percent}% · Mem ${server.memory_percent}% · Disco ${server.disk_percent}%`,
+        extra: `CPU ${s.cpu_percent}% · Mem ${s.memory_percent}% · Disco ${s.disk_percent}%`,
       });
     }
 
-    if (database.status) {
+    if (db.status) {
       list.push({
         key: "database",
         icon: <DatabaseOutlined />,
-        label: `PostgreSQL (${database.name || "DB"})`,
-        status: getStatus(database),
-        extra: database.size_mb ? `${database.size_mb} MB` : null,
+        label: `PostgreSQL (${db.name || "DB"})`,
+        status: getStatus(db),
+        extra: db.size_mb ? `${db.size_mb} MB` : null,
       });
     }
 
-    if (redis.status) {
+    if (r.status) {
       list.push({
         key: "redis",
         icon: <ThunderboltOutlined />,
-        label: `Redis ${redis.version || ""}`,
-        status: getStatus(redis),
-        extra: redis.used_memory_human ? `Mem: ${redis.used_memory_human}` : null,
+        label: `Redis ${r.version || ""}`,
+        status: getStatus(r),
+        extra: r.used_memory_human ? `Mem: ${r.used_memory_human}` : null,
       });
     }
 
-    Object.entries(external).forEach(([key, svc]) => {
+    Object.entries(ext).forEach(([key, svc]) => {
       list.push({
         key: `ext-${key}`,
         icon: <CloudServerOutlined />,

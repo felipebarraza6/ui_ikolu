@@ -3,7 +3,6 @@ import { Layout, Button, Dropdown, Avatar, Typography, Space, Tag } from "antd";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  MenuOutlined,
   UserOutlined,
   LogoutOutlined,
   BarChartOutlined,
@@ -31,6 +30,9 @@ const HeaderNav = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpe
   const { user, logout, isAdmin } = useAuth();
   const token = useIkoluToken();
   const pageTitle = getPageTitle(pathname);
+
+  // Mobile uses BottomNav instead — return null after hooks
+  if (isMobile) return null;
 
   const handleLogout = () => {
     navigate("/login", { replace: true });
@@ -74,7 +76,7 @@ const HeaderNav = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpe
   return (
     <Header
       style={{
-        padding: isMobile ? "0 12px" : "0 24px",
+        padding: "0 24px",
         background: token.colorHeaderBg,
         color: '#ffffff',
         display: "flex",
@@ -89,17 +91,17 @@ const HeaderNav = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpe
     >
       <Button
         type="text"
-        icon={isMobile ? <MenuOutlined /> : (collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />)}
+        icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
         onClick={handleToggle}
         style={{
           fontSize: "16px",
-          width: isMobile ? 48 : 64,
-          height: isMobile ? 48 : 64,
+          width: 64,
+          height: 64,
           color: 'rgba(255,255,255,0.85)',
         }}
       />
 
-      {pageTitle && !isMobile && (
+      {pageTitle && (
         <Text
           style={{
             marginLeft: 12,
@@ -113,19 +115,17 @@ const HeaderNav = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpe
         </Text>
       )}
 
-      <Space align="center" size={isMobile ? "small" : "middle"} style={{ marginLeft: "auto" }}>
-        {!isMobile && (
-          <Space size={8}>
-            <Text style={{ color: 'rgba(255,255,255,0.85)' }}>
-              {user?.email || user?.first_name || user?.username || "Usuario"}
-            </Text>
-            {isAdmin && (
-              <Tag color="gold" style={{ marginInlineEnd: 0 }}>
-                Admin
-              </Tag>
-            )}
-          </Space>
-        )}
+      <Space align="center" size="middle" style={{ marginLeft: "auto" }}>
+        <Space size={8}>
+          <Text style={{ color: 'rgba(255,255,255,0.85)' }}>
+            {user?.email || user?.first_name || user?.username || "Usuario"}
+          </Text>
+          {isAdmin && (
+            <Tag color="gold" style={{ marginInlineEnd: 0 }}>
+              Admin
+            </Tag>
+          )}
+        </Space>
 
         <Dropdown menu={{ items: menuItems }} placement="bottomRight" arrow destroyPopupOnHide>
           <Avatar

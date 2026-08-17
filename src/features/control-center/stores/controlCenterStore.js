@@ -27,6 +27,7 @@ export const useControlCenterStore = create((set) => ({
     nearLimitHistory: { open: false, point: null },
     systemEvents: { open: false },
     systemEventsPoint: { open: false, point: null },
+    dgaConfig: { open: false, pointId: null },
   },
 
   setSelectedDate: (date) => set({ selectedDate: date }),

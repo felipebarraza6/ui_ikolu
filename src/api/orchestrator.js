@@ -138,11 +138,11 @@ export const getBatchTelemetry = async (pointIds, options = {}) => {
       // Fallback: llamadas individuales en paralelo
       console.warn('[Orchestrator] Batch telemetry failed, falling back to individual calls:', err.message);
       const promises = pointIds.map(id =>
-        sh.get_data_sh(id).catch(() => null)
+        sh.ikPoint.summary(id).catch(() => null)
       );
       const results = await Promise.all(promises);
       const data = pointIds.reduce((acc, id, idx) => {
-        if (results[idx]) acc[id] = { latest: results[idx]?.results?.[0] || results[idx] };
+        if (results[idx]) acc[id] = { latest: results[idx]?.last_telemetry || results[idx]?.latest || results[idx] };
         return acc;
       }, {});
       const fallback = { data, meta: { requested: pointIds.length, returned: Object.keys(data).length } };
@@ -527,8 +527,10 @@ export const toggleCompliance = (pointId, enabled) => sh.toggleCompliance(pointI
 
 export const chat = (message) => sh.chat(message);
 
-export const verifyDgaVoucher = (codigoObra, numeroComprobante, tipoDga) =>
-  sh.verifyDgaVoucher(codigoObra, numeroComprobante, tipoDga);
+export const verifyDgaVoucher = async (codigoObra, numeroComprobante, tipoDga) => {
+  const result = await sh.verifyDgaVoucher(codigoObra, numeroComprobante, tipoDga);
+  return result;
+};
 
 export const pointRecords = (pointId, startDate, endDate, limit) =>
   sh.pointRecords(pointId, startDate, endDate, limit);
@@ -569,6 +571,8 @@ export const notifications = {
 
 export const systemStatus = (signal) => sh.management.systemStatus();
 
+export const systemMap = () => sh.management.systemMap();
+
 export const resourcesStatus = (signal) => sh.management.resourcesStatus();
 
 export const pointsStatus = (params, signal) => sh.management.pointsStatus(params);
@@ -578,6 +582,29 @@ export const telemetryMetrics = (params, signal) => sh.management.telemetryMetri
 export const toggleTelemetry = (pointId, enabled) => sh.management.toggleTelemetry(pointId, enabled);
 
 export const dgaQueueStatus = (signal) => sh.management.dgaQueueStatus();
+
+export const clearDgaQueue = (payload = {}) => sh.management.clearDgaQueue(payload);
+
+export const requeueDga = (payload = {}) => sh.management.requeueDga(payload);
+
+export const updatePointFrequency = (pointId, frequency) =>
+  sh.management.updatePointFrequency(pointId, frequency);
+
+export const notificationsSummary = (days = 7) => sh.management.notificationsSummary(days);
+
+export const management = {
+  systemStatus,
+  systemMap,
+  resourcesStatus,
+  pointsStatus,
+  telemetryMetrics,
+  toggleTelemetry,
+  dgaQueueStatus,
+  clearDgaQueue,
+  requeueDga,
+  updatePointFrequency,
+  notificationsSummary,
+};
 
 export const systemEvents = {
   get: (params) => sh.systemEvents.get(params),
@@ -685,7 +712,7 @@ export const admin = {
   updatePoint: (id, data) => sh.points.update(id, data),
   deletePoint: (id) => sh.points.delete(id),
   clientsWithProjects: () => sh.admin.clientsWithProjects(),
-  pointsByProject: (projectId) => sh.points.list({ project: projectId, page_size: 1000 }),
+  pointsByProject: (projectId) => sh.admin.pointsByProject(projectId),
   projectPoints: (projectId) => sh.admin.projectPoints(projectId),
   staffUsers: () => sh.admin.staffUsers(),
   users: (params) => sh.getUsers(params),
@@ -778,17 +805,50 @@ const orchestrator = {
   ikPointRecords,
   ikPointVariables,
   ikPointCalendar,
+  ikPointGaps: (id, params) => sh.ikPoint.gaps(id, params),
+  
+  // Telemetría & Reprocesador
+  telemetryBackfill: (data) => sh.telemetry.backfill(data),
+  telemetryReprocess: (data) => sh.telemetry.reprocess(data),
+
+  // Counter Resets
+  counterResets: sh.counterResets,
+
+  // Password reset token validation
+  validatePasswordResetToken: (token) => sh.validatePasswordResetToken(token),
+
+  // Notificaciones & preferencias
   notifications,
+  uploadAvatar: (file) => sh.uploadAvatar(file),
+  updateNotifyEmailPreference: (enabled) => sh.updateNotifyEmailPreference(enabled),
+
+  // Reportes
+  reports: sh.reports,
+
+  // DGA Configs
+  dgaConfigs: sh.dgaConfigs,
+
+  parseApiError: sh.parseApiError,
+
   systemStatus,
+  systemMap,
   resourcesStatus,
   pointsStatus,
   telemetryMetrics,
   toggleTelemetry,
   dgaQueueStatus,
+  clearDgaQueue,
+  requeueDga,
+  updatePointFrequency,
+  management,
   systemEvents,
   tickets,
   alerts,
-  admin,
+  admin: {
+    ...sh.admin,
+    pointsByProject: (projectId) => sh.admin.pointsByProject(projectId),
+    dgaConfigs: sh.dgaConfigs,
+  },
   requestPasswordReset,
   confirmPasswordReset,
   PRIORITY,

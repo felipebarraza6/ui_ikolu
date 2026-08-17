@@ -33,7 +33,6 @@ const CCComplianceDetailDrawer = ({ open, onClose, point }) => {
   // y el frontend transformado usa title, flow_lps, water_table_m.
   const pointName = point.title || point.point_name || point.name || "—";
   const flow = point.flow_lps ?? point.flow ?? null;
-  const waterTable = point.water_table_m ?? point.water_table ?? null;
   const totalM3 = point.total_m3 ?? point.total ?? null;
   const annualConsumption = point.annual_consumption ?? null;
   const authorizedFlow = point.authorized_flow ?? 0;

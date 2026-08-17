@@ -5,6 +5,7 @@ import LoginPage from "./features/auth/LoginPage";
 import ResetPasswordPage from "./features/auth/ResetPasswordPage";
 import RoleGuard from "./features/auth/RoleGuard";
 import { useAuth } from "./contexts/AuthContext";
+import ErrorBoundary from "./shared/components/ErrorBoundary";
 
 const AppLayout = lazy(() => import(/* webpackPrefetch: true */ "./features/layout/AppLayout"));
 const ControlCenter = lazy(() => import(/* webpackPrefetch: true */ "./features/control-center/ControlCenter"));
@@ -74,27 +75,33 @@ const AppRouter = () => {
         <Route
           path="/control-center/:tab?"
           element={
-            <ProtectedLayout>
-              <ControlCenter />
-            </ProtectedLayout>
+            <ErrorBoundary>
+              <ProtectedLayout>
+                <ControlCenter />
+              </ProtectedLayout>
+            </ErrorBoundary>
           }
         />
 
         <Route
           path="/profile"
           element={
-            <ProtectedLayout>
-              <ProfilePage />
-            </ProtectedLayout>
+            <ErrorBoundary>
+              <ProtectedLayout>
+                <ProfilePage />
+              </ProtectedLayout>
+            </ErrorBoundary>
           }
         />
 
         <Route
           path="/admin/*"
           element={
-            <AdminLayout>
-              <AdminRouter />
-            </AdminLayout>
+            <ErrorBoundary>
+              <AdminLayout>
+                <AdminRouter />
+              </AdminLayout>
+            </ErrorBoundary>
           }
         />
 

@@ -7,7 +7,7 @@ import { COLORS } from "../constants/chartColors";
 
 const getStrokeConfig = (type, metric) => {
   if (type === 'bar' || metric === 'nivel' || metric === 'water_table') {
-    return { curve: 'straight', width: 0 };
+    return { curve: 'straight', width: 2 };
   }
   if (metric === 'caudal') {
     return { curve: 'smooth', width: 2 };
@@ -17,7 +17,7 @@ const getStrokeConfig = (type, metric) => {
 
 const getFillConfig = (type, metric) => {
   if (type === 'bar' || metric === 'nivel' || metric === 'water_table') {
-    return { type: 'solid', opacity: 0.85 };
+    return { type: 'solid', opacity: 0.65 };
   }
   if (metric === 'caudal') {
     return {
@@ -35,7 +35,7 @@ const getFillConfig = (type, metric) => {
 
 const getMarkersConfig = (type, metric, chartColor) => {
   if (type === 'bar' || metric === 'nivel' || metric === 'water_table') {
-    return { size: 0, hover: { size: 0 } };
+    return { size: 0, hover: { size: 4 } };
   }
   if (metric === 'caudal') {
     return {
@@ -49,13 +49,9 @@ const getMarkersConfig = (type, metric, chartColor) => {
   return { size: 0, hover: { size: 4, sizeOffset: 2 } };
 };
 
-const buildSeries = (processedData, title, metric, maxInfo, minInfo) => [{
+const buildSeries = (processedData, title, metric) => [{
   name: title || metric,
-  data: processedData.map(d => ({
-    x: d.x,
-    y: d.y,
-    fillColor: d.y === maxInfo?.value ? COLORS.max : d.y === minInfo?.value ? COLORS.min : undefined,
-  }))
+  data: processedData.map(d => d.y)
 }];
 
 const buildAnnotations = (yAnnotations, avgInfo, yMin, yMax, cleanData, maxInfo, minInfo) => {
@@ -97,27 +93,27 @@ const buildAnnotations = (yAnnotations, avgInfo, yMin, yMax, cleanData, maxInfo,
 
 const buildDefaultTooltip = (voidToken, title, metric, unit, maxInfo, minInfo, avgInfo) => {
   return function({ series, seriesIndex, dataPointIndex, w }) {
-    if (dataPointIndex < 0 || !w.config.series[seriesIndex]) return '';
-    const point = w.config.series[seriesIndex].data[dataPointIndex];
-    if (!point) return '';
-    const time = point.x || w.config.xaxis.categories[dataPointIndex] || '';
-    const isMax = point.y === maxInfo?.value;
-    const isMin = point.y === minInfo?.value;
+    if (dataPointIndex < 0) return '';
+    const val = series[seriesIndex]?.[dataPointIndex];
+    if (val == null) return '';
+    const time = w.config.xaxis?.categories?.[dataPointIndex] || '';
+    const isMax = val === maxInfo?.value;
+    const isMin = val === minInfo?.value;
     let suffix = '';
     if (isMax) suffix = ' (MÁXIMO)';
     if (isMin) suffix = ' (MÍNIMO)';
 
-    const exceedsAvg = avgInfo != null && point.y > avgInfo;
-    const avgDiff = avgInfo != null ? (point.y - avgInfo).toFixed(2) : null;
+    const exceedsAvg = avgInfo != null && val > avgInfo;
+    const avgDiff = avgInfo != null ? (val - avgInfo).toFixed(2) : null;
 
     return `
-      <div style="padding: 8px 12px; background: ${voidToken.voidSurface}; border: 1px solid ${voidToken.voidBorder}; border-radius: 8px; box-shadow: ${voidToken.voidShadow};">
-        <div style="font-size: 12px; color: ${voidToken.voidTextMuted}; margin-bottom: 4px;">${time} hrs</div>
-        <div style="font-size: 13px; color: ${voidToken.voidTextHeading}; font-weight: 500;">
-          ${title || metric}${suffix}: <strong>${Number(point.y).toFixed(unit.includes('m³') ? 0 : unit.includes('L/s') ? 1 : 2)} ${unit}</strong>
+      <div style="padding: 8px 12px; background: ${voidToken.voidSurface || '#051424'}; border: 1px solid ${voidToken.voidBorder || '#0c3d66'}; border-radius: 8px; box-shadow: ${voidToken.voidShadow || 'none'};">
+        <div style="font-size: 12px; color: ${voidToken.voidTextMuted || '#9ab4db'}; margin-bottom: 4px;">${time} hrs</div>
+        <div style="font-size: 13px; color: ${voidToken.voidTextHeading || '#f2f5fa'}; font-weight: 500;">
+          ${title || metric}${suffix}: <strong>${Number(val).toFixed(unit.includes('m³') ? 0 : unit.includes('L/s') ? 1 : 2)} ${unit}</strong>
         </div>
         ${avgInfo != null ? `
-        <div style="margin-top: 4px; padding-top: 4px; border-top: 1px solid ${voidToken.voidBorder}; font-size: 11px; color: ${COLORS.avg};">
+        <div style="margin-top: 4px; padding-top: 4px; border-top: 1px solid ${voidToken.voidBorder || '#0c3d66'}; font-size: 11px; color: ${COLORS.avg};">
           ${exceedsAvg ? '<span style="color:#ff4d4f">▲ Supera promedio</span>' : 'Bajo promedio'} ${avgInfo.toFixed(2)} (${avgDiff > 0 ? '+' : ''}${avgDiff})
         </div>
         ` : ''}
@@ -164,7 +160,7 @@ export const ApexChartWrapper = ({
   const [inverted, setInverted] = useState(false);
   const voidToken = useIkoluToken();
 
-  const chartColor = color || voidToken.voidTextHeading;
+  const chartColor = color || voidToken.voidTextHeading || "#ffffff";
   
   if (externalSeries && externalSeries.length === 0) {
     return (
@@ -183,14 +179,29 @@ export const ApexChartWrapper = ({
   }
 
   const cleanData = externalSeries ? [] : data
-    .filter(d => d[metric] != null && !isNaN(Number(d[metric])))
-    .map(d => ({
-      x: d.datetime || d.time,
-      y: Number(d[metric]),
-    }));
+    .filter(d => {
+      const val = d[metric] ?? d.consumo ?? d.caudal ?? d.nivel ?? d.water_table;
+      return val != null && !isNaN(Number(val));
+    })
+    .map(d => {
+      const val = d[metric] ?? d.consumo ?? d.caudal ?? d.nivel ?? d.water_table;
+      const rawTime = d.time || d.datetime || d.date_time || d.date_time_medition || d.timestamp || d.created_at;
+      let timeLabel = String(rawTime || '');
+      if (rawTime && rawTime.includes('T')) {
+        try {
+          timeLabel = format(parseISO(rawTime), 'HH:mm');
+        } catch {
+          // fallback
+        }
+      }
+      return {
+        x: timeLabel,
+        y: Number(val),
+      };
+    });
 
   const processedData = inverted && !externalSeries ? [...cleanData].reverse() : cleanData;
-  const series = externalSeries || buildSeries(processedData, title, metric, maxInfo, minInfo);
+  const series = externalSeries || buildSeries(processedData, title, metric);
   
   if (!externalSeries && cleanData.length === 0) {
     return (
@@ -240,15 +251,15 @@ export const ApexChartWrapper = ({
         autoSelected: 'zoom',
         export: {
           csv: {
-            filename: pointName && date ? `${pointName}_${metric}_${format(parseISO(date), "ddMM")}` : `${title || metric}_data`,
+            filename: pointName && date ? `${pointName}_${metric}_${date}` : `${title || metric}_data`,
             headerCategory: 'Fecha',
             headerValue: 'Valor',
           },
           svg: {
-            filename: pointName && date ? `${pointName}_${metric}_${format(parseISO(date), "ddMM")}` : `${title || metric}_chart`,
+            filename: pointName && date ? `${pointName}_${metric}_${date}` : `${title || metric}_chart`,
           },
           png: {
-            filename: pointName && date ? `${pointName}_${metric}_${format(parseISO(date), "ddMM")}` : `${title || metric}_chart`,
+            filename: pointName && date ? `${pointName}_${metric}_${date}` : `${title || metric}_chart`,
           }
         }
       },
@@ -273,8 +284,8 @@ export const ApexChartWrapper = ({
     }],
     defaultLocale: 'es',
     grid: {
-      padding: { left: 40, right: -10 },
-      borderColor: voidToken.voidBorder + '50',
+      padding: { left: 20, right: 10 },
+      borderColor: (voidToken.voidBorder || '#0c3d66') + '50',
       strokeDashArray: 4,
     },
     colors: externalColors || [chartColor],
@@ -296,17 +307,18 @@ export const ApexChartWrapper = ({
       }
     },
     xaxis: {
-      categories: series[0].data.map(d => d.x),
+      type: 'category',
+      categories: externalSeries ? undefined : processedData.map(d => d.x),
       labels: {
         style: {
-          colors: voidToken.voidTextMuted,
+          colors: voidToken.voidTextMuted || '#9ab4db',
           fontSize: '11px'
         },
         rotate: -45,
         rotateAlways: true,
       },
-      axisBorder: { color: voidToken.voidBorder },
-      axisTicks: { color: voidToken.voidBorder }
+      axisBorder: { color: voidToken.voidBorder || '#0c3d66' },
+      axisTicks: { color: voidToken.voidBorder || '#0c3d66' }
     },
     yaxis: {
       min: yMin,
@@ -315,7 +327,7 @@ export const ApexChartWrapper = ({
       reversed: forceReversed != null ? forceReversed : metric === 'water_table',
       labels: {
         style: {
-          colors: voidToken.voidTextMuted,
+          colors: voidToken.voidTextMuted || '#9ab4db',
           fontSize: '11px'
         },
         formatter: (value) => {
@@ -325,7 +337,7 @@ export const ApexChartWrapper = ({
       title: {
         text: unit,
         style: {
-          color: voidToken.voidTextMuted,
+          color: voidToken.voidTextMuted || '#9ab4db',
           fontSize: '12px',
           fontWeight: 'bold'
         }
@@ -340,7 +352,7 @@ export const ApexChartWrapper = ({
       position: 'top',
       horizontalAlign: 'center',
       fontSize: '12px',
-      labels: { colors: voidToken.voidTextHeading },
+      labels: { colors: voidToken.voidTextHeading || '#f2f5fa' },
       onItemClick: { toggleDataSeries: false },
       onItemHover: { highlightDataSeries: false }
     },
@@ -355,7 +367,7 @@ export const ApexChartWrapper = ({
         options={options}
         series={series}
         type={type}
-        height={420}
+        height={380}
         width="100%"
       />
     </div>

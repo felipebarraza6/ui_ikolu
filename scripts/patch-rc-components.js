@@ -85,7 +85,30 @@ for (const patch of patches) {
   applied++;
 }
 
+// Prune obsolete dead code files if they exist
+const deadFiles = [
+  'src/features/control-center/ControlCenterDrawers.js',
+  'src/features/control-center/hooks/useControlCenter.js',
+  'src/features/alerts/AlertsLayout.js',
+  'src/features/admin/components/TicketsKanban/TicketMetrics.jsx',
+  'src/features/auth/components/ServiceCard.jsx',
+  'src/features/auth/components/IkoluFeatures.jsx',
+  'src/features/auth/components/LoginFlipCard.jsx',
+  'src/shared/drawers/SmartDrawer.js',
+  'src/shared/ui/SmartIconButton.jsx',
+  'src/contexts/DataContext.js',
+];
+
+deadFiles.forEach((fileRel) => {
+  const fileAbs = path.resolve(__dirname, '..', fileRel);
+  if (fs.existsSync(fileAbs)) {
+    fs.unlinkSync(fileAbs);
+    console.log(`[DELETED] Archivo obsoleto eliminado: ${fileRel}`);
+  }
+});
+
 console.log(`\nResumen: ${applied} parches aplicados, ${skipped} omitidos.`);
 if (applied > 0) {
   console.log('Reinicia el servidor de desarrollo para que los cambios surtan efecto.');
 }
+

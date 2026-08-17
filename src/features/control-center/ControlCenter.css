@@ -112,12 +112,12 @@
    ===================================================== */
 
 .ocean-tabs-container {
-  margin-top: 24px;
-  padding: 24px;
+  margin-top: 16px;
+  padding: 0;
 }
 
 .ocean-tabs-header {
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 /* =====================================================
@@ -178,4 +178,14 @@
 
 .ocean-table-header-cell {
   background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* ── VoucherModal: header limpio sin fondo ── */
+.voucher-modal .ant-modal-header {
+  background: transparent !important;
+  border-bottom: none !important;
+  border-radius: 0 !important;
+}
+.voucher-modal .ant-modal-body {
+  border-radius: 0 !important;
 }

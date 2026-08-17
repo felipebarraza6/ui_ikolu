@@ -12,7 +12,6 @@ import {
   DatePicker,
   Button,
   message,
-  Tooltip,
   Statistic,
   Row,
   Col,
@@ -41,7 +40,6 @@ const { Title, Text } = Typography;
 const DATE_FORMAT = "YYYY-MM-DD";
 const DISPLAY_DATETIME = "dd/MM/yyyy HH:mm:ss";
 const DISPLAY_DATETIME_SHORT = "dd/MM/yyyy HH:mm";
-const DISPLAY_DATE = "dd/MM/yyyy";
 const RANGE_DATE_FORMAT = "DD/MM/YYYY";
 
 const formatDateTime = (value) => {
@@ -572,7 +570,13 @@ const MeasurementsTab = ({ pointId, summary }) => {
       });
     }
     return cols;
-  }, [measurements]);
+  }, [
+    measurements,
+    lastLogger,
+    disconnectDays,
+    token.voidTextHeading,
+    token.voidTextMuted,
+  ]);
 
   return (
     <Flex vertical gap={16}>

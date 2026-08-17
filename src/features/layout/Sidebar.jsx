@@ -1,5 +1,5 @@
-import React from "react";
-import { Layout, Menu, Drawer } from "antd";
+import React, { useState } from "react";
+import { Menu, Drawer } from "antd";
 import { DashboardOutlined } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
@@ -7,10 +7,8 @@ import { useIkoluToken } from "../../hooks/useIkoluToken";
 import { ADMIN_MENU } from "../admin/constants/adminMenu";
 import VoidCubeLogo from "../auth/components/VoidCubeLogo";
 
-const { Sider } = Layout;
-
 const AppLogo = ({ collapsed }) => {
-  const size = collapsed ? 36 : 50;
+  const size = collapsed ? 24 : 28;
   return (
     <div
       style={{
@@ -26,11 +24,6 @@ const AppLogo = ({ collapsed }) => {
   );
 };
 
-/**
- * Convierte la definición plana de ADMIN_MENU en items compatibles con Ant Menu.
- * Cada entry puede tener `icon` como componente React (ya instanciado) o como
- * constructor de icono; aquí lo instanciamos para que renderice correctamente.
- */
 const mapMenuItem = (item) => ({
   key: item.key,
   icon: item.icon ? <item.icon /> : null,
@@ -59,6 +52,20 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
     if (onMenuClick) onMenuClick();
   };
 
+  const [internalOpenKeys, setInternalOpenKeys] = useState(isAdmin ? ["/admin/iot"] : []);
+  const openKeys = collapsed ? [] : internalOpenKeys;
+
+  const submenuKeys = ["/admin/monitoreo", "/admin/crm", "/admin/iot", "/admin/support", "/admin/administracion"];
+
+  const handleOpenChange = (keys) => {
+    const latestOpenKey = keys.find((key) => internalOpenKeys.indexOf(key) === -1);
+    if (submenuKeys.indexOf(latestOpenKey) === -1) {
+      setInternalOpenKeys(keys);
+    } else {
+      setInternalOpenKeys(latestOpenKey ? [latestOpenKey] : []);
+    }
+  };
+
   return (
     <div
       style={{
@@ -84,38 +91,21 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
       >
         <AppLogo collapsed={collapsed} />
         {!collapsed && (
-          <div style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
-            <span
-              style={{
-                display: "block",
-                color: "#f2f5fa",
-                fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-                fontSize: 15,
-                fontWeight: 600,
-                letterSpacing: "1px",
-                textTransform: "uppercase",
-                lineHeight: 1,
-              }}
-            >
-              Ikolu
-            </span>
-            <span
-              style={{
-                display: "block",
-                color: "#f2f5fa",
-                fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace",
-                fontSize: 17,
-                fontWeight: 700,
-                letterSpacing: "2px",
-                textTransform: "uppercase",
-                textShadow: "0 0 12px rgba(255,255,255,0.18)",
-                lineHeight: 1,
-                marginTop: 2,
-              }}
-            >
-              Void
-            </span>
-          </div>
+          <span
+            style={{
+              display: "block",
+              color: "#f2f5fa",
+              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+              fontSize: 23,
+              fontWeight: 700,
+              letterSpacing: "2.5px",
+              textTransform: "uppercase",
+              lineHeight: 1,
+              textShadow: "0 0 16px rgba(255,255,255,0.12)",
+            }}
+          >
+            Ikolu
+          </span>
         )}
       </div>
 
@@ -123,7 +113,9 @@ const SidebarContent = ({ collapsed, onMenuClick }) => {
         theme="dark"
         mode="inline"
         selectedKeys={[location.pathname]}
-        defaultOpenKeys={isAdmin ? ["/admin/alerts", "/admin/support"] : []}
+        inlineCollapsed={collapsed}
+        openKeys={openKeys}
+        onOpenChange={collapsed ? undefined : handleOpenChange}
         items={menuItems}
         onClick={handleClick}
         style={{
@@ -170,22 +162,7 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile, mobileOpen, setMobileOpen 
     );
   }
 
-  return (
-    <Sider
-      trigger={null}
-      collapsible
-      collapsed={collapsed}
-      onCollapse={setCollapsed}
-      theme="dark"
-      style={{
-        background: token.colorHeaderBg,
-        borderRight: `1px solid ${token.colorHeaderBorder}`,
-      }}
-      width={240}
-    >
-      <SidebarContent collapsed={collapsed} />
-    </Sider>
-  );
+  return <SidebarContent collapsed={collapsed} />;
 };
 
 export default Sidebar;

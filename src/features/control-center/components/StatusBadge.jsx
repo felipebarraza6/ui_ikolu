@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Flex, Typography, Tooltip } from "antd";
+import { Typography, Tooltip } from "antd";
 import { FaCheckCircle, FaShieldAlt } from "react-icons/fa";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import BlinkingDot from "./BlinkingDot";

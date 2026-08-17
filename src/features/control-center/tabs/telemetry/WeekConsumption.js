@@ -1,25 +1,14 @@
-import React, { useCallback, useMemo, useState, useEffect } from "react";
-import { Flex, Typography, Table, Tooltip, Tag, Skeleton, Button, Select } from "antd";
-import { FaEye, FaHandPaper, FaHeadset, FaExclamationTriangle, FaInfoCircle, FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import { FormOutlined, CheckCircleOutlined, CloseCircleOutlined, MinusCircleOutlined, WifiOutlined, DisconnectOutlined } from "@ant-design/icons";
-import { format, parseISO, isSameDay } from "date-fns";
+import React, { useCallback, useMemo, useState } from "react";
+import { Flex, Typography, Table, Tooltip, Skeleton, Button, Select } from "antd";
+import { FaExternalLinkAlt, FaHandPaper, FaHeadset, FaInfoCircle, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FormOutlined, MinusCircleOutlined, WifiOutlined, DisconnectOutlined } from "@ant-design/icons";
+import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale/es";
 import { formatInteger } from "../../../../utils/numberFormatter";
 import { SmartBadge } from "../../../../shared/ui";
 import { useIkoluToken } from "../../../../hooks/useIkoluToken";
 import SkeletonTable from "../../../../shared/ui/SmartSkeleton/SkeletonTable";
 import { useAuth } from "../../../../contexts/AuthContext";
-
-const typeDgaLabels = {
-  "SUPERFICIAL": "Superficial",
-  "SUBTERRANEO": "Subterráneo",
-  "SUPERFICIAL_MAYOR": "Superficial Mayor",
-  "SUBTERRANEO_MENOR": "Subterráneo Menor",
-  "CAUDALES_MUY_PEQUENOS": "Caudales muy pequeños",
-  "MEDIO": "Medio",
-  "MAYOR": "Mayor",
-  "MENOR": "Menor",
-};
 
 const { Text } = Typography;
 
@@ -116,7 +105,6 @@ const CCWeekConsumption = ({
 }) => {
   const token = useIkoluToken();
   const { isSuperUser } = useAuth();
-  const [currentPage, setCurrentPage] = useState(1);
   const [dayPage, setDayPage] = useState(0);
 
   const sortedDays = useMemo(() => {
@@ -150,8 +138,8 @@ const CCWeekConsumption = ({
 
   const handleDateClick = useCallback((date) => {
     onDateSelect(date === selectedDate ? null : date);
-    setCurrentPage(1);
-  }, [selectedDate, onDateSelect]);
+    if (setListPage) setListPage(1);
+  }, [selectedDate, onDateSelect, setListPage]);
 
   const handleViewMeasurements = useCallback((record) => {
     onViewMeasurements(record.pointName, activeDate, record.variables || [], record.pointId);
@@ -425,10 +413,10 @@ const CCWeekConsumption = ({
       sorter: (a, b) => (a.measurements_count || 0) - (b.measurements_count || 0),
       render: (v, record) => (
         <Flex align="center" justify="center" gap={6} onClick={(e) => e.stopPropagation()}>
-          <Tooltip title={`Ver ${v || 0} mediciones`}>
+          <Tooltip title="Abrir detalle del punto">
             <div role="button" tabIndex={0} style={btnBase(token.voidTextHeading)}
               onClick={() => handleViewMeasurements(record)}>
-              <FaEye style={{ fontSize: 11 }} />
+              <FaExternalLinkAlt style={{ fontSize: 11 }} />
             </div>
           </Tooltip>
           {(record.measurements_count || 0) > 0 && (
@@ -524,7 +512,6 @@ const CCWeekConsumption = ({
               ? Array.from({ length: 7 }).map((_, idx) => <DayCardSkeleton key={idx} token={token} />)
               : visibleDays.map(({ date, total_consumption: total }) => {
                   const isActive = activeDate === date;
-                  const isToday = isSameDay(parseISO(date), new Date());
 
                   return (
                     <div
@@ -618,8 +605,7 @@ const CCWeekConsumption = ({
                 showSizeChanger: false,
                 hideOnSinglePage: false,
                 onChange: (page) => {
-                  setListPage(page);
-                  setCurrentPage(1);
+                  if (setListPage) setListPage(page);
                 },
               }}
             />

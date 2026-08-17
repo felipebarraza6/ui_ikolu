@@ -43,7 +43,7 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import html2canvas from "html2canvas";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { format, formatDistanceToNow, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { SmartBadge, SmartButton } from "../../../../shared/ui";
@@ -220,7 +220,6 @@ const TicketDetailDrawer = ({
 }) => {
   const token = useIkoluToken();
   const navigate = useNavigate();
-  const location = useLocation();
   const { isMobile } = useResponsive();
   const { isStaff, user } = useAdminAuth();
   const [ticket, setTicket] = useState(null);

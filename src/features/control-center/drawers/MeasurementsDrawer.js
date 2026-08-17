@@ -5,8 +5,6 @@ import { format, parseISO, subDays } from "date-fns";
 import { es } from "date-fns/locale/es";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
 
-import { MeasurementsDrawerContentMemo } from "../measurements/MeasurementDrawer";
-
 const { Text } = Typography;
 
 const MeasurementsDrawerHeader = ({

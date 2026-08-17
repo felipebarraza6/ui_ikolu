@@ -1,13 +1,13 @@
-import React, { useCallback, useState, useMemo, useRef } from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import { format, parseISO, parse } from "date-fns";
 import html2canvas from "html2canvas";
 import { Row, Col, Flex, Typography, Table, Tag, Button, message } from "antd";
-import { FaDownload, FaSun, FaMoon, FaImage } from "react-icons/fa";
+import { FaDownload, FaSun, FaMoon } from "react-icons/fa";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
-import { extractRecordNum, extractMeasurements, classifyByTimeOfDay, getPeriod, formatKPI } from "./MeasurementUtils";
+import { extractRecordNum, extractMeasurements, getPeriod, formatKPI } from "./MeasurementUtils";
 
 import { TrendArrow, StatPill, MetricCard } from "./MeasurementKPIs";
-import { MeasurementsAreaChart, MeasurementsLineChart, MeasurementsDualColumnChart, MeasurementsCombinedLevelChart } from "./MeasurementCharts";
+import { MeasurementsAreaChart, MeasurementsLineChart, MeasurementsCombinedLevelChart } from "./MeasurementCharts";
 
 const { Text } = Typography;
 
@@ -190,7 +190,6 @@ export const MeasurementsDrawerContent = ({ data, viewMode, variables, activeTab
   }, [variables, measurements]);
 
   const sortedMeasurements = useMemo(() => [...measurements], [measurements]);
-  const groups = useMemo(() => classifyByTimeOfDay(measurements), [measurements]);
 
   const findExtreme = useCallback((arr, key, fallbackKey, mode) => {
     if (!arr.length) return null;
@@ -244,165 +243,165 @@ export const MeasurementsDrawerContent = ({ data, viewMode, variables, activeTab
       .sort((a, b) => a.time.localeCompare(b.time));
   }, [sortedMeasurements]);
 
-  const getPeriodIcon = (hour) => {
-    if (hour >= 0 && hour <= 5) return FaMoon;
-    if (hour >= 6 && hour <= 12) return FaSun;
-    if (hour >= 13 && hour <= 18) return FaSun;
-    return FaMoon;
-  };
+  const measurementColumns = useMemo(() => {
+    const getPeriodIcon = (hour) => {
+      if (hour >= 0 && hour <= 5) return FaMoon;
+      if (hour >= 6 && hour <= 12) return FaSun;
+      if (hour >= 13 && hour <= 18) return FaSun;
+      return FaMoon;
+    };
 
-  const baseColumns = [
-    {
-      title: "Período",
-      key: "period",
+    const baseColumns = [
+      {
+        title: "Período",
+        key: "period",
+        width: 85,
+        align: "center",
+        render: (_, m) => {
+          const hour = new Date(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at).getHours();
+          const p = getPeriod(hour);
+          const Icon = getPeriodIcon(hour);
+          return (
+            <Flex align="center" justify="center" gap={4}>
+              <Icon style={{ fontSize: 9, color: voidToken.colorWarning, opacity: 0.5 }} />
+              <Text style={{ fontSize: 10, color: voidToken.colorWarning }}>{p.label}</Text>
+            </Flex>
+          );
+        },
+      },
+      {
+        title: "Fecha logger",
+        key: "logger_time",
+        width: 120,
+        align: "center",
+        render: (_, m) => {
+          const t = format(parseISO(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at), "dd/MM HH:mm:ss");
+          return <Text strong style={{ fontSize: 10, color: voidToken.colorWarning }}>{t}</Text>;
+        },
+      },
+      {
+        title: "Hora",
+        key: "time",
+        width: 50,
+        align: "center",
+        render: (_, m) => {
+          const t = format(parseISO(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at), "HH:mm");
+          return <Text style={{ fontSize: 11, color: voidToken.voidTextHeading }}>{t}</Text>;
+        },
+      },
+    ];
+
+    const caudalColumn = {
+      title: "Caudal (L/s)",
+      key: "flow",
+      width: 90,
+      align: "right",
+      sorter: (a, b) => (extractRecordNum(a.flow) ?? extractRecordNum(a.caudal) ?? 0) - (extractRecordNum(b.flow) ?? extractRecordNum(b.caudal) ?? 0),
+      render: (_, m) => {
+        const flowVal = extractRecordNum(m.flow) ?? extractRecordNum(m.caudal);
+        const isMax = kpis.maxCaudal && flowVal === kpis.maxCaudal.value;
+        const isMin = kpis.minCaudal && flowVal === kpis.minCaudal.value;
+        return flowVal != null ? (
+          <Text style={{ fontSize: 11, color: isMax ? voidToken.colorError : isMin ? voidToken.colorSuccess : voidToken.voidTextHeading, fontWeight: isMax || isMin ? 600 : 400 }}>
+            {flowVal.toFixed(1)}
+            <TrendArrow current={m.flow} previous={m._prev?.flow} />
+          </Text>
+        ) : <Text style={{ fontSize: 11, color: voidToken.voidTextMuted }}>—</Text>;
+      },
+    };
+
+    const nivelColumn = {
+      title: "Nivel (m)",
+      key: "nivel",
+      width: 80,
+      align: "right",
+      sorter: (a, b) => (extractRecordNum(a.nivel) ?? extractRecordNum(a.level) ?? 0) - (extractRecordNum(b.nivel) ?? extractRecordNum(b.level) ?? 0),
+      render: (_, m) => {
+        const levelVal = extractRecordNum(m.nivel) ?? extractRecordNum(m.level);
+        const isMax = kpis.maxNivel && levelVal === kpis.maxNivel.value;
+        const isMin = kpis.minNivel && levelVal === kpis.minNivel.value;
+        return levelVal != null ? (
+          <Text style={{ fontSize: 11, color: isMax ? voidToken.colorError : isMin ? voidToken.colorSuccess : voidToken.voidTextHeading, fontWeight: isMax || isMin ? 600 : 400 }}>
+            {levelVal.toFixed(2)}
+            <TrendArrow current={m.nivel} previous={m._prev?.nivel} />
+          </Text>
+        ) : <Text style={{ fontSize: 11, color: voidToken.voidTextMuted }}>—</Text>;
+      },
+    };
+
+    const waterTableColumn = {
+      title: "Nivel freático (m)",
+      key: "water_table",
+      width: 115,
+      align: "right",
+      sorter: (a, b) => (extractRecordNum(a.water_table) ?? 0) - (extractRecordNum(b.water_table) ?? 0),
+      render: (_, m) => {
+        const wtVal = extractRecordNum(m.water_table);
+        const isMax = kpis.maxWaterTable && wtVal === kpis.maxWaterTable.value;
+        const isMin = kpis.minWaterTable && wtVal === kpis.minWaterTable.value;
+        return wtVal != null ? (
+          <Text style={{ fontSize: 11, color: isMax ? voidToken.colorError : isMin ? voidToken.colorSuccess : voidToken.voidTextHeading, fontWeight: isMax || isMin ? 600 : 400 }}>
+            {wtVal.toFixed(2)}
+            <TrendArrow current={m.water_table} previous={m._prev?.water_table} />
+          </Text>
+        ) : <Text style={{ fontSize: 11, color: voidToken.voidTextMuted }}>—</Text>;
+      },
+    };
+
+    const totalColumn = {
+      title: "Total (m³)",
+      key: "total",
+      width: 100,
+      align: "right",
+      sorter: (a, b) => (extractRecordNum(a.total) ?? 0) - (extractRecordNum(b.total) ?? 0),
+      render: (_, m) => {
+        const totalVal = extractRecordNum(m.total);
+        return totalVal != null ? (
+          <Text style={{ fontSize: 11, color: voidToken.voidTextHeading }}>
+            {totalVal.toLocaleString("es-CL", { maximumFractionDigits: 0 })}
+            <TrendArrow current={m.total} previous={m._prev?.total} />
+          </Text>
+        ) : <Text style={{ fontSize: 11, color: voidToken.voidTextMuted }}>—</Text>;
+      },
+    };
+
+    const consumoColumn = {
+      title: "Consumo (m³)",
+      key: "consumo",
+      width: 100,
+      align: "right",
+      sorter: (a, b) => (extractRecordNum(a.total_diff) ?? 0) - (extractRecordNum(b.total_diff) ?? 0),
+      render: (_, m) => {
+        const diffVal = extractRecordNum(m.total_diff);
+        const isMax = kpis.maxConsumo && diffVal === kpis.maxConsumo.value;
+        const isMin = kpis.minConsumo && diffVal === kpis.minConsumo.value;
+        return diffVal != null ? (
+          <Text strong style={{ fontSize: 11, color: isMax ? voidToken.colorError : isMin ? voidToken.colorSuccess : voidToken.colorWarning, fontWeight: isMax || isMin ? 700 : 600 }}>
+            {diffVal.toLocaleString("es-CL", { maximumFractionDigits: 0 })}
+            <TrendArrow current={m.total_diff} previous={m._prev?.total_diff} />
+          </Text>
+        ) : <Text style={{ fontSize: 11, color: voidToken.voidTextMuted }}>—</Text>;
+      },
+    };
+
+    const estadoColumn = {
+      title: "Estado",
+      key: "estado",
       width: 85,
       align: "center",
+      filters: [
+        { text: "Confirmado", value: "ok" },
+        { text: "Error", value: "error" },
+      ],
+      onFilter: (value, record) => value === "error" ? record.is_error : !record.is_error,
       render: (_, m) => {
-        const hour = new Date(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at).getHours();
-        const p = getPeriod(hour);
-        const Icon = getPeriodIcon(hour);
-        return (
-          <Flex align="center" justify="center" gap={4}>
-            <Icon style={{ fontSize: 9, color: voidToken.colorWarning, opacity: 0.5 }} />
-            <Text style={{ fontSize: 10, color: voidToken.colorWarning }}>{p.label}</Text>
-          </Flex>
-        );
+        if (m.is_error) {
+          return <Tag style={{ fontSize: 10, margin: 0, background: `${voidToken.colorError}15`, borderColor: `${voidToken.colorError}30`, color: voidToken.colorError }}>Error</Tag>;
+        }
+        return <Tag style={{ fontSize: 10, margin: 0, background: `${voidToken.colorSuccess}15`, borderColor: `${voidToken.colorSuccess}30`, color: voidToken.colorSuccess }}>Confirmado</Tag>;
       },
-    },
-    {
-      title: "Fecha logger",
-      key: "logger_time",
-      width: 120,
-      align: "center",
-      render: (_, m) => {
-        const t = format(parseISO(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at), "dd/MM HH:mm:ss");
-        return <Text strong style={{ fontSize: 10, color: voidToken.colorWarning }}>{t}</Text>;
-      },
-    },
-    {
-      title: "Hora",
-      key: "time",
-      width: 50,
-      align: "center",
-      render: (_, m) => {
-        const t = format(parseISO(m.date_time || m.date_time_medition || m.timestamp || m.time || m.created_at), "HH:mm");
-        return <Text style={{ fontSize: 11, color: voidToken.voidTextHeading }}>{t}</Text>;
-      },
-    },
-  ];
+    };
 
-  const caudalColumn = {
-    title: "Caudal (L/s)",
-    key: "flow",
-    width: 90,
-    align: "right",
-    sorter: (a, b) => (extractRecordNum(a.flow) ?? extractRecordNum(a.caudal) ?? 0) - (extractRecordNum(b.flow) ?? extractRecordNum(b.caudal) ?? 0),
-    render: (_, m) => {
-      const flowVal = extractRecordNum(m.flow) ?? extractRecordNum(m.caudal);
-      const isMax = kpis.maxCaudal && flowVal === kpis.maxCaudal.value;
-      const isMin = kpis.minCaudal && flowVal === kpis.minCaudal.value;
-      return flowVal != null ? (
-        <Text style={{ fontSize: 11, color: isMax ? voidToken.colorError : isMin ? voidToken.colorSuccess : voidToken.voidTextHeading, fontWeight: isMax || isMin ? 600 : 400 }}>
-          {flowVal.toFixed(1)}
-          <TrendArrow current={m.flow} previous={m._prev?.flow} />
-        </Text>
-      )       : <Text style={{ fontSize: 11, color: voidToken.voidTextMuted }}>—</Text>;
-    },
-  };
-
-  const nivelColumn = {
-    title: "Nivel (m)",
-    key: "nivel",
-    width: 80,
-    align: "right",
-    sorter: (a, b) => (extractRecordNum(a.nivel) ?? extractRecordNum(a.level) ?? 0) - (extractRecordNum(b.nivel) ?? extractRecordNum(b.level) ?? 0),
-    render: (_, m) => {
-      const levelVal = extractRecordNum(m.nivel) ?? extractRecordNum(m.level);
-      const isMax = kpis.maxNivel && levelVal === kpis.maxNivel.value;
-      const isMin = kpis.minNivel && levelVal === kpis.minNivel.value;
-      return levelVal != null ? (
-        <Text style={{ fontSize: 11, color: isMax ? voidToken.colorError : isMin ? voidToken.colorSuccess : voidToken.voidTextHeading, fontWeight: isMax || isMin ? 600 : 400 }}>
-          {levelVal.toFixed(2)}
-          <TrendArrow current={m.nivel} previous={m._prev?.nivel} />
-        </Text>
-      ) : <Text style={{ fontSize: 11, color: voidToken.voidTextMuted }}>—</Text>;
-    },
-  };
-
-  const waterTableColumn = {
-    title: "Nivel freático (m)",
-    key: "water_table",
-    width: 115,
-    align: "right",
-    sorter: (a, b) => (extractRecordNum(a.water_table) ?? 0) - (extractRecordNum(b.water_table) ?? 0),
-    render: (_, m) => {
-      const wtVal = extractRecordNum(m.water_table);
-      const isMax = kpis.maxWaterTable && wtVal === kpis.maxWaterTable.value;
-      const isMin = kpis.minWaterTable && wtVal === kpis.minWaterTable.value;
-      return wtVal != null ? (
-        <Text style={{ fontSize: 11, color: isMax ? voidToken.colorError : isMin ? voidToken.colorSuccess : voidToken.voidTextHeading, fontWeight: isMax || isMin ? 600 : 400 }}>
-          {wtVal.toFixed(2)}
-          <TrendArrow current={m.water_table} previous={m._prev?.water_table} />
-        </Text>
-      ) : <Text style={{ fontSize: 11, color: voidToken.voidTextMuted }}>—</Text>;
-    },
-  };
-
-  const totalColumn = {
-    title: "Total (m³)",
-    key: "total",
-    width: 100,
-    align: "right",
-    sorter: (a, b) => (extractRecordNum(a.total) ?? 0) - (extractRecordNum(b.total) ?? 0),
-    render: (_, m) => {
-      const totalVal = extractRecordNum(m.total);
-      return totalVal != null ? (
-        <Text style={{ fontSize: 11, color: voidToken.voidTextHeading }}>
-          {totalVal.toLocaleString("es-CL", { maximumFractionDigits: 0 })}
-          <TrendArrow current={m.total} previous={m._prev?.total} />
-        </Text>
-      ) : <Text style={{ fontSize: 11, color: voidToken.voidTextMuted }}>—</Text>;
-    },
-  };
-
-  const consumoColumn = {
-    title: "Consumo (m³)",
-    key: "consumo",
-    width: 100,
-    align: "right",
-    sorter: (a, b) => (extractRecordNum(a.total_diff) ?? 0) - (extractRecordNum(b.total_diff) ?? 0),
-    render: (_, m) => {
-      const diffVal = extractRecordNum(m.total_diff);
-      const isMax = kpis.maxConsumo && diffVal === kpis.maxConsumo.value;
-      const isMin = kpis.minConsumo && diffVal === kpis.minConsumo.value;
-      return diffVal != null ? (
-        <Text strong style={{ fontSize: 11, color: isMax ? voidToken.colorError : isMin ? voidToken.colorSuccess : voidToken.colorWarning, fontWeight: isMax || isMin ? 700 : 600 }}>
-          {diffVal.toLocaleString("es-CL", { maximumFractionDigits: 0 })}
-          <TrendArrow current={m.total_diff} previous={m._prev?.total_diff} />
-        </Text>
-      ) : <Text style={{ fontSize: 11, color: voidToken.voidTextMuted }}>—</Text>;
-    },
-  };
-
-  const estadoColumn = {
-    title: "Estado",
-    key: "estado",
-    width: 85,
-    align: "center",
-    filters: [
-      { text: "Confirmado", value: "ok" },
-      { text: "Error", value: "error" },
-    ],
-    onFilter: (value, record) => value === "error" ? record.is_error : !record.is_error,
-    render: (_, m) => {
-      if (m.is_error) {
-        return <Tag style={{ fontSize: 10, margin: 0, background: `${voidToken.colorError}15`, borderColor: `${voidToken.colorError}30`, color: voidToken.colorError }}>Error</Tag>;
-      }
-      return <Tag style={{ fontSize: 10, margin: 0, background: `${voidToken.colorSuccess}15`, borderColor: `${voidToken.colorSuccess}30`, color: voidToken.colorSuccess }}>Confirmado</Tag>;
-    },
-  };
-
-  const measurementColumns = useMemo(() => {
     const cols = [...baseColumns];
     if (activeVars.hasCaudal) cols.push(caudalColumn);
     if (activeVars.hasNivel) cols.push(nivelColumn);
@@ -413,7 +412,7 @@ export const MeasurementsDrawerContent = ({ data, viewMode, variables, activeTab
     }
     cols.push(estadoColumn);
     return cols;
-  }, [activeVars]);
+  }, [activeVars, voidToken, kpis]);
 
   const allMeasurements = useMemo(() => sortedMeasurements, [sortedMeasurements]);
 

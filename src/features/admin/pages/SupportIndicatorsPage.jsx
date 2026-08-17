@@ -282,7 +282,6 @@ const SupportIndicatorsPage = () => {
     realOpenCount,
     overdueSlaTickets,
     overdueResponseTickets,
-    overdueComplianceTickets,
     loading,
     refresh,
   } = useTicketIndicators({ autoLoad: false });

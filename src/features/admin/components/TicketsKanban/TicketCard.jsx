@@ -15,7 +15,7 @@ import {
 } from "@ant-design/icons";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { useParams, Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { SmartCard } from "../../../../shared/ui";
 import { useIkoluToken } from "../../../../hooks/useIkoluToken";
 import {

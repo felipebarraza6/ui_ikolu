@@ -11,7 +11,6 @@ const isLocalhost =
 const BASE_URL = isLocalhost
   ? "/api/"
   : "https://api.smarthydro.app/api/";
-//const BASE_URL = 'http://localhost:8000/api/'
 
 export const Axios = axios.create({
   baseURL: BASE_URL,
@@ -21,15 +20,29 @@ export const Axios = axios.create({
   },
 });
 
+// Helper para determinar el tipo de cabecera según el formato del token
+export const getAuthHeader = (token) => {
+  if (!token) return "";
+  const cleanToken = token.replace(/['"]/g, "").trim();
+  // Si parece un JWT (empieza con eyJ o tiene 3 segmentos separados por punto)
+  if (cleanToken.startsWith("eyJ") || cleanToken.split(".").length === 3) {
+    return `Bearer ${cleanToken}`;
+  }
+  return `Token ${cleanToken}`;
+};
+
 // ── Interceptor de request: inyecta token automáticamente ──
 Axios.interceptors.request.use((config) => {
   // POST_LOGIN no lleva token
   if (config._skipAuth) return config;
 
   try {
-    const token = JSON.parse(localStorage.getItem("token") || "null");
-    if (token) {
-      config.headers.Authorization = `Token ${token}`;
+    const rawToken = localStorage.getItem("token");
+    if (rawToken) {
+      const token = JSON.parse(rawToken || "null");
+      if (token) {
+        config.headers.Authorization = getAuthHeader(token);
+      }
     }
   } catch {
     // no token disponible
@@ -46,6 +59,10 @@ Axios.interceptors.response.use(
     }
     if (error.response?.status === 401) {
       error.isAuthError = true;
+      // Disparar evento global para desloguear al usuario automáticamente
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("sh-auth-unauthorized"));
+      }
     }
     return Promise.reject(error);
   },
@@ -61,6 +78,45 @@ const triggerDownloadNotification = (filename) => {
   if (typeof downloadCallback === "function") {
     downloadCallback(filename);
   }
+};
+
+// ── Parseador universal de errores de Django Rest Framework ──
+export const parseApiError = (error) => {
+  if (!error) return "Error desconocido";
+  if (error.isNetworkError) {
+    return "Error de red: No se pudo conectar al servidor. Revisa tu conexión.";
+  }
+  if (error.isAuthError) {
+    return "Sesión expirada. Por favor, inicia sesión nuevamente.";
+  }
+
+  const responseData = error.response?.data;
+  if (responseData) {
+    if (typeof responseData === "string") return responseData;
+
+    // Errores comunes de DRF
+    if (responseData.detail) return responseData.detail;
+    if (responseData.error) return responseData.error;
+    if (responseData.message) return responseData.message;
+
+    // Errores de validación de campos ({ email: ["Este campo es requerido"] })
+    if (typeof responseData === "object") {
+      const keys = Object.keys(responseData);
+      if (keys.length > 0) {
+        const firstKey = keys[0];
+        const value = responseData[firstKey];
+        const displayKey = firstKey === "non_field_errors" ? "Error" : firstKey;
+        if (Array.isArray(value)) {
+          return `${displayKey}: ${value.join(", ")}`;
+        }
+        if (typeof value === "string") {
+          return `${displayKey}: ${value}`;
+        }
+      }
+    }
+  }
+
+  return error.message || "Ocurrió un error inesperado";
 };
 
 export const POST_LOGIN = async (endpoint, data) => {
@@ -86,23 +142,19 @@ export const POST_LOGIN = async (endpoint, data) => {
 };
 
 export const GET = async (endpoint, token = null, options = {}) => {
-  let authToken = token;
-  if (!authToken) {
-    authToken = JSON.parse(localStorage.getItem("token") || "null");
+  let requestOptions = { ...options };
+  
+  // Si se pasa token explícito, usarlo directamente en headers
+  if (token) {
+    requestOptions.headers = {
+      ...requestOptions.headers,
+      Authorization: getAuthHeader(token),
+    };
+  } else {
+    // Si no hay token, el interceptor inyectará el token de localStorage automáticamente.
+    // Dejamos que el interceptor haga su trabajo en lugar de inyectar estáticamente.
   }
 
-  if (!authToken) {
-    throw new Error(
-      "No se encontró token de autenticación. Por favor, inicia sesión nuevamente.",
-    );
-  }
-
-  const requestOptions = {
-    headers: {
-      Authorization: `Token ${authToken}`,
-    },
-    ...options,
-  };
   const request = await Axios.get(endpoint, requestOptions);
   return request;
 };

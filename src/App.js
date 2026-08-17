@@ -3,7 +3,6 @@ import { notification } from "antd";
 import { CloudDownloadOutlined } from "@ant-design/icons";
 import AppRouter from "./AppRouter";
 import { AuthProvider } from "./contexts/AuthContext";
-import { DataProvider } from "./contexts/DataContext";
 import { TourProvider } from "./contexts/TourContext";
 import { setDownloadCallback } from "./api/sh/config";
 
@@ -21,11 +20,9 @@ const App = () => {
 
   return (
     <AuthProvider>
-      <DataProvider>
-        <TourProvider>
-          <AppRouter />
-        </TourProvider>
-      </DataProvider>
+      <TourProvider>
+        <AppRouter />
+      </TourProvider>
     </AuthProvider>
   );
 };

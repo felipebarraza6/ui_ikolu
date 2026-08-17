@@ -10,6 +10,7 @@ import SystemEventsDrawer from "./drawers/SystemEventsDrawer";
 import CCFlowAnalysisDrawer from "./drawers/FlowAnalysisDrawer";
 import CCComplianceDetailDrawer from "./drawers/ComplianceDetailDrawer";
 import AuditHistoryDrawer from "./drawers/AuditHistoryDrawer";
+import DgaConfigDrawer from "./drawers/DgaConfigDrawer";
 import WarningsDrawer from "./drawers/WarningsDrawer";
 import VoucherModal from "./drawers/VoucherModal";
 import StopTelemetryDrawer from "./drawers/StopTelemetryDrawer";
@@ -78,11 +79,12 @@ const ControlCenter = () => {
 
   // ── Flow analysis state ──
   const [selectedFlowPoint, setSelectedFlowPoint] = useState(null);
-  const [flowAnalysisData, setFlowAnalysisData] = useState(null);
-  const [flowAnalysisLoading, setFlowAnalysisLoading] = useState(false);
 
   // ── Compliance detail state ──
   const [selectedCompliancePoint, setSelectedCompliancePoint] = useState(null);
+
+  // ── DGA config state ──
+  const [dgaConfigPoint, setDgaConfigPoint] = useState(null);
 
   // ── Stop telemetry state ──
   const [stopTelemetryLoading, setStopTelemetryLoading] = useState(false);
@@ -126,7 +128,7 @@ const ControlCenter = () => {
 
   const handleGeneralWarningsClick = useCallback(() => {
     openDrawer('systemEvents');
-  }, []);
+  }, [openDrawer]);
 
   const handlePointWarningsClick = useCallback((pointName) => {
     let point = pointName ? pointsRef.current?.find((p) => p.title === pointName) : null;
@@ -138,28 +140,31 @@ const ControlCenter = () => {
       }
     }
     openDrawer('systemEventsPoint', { point });
-  }, [listData]);
+  }, [listData, openDrawer]);
 
   const handleViewVoucher = useCallback((record) => {
     setSelectedVoucher(record);
     setDgaResult(null);
     setDgaConsole([]);
     openDrawer('voucherModal');
-  }, []);
+  }, [openDrawer]);
 
   const handleViewMeasurements = useCallback(async (pointName, date, variables = [], pointId = null) => {
-    const point = pointsRef.current?.find((p) => p.title === pointName) || (pointId ? { id: pointId, title: pointName } : null);
-    if (!point) return;
-    setSelectedMeasurementPoint({ pointName, date, pointId: point.id, variables });
+    const point = pointsRef.current?.find((p) => p.title === pointName || p.id === pointId) || (pointId ? { id: pointId, title: pointName } : null);
+    if (point?.id) {
+      window.open(`/admin/points/${point.id}`, "_blank", "noopener,noreferrer");
+      return;
+    }
+    setSelectedMeasurementPoint({ pointName, date, pointId: pointId || point?.id, variables });
     setWellConfig(null);
     openDrawer('measurements');
     setMeasurementsLoading(true);
     setMeasurementsData(null);
     try {
       const [recordsRes, configRes, variablesRes] = await Promise.all([
-        orchestrator.pointsRecords(point.id, { startDate: date, endDate: date, limit: 100 }),
-        orchestrator.pointsConfig(point.id),
-        orchestrator.pointsVariables(point.id)
+        orchestrator.pointsRecords(pointId || point?.id, { startDate: date, endDate: date, limit: 100 }),
+        orchestrator.pointsConfig(pointId || point?.id),
+        orchestrator.pointsVariables(pointId || point?.id)
       ]);
       setMeasurementsData(recordsRes);
       const cfg = configRes?.config || configRes;
@@ -172,7 +177,7 @@ const ControlCenter = () => {
     } finally {
       setMeasurementsLoading(false);
     }
-  }, []);
+  }, [openDrawer]);
 
   const handleNavigateDate = useCallback((direction) => {
     if (!selectedMeasurementPoint?.date) return;
@@ -188,34 +193,6 @@ const ControlCenter = () => {
     orchestrator.pointsRecords(point.id, { startDate: newDate, endDate: newDate, limit: 100 })
       .then(setMeasurementsData)
       .catch(err => { console.error(err); message.error("Error navegando fecha"); })
-      .finally(() => setMeasurementsLoading(false));
-  }, [selectedMeasurementPoint]);
-
-  const handleNavigatePoint = useCallback((direction) => {
-    const points = pointsRef.current || [];
-    if (points.length === 0) return;
-    const currentIndex = points.findIndex(p => p.title === selectedMeasurementPoint?.pointName);
-    if (currentIndex === -1) return;
-    const newIndex = (currentIndex + direction + points.length) % points.length;
-    const newPoint = points[newIndex];
-    const date = selectedMeasurementPoint?.date;
-    setSelectedMeasurementPoint({ pointName: newPoint.title, date, pointId: newPoint.id, variables: [] });
-    setWellConfig(null);
-    setMeasurementsLoading(true);
-    setMeasurementsData(null);
-    Promise.all([
-      orchestrator.pointsRecords(newPoint.id, { startDate: date, endDate: date, limit: 100 }),
-      orchestrator.pointsConfig(newPoint.id),
-      orchestrator.pointsVariables(newPoint.id)
-    ])
-      .then(([recordsRes, configRes, variablesRes]) => {
-        setMeasurementsData(recordsRes);
-        const cfg = configRes?.config || configRes;
-        if (cfg && cfg.d1 != null) setWellConfig(cfg);
-        const pointVariables = (variablesRes?.variables || []).map(v => String(v.internal_code || v.name || v).toUpperCase());
-        setSelectedMeasurementPoint(prev => ({ ...prev, variables: pointVariables }));
-      })
-      .catch(err => { console.error(err); message.error("Error cambiando punto"); })
       .finally(() => setMeasurementsLoading(false));
   }, [selectedMeasurementPoint]);
 
@@ -247,21 +224,25 @@ const ControlCenter = () => {
     if (!point) return;
     setSelectedFlowPoint({ pointName, authorizedFlow, pointId: point.id, measurements });
     openDrawer('flowAnalysis');
-    setFlowAnalysisData(measurements);
-  }, []);
+  }, [openDrawer]);
 
   const handleViewComplianceDetail = useCallback((point) => {
     setSelectedCompliancePoint(point);
     openDrawer('complianceDetail', { point });
-  }, []);
+  }, [openDrawer]);
+
+  const handleViewDgaConfig = useCallback((record) => {
+    setDgaConfigPoint(record);
+    openDrawer('dgaConfig');
+  }, [openDrawer]);
 
   const handleViewFlowHistory = useCallback((point) => {
     openDrawer('flowHistory', { point });
-  }, []);
+  }, [openDrawer]);
 
   const handleViewNearLimitHistory = useCallback((point) => {
     openDrawer('nearLimitHistory', { point });
-  }, []);
+  }, [openDrawer]);
 
   const handleViewPointConfig = useCallback(async (pointName, pointId = null) => {
     const point = pointsRef.current?.find((p) => p.title === pointName) || (pointId ? { id: pointId, title: pointName } : null);
@@ -280,7 +261,7 @@ const ControlCenter = () => {
     } finally {
       setPointConfigLoading(false);
     }
-  }, []);
+  }, [openDrawer]);
 
   const handleOpenStopTelemetry = useCallback((pointName, pointId = null) => {
     const point = pointsRef.current?.find((p) => p.title === pointName) || (pointId ? { id: pointId, title: pointName, client_name: null } : null);
@@ -289,7 +270,7 @@ const ControlCenter = () => {
     setStopTelemetryPoint(payload);
     stopTelemetryForm.resetFields();
     openDrawer('stopTelemetry', { point: payload });
-  }, [stopTelemetryForm]);
+  }, [openDrawer, stopTelemetryForm]);
 
   const handleToggleTelemetry = useCallback(async (record) => {
     const pointId = record.pointId;
@@ -334,7 +315,7 @@ const ControlCenter = () => {
     setStopCompliancePoint(payload);
     stopComplianceForm.resetFields();
     openDrawer('stopCompliance', { point: payload });
-  }, [stopComplianceForm]);
+  }, [openDrawer, stopComplianceForm]);
 
   const handleOpenSupport = useCallback((pointNameOrRecord, contextType = "SOPORTE") => {
     let point;
@@ -360,18 +341,28 @@ const ControlCenter = () => {
     setSupportContextType(contextType);
     supportForm.resetFields();
     openDrawer('support', { point: payload, contextType });
-  }, [supportForm]);
+  }, [openDrawer, supportForm]);
 
   const handleVerifyDGA = useCallback(async () => {
     if (!selectedVoucher?.code || !selectedVoucher?.voucher) return;
     setDgaVerifying(true);
-    setDgaConsole(["Consultando DGA..."]);
+    setDgaConsole(["> Consultando DGA..."]);
     try {
       const data = await orchestrator.verifyDgaVoucher(selectedVoucher.code, selectedVoucher.voucher, selectedVoucher.type_dga || 'SUPERFICIAL');
+      console.log("[VoucherVerify] Response:", data);
       setDgaResult(data);
-      setDgaConsole(prev => [...prev, "Verificación completada"]);
+      // Log detailed info to console panel
+      setDgaConsole(prev => [
+        ...prev,
+        `> Codigo obra: ${selectedVoucher.code}`,
+        `> Comprobante: ${selectedVoucher.voucher}`,
+        `> Tipo DGA: ${selectedVoucher.type_dga || 'SUPERFICIAL'}`,
+        `> Status: ${data?.status ?? data?.detail ? "Respuesta recibida" : "Sin status"}`,
+        `> Raw: ${JSON.stringify(data, null, 2)}`,
+      ]);
     } catch (err) {
-      setDgaConsole(prev => [...prev, `ERROR: ${err.message}`]);
+      console.error("[VoucherVerify] Error:", err);
+      setDgaConsole(prev => [...prev, `> ERROR: ${err.message}`]);
     } finally {
       setDgaVerifying(false);
     }
@@ -399,7 +390,7 @@ const ControlCenter = () => {
       closeDrawer('stopTelemetry'); setStopTelemetryPoint(null);
     } catch (err) { message.error("Error al crear el ticket"); }
     finally { setStopTelemetryLoading(false); }
-  }, [stopTelemetryPoint, stopTelemetryForm, user?.email]);
+  }, [closeDrawer, stopTelemetryPoint, stopTelemetryForm, user?.email]);
 
   const handleSubmitStopCompliance = useCallback(async (values) => {
     if (!stopCompliancePoint) return;
@@ -423,7 +414,7 @@ const ControlCenter = () => {
       closeDrawer('stopCompliance'); setStopCompliancePoint(null);
     } catch (err) { message.error("Error al crear el ticket"); }
     finally { setStopComplianceLoading(false); }
-  }, [stopCompliancePoint, stopComplianceForm, user?.email]);
+  }, [closeDrawer, stopCompliancePoint, stopComplianceForm, user?.email]);
 
   const showDgaAlert = stopCompliancePoint?.code && stopCompliancePoint?.code !== "—" && compDiffDays > 5;
   const showDgaCriticalAlert = stopCompliancePoint?.code && stopCompliancePoint?.code !== "—" && compDiffDays > 10;
@@ -441,6 +432,7 @@ const ControlCenter = () => {
         onOpenStopCompliance={handleOpenStopCompliance}
         onViewFlowAnalysis={handleViewFlowAnalysis}
         onViewComplianceDetail={handleViewComplianceDetail}
+        onViewDgaConfig={handleViewDgaConfig}
         onViewFlowHistory={handleViewFlowHistory}
         onViewNearLimitHistory={handleViewNearLimitHistory}
         onToggleTelemetry={handleToggleTelemetry}
@@ -596,7 +588,7 @@ const ControlCenter = () => {
 
       <CCFlowAnalysisDrawer
         open={d('flowAnalysis').open}
-        onClose={() => { closeDrawer('flowAnalysis'); setSelectedFlowPoint(null); setFlowAnalysisData(null); }}
+        onClose={() => { closeDrawer('flowAnalysis'); setSelectedFlowPoint(null); }}
         pointName={selectedFlowPoint?.pointName}
         authorizedFlow={selectedFlowPoint?.authorizedFlow}
         data={selectedFlowPoint?.measurements || []}
@@ -606,6 +598,13 @@ const ControlCenter = () => {
         open={d('complianceDetail').open}
         onClose={() => { closeDrawer('complianceDetail'); setSelectedCompliancePoint(null); }}
         point={selectedCompliancePoint}
+      />
+
+      <DgaConfigDrawer
+        open={d('dgaConfig').open}
+        onClose={() => { closeDrawer('dgaConfig'); setDgaConfigPoint(null); }}
+        pointId={dgaConfigPoint?.id ?? dgaConfigPoint?.point_id}
+        pointName={dgaConfigPoint?.point_name || dgaConfigPoint?.title}
       />
 
       <AuditHistoryDrawer

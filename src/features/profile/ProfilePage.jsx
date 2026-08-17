@@ -15,6 +15,8 @@ import {
   Form,
   Input,
   message,
+  Upload,
+  Switch,
 } from "antd";
 import {
   UserOutlined,
@@ -22,18 +24,23 @@ import {
   EditOutlined,
   LockOutlined,
   SaveOutlined,
+  UploadOutlined,
+  LoadingOutlined,
 } from "@ant-design/icons";
 import { useAuth } from "../../contexts/AuthContext";
+import orchestrator from "../../api/orchestrator";
 
 const { Title, Text } = Typography;
 
 const ProfilePage = () => {
   const { token } = theme.useToken();
-  const { user, updateUserProfile, changeCurrentPassword } = useAuth();
+  const { user, updateUserProfile, changeCurrentPassword, dispatch } = useAuth();
   const [editOpen, setEditOpen] = useState(false);
   const [pwdOpen, setPwdOpen] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
   const [pwdLoading, setPwdLoading] = useState(false);
+  const [avatarLoading, setAvatarLoading] = useState(false);
+  const [prefLoading, setPrefLoading] = useState(false);
   const [editForm] = Form.useForm();
   const [pwdForm] = Form.useForm();
 
@@ -70,12 +77,7 @@ const ProfilePage = () => {
       message.success("Perfil actualizado correctamente");
       setEditOpen(false);
     } catch (err) {
-      message.error(
-        err?.response?.data?.message ||
-          err?.response?.data?.error ||
-          err.message ||
-          "Error al actualizar el perfil"
-      );
+      message.error(orchestrator.parseApiError(err));
     } finally {
       setEditLoading(false);
     }
@@ -89,12 +91,7 @@ const ProfilePage = () => {
       pwdForm.resetFields();
       setPwdOpen(false);
     } catch (err) {
-      message.error(
-        err?.response?.data?.message ||
-          err?.response?.data?.error ||
-          err.message ||
-          "Error al cambiar la contraseña"
-      );
+      message.error(orchestrator.parseApiError(err));
     } finally {
       setPwdLoading(false);
     }
@@ -122,15 +119,57 @@ const ProfilePage = () => {
               textAlign: "center",
             }}
           >
-            <Avatar
-              size={120}
-              icon={<UserOutlined />}
-              style={{
-                background: token.colorWarning,
-                marginBottom: 16,
-                border: `3px solid ${token.colorWarning}`,
+            <Upload
+              showUploadList={false}
+              beforeUpload={async (file) => {
+                const isLt2M = file.size / 1024 / 1024 < 2;
+                if (!isLt2M) {
+                  message.error("La imagen debe ser menor a 2MB");
+                  return false;
+                }
+                setAvatarLoading(true);
+                try {
+                  const updatedUser = await orchestrator.uploadAvatar(file);
+                  dispatch({ type: "UPDATE_USER", payload: updatedUser });
+                  message.success("Foto de perfil actualizada");
+                } catch (err) {
+                  message.error("Error al subir foto de perfil");
+                } finally {
+                  setAvatarLoading(false);
+                }
+                return false;
               }}
-            />
+            >
+              <div style={{ position: "relative", display: "inline-block", cursor: "pointer" }}>
+                <Avatar
+                  size={120}
+                  src={user.avatar || null}
+                  icon={avatarLoading ? <LoadingOutlined /> : <UserOutlined />}
+                  style={{
+                    background: token.colorWarning,
+                    marginBottom: 16,
+                    border: `3px solid ${token.colorWarning}`,
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: 16,
+                    right: 0,
+                    background: "rgba(0,0,0,0.6)",
+                    borderRadius: "50%",
+                    width: 32,
+                    height: 32,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    border: "1px solid rgba(255,255,255,0.3)",
+                  }}
+                >
+                  <UploadOutlined style={{ color: "#fff", fontSize: 14 }} />
+                </div>
+              </div>
+            </Upload>
 
             <Title
               level={4}
@@ -244,6 +283,27 @@ const ProfilePage = () => {
                 color: token.colorTextSecondary,
               }}
             >
+              <Descriptions.Item label="Notificaciones por Correo">
+                <Switch
+                  checked={user.notify_email}
+                  loading={prefLoading}
+                  onChange={async (checked) => {
+                    setPrefLoading(true);
+                    try {
+                      await orchestrator.updateNotifyEmailPreference(checked);
+                      dispatch({
+                        type: "UPDATE_USER",
+                        payload: { ...user, notify_email: checked },
+                      });
+                      message.success("Preferencias actualizadas");
+                    } catch (err) {
+                      message.error("Error al actualizar preferencias");
+                    } finally {
+                      setPrefLoading(false);
+                    }
+                  }}
+                />
+              </Descriptions.Item>
               <Descriptions.Item label="Idioma">Español</Descriptions.Item>
               <Descriptions.Item label="Zona Horaria">America/Santiago</Descriptions.Item>
             </Descriptions>

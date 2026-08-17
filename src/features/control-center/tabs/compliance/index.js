@@ -3,10 +3,12 @@ import CCComplianceTable from "./ComplianceTable";
 
 const ComplianceTab = ({
   points,
+  projects,
   handleViewVoucher,
   handleOpenStopCompliance,
   handleOpenSupport,
   handleViewPointConfig,
+  handleViewDgaConfig,
   handleViewFlowAnalysis,
   handleViewFlowHistory,
   handleViewNearLimitHistory,
@@ -30,10 +32,12 @@ const ComplianceTab = ({
     <div>
       <CCComplianceTable
         points={points}
+        projects={projects}
         onViewVoucher={handleViewVoucher}
         onOpenStopCompliance={handleOpenStopCompliance}
         onOpenSupport={handleOpenSupport}
         onViewPointConfig={handleViewPointConfig}
+        onViewComplianceInfo={handleViewDgaConfig}
         onViewFlowAnalysis={handleViewFlowAnalysis}
         onViewFlowHistory={handleViewFlowHistory}
         onViewNearLimitHistory={handleViewNearLimitHistory}

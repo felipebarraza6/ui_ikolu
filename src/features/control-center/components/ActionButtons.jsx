@@ -1,10 +1,10 @@
 import React from "react";
 import { Flex, Tooltip, Grid } from "antd";
-import { FaEye, FaPauseCircle, FaHeadset } from "react-icons/fa";
+import { FaExternalLinkAlt, FaPauseCircle, FaHeadset } from "react-icons/fa";
 import { SafetyOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
 
-const btnBase = (color, size = 28) => ({
+const btnBase = (color, size = 32) => ({
   width: size,
   height: size,
   borderRadius: "50%",
@@ -12,11 +12,10 @@ const btnBase = (color, size = 28) => ({
   alignItems: "center",
   justifyContent: "center",
   cursor: "pointer",
-  border: `1.5px solid ${color}35`,
-  background: `${color}12`,
+  border: `1.5px solid ${color}50`,
+  background: `${color}18`,
   color,
   transition: "all 0.2s ease",
-  backdropFilter: "blur(4px)",
 });
 
 const ActionButtons = ({
@@ -33,19 +32,19 @@ const ActionButtons = ({
   const isMobile = !screens.md;
 
   const handleHover = (e, enter, color) => {
-    e.currentTarget.style.transform = enter ? "scale(1.15)" : "scale(1)";
-    e.currentTarget.style.background = enter ? `${color}22` : `${color}12`;
-    e.currentTarget.style.boxShadow = enter ? `0 0 10px ${color}40` : "none";
+    e.currentTarget.style.transform = enter ? "scale(1.12)" : "scale(1)";
+    e.currentTarget.style.background = enter ? `${color}30` : `${color}18`;
+    e.currentTarget.style.boxShadow = enter ? `0 2px 8px ${color}50` : "none";
   };
 
   const isToggling = !!togglingCompliance?.[record.id];
   const complianceColor = record.complianceActive ? token.colorSuccess : token.colorError;
-  const btnSize = isMobile ? 24 : 28;
+  const btnSize = isMobile ? 28 : 32;
 
   return (
     <Flex align="center" justify="center" gap={isMobile ? 6 : 8} onClick={(e) => e.stopPropagation()}>
       {record.voucher ? (
-        <Tooltip title="Ver voucher">
+        <Tooltip title="Abrir comprobante DGA">
           <div
             role="button"
             tabIndex={0}
@@ -54,7 +53,7 @@ const ActionButtons = ({
             onMouseEnter={(e) => handleHover(e, true, token.colorSuccess)}
             onMouseLeave={(e) => handleHover(e, false, token.colorSuccess)}
           >
-            <FaEye style={{ fontSize: isMobile ? 10 : 12 }} />
+            <FaExternalLinkAlt style={{ fontSize: isMobile ? 11 : 13 }} />
           </div>
         </Tooltip>
       ) : (
@@ -69,7 +68,7 @@ const ActionButtons = ({
           onMouseEnter={(e) => handleHover(e, true, token.colorError)}
           onMouseLeave={(e) => handleHover(e, false, token.colorError)}
         >
-          <FaPauseCircle style={{ fontSize: isMobile ? 10 : 12 }} />
+          <FaPauseCircle style={{ fontSize: isMobile ? 11 : 13 }} />
         </div>
       </Tooltip>
       <Tooltip title="Solicitar soporte">
@@ -81,7 +80,7 @@ const ActionButtons = ({
           onMouseEnter={(e) => handleHover(e, true, token.colorWarning)}
           onMouseLeave={(e) => handleHover(e, false, token.colorWarning)}
         >
-          <FaHeadset style={{ fontSize: isMobile ? 10 : 12 }} />
+          <FaHeadset style={{ fontSize: isMobile ? 11 : 13 }} />
         </div>
       </Tooltip>
       {isSuperUser && (
@@ -100,9 +99,9 @@ const ActionButtons = ({
             onMouseLeave={(e) => !isToggling && handleHover(e, false, complianceColor)}
           >
             {record.complianceActive ? (
-              <SafetyCertificateOutlined style={{ fontSize: isMobile ? 10 : 12 }} />
+              <SafetyCertificateOutlined style={{ fontSize: isMobile ? 11 : 13 }} />
             ) : (
-              <SafetyOutlined style={{ fontSize: isMobile ? 10 : 12 }} />
+              <SafetyOutlined style={{ fontSize: isMobile ? 11 : 13 }} />
             )}
           </div>
         </Tooltip>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { Flex, Typography, Spin, Empty, Descriptions, Table, Button, message } from "antd";
 import { ArrowLeftOutlined, EnvironmentOutlined } from "@ant-design/icons";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
@@ -53,7 +53,6 @@ const useProjectDetail = (projectId) => {
 const ProjectDetailPage = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
   const token = useIkoluToken();
   const { project, client, points, loading } = useProjectDetail(projectId);
 

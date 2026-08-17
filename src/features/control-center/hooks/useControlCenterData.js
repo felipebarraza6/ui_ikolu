@@ -154,7 +154,7 @@ export const useControlCenterData = (options = {}) => {
     } finally {
       setLoadingBase(false);
     }
-  }, [rebuildData]);
+  }, [isAuth, rebuildData]);
 
   // Carga de compliance: GET /api/ik/compliance/?page=&page_size=&project_id=&search=&order_by=
   // Soporta respuesta paginada { count, results } o plana { points }.
@@ -208,7 +208,7 @@ export const useControlCenterData = (options = {}) => {
     } finally {
       setLoadingCompliance(false);
     }
-  }, [rebuildData, compliancePage, compliancePageSize, complianceOrderBy, complianceSearch, complianceStandard, complianceNature, selectedProject]);
+  }, [isAuth, rebuildData, compliancePage, compliancePageSize, complianceOrderBy, complianceSearch, complianceStandard, complianceNature, selectedProject]);
 
   // Carga liviana: cuadritos de días.
   const fetchDailySummary = useCallback(async (signal, silent = false) => {
@@ -239,7 +239,7 @@ export const useControlCenterData = (options = {}) => {
     } finally {
       setLoadingDaily(false);
     }
-  }, [dateRange?.startDate, dateRange?.endDate, selectedProject]);
+  }, [isAuth, dateRange?.startDate, dateRange?.endDate, selectedProject]);
 
   // Carga de la tabla: lista paginada de puntos del día seleccionado.
   const fetchList = useCallback(async (signal, page = listPage, orderBy = listOrderBy, silent = false) => {
@@ -273,7 +273,7 @@ export const useControlCenterData = (options = {}) => {
     } finally {
       setLoadingList(false);
     }
-  }, [selectedDate, selectedProject, listPage, listOrderBy]);
+  }, [isAuth, selectedDate, selectedProject, listPage, listOrderBy]);
 
   // Carga inicial: según la pestaña activa.
   // Se marca initialLoadDone solo cuando las peticiones iniciales terminan de verdad;

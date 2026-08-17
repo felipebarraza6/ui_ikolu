@@ -109,7 +109,7 @@ const CCWarningsSection = ({ warningsList, warningsRaw, onWarningPointClick }) =
                           </Text>
                         </div>
                       </Flex>
-                      <FaEye style={{ fontSize: 12, color: token.voidTextMuted }} />
+                      <FaExternalLinkAlt style={{ fontSize: 12, color: token.voidTextMuted }} />
                     </Flex>
                   </div>
                 </Col>

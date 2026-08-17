@@ -24,7 +24,6 @@ import {
 import { SmartCard } from "../../../shared/ui";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import orchestrator from "../../../api/orchestrator";
-import sh from "../../../api/sh/endpoints";
 import {
   inferPointStatus,
   statusColor,
@@ -110,7 +109,7 @@ const PointsStatusTable = memo(({ data, loading, onChange, filters, onFiltersCha
       const next = !record.telemetry_active;
       setToggling((prev) => ({ ...prev, [pointId]: true }));
       try {
-        await sh.management.toggleTelemetry(pointId, next);
+        await orchestrator.management.toggleTelemetry(pointId, next);
         message.success(`Telemetría ${next ? "activada" : "desactivada"} para ${record.title || pointId}`);
         onChange?.();
       } catch (err) {
@@ -128,7 +127,7 @@ const PointsStatusTable = memo(({ data, loading, onChange, filters, onFiltersCha
       if (!value || value < 1) return;
       setFreqLoading((prev) => ({ ...prev, [pointId]: true }));
       try {
-        await sh.management.updatePointFrequency(pointId, value);
+        await orchestrator.management.updatePointFrequency(pointId, value);
         message.success("Frecuencia actualizada");
         onChange?.();
       } catch (err) {

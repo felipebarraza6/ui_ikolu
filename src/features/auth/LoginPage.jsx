@@ -1,82 +1,52 @@
-import React, { useState } from "react";
-import { message, Form } from "antd";
+import React, { useState, useEffect } from "react";
+import { message, Form, Modal } from "antd";
 import { useAuth } from "../../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import orchestrator from "../../api/orchestrator";
 import usePublicData from "./hooks/usePublicData";
 import BrandPanel from "./components/BrandPanel";
-import LoginFlipCard from "./components/LoginFlipCard";
 import LoginForm from "./components/LoginForm";
-import IkoluFeatures from "./components/IkoluFeatures";
 import ForgotModal from "./components/ForgotModal";
 
-const keyframes = `
-@keyframes fade-up {
-  0% { opacity: 0; transform: translateY(20px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-@keyframes modal-in {
-  0% { opacity: 0; transform: scale(0.96) translateY(12px); }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
-}
-`;
-
-const responsiveStyles = `
-.login-root {
-  display: flex;
-  min-height: 100vh;
-}
-.login-brand {
-  flex: 1 1 50%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 48px 64px;
-  position: relative;
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-.login-brand-content {
-  position: relative;
-  z-index: 1;
-  max-width: 560px;
-  animation: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.login-form-wrap {
-  flex: 1 1 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  background: #030c18;
-  position: relative;
-  overflow: hidden;
-}
-@media (max-width: 1000px) {
-  .login-brand { flex: 1 1 50%; padding: 36px 40px; }
-  .login-form-wrap { flex: 1 1 50%; padding: 32px; }
-}
-@media (max-width: 800px) {
-  .login-root { flex-direction: column; }
-  .login-brand { display: none; }
-  .login-form-wrap {
-    flex: 1;
-    padding: 32px 24px;
-    background: linear-gradient(160deg, #031020 0%, #061d38 50%, #0a2740 100%);
+const modalStyles = `
+  .ikolu-login-modal .ant-modal-content {
+    background: rgba(8, 20, 36, 0.92) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 28px !important;
+    box-shadow: 0 32px 90px rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    padding: 24px 16px !important;
   }
-}
+  .ikolu-login-modal .ant-modal-close {
+    color: rgba(255, 255, 255, 0.6) !important;
+    top: 20px !important;
+    right: 20px !important;
+  }
+  .ikolu-login-modal .ant-modal-close:hover {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+  }
 `;
 
 const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { data: publicData, loading: publicLoading } = usePublicData();
 
   const [loading, setLoading] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
-  const [flipped, setFlipped] = useState(false);
   const [forgotForm] = Form.useForm();
+
+  // Abrir modal de login si la URL incluye #login o ?login=true
+  useEffect(() => {
+    if (location.hash === "#login" || location.search.includes("login=true")) {
+      setLoginModalOpen(true);
+    }
+  }, [location]);
 
   const onFinish = async (values) => {
     setLoading(true);
@@ -120,47 +90,35 @@ const LoginPage = () => {
     forgotForm.resetFields();
   };
 
-  const front = (
-    <LoginForm
-      onSubmit={onFinish}
-      loading={loading}
-      onForgot={() => setForgotOpen(true)}
-      onShowFeatures={() => setFlipped(true)}
-    />
-  );
-
-  const back = (
-    <IkoluFeatures
-      platform={publicData?.platform}
-      onBack={() => setFlipped(false)}
-    />
-  );
-
   return (
-    <div className="login-root">
-      <style>{keyframes}</style>
-      <style>{responsiveStyles}</style>
+    <div style={{ width: "100%", minHeight: "100vh", background: "#030c18" }}>
+      <style>{modalStyles}</style>
 
-      <BrandPanel data={publicData} loading={publicLoading} />
+      {/* LANDING PAGE A ANCHO COMPLETO (100%) */}
+      <BrandPanel
+        data={publicData}
+        loading={publicLoading}
+        onOpenLogin={() => setLoginModalOpen(true)}
+      />
 
-      <div className="login-form-wrap">
-        <div
-          style={{
-            position: "absolute",
-            top: "-15%",
-            right: "-20%",
-            width: "60vw",
-            height: "60vw",
-            background:
-              "radial-gradient(circle, rgba(255,255,255,0.08) 0%, rgba(180,200,220,0.03) 45%, rgba(3,12,24,0) 70%)",
-            filter: "blur(90px)",
-            pointerEvents: "none",
-          }}
+      {/* MODAL DE INICIO DE SESIÓN */}
+      <Modal
+        open={loginModalOpen}
+        onCancel={() => setLoginModalOpen(false)}
+        footer={null}
+        destroyOnClose
+        centered
+        width={420}
+        className="ikolu-login-modal"
+      >
+        <LoginForm
+          onSubmit={onFinish}
+          loading={loading}
+          onForgot={() => setForgotOpen(true)}
         />
+      </Modal>
 
-        <LoginFlipCard flipped={flipped} front={front} back={back} />
-      </div>
-
+      {/* MODAL DE RECUPERACIÓN DE CONTRASEÑA */}
       <ForgotModal
         open={forgotOpen}
         onCancel={closeForgot}

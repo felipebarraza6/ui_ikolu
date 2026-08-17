@@ -115,7 +115,7 @@ const ProjectsPage = () => {
       handleClose();
       fetchPage(pagination.current);
     },
-    [editing, createItem, updateItem, handleClose, fetchPage, pagination.current]
+    [editing, createItem, updateItem, handleClose, fetchPage, pagination]
   );
 
   const handleDelete = useCallback(
@@ -132,7 +132,7 @@ const ProjectsPage = () => {
         },
       });
     },
-    [deleteItem, fetchPage, pagination.current]
+    [deleteItem, fetchPage, pagination]
   );
 
   const columns = [

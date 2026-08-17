@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { Card, Typography, Form, Input, Button, message, Flex } from "antd";
-import { LockOutlined, SafetyOutlined } from "@ant-design/icons";
+import React, { useState, useEffect } from "react";
+import { Card, Typography, Form, Input, Button, message, Flex, Spin } from "antd";
+import { LockOutlined, SafetyOutlined, CloseCircleOutlined } from "@ant-design/icons";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import orchestrator from "../../api/orchestrator";
 import WaterBackground from "./components/WaterBackground";
@@ -40,11 +40,32 @@ const ResetPasswordPage = () => {
   const resetToken = searchParams.get("token");
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [validatingToken, setValidatingToken] = useState(true);
+  const [isValidToken, setIsValidToken] = useState(false);
   const [form] = Form.useForm();
 
+  useEffect(() => {
+    const validateToken = async () => {
+      if (!resetToken) {
+        message.error("El enlace de recuperación no contiene un token válido.");
+        setValidatingToken(false);
+        return;
+      }
+      try {
+        await orchestrator.validatePasswordResetToken(resetToken);
+        setIsValidToken(true);
+      } catch (err) {
+        message.error("El enlace de recuperación es inválido o ha expirado.");
+      } finally {
+        setValidatingToken(false);
+      }
+    };
+    validateToken();
+  }, [resetToken]);
+
   const onFinish = async (values) => {
-    if (!resetToken) {
-      message.error("Token de recuperación inválido");
+    if (!resetToken || !isValidToken) {
+      message.error("Token de recuperación inválido o expirado");
       return;
     }
     setLoading(true);
@@ -53,12 +74,7 @@ const ResetPasswordPage = () => {
       message.success("Contraseña restablecida correctamente");
       navigate("/login", { replace: true });
     } catch (err) {
-      message.error(
-        err?.response?.data?.message ||
-          err?.response?.data?.error ||
-          err.message ||
-          "Error al restablecer la contraseña"
-      );
+      message.error(orchestrator.parseApiError(err));
     } finally {
       setLoading(false);
     }
@@ -78,139 +94,235 @@ const ResetPasswordPage = () => {
       <style>{keyframes}</style>
       <WaterBackground />
 
-      <Card
-        style={{
-          width: 400,
-          borderRadius: 24,
-          background: "rgba(8, 20, 36, 0.85)",
-          border: "1px solid rgba(255, 255, 255, 0.08)",
-          boxShadow: "0 32px 90px rgba(0,0,0,0.5)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          position: "relative",
-          zIndex: 1,
-          padding: "12px 8px",
-          animation: "fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
-        }}
-      >
-        <Flex vertical align="center" style={{ marginBottom: 28 }}>
-          <div
-            style={{
-              width: 52,
-              height: 52,
-              borderRadius: "50%",
-              background: "linear-gradient(135deg, #ffffff 0%, #9fb3c8 100%)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              marginBottom: 16,
-              boxShadow: "0 8px 24px rgba(255,255,255,0.18)",
-            }}
-          >
-            <SafetyOutlined style={{ fontSize: 22, color: "#041126" }} />
-          </div>
-          <Title
-            level={3}
-            style={{
-              color: "#f2f5fa",
-              margin: 0,
-              fontWeight: 700,
-              fontSize: "1.5rem",
-            }}
-          >
-            Restablecer contraseña
-          </Title>
-          <Text
-            style={{
-              color: "rgba(200, 214, 240, 0.5)",
-              marginTop: 6,
-              textAlign: "center",
-              fontSize: 13,
-            }}
-          >
-            Ingresa tu nueva contraseña segura
+      {validatingToken ? (
+        <Card
+          style={{
+            width: 400,
+            borderRadius: 24,
+            background: "rgba(8, 20, 36, 0.85)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            boxShadow: "0 32px 90px rgba(0,0,0,0.5)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            position: "relative",
+            zIndex: 1,
+            padding: "24px 8px",
+            textAlign: "center",
+          }}
+        >
+          <Spin size="large" style={{ color: "#ffffff" }} />
+          <Text style={{ display: "block", color: "#f2f5fa", marginTop: 16 }}>
+            Validando token de seguridad...
           </Text>
-        </Flex>
-
-        <Form form={form} layout="vertical" onFinish={onFinish} size="large">
-          <Form.Item
-            name="password"
-            rules={[
-              { required: true, message: "Ingresa una nueva contraseña" },
-              { min: 8, message: "Mínimo 8 caracteres" },
-            ]}
-            style={{ marginBottom: 28 }}
-          >
-            <Input.Password
-              prefix={
-                <LockOutlined style={{ color: "rgba(200,214,240,0.4)", marginRight: 10 }} />
-              }
-              placeholder="Nueva contraseña"
-              style={inputStyles}
-              onFocus={(e) => applyFocus(e, true)}
-              onBlur={(e) => applyFocus(e, false)}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="confirm_password"
-            rules={[
-              { required: true, message: "Confirma la nueva contraseña" },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue("password") === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(
-                    new Error("Las contraseñas no coinciden")
-                  );
-                },
-              }),
-            ]}
-            style={{ marginBottom: 28 }}
-          >
-            <Input.Password
-              prefix={
-                <LockOutlined style={{ color: "rgba(200,214,240,0.4)", marginRight: 10 }} />
-              }
-              placeholder="Confirmar contraseña"
-              style={inputStyles}
-              onFocus={(e) => applyFocus(e, true)}
-              onBlur={(e) => applyFocus(e, false)}
-            />
-          </Form.Item>
-
-          <Form.Item style={{ marginBottom: 0 }}>
-            <Button
-              type="primary"
-              htmlType="submit"
-              block
-              loading={loading}
-              size="large"
+        </Card>
+      ) : !isValidToken ? (
+        <Card
+          style={{
+            width: 400,
+            borderRadius: 24,
+            background: "rgba(8, 20, 36, 0.85)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            boxShadow: "0 32px 90px rgba(0,0,0,0.5)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            position: "relative",
+            zIndex: 1,
+            padding: "12px 8px",
+            animation: "fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+        >
+          <Flex vertical align="center" style={{ marginBottom: 28 }}>
+            <div
               style={{
-                background: "linear-gradient(135deg, #ffffff 0%, #9fb3c8 100%)",
-                border: "none",
-                color: "#041126",
-                fontWeight: 700,
-                height: 50,
-                borderRadius: 25,
-                transition: "all 0.25s ease",
-                boxShadow: "0 10px 28px rgba(255,255,255,0.18)",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-2px)";
-                e.currentTarget.style.boxShadow = "0 14px 36px rgba(255,255,255,0.28)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "0 10px 28px rgba(255,255,255,0.18)";
+                width: 52,
+                height: 52,
+                borderRadius: "50%",
+                background: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 16,
+                boxShadow: "0 8px 24px rgba(255,154,158,0.18)",
               }}
             >
-              Guardar contraseña
-            </Button>
-          </Form.Item>
-        </Form>
-      </Card>
+              <CloseCircleOutlined style={{ fontSize: 22, color: "#900" }} />
+            </div>
+            <Title
+              level={3}
+              style={{
+                color: "#f2f5fa",
+                margin: 0,
+                fontWeight: 700,
+                fontSize: "1.5rem",
+              }}
+            >
+              Enlace Expirado
+            </Title>
+            <Text
+              style={{
+                color: "rgba(200, 214, 240, 0.5)",
+                marginTop: 6,
+                textAlign: "center",
+                fontSize: 13,
+              }}
+            >
+              El enlace para restablecer tu contraseña es inválido o ya ha expirado por motivos de seguridad.
+            </Text>
+          </Flex>
+
+          <Button
+            type="primary"
+            block
+            size="large"
+            onClick={() => navigate("/login")}
+            style={{
+              background: "linear-gradient(135deg, #ffffff 0%, #9fb3c8 100%)",
+              border: "none",
+              color: "#041126",
+              fontWeight: 700,
+              height: 50,
+              borderRadius: 25,
+              transition: "all 0.25s ease",
+            }}
+          >
+            Volver a iniciar sesión
+          </Button>
+        </Card>
+      ) : (
+        <Card
+          style={{
+            width: 400,
+            borderRadius: 24,
+            background: "rgba(8, 20, 36, 0.85)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            boxShadow: "0 32px 90px rgba(0,0,0,0.5)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            position: "relative",
+            zIndex: 1,
+            padding: "12px 8px",
+            animation: "fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+        >
+          <Flex vertical align="center" style={{ marginBottom: 28 }}>
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: "50%",
+                background: "linear-gradient(135deg, #ffffff 0%, #9fb3c8 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 16,
+                boxShadow: "0 8px 24px rgba(255,255,255,0.18)",
+              }}
+            >
+              <SafetyOutlined style={{ fontSize: 22, color: "#041126" }} />
+            </div>
+            <Title
+              level={3}
+              style={{
+                color: "#f2f5fa",
+                margin: 0,
+                fontWeight: 700,
+                fontSize: "1.5rem",
+              }}
+            >
+              Restablecer contraseña
+            </Title>
+            <Text
+              style={{
+                color: "rgba(200, 214, 240, 0.5)",
+                marginTop: 6,
+                textAlign: "center",
+                fontSize: 13,
+              }}
+            >
+              Ingresa tu nueva contraseña segura
+            </Text>
+          </Flex>
+
+          <Form form={form} layout="vertical" onFinish={onFinish} size="large">
+            <Form.Item
+              name="password"
+              rules={[
+                { required: true, message: "Ingresa una nueva contraseña" },
+                { min: 8, message: "Mínimo 8 caracteres" },
+              ]}
+              style={{ marginBottom: 28 }}
+            >
+              <Input.Password
+                prefix={
+                  <LockOutlined style={{ color: "rgba(200,214,240,0.4)", marginRight: 10 }} />
+                }
+                placeholder="Nueva contraseña"
+                style={inputStyles}
+                onFocus={(e) => applyFocus(e, true)}
+                onBlur={(e) => applyFocus(e, false)}
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="confirm_password"
+              rules={[
+                { required: true, message: "Confirma la nueva contraseña" },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue("password") === value) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(
+                      new Error("Las contraseñas no coinciden")
+                    );
+                  },
+                }),
+              ]}
+              style={{ marginBottom: 28 }}
+            >
+              <Input.Password
+                prefix={
+                  <LockOutlined style={{ color: "rgba(200,214,240,0.4)", marginRight: 10 }} />
+                }
+                placeholder="Confirmar contraseña"
+                style={inputStyles}
+                onFocus={(e) => applyFocus(e, true)}
+                onBlur={(e) => applyFocus(e, false)}
+              />
+            </Form.Item>
+
+            <Form.Item style={{ marginBottom: 0 }}>
+              <Button
+                type="primary"
+                htmlType="submit"
+                block
+                loading={loading}
+                size="large"
+                style={{
+                  background: "linear-gradient(135deg, #ffffff 0%, #9fb3c8 100%)",
+                  border: "none",
+                  color: "#041126",
+                  fontWeight: 700,
+                  height: 50,
+                  borderRadius: 25,
+                  transition: "all 0.25s ease",
+                  boxShadow: "0 10px 28px rgba(255,255,255,0.18)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = "0 14px 36px rgba(255,255,255,0.28)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 10px 28px rgba(255,255,255,0.18)";
+                }}
+              >
+                Guardar contraseña
+              </Button>
+            </Form.Item>
+          </Form>
+        </Card>
+      )}
     </Flex>
   );
 };

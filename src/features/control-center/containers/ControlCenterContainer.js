@@ -24,6 +24,7 @@ const ControlCenterContainer = ({
   onOpenStopCompliance,
   onViewFlowAnalysis,
   onViewComplianceDetail,
+  onViewDgaConfig,
   onViewFlowHistory,
   onViewNearLimitHistory,
   onToggleTelemetry,
@@ -101,7 +102,10 @@ const ControlCenterContainer = ({
   const points = useMemo(() => {
     const all = data?.points || [];
     if (!selectedProject) return all;
-    return all.filter((p) => String(p.project_id) === String(selectedProject));
+    return all.filter((p) => {
+      const pid = p?.project_id ?? p?.project ?? p?.project_pk;
+      return String(pid) === String(selectedProject);
+    });
   }, [data?.points, selectedProject]);
 
   const warningsList = useMemo(() => data?.recent_warnings_list || [], [data?.recent_warnings_list]);
@@ -159,10 +163,12 @@ const ControlCenterContainer = ({
     return (
       <ComplianceTab
         points={points}
+        projects={projects}
         handleViewVoucher={onViewVoucher}
         handleOpenStopCompliance={onOpenStopCompliance}
         handleOpenSupport={onOpenSupport}
         handleViewPointConfig={onViewPointConfig}
+        handleViewDgaConfig={onViewDgaConfig}
         handleViewFlowAnalysis={onViewFlowAnalysis}
         handleViewComplianceDetail={onViewComplianceDetail}
         handleViewFlowHistory={onViewFlowHistory}
@@ -193,7 +199,7 @@ const ControlCenterContainer = ({
     onOpenSupport,
     onViewPointConfig,
     onViewFlowAnalysis,
-    onViewComplianceDetail,
+    onViewDgaConfig,
     onViewFlowHistory,
     onViewNearLimitHistory,
     onToggleCompliance,
