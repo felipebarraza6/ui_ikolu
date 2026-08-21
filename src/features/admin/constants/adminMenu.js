@@ -1,4 +1,5 @@
 import {
+  AppstoreOutlined,
   BarChartOutlined,
   CustomerServiceOutlined,
   TeamOutlined,
@@ -65,6 +66,19 @@ export const ADMIN_MENU = [
       { key: "/admin/support/files", icon: FolderOpenOutlined, label: "Archivos" },
       { key: "/admin/support/categories", icon: TagsOutlined, label: "Categorías" },
       { key: "/admin/support/sla-configs", icon: SettingOutlined, label: "Config. SLA" },
+    ],
+  },
+  {
+    key: "/admin/operations",
+    icon: AppstoreOutlined,
+    label: "Operaciones",
+    children: [
+      { key: "/admin/operations/my-desk", icon: CalendarOutlined, label: "Mi Escritorio" },
+      { key: "/admin/operations/tasks", icon: AppstoreOutlined, label: "Tareas" },
+      { key: "/admin/operations/indicators", icon: BarChartOutlined, label: "Métricas SLA" },
+      { key: "/admin/operations/files", icon: FolderOpenOutlined, label: "Archivos" },
+      { key: "/admin/operations/categories", icon: TagsOutlined, label: "Categorías" },
+      { key: "/admin/operations/sla-configs", icon: SettingOutlined, label: "Config. SLA" },
     ],
   },
   {

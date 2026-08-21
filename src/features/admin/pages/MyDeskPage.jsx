@@ -28,7 +28,7 @@ import {
   ClearOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import { useResponsive } from "../../../hooks/useResponsive";
 import { useTickets } from "../hooks/useTickets";
@@ -45,6 +45,7 @@ import {
   getTicketColumn,
   isTicketClosed,
 } from "../constants/tickets";
+import { getEntityVocab } from "../constants/entityVocab";
 
 const { Text } = Typography;
 
@@ -57,6 +58,9 @@ const { Text } = Typography;
 const MyDeskPage = () => {
   const token = useIkoluToken();
   const { isMobile } = useResponsive();
+  const location = useLocation();
+  const vocab = getEntityVocab(location.pathname);
+  const entityPluralCap = vocab.entityPlural.charAt(0).toUpperCase() + vocab.entityPlural.slice(1);
   const { ticketId } = useParams();
   const navigate = useNavigate();
   const urlTicketId = useMemo(() => {
@@ -119,6 +123,7 @@ const MyDeskPage = () => {
   /** Construye los query params para /api/ik/tickets/my_desk/. */
   const buildQueryParams = useCallback(() => {
     const params = {};
+    if (vocab.origin === "OPERACIONES") params.origin = vocab.origin;
     if (filters.searchId) params.id = filters.searchId;
     if (filters.priority) params.priority = filters.priority;
     if (filters.category) params.category = filters.category;
@@ -128,7 +133,7 @@ const MyDeskPage = () => {
       if (filters.createdRange[1]) params.created_to = filters.createdRange[1].format("YYYY-MM-DD");
     }
     return params;
-  }, [filters]);
+  }, [vocab, filters]);
 
   const loading = ticketsLoading || catalogsLoading;
 
@@ -168,7 +173,7 @@ const MyDeskPage = () => {
   const handleSetFilter = useCallback((key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value || null }));
     if (key === "searchId" && !value && ticketId) {
-      navigate("/admin/support/my-desk", { replace: true });
+      navigate(vocab.origin === "OPERACIONES" ? "/admin/operations/my-desk" : "/admin/support/my-desk", { replace: true });
     }
   }, [navigate, ticketId]);
 
@@ -182,7 +187,7 @@ const MyDeskPage = () => {
       sla: null,
     });
     if (ticketId) {
-      navigate("/admin/support/my-desk", { replace: true });
+      navigate(vocab.origin === "OPERACIONES" ? "/admin/operations/my-desk" : "/admin/support/my-desk", { replace: true });
     }
   }, [navigate, ticketId]);
 
@@ -353,7 +358,7 @@ const MyDeskPage = () => {
           return (
             <div
               key={ticket.id}
-              title={ticket.title || `Ticket #${ticket.id}`}
+              title={ticket.title || `${vocab.entitySingularCap} #${ticket.id}`}
               style={{
                 fontSize: 10,
                 lineHeight: 1.25,
@@ -400,7 +405,7 @@ const MyDeskPage = () => {
     return (
       <div style={{ marginTop: 6, textAlign: "center" }}>
         <Tag style={{ background: token.voidSurface, color: token.voidTextHeading, border: 0 }}>
-          {count} tickets
+          {count} {vocab.entityPlural}
         </Tag>
       </div>
     );
@@ -455,7 +460,7 @@ const MyDeskPage = () => {
             icon={<PlusOutlined />}
             onClick={() => setCreateOpen(true)}
             shape="circle"
-            title="Nuevo ticket"
+            title={`Nuevo ${vocab.entitySingular}`}
           />
           <Button
             icon={<ReloadOutlined />}
@@ -494,7 +499,7 @@ const MyDeskPage = () => {
           style={{ width: "100%" }}
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: isMobile ? "100%" : 160, flex: isMobile ? "1 1 100%" : "1 1 160px" }}>
-            <Text style={{ fontSize: 11, color: token.voidTextMuted, lineHeight: 1 }}>ID ticket</Text>
+            <Text style={{ fontSize: 11, color: token.voidTextMuted, lineHeight: 1 }}>{`ID ${vocab.entitySingular}`}</Text>
             <Input
               size="small"
               placeholder="Buscar ID..."
@@ -565,7 +570,7 @@ const MyDeskPage = () => {
       </div>
 
       {displayTickets.length === 0 && !loading ? (
-        <Empty description="No tienes tickets en tu escritorio" />
+        <Empty description={`No tienes ${vocab.entityPlural} en tu escritorio`} />
       ) : view === "calendar" ? (
         <div
           className="my-desk-calendar"
@@ -622,12 +627,13 @@ const MyDeskPage = () => {
             onStatusChange={handleStatusChange}
             loading={loading}
             workOrderCategories={categories}
+            vocab={vocab}
           />
         </div>
       )}
 
       <Drawer
-        title={`Tickets - ${selectedDate ? selectedDate.format("DD MMM YYYY") : ""}`}
+        title={`${entityPluralCap} - ${selectedDate ? selectedDate.format("DD MMM YYYY") : ""}`}
         open={dayTicketsOpen}
         onClose={() => setDayTicketsOpen(false)}
         width={isMobile ? "100%" : 420}
@@ -639,7 +645,7 @@ const MyDeskPage = () => {
       >
         <List
           dataSource={selectedDateTickets}
-          locale={{ emptyText: <Empty description="Sin tickets este día" /> }}
+          locale={{ emptyText: <Empty description={`Sin ${vocab.entityPlural} este día`} /> }}
           renderItem={(ticket) => {
             const priority = getTicketPriorityConfig(ticket.priority);
             const closed = isTicketClosed(ticket.status);
@@ -666,7 +672,7 @@ const MyDeskPage = () => {
                         color: closed ? token.colorCorporateBlueMid : token.voidTextHeading,
                       }}
                     >
-                      #{ticket.id} · {ticket.title || `Ticket #${ticket.id}`}
+                      #{ticket.id} · {ticket.title || `${vocab.entitySingularCap} #${ticket.id}`}
                     </Text>
                   }
                   description={
@@ -718,6 +724,7 @@ const MyDeskPage = () => {
         onUpdateTask={tasks.update}
         onDeleteTask={tasks.delete}
         onUploadTaskAttachment={tasks.uploadAttachment}
+        vocab={vocab}
       />
 
       <TicketCreateDrawer
@@ -727,6 +734,7 @@ const MyDeskPage = () => {
         clientsWithProjects={clientsWithProjects}
         categories={categories}
         loading={loading}
+        vocab={vocab}
       />
     </div>
     </>

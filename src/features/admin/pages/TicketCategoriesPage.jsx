@@ -28,6 +28,8 @@ import { useTicketCategories } from "../hooks/useTicketCategories";
 import { useAdminAuth } from "../hooks/useAdminAuth";
 import { SmartButton, SmartBadge } from "../../../shared/ui";
 import CrudDrawer from "../components/CrudDrawer";
+import { useLocation } from "react-router-dom";
+import { getEntityVocab } from "../constants/entityVocab";
 import {
   CATEGORY_TYPE_OPTIONS,
   getTicketCategoryTypeConfig,
@@ -202,6 +204,8 @@ const CategoryNodeCard = ({
 const TicketCategoriesPage = () => {
   const token = useIkoluToken();
   const { isStaff } = useAdminAuth();
+  const location = useLocation();
+  const vocab = getEntityVocab(location.pathname);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -301,8 +305,8 @@ const TicketCategoriesPage = () => {
         ),
         content: (
           <Text style={{ color: token.voidText }}>
-            Las categorías asociadas a tickets no se verán afectadas, pero ya no podrá
-            seleccionarse al crear tickets.
+            Las categorías asociadas a {vocab.entityPlural} no se verán afectadas, pero ya no podrá
+            seleccionarse al crear {vocab.entityPlural}.
           </Text>
         ),
         okText: "Eliminar",
@@ -317,7 +321,7 @@ const TicketCategoriesPage = () => {
         },
       });
     },
-    [deleteCategory, token.voidText, token.voidTextHeading]
+    [deleteCategory, token.voidText, token.voidTextHeading, vocab]
   );
 
   const drawerInitialValues = useMemo(() => {
@@ -382,7 +386,7 @@ const TicketCategoriesPage = () => {
         <Flex align="center" gap={12}>
           <CustomerServiceOutlined style={{ fontSize: 24, color: token.voidTextHeading }} />
           <Title level={3} style={{ margin: 0, color: token.voidTextHeading }}>
-            Categorías de Tickets
+            {`Categorías de ${vocab.entityPlural}`}
           </Title>
         </Flex>
         <Flex gap={12}>

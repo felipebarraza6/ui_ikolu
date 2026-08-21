@@ -2,6 +2,7 @@ import React, { useMemo, useCallback, useState, useRef } from "react";
 import { Row, Col, Spin, Select, Flex, Typography, Modal, Empty, Button } from "antd";
 import { LoadingOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
 import KanbanColumn from "./KanbanColumn";
+import { DEFAULT_VOCAB } from "../../constants/entityVocab";
 import { useResponsive } from "../../../../hooks/useResponsive";
 import { useIkoluToken } from "../../../../hooks/useIkoluToken";
 import {
@@ -18,7 +19,7 @@ const { Text } = Typography;
  *
  * En mobile muestra una sola columna seleccionable para evitar scroll horizontal.
  */
-const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading, workOrderCategories = [] }) => {
+const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading, workOrderCategories = [], vocab = DEFAULT_VOCAB }) => {
   const token = useIkoluToken();
   const { isMobile } = useResponsive();
   const [activeColumn, setActiveColumn] = useState(KANBAN_COLUMNS[0]?.key);
@@ -76,7 +77,7 @@ const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading, workOrde
 
   const renderOtModal = (
     <Modal
-      title="Pasar ticket a En OT"
+      title={`Pasar ${vocab.entitySingular} a En OT`}
       open={!!otDrop}
       onOk={handleConfirmOtDrop}
       onCancel={() => {
@@ -89,7 +90,7 @@ const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading, workOrde
     >
       <Flex vertical gap={8}>
         <Text type="secondary">
-          Para mover el ticket a la columna En OT debes seleccionar la categoría de orden de trabajo.
+          Para mover el {vocab.entitySingular} a la columna En OT debes seleccionar la categoría de orden de trabajo.
         </Text>
         {woCategoryOptions.length === 0 ? (
           <Empty description="No hay categorías de tipo WORK_ORDER. Créalas en Categorías." image={Empty.PRESENTED_IMAGE_SIMPLE} />
@@ -115,7 +116,7 @@ const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading, workOrde
     const goLeft = () => setActiveColumn(KANBAN_COLUMNS[Math.max(0, activeIndex - 1)]?.key);
     const goRight = () => setActiveColumn(KANBAN_COLUMNS[Math.min(KANBAN_COLUMNS.length - 1, activeIndex + 1)]?.key);
     return (
-      <Spin spinning={loading} tip="Cargando tickets...">
+      <Spin spinning={loading} tip={`Cargando ${vocab.entityPlural}...`}>
         <Flex vertical gap={12}>
           <Flex align="center" justify="space-between" gap={8}>
             <Button
@@ -141,6 +142,7 @@ const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading, workOrde
             tickets={columnsTickets[active.key] || []}
             onTicketClick={onTicketClick}
             onDropTicket={handleDropTicket}
+            vocab={vocab}
           />
         </Flex>
         {renderOtModal}
@@ -157,7 +159,7 @@ const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading, workOrde
           background: "rgba(0,0,0,0.25)", borderRadius: 8,
         }}>
           <Spin indicator={<LoadingOutlined spin />} size="large">
-            <Text style={{ color: "#fff" }}>Cargando tickets...</Text>
+            <Text style={{ color: "#fff" }}>{`Cargando ${vocab.entityPlural}...`}</Text>
           </Spin>
         </div>
       )}
@@ -189,6 +191,7 @@ const KanbanBoard = ({ tickets, onTicketClick, onStatusChange, loading, workOrde
                 tickets={columnsTickets[column.key] || []}
                 onTicketClick={onTicketClick}
                 onDropTicket={handleDropTicket}
+                vocab={vocab}
               />
             </Col>
           ))}

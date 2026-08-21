@@ -2,6 +2,7 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import PerformanceDashboard from "./pages/PerformanceDashboard";
 import SupportDashboard from "./pages/SupportDashboard";
+import OperationsDashboard from "./pages/OperationsDashboard";
 import SupportIndicatorsPage from "./pages/SupportIndicatorsPage";
 import MyDeskPage from "./pages/MyDeskPage";
 import TicketCategoriesPage from "./pages/TicketCategoriesPage";
@@ -36,6 +37,14 @@ const AdminRouter = () => {
       <Route path="/support/categories" element={<TicketCategoriesPage />} />
       <Route path="/support/sla-configs" element={<SlaConfigsPage />} />
       <Route path="/support/files" element={<FilesDrivePage />} />
+      <Route path="/operations" element={<Navigate to="/admin/operations/tasks" replace />} />
+      <Route path="/operations/tasks" element={<OperationsDashboard />} />
+      <Route path="/operations/my-desk/:ticketId" element={<MyDeskPage />} />
+      <Route path="/operations/my-desk" element={<MyDeskPage />} />
+      <Route path="/operations/indicators" element={<SupportIndicatorsPage />} />
+      <Route path="/operations/categories" element={<TicketCategoriesPage />} />
+      <Route path="/operations/sla-configs" element={<SlaConfigsPage />} />
+      <Route path="/operations/files" element={<FilesDrivePage />} />
       <Route path="/clients" element={<ClientsPage />} />
       <Route path="/clients/:clientId" element={<ClientDetailPage />} />
       <Route path="/projects" element={<ProjectsPage />} />

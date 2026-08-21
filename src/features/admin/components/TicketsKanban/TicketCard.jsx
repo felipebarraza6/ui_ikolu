@@ -18,6 +18,7 @@ import { es } from "date-fns/locale";
 import { Link, useLocation } from "react-router-dom";
 import { SmartCard } from "../../../../shared/ui";
 import { useIkoluToken } from "../../../../hooks/useIkoluToken";
+import { DEFAULT_VOCAB } from "../../constants/entityVocab";
 import {
   getTicketCategoryConfig,
   getTicketOtBadgeLabel,
@@ -211,7 +212,7 @@ const PriorityDot = ({ priority }) => {
   return <span style={{ width: 7, height: 7, borderRadius: "50%", background: color, flexShrink: 0, display: "inline-block" }} />;
 };
 
-const TicketCard = ({ ticket, onClick }) => {
+const TicketCard = ({ ticket, onClick, vocab = DEFAULT_VOCAB }) => {
   const token = useIkoluToken();
   const otBadgeLabel = getTicketOtBadgeLabel(ticket);
   const createdAt = getTicketDateValue(ticket, "created", "created_at");
@@ -279,7 +280,7 @@ const TicketCard = ({ ticket, onClick }) => {
                   whiteSpace: "nowrap",
                 }}
               >
-                {ticket.title || `Ticket #${ticket.id}`}
+                {ticket.title || `${vocab.entitySingularCap} #${ticket.id}`}
               </Text>
             </Flex>
             {slaAlert && (

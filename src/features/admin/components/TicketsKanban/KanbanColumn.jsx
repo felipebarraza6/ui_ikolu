@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { Flex, Typography, Empty } from "antd";
 import TicketCard from "./TicketCard";
+import { DEFAULT_VOCAB } from "../../constants/entityVocab";
 import { useIkoluToken } from "../../../../hooks/useIkoluToken";
 import { useResponsive } from "../../../../hooks/useResponsive";
 
@@ -9,7 +10,7 @@ const { Text } = Typography;
 /**
  * Columna del tablero Kanban con soporte nativo de arrastrar y soltar.
  */
-const KanbanColumn = ({ column, tickets, onTicketClick, onDropTicket }) => {
+const KanbanColumn = ({ column, tickets, onTicketClick, onDropTicket, vocab = DEFAULT_VOCAB }) => {
   const token = useIkoluToken();
   const { isMobile } = useResponsive();
   const [isDragOver, setIsDragOver] = useState(false);
@@ -86,10 +87,10 @@ const KanbanColumn = ({ column, tickets, onTicketClick, onDropTicket }) => {
         }}
       >
         {tickets.length === 0 ? (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Sin tickets" />
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={`Sin ${vocab.entityPlural}`} />
         ) : (
           tickets.map((ticket) => (
-            <TicketCard key={ticket.id} ticket={ticket} onClick={onTicketClick} />
+            <TicketCard key={ticket.id} ticket={ticket} onClick={onTicketClick} vocab={vocab} />
           ))
         )}
       </div>

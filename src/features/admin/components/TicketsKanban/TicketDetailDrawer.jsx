@@ -51,6 +51,7 @@ import { useIkoluToken } from "../../../../hooks/useIkoluToken";
 import { useResponsive } from "../../../../hooks/useResponsive";
 import { useAdminAuth } from "../../hooks/useAdminAuth";
 import { resolveMediaUrl } from "../../../../shared/utils/resolveMediaUrl";
+import { DEFAULT_VOCAB } from "../../constants/entityVocab";
 import TasksPanel from "./TasksPanel";
 import {
   STATUS_OPTIONS,
@@ -217,6 +218,7 @@ const TicketDetailDrawer = ({
   onUpdateTask,
   onDeleteTask,
   onUploadTaskAttachment,
+  vocab = DEFAULT_VOCAB,
 }) => {
   const token = useIkoluToken();
   const navigate = useNavigate();
@@ -451,7 +453,7 @@ const TicketDetailDrawer = ({
     const url = canvas.toDataURL("image/png");
     const a = document.createElement("a");
     a.href = url;
-    a.download = `actividad-ticket-${ticket.id}.png`;
+    a.download = `actividad-${vocab.entitySingular}-${ticket.id}.png`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -548,7 +550,7 @@ const TicketDetailDrawer = ({
             key={i}
             type="link"
             size="small"
-            onClick={() => navigate(`/admin/support/tickets?id=${id}`)}
+            onClick={() => navigate(vocab.origin === "OPERACIONES" ? `/admin/operations/tasks?id=${id}` : `/admin/support/tickets?id=${id}`)}
             style={{
               padding: 0,
               height: "auto",
@@ -997,7 +999,7 @@ const TicketDetailDrawer = ({
                   <div>
                     <Text style={{ color: token.voidTextMuted }}>#{ticket.id}</Text>
                     <Title level={4} style={{ margin: 0, color: token.voidTextHeading }}>
-                      {ticket.title || `Ticket #${ticket.id}`}
+                      {ticket.title || `${vocab.entitySingularCap} #${ticket.id}`}
                     </Title>
                   </div>
                   <Tag color={getTicketPriorityConfig(ticket.priority).color}>
@@ -1079,14 +1081,14 @@ const TicketDetailDrawer = ({
                   {ticket.status === "ABIERTO" && (
                     <div style={{ marginLeft: "auto", alignSelf: "flex-end" }}>
                       <Popconfirm
-                        title="¿Eliminar ticket?"
+                        title={`¿Eliminar ${vocab.entitySingular}?`}
                         description="Esta acción no se puede deshacer."
                         onConfirm={handleDelete}
                         okText="Eliminar"
                         okButtonProps={{ danger: true }}
                         cancelText="Cancelar"
                       >
-                        <Button danger type="text" icon={<DeleteOutlined />} aria-label="Eliminar ticket" />
+                        <Button danger type="text" icon={<DeleteOutlined />} aria-label={`Eliminar ${vocab.entitySingular}`} />
                       </Popconfirm>
                     </div>
                   )}
@@ -1223,7 +1225,7 @@ const TicketDetailDrawer = ({
                       }}
                       onClick={() => {
                         handleMarkNotificationRead(n.id);
-                        navigate(`/admin/support/tickets?id=${n.ticket}`);
+                        navigate(vocab.origin === "OPERACIONES" ? `/admin/operations/tasks?id=${n.ticket}` : `/admin/support/tickets?id=${n.ticket}`);
                         setNotificationsOpen(false);
                       }}
                     >
@@ -1806,7 +1808,7 @@ const TicketDetailDrawer = ({
       <Flex vertical gap={12}>
         <Flex justify="space-between" align="center">
           <Text strong style={{ color: token.voidTextHeading }}>
-            Actividad del ticket
+            Actividad del {vocab.entitySingular}
           </Text>
           {ticket?.activity_logs?.length > 0 && (
             <Button icon={<DownloadOutlined />} size="small" onClick={handleDownloadActivityImage}>
@@ -1852,7 +1854,7 @@ const TicketDetailDrawer = ({
                       </Flex>
                       {isCreation ? (
                         <Text style={{ color: token.voidText, fontSize: 13 }}>
-                          {`Ticket #${ticket.id} creado`}
+                          {`${vocab.entitySingularCap} #${ticket.id} creado`}
                         </Text>
                       ) : (
                         <Flex vertical gap={4}>
@@ -1927,7 +1929,7 @@ const TicketDetailDrawer = ({
     key: "tasks",
     label: (
       <Flex align="center" gap={6}>
-        <ToolOutlined /> Tareas ({tasks.length})
+        <ToolOutlined /> {vocab.subEntityPlural} ({tasks.length})
       </Flex>
     ),
     children: (
@@ -1942,6 +1944,7 @@ const TicketDetailDrawer = ({
         users={users}
         isStaff={isStaff}
         token={token}
+        vocab={vocab}
       />
     ),
   };
@@ -1951,7 +1954,7 @@ const TicketDetailDrawer = ({
   return (
     <>
     <Drawer
-      title={<span style={{ color: token.voidTextHeading }}>Ticket #{ticket?.id || ticketId}</span>}
+      title={<span style={{ color: token.voidTextHeading }}>{vocab.entitySingularCap} #{ticket?.id || ticketId}</span>}
       open={open}
       onClose={onClose}
       width={isMobile ? "100%" : 1000}
@@ -1970,11 +1973,11 @@ const TicketDetailDrawer = ({
         content: { background: "transparent", boxShadow: token.voidShadow },
       }}
     >
-      <Spin spinning={loading} tip="Cargando ticket...">
+      <Spin spinning={loading} tip={`Cargando ${vocab.entitySingular}...`}>
         {ticket ? (
           <Tabs activeKey={activeTab} onChange={setActiveTab} items={items} />
         ) : (
-          <Empty description="No se encontró el ticket" />
+          <Empty description={`No se encontró el ${vocab.entitySingular}`} />
         )}
       </Spin>
     </Drawer>

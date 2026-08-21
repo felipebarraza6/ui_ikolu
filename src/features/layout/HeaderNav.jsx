@@ -18,6 +18,10 @@ const getPageTitle = (pathname) => {
   if (pathname.startsWith("/admin/support/my-desk")) return "Mi Escritorio";
   if (pathname.startsWith("/admin/support/tickets")) return "Tickets";
   if (pathname.startsWith("/admin/support/indicators")) return "Indicadores";
+  if (pathname.startsWith("/admin/operations/my-desk")) return "Mi Escritorio";
+  if (pathname.startsWith("/admin/operations/tasks")) return "Tareas";
+  if (pathname.startsWith("/admin/operations/indicators")) return "Indicadores Operaciones";
+  if (pathname.startsWith("/admin/operations")) return "Operaciones";
   if (pathname.startsWith("/admin")) return "Administración";
   if (pathname.startsWith("/control-center")) return "Control Center";
   if (pathname.startsWith("/profile")) return "Mi Perfil";

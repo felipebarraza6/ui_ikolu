@@ -10,6 +10,7 @@ import {
   PRIORITY_OPTIONS,
   CATEGORY_OPTIONS,
 } from "../../constants/tickets";
+import { DEFAULT_VOCAB } from "../../constants/entityVocab";
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -35,6 +36,7 @@ const TicketCreateDrawer = ({
   clientsWithProjects,
   loading,
   categories: propCategories,
+  vocab = DEFAULT_VOCAB,
 }) => {
   const token = useIkoluToken();
   const { isMobile } = useResponsive();
@@ -259,10 +261,10 @@ const TicketCreateDrawer = ({
 
       if (isSuperUser) {
         payload.source = values.source || "APP_ADMIN";
-        payload.origin = hasPoints ? "CLIENTE" : "OPERACIONES";
+        payload.origin = vocab && vocab.origin !== "CLIENTE" ? vocab.origin : (hasPoints ? "CLIENTE" : "OPERACIONES");
       } else {
         payload.source = "APP_CLIENTE";
-        payload.origin = hasPoints ? "CLIENTE" : "OPERACIONES";
+        payload.origin = vocab && vocab.origin !== "CLIENTE" ? vocab.origin : (hasPoints ? "CLIENTE" : "OPERACIONES");
       }
 
       const res = await onCreate(payload);
@@ -280,7 +282,7 @@ const TicketCreateDrawer = ({
 
   return (
     <Drawer
-      title={<span style={{ color: token.voidTextHeading }}>Crear Ticket</span>}
+      title={<span style={{ color: token.voidTextHeading }}>Crear {vocab.entitySingularCap}</span>}
       open={open}
       onClose={onClose}
       width={isMobile ? "100%" : 620}
@@ -304,7 +306,7 @@ const TicketCreateDrawer = ({
                   setCurrentStep(0);
                 }}
               >
-                Crear otro ticket
+                Crear otro {vocab.entitySingular}
               </SmartButton>
             </>
           ) : (
@@ -321,7 +323,7 @@ const TicketCreateDrawer = ({
                   onClick={() => form.submit()}
                   loading={submitting || loading}
                 >
-                  Crear Ticket
+                  Crear {vocab.entitySingularCap}
                 </SmartButton>
               )}
             </>
@@ -332,10 +334,10 @@ const TicketCreateDrawer = ({
       {createdTicket ? (
         <Result
           status="success"
-          title={<span style={{ color: token.voidTextHeading }}>Ticket creado</span>}
+          title={<span style={{ color: token.voidTextHeading }}>{vocab.entitySingularCap} creado</span>}
           subTitle={
             <span style={{ color: token.voidText }}>
-              Número de ticket: <Text strong style={{ color: token.colorAccent, fontSize: 18 }}>#{createdTicket.id}</Text>
+              Número de {vocab.entitySingular}: <Text strong style={{ color: token.colorAccent, fontSize: 18 }}>#{createdTicket.id}</Text>
             </span>
           }
           style={{ background: "transparent" }}
@@ -421,7 +423,7 @@ const TicketCreateDrawer = ({
         <div style={stepStyle(currentStep === 2)}>
           <Flex vertical gap={16}>
             <Text style={{ fontSize: 12, color: token.voidTextMuted }}>
-              Asocia el ticket a un punto de captación. Si no seleccionas nada, se creará como ticket interno.
+              Asocia el {vocab.entitySingular} a un punto de captación. Si no seleccionas nada, se creará como {vocab.entitySingular} interno.
             </Text>
 
             <Form.Item

@@ -35,7 +35,7 @@ import {
 import { differenceInHours, parseISO, isValid, format } from "date-fns";
 import { es } from "date-fns/locale";
 import ReactApexChart from "react-apexcharts";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import { useResponsive } from "../../../hooks/useResponsive";
 import { useTicketIndicators } from "../hooks/useTicketIndicators";
@@ -53,6 +53,7 @@ import {
   getTicketPriorityConfig,
   getTicketStatusLabel,
 } from "../constants/tickets";
+import { getEntityVocab } from "../constants/entityVocab";
 
 const { Title, Text } = Typography;
 
@@ -271,6 +272,8 @@ const SupportIndicatorsPage = () => {
   const token = useIkoluToken();
   const { isMobile } = useResponsive();
   const navigate = useNavigate();
+  const location = useLocation();
+  const vocab = getEntityVocab(location.pathname);
   const { filters, setFilter, resetFilters } = useAdminStore();
   const {
     stats,
@@ -329,12 +332,13 @@ const SupportIndicatorsPage = () => {
 
   const buildQueryParams = useCallback(() => {
     const params = {};
+    if (vocab.origin !== "CLIENTE") params.origin = vocab.origin;
     if (filters.dateRange?.[0] && filters.dateRange?.[1]) {
       params.created_at__gte = filters.dateRange[0].format("YYYY-MM-DD");
       params.created_at__lte = filters.dateRange[1].format("YYYY-MM-DD");
     }
     return params;
-  }, [filters]);
+  }, [vocab, filters]);
 
   useEffect(() => {
     refresh(buildQueryParams());
@@ -532,12 +536,12 @@ const SupportIndicatorsPage = () => {
   const kpis = [
     {
       icon: <UserOutlined />,
-      label: "Tickets",
+      label: vocab.entitySingularCap,
       value: realCount,
       color: token.voidTextHeading,
       pct: total ? (realCount / total) * 100 : 0,
       pctOf: total,
-      tooltip: "Tickets de soporte (CLIENTE) en el rango",
+      tooltip: `${vocab.entityPlural} en el rango`,
     },
     {
       icon: <ExclamationCircleOutlined />,
@@ -546,7 +550,7 @@ const SupportIndicatorsPage = () => {
       color: realOpenCount > 50 ? token.colorError : realOpenCount > 20 ? token.colorWarning : token.voidText,
       pct: realCount ? (realOpenCount / realCount) * 100 : 0,
       pctOf: realCount,
-      tooltip: "Tickets con status=ABIERTO en el rango",
+      tooltip: `${vocab.entityPlural} con status=ABIERTO en el rango`,
     },
     {
       icon: <WarningOutlined />,
@@ -614,13 +618,13 @@ const SupportIndicatorsPage = () => {
       dataIndex: "title",
       key: "title",
       render: (title, record) => (
-        <Tooltip title={title || `Ticket #${record.id}`}>
+        <Tooltip title={title || `${vocab.entitySingularCap} #${record.id}`}>
           <Text
             strong
             style={{ color: token.voidTextHeading, cursor: "pointer" }}
             onClick={() => handleViewTicket(record)}
           >
-            {title || `Ticket #${record.id}`}
+            {title || `${vocab.entitySingularCap} #${record.id}`}
           </Text>
         </Tooltip>
       ),
@@ -687,7 +691,7 @@ const SupportIndicatorsPage = () => {
         <Flex justify="space-between" align={isMobile ? "flex-start" : "center"} wrap="wrap" gap={16} vertical={isMobile}>
           <div>
             <Title level={isMobile ? 4 : 3} style={{ margin: 0, color: token.voidTextHeading }}>Métricas SLA — Indicadores</Title>
-            <Text type="secondary" style={{ fontSize: 13 }}>Panel de gestión de tickets y cumplimiento</Text>
+            <Text type="secondary" style={{ fontSize: 13 }}>{`Panel de gestión de ${vocab.entityPlural} y cumplimiento`}</Text>
             {appliedRangeLabel && (
               <Flex align="center" gap={6} style={{ marginTop: 4 }}>
                 <ClockCircleOutlined style={{ fontSize: 12, color: token.voidTextMuted }} />
@@ -756,12 +760,12 @@ const SupportIndicatorsPage = () => {
               <Flex align="center" gap={8}>
                 <WarningOutlined style={{ color: token.colorError }} />
                 <Text strong style={{ fontSize: 14, color: token.voidTextHeading }}>Cierres vencidos ({overdueSlaTickets.length})</Text>
-                <Tag color="error">{overdueSlaTickets.length} tickets</Tag>
+                <Tag color="error">{overdueSlaTickets.length} {vocab.entityPlural}</Tag>
               </Flex>
               <Button
                 size="small"
                 icon={<LinkOutlined />}
-                onClick={() => navigate("/admin/support/tickets")}
+                onClick={() => navigate(vocab.origin === "OPERACIONES" ? "/admin/operations/tasks" : "/admin/support/tickets")}
                 disabled={overdueSlaTickets.length === 0}
               >
                 Ver todos en el listado
@@ -774,7 +778,7 @@ const SupportIndicatorsPage = () => {
               dataSource={overdueSlaTickets}
               pagination={false}
               loading={loading}
-              locale={{ emptyText: "No hay tickets con SLA de resolución vencido" }}
+              locale={{ emptyText: `No hay ${vocab.entityPlural} con SLA de resolución vencido` }}
               scroll={{ x: "max-content" }}
             />
           </div>
@@ -794,7 +798,7 @@ const SupportIndicatorsPage = () => {
             <Flex align="center" gap={8} style={{ marginBottom: 12 }}>
               <ClockCircleOutlined style={{ color: token.colorError }} />
               <Text strong style={{ fontSize: 14, color: token.voidTextHeading }}>Respuesta vencida ({overdueResponseTickets.length})</Text>
-              {overdueResponseTickets.length > 0 && <Tag color="error">{overdueResponseTickets.length} tickets</Tag>}
+              {overdueResponseTickets.length > 0 && <Tag color="error">{overdueResponseTickets.length} {vocab.entityPlural}</Tag>}
             </Flex>
             <Table
               size="small"
@@ -803,7 +807,7 @@ const SupportIndicatorsPage = () => {
               dataSource={overdueResponseTickets}
               pagination={false}
               loading={loading}
-              locale={{ emptyText: "No hay tickets con SLA de respuesta vencido" }}
+              locale={{ emptyText: `No hay ${vocab.entityPlural} con SLA de respuesta vencido` }}
               scroll={{ x: "max-content" }}
             />
           </div>
@@ -813,7 +817,7 @@ const SupportIndicatorsPage = () => {
       <Text strong style={{ fontSize: 14, color: token.voidTextHeading, display: "block", marginBottom: 12 }}>Distribución</Text>
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} lg={12}>
-          <HorizontalBarChart title="Tickets por estado" items={statusItems} total={statusItems.reduce((s, i) => s + i.value, 0) || 1} loading={loading} token={token} />
+          <HorizontalBarChart title={`${vocab.entitySingularCap} por estado`} items={statusItems} total={statusItems.reduce((s, i) => s + i.value, 0) || 1} loading={loading} token={token} />
         </Col>
         <Col xs={24} lg={12}>
           <Card size="small" loading={loading} title={<Text strong style={{ fontSize: 14, color: token.voidTextHeading }}>Ranking por estado</Text>} style={{ background: token.glassBg, borderColor: token.glassBorder, borderRadius: token.voidRadius, boxShadow: token.voidShadow, height: "100%", backdropFilter: "blur(10px)" }}>
@@ -822,7 +826,7 @@ const SupportIndicatorsPage = () => {
         </Col>
 
         <Col xs={24} lg={12}>
-          <HorizontalBarChart title="Tickets por tipo de categoría" items={categoryTypeItems} total={categoryTypeItems.reduce((s, i) => s + i.value, 0) || 1} loading={loading} token={token} />
+          <HorizontalBarChart title={`${vocab.entitySingularCap} por tipo de categoría`} items={categoryTypeItems} total={categoryTypeItems.reduce((s, i) => s + i.value, 0) || 1} loading={loading} token={token} />
         </Col>
         <Col xs={24} lg={12}>
           <Card size="small" loading={loading} title={<Text strong style={{ fontSize: 14, color: token.voidTextHeading }}>Ranking por tipo</Text>} style={{ background: token.glassBg, borderColor: token.glassBorder, borderRadius: token.voidRadius, boxShadow: token.voidShadow, height: "100%", backdropFilter: "blur(10px)" }}>
@@ -831,7 +835,7 @@ const SupportIndicatorsPage = () => {
         </Col>
 
         <Col xs={24} lg={24}>
-          <HorizontalBarChart title="Tickets por prioridad" items={priorityItems} total={priorityItems.reduce((s, i) => s + i.value, 0) || 1} loading={loading} token={token} />
+          <HorizontalBarChart title={`${vocab.entitySingularCap} por prioridad`} items={priorityItems} total={priorityItems.reduce((s, i) => s + i.value, 0) || 1} loading={loading} token={token} />
         </Col>
       </Row>
               </>
@@ -842,7 +846,7 @@ const SupportIndicatorsPage = () => {
             label: "Colaboradores",
             children: (
               <>
-                <Text strong style={{ fontSize: 14, color: token.voidTextHeading, display: "block", marginBottom: 12 }}>Ranking de tickets de soporte (CLIENTE)</Text>
+                <Text strong style={{ fontSize: 14, color: token.voidTextHeading, display: "block", marginBottom: 12 }}>{`Ranking de ${vocab.entityPlural}`}</Text>
                 <Row gutter={[16, 16]}>
                   <Col xs={24} lg={8}>
                     <PersonRankingCard
@@ -940,6 +944,7 @@ const SupportIndicatorsPage = () => {
         onUpdateTask={tasks.update}
         onDeleteTask={tasks.delete}
         onUploadTaskAttachment={tasks.uploadAttachment}
+        vocab={vocab}
       />
     </div>
   );

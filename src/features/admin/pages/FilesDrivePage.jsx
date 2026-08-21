@@ -19,11 +19,13 @@ import {
   ClearOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { useLocation } from "react-router-dom";
 import { useIkoluToken } from "../../../hooks/useIkoluToken";
 import { useResponsive } from "../../../hooks/useResponsive";
 import { resolveMediaUrl } from "../../../shared/utils/resolveMediaUrl";
 import { useTickets } from "../hooks/useTickets";
 import { useTicketCatalogs } from "../hooks/useTicketCatalogs";
+import { getEntityVocab } from "../constants/entityVocab";
 
 const { Text, Title } = Typography;
 
@@ -48,6 +50,8 @@ const fileIcon = (name = "") => {
 const FilesDrivePage = () => {
   const token = useIkoluToken();
   const { isMobile } = useResponsive();
+  const location = useLocation();
+  const vocab = getEntityVocab(location.pathname);
 
   const { getFiles } = useTickets({ autoLoad: false });
   const { clientsWithProjects, fetchClientsWithProjects } = useTicketCatalogs({ autoLoad: false });
@@ -175,7 +179,7 @@ const FilesDrivePage = () => {
       },
     },
     {
-      title: "Ticket",
+      title: vocab.entitySingularCap,
       dataIndex: "ticket_title",
       key: "ticket",
       width: 220,
@@ -185,7 +189,7 @@ const FilesDrivePage = () => {
           <Flex align="center" gap={6}>
             <Tag style={{ margin: 0 }}>#{record.ticket_id}</Tag>
             <Text style={{ color: token.voidText }} ellipsis>
-              {title || `Ticket #${record.ticket_id}`}
+              {title || `${vocab.entitySingularCap} #${record.ticket_id}`}
             </Text>
           </Flex>
         ) : (
@@ -230,7 +234,7 @@ const FilesDrivePage = () => {
         return (
           <Flex align="center" gap={6}>
             <PaperClipOutlined style={{ color: token.voidTextMuted, fontSize: 11 }} />
-            <Text style={{ fontSize: 12, color: token.voidTextMuted }}>Ticket</Text>
+            <Text style={{ fontSize: 12, color: token.voidTextMuted }}>{vocab.entitySingularCap}</Text>
           </Flex>
         );
       },
@@ -296,7 +300,7 @@ const FilesDrivePage = () => {
             Archivos
           </Title>
           <Text style={{ color: token.voidTextMuted, fontSize: 13 }}>
-            Drive global de adjuntos de tickets, comentarios y tareas
+            {`Drive global de adjuntos de ${vocab.entityPlural}, comentarios y ${vocab.subEntityPlural}`}
           </Text>
         </div>
         <Space>
@@ -320,7 +324,7 @@ const FilesDrivePage = () => {
         />
         <Input
           allowClear
-          placeholder="Ticket #"
+          placeholder={`${vocab.entitySingularCap} #`}
           style={{ minWidth: 140, width: isMobile ? "100%" : 150 }}
           value={ticketId ?? ""}
           onChange={(e) => {

@@ -30,6 +30,7 @@ import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { SmartButton, SmartBadge } from "../../../../shared/ui";
 import { resolveMediaUrl } from "../../../../shared/utils/resolveMediaUrl";
+import { DEFAULT_VOCAB } from "../../constants/entityVocab";
 import {
   TASK_STATUS_OPTIONS,
   getTaskStatusConfig,
@@ -119,6 +120,7 @@ const TasksPanel = ({
   users = [],
   isStaff,
   token,
+  vocab = DEFAULT_VOCAB,
 }) => {
   const [form] = Form.useForm();
   const [editingId, setEditingId] = useState(null);
@@ -194,7 +196,7 @@ const TasksPanel = ({
             </SmartButton>
           ) : (
             <SmartButton variant="void" size="sm" onClick={startCreate} icon={<PlusOutlined />}>
-              Nueva tarea
+              Nueva {vocab.subEntitySingular}
             </SmartButton>
           )}
         </Flex>
@@ -211,14 +213,14 @@ const TasksPanel = ({
           }}
         >
           <Text strong style={{ color: token.voidTextHeading, display: "block", marginBottom: 8 }}>
-            {editingId === "new" ? "Nueva tarea" : "Editar tarea"}
+            {editingId === "new" ? `Nueva ${vocab.subEntitySingular}` : `Editar ${vocab.subEntitySingular}`}
           </Text>
           <Form form={form} layout="vertical" onFinish={handleFinish} initialValues={{ status: "PENDIENTE", priority: "MEDIA" }}>
-            <Form.Item name="title" label="Título" rules={[{ required: true, message: "Indica el título de la tarea" }]}>
+            <Form.Item name="title" label="Título" rules={[{ required: true, message: `Indica el título de la ${vocab.subEntitySingular}` }]}>
               <Input placeholder="Ej: Revisar sensor de nivel" />
             </Form.Item>
             <Form.Item name="description" label="Descripción">
-              <TextArea rows={2} placeholder="Detalle de la tarea..." />
+              <TextArea rows={2} placeholder={`Detalle de la ${vocab.subEntitySingular}...`} />
             </Form.Item>
             <Flex gap={12} wrap>
               <Form.Item name="status" label="Estado" style={{ flex: 1, minWidth: 140 }}>
@@ -253,7 +255,7 @@ const TasksPanel = ({
       <Spin spinning={loading}>
         <List
           dataSource={tasks}
-          locale={{ emptyText: <Empty description="Sin tareas para este ticket" /> }}
+          locale={{ emptyText: <Empty description={`Sin ${vocab.subEntityPlural} para esta ${vocab.entitySingular}`} /> }}
           renderItem={(task) => {
             const statusCfg = getTaskStatusConfig(task.status);
             const priorityCfg = getTaskPriorityConfig(task.priority);
@@ -291,7 +293,7 @@ const TasksPanel = ({
                         task.status !== "COMPLETADA" && (
                           <Popconfirm
                             key="del"
-                            title="¿Eliminar tarea?"
+                            title={`¿Eliminar ${vocab.subEntitySingular}?`}
                             description="Esta acción no se puede deshacer."
                             okText="Eliminar"
                             okButtonProps={{ danger: true }}
@@ -337,7 +339,7 @@ const TasksPanel = ({
                   title={
                     <Flex align="center" gap={8} wrap>
                       <Text strong style={{ color: token.voidTextHeading }}>
-                        {task.title || `Tarea #${task.id}`}
+                        {task.title || `${vocab.subEntitySingularCap} #${task.id}`}
                       </Text>
                       {task.status !== "COMPLETADA" && (
                         <SmartBadge variant={statusCfg.variant} size="sm">
