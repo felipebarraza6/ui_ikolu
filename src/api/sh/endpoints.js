@@ -1,5 +1,5 @@
 import { upload } from "@testing-library/user-event/dist/upload";
-import { POST_LOGIN, GET, DOWNLOAD, DELETE, POST, PATCH } from "./config";
+import { POST_LOGIN, GET, DOWNLOAD, DELETE, POST, PATCH, BASE_URL } from "./config";
 
 const login = async (data) => {
   const request = await POST_LOGIN("users/login/", {
@@ -80,7 +80,7 @@ const downloadDataMonthToExcel = async (
   finishDate
 ) => {
   const rq = await DOWNLOAD(
-    `https://api.smarthydro.app/api/interaction_detail_override_month_xlsx/?catchment_point=${id_profile}&date_time_medition__month=${initialDate.slice(
+    `${BASE_URL}interaction_detail_override_month_xlsx/?catchment_point=${id_profile}&date_time_medition__month=${initialDate.slice(
       5,
       7
     )}&date_time_medition__year=${initialDate.slice(0, 4)}`,
