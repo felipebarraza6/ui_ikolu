@@ -70,6 +70,10 @@ import GeneralSummaryUser34 from "../components/geo_smart/GeneralSummaryUser34";
 import ListWells from "../components/home/ListWells";
 import sh from "../api/sh/endpoints";
 import { FcDoughnutChart } from "react-icons/fc";
+import {
+  showAggregatedControlCenter,
+  showFormMultiData,
+} from "../utils/userFlags";
 
 const { Header, Sider, Content } = Layout;
 const { useToken } = theme;
@@ -235,7 +239,8 @@ const AppRoutes = React.memo(() => {
   };
 
   const renderCentroControl = () => {
-    if (state.user && state.user.id === 34) {
+    // Flag API: user.show_aggregated_control_center (antes hardcode user.id===34)
+    if (showAggregatedControlCenter(state.user)) {
       return <GeneralSummaryUser34 profiles={state.profile_client} />;
     }
     return <GeneralSummary profiles={state.profile_client} />;
@@ -589,7 +594,7 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
           >
             Docs
           </Button>
-          {state.user && state.user.username === "demosmart" && (
+          {showFormMultiData(state.user) && (
             <Button
               block
               size="small"

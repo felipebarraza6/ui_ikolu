@@ -56,7 +56,8 @@ try {
 
 /**
  * GeneralSummaryUser34
- * Dashboard personalizado para el usuario con ID 34
+ * Dashboard agregado del Centro de Control.
+ * Se muestra cuando user.show_aggregated_control_center === true (API).
  * Mantiene: indicadores principales, estado del servicio, resumen de consumo,
  * estado de caudales, gráficos de consumo y caudal por punto de captación
  */
