@@ -17,6 +17,7 @@ import minLogo from "../../assets/images/logo-blanco.png";
 import QueueAnim from "rc-queue-anim";
 import { BiSupport } from "react-icons/bi";
 import { VscRadioTower } from "react-icons/vsc";
+import { showUmiPrototype, hideAnalysisNav } from "../../utils/userFlags";
 
 const { Title } = Typography;
 
@@ -88,7 +89,7 @@ const SiderLeft = () => {
                 }
               />
 
-              {state.user.username === "arrocerospti" && (
+              {showUmiPrototype(state.user) && (
                 <Button
                   style={{
                     backgroundColor:
@@ -108,8 +109,7 @@ const SiderLeft = () => {
                 </Button>
               )}
 
-              {state.user.username !== "arrocerospti" &&
-              state.user.username !== "lecheriavalleverde" ? (
+              {!hideAnalysisNav(state.user) ? (
                 <>
                   <Button
                     block

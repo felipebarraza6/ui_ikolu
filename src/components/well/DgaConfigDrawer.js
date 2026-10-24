@@ -15,7 +15,6 @@ import {
 import {
   SaveOutlined,
   CloseOutlined,
-  FileTextOutlined,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
 import sh from "../../api/sh/endpoints";
@@ -52,7 +51,8 @@ const DgaConfigDrawer = ({ visible, onClose }) => {
   const handleSaveDga = async (values) => {
     setLoading(true);
     try {
-      await sh.update_data_sh(profile.id, { dga: values });
+      // PATCH catchment_point/{id}/ — no interaction_detail_json (ese id es de lectura).
+      await sh.update_catchment_point(profile.id, { dga: values });
       notification.success({ message: "Configuración DGA guardada" });
       onClose();
     } catch (err) {

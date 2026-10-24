@@ -1,5 +1,10 @@
-import { upload } from "@testing-library/user-event/dist/upload";
-import { POST_LOGIN, GET, DOWNLOAD, DELETE, POST, PATCH, BASE_URL } from "./config";
+import { POST_LOGIN, GET, DOWNLOAD, DELETE, POST, PATCH } from "./config";
+import {
+  catchmentPointPath,
+  interactionDetailJsonPath,
+  monthXlsxPath,
+  monthOverridePath,
+} from "./endpointPaths";
 
 const login = async (data) => {
   const request = await POST_LOGIN("users/login/", {
@@ -65,13 +70,13 @@ const getDataDay = async (id_profile, initialDate, finishDate) => {
 };
 
 const getDataMonth = async (id_profile, initialDate, finishDate) => {
-  const rq = await GET(
-    `interaction_detail_override_month/?catchment_point=${id_profile}&date_time_medition__month=${initialDate.slice(
-      5,
-      7
-    )}&date_time_medition__year=${initialDate.slice(0, 4)}`
-  );
+  const rq = await GET(monthOverridePath(id_profile, initialDate));
   return rq.data;
+};
+
+/** Vista mensual DGA: mismo endpoint override_month que get_data_month. */
+const getDataMonthDga = async (id_profile, initialDate, finishDate) => {
+  return getDataMonth(id_profile, initialDate, finishDate || initialDate);
 };
 
 const downloadDataMonthToExcel = async (
@@ -79,13 +84,8 @@ const downloadDataMonthToExcel = async (
   initialDate,
   finishDate
 ) => {
-  const rq = await DOWNLOAD(
-    `${BASE_URL}interaction_detail_override_month_xlsx/?catchment_point=${id_profile}&date_time_medition__month=${initialDate.slice(
-      5,
-      7
-    )}&date_time_medition__year=${initialDate.slice(0, 4)}`,
-    `data.xlsx`
-  );
+  // Path relativo: Axios usa REACT_APP_API_URL (BASE_URL). Sin host hardcodeado.
+  await DOWNLOAD(monthXlsxPath(id_profile, initialDate), `data.xlsx`);
 };
 const get_profile = async (username = null, token = null) => {
   // Si se proporciona username, usarlo; si no, intentar obtenerlo de localStorage
@@ -377,7 +377,14 @@ const updateUser = async (username, data) => {
 // ==========================================
 
 const updateDataApiSh = async (id, data) => {
-  const rq = await PATCH(`interaction_detail_json/${id}/`, data);
+  // id = id de la LECTURA/registro (InteractionDetail), no del punto.
+  const rq = await PATCH(interactionDetailJsonPath(id), data);
+  return rq.data;
+};
+
+/** Actualiza configuración del punto de captación (title, config_data, dga, etc.). */
+const updateCatchmentPoint = async (id, data) => {
+  const rq = await PATCH(catchmentPointPath(id), data);
   return rq.data;
 };
 
@@ -477,8 +484,10 @@ const sh = {
   delete_data_sh: deleteDataApiSh,
   create_data_sh: createDataApiSh,
   update_data_sh: updateDataApiSh,
+  update_catchment_point: updateCatchmentPoint,
   get_data_day: getDataDay,
   get_data_month: getDataMonth,
+  get_data_month_dga: getDataMonthDga,
   downloadMonth: downloadDataMonthToExcel,
   uploadFile: formUploadFile,
   deleteFile: deleteFile,
