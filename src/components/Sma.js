@@ -51,6 +51,7 @@ import {
 } from "@ant-design/icons";
 import sh from "../api/sh/endpoints";
 import { useResponsive } from "../hooks/useResponsive";
+import { formatDateSantiago } from "../utils/santiagoDate";
 
 // Configurar dayjs correctamente
 dayjs.extend(customParseFormat);
@@ -152,11 +153,10 @@ const Sma = () => {
     if (!initialDate || !finishDate) return;
     setLoadingExcel(true);
     try {
-      const format = (date) => new Date(date).toISOString().split("T")[0];
       await sh.get_data_sh_range_to_excel(
         state.selected_profile.id,
-        format(initialDate),
-        format(finishDate),
+        formatDateSantiago(initialDate),
+        formatDateSantiago(finishDate),
         state.selected_profile.title
       );
     } catch (error) {
