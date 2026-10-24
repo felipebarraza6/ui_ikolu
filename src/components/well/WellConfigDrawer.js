@@ -95,7 +95,8 @@ const WellConfigDrawer = ({ visible, onClose }) => {
           variables,
         },
       };
-      await sh.update_data_sh(profile.id, payload);
+      // PATCH catchment_point/{id}/ — no interaction_detail_json (ese id es de lectura).
+      await sh.update_catchment_point(profile.id, payload);
       notification.success({ message: "Configuración guardada" });
       onClose();
     } catch (err) {

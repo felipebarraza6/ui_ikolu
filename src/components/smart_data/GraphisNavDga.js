@@ -75,12 +75,14 @@ const GraphisNavDga = () => {
         if (monthMode) {
           const response = await sh.get_data_month_dga(
             state.selected_profile.id,
+            formattedDate,
             formattedDate
           );
           setDataMonth(response || []);
         } else {
           const response = await sh.get_data_day(
             state.selected_profile.id,
+            formattedDate,
             formattedDate
           );
           setData(response || []);
