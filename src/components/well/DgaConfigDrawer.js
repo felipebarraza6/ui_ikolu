@@ -15,7 +15,6 @@ import {
 import {
   SaveOutlined,
   CloseOutlined,
-  FileTextOutlined,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
 import sh from "../../api/sh/endpoints";
@@ -50,9 +49,11 @@ const DgaConfigDrawer = ({ visible, onClose }) => {
   }, [visible, profile.id]);
 
   const handleSaveDga = async (values) => {
+    if (!isAdmin) return; // configuración solo del equipo (staff)
     setLoading(true);
     try {
-      await sh.update_data_sh(profile.id, { dga: values });
+      // PATCH catchment_point/{id}/ — no interaction_detail_json (ese id es de lectura).
+      await sh.update_catchment_point(profile.id, { dga: values });
       notification.success({ message: "Configuración DGA guardada" });
       onClose();
     } catch (err) {
@@ -195,6 +196,7 @@ const DgaConfigDrawer = ({ visible, onClose }) => {
         >
           <DatePicker format="DD/MM/YYYY" style={{ ...inputStyle, width: "100%" }} disabled={!isAdmin} />
         </Form.Item>
+        {isAdmin && (
         <Form.Item>
           <Button
             type="primary"
@@ -206,6 +208,7 @@ const DgaConfigDrawer = ({ visible, onClose }) => {
             Guardar DGA
           </Button>
         </Form.Item>
+        )}
       </Form>
     </Drawer>
   );

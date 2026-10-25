@@ -68,6 +68,7 @@ const WellConfigDrawer = ({ visible, onClose }) => {
   }, [visible, profile.id]);
 
   const handleSave = async (values) => {
+    if (!isAdmin) return; // configuración solo del equipo (staff)
     setLoading(true);
     try {
       const {
@@ -95,7 +96,8 @@ const WellConfigDrawer = ({ visible, onClose }) => {
           variables,
         },
       };
-      await sh.update_data_sh(profile.id, payload);
+      // PATCH catchment_point/{id}/ — no interaction_detail_json (ese id es de lectura).
+      await sh.update_catchment_point(profile.id, payload);
       notification.success({ message: "Configuración guardada" });
       onClose();
     } catch (err) {
@@ -438,6 +440,7 @@ const WellConfigDrawer = ({ visible, onClose }) => {
           </TabPane>
         </Tabs>
 
+        {isAdmin && (
         <Form.Item style={{ marginTop: 16 }}>
           <Button
             type="primary"
@@ -449,6 +452,7 @@ const WellConfigDrawer = ({ visible, onClose }) => {
             Guardar
           </Button>
         </Form.Item>
+        )}
       </Form>
     </Drawer>
   );

@@ -20,6 +20,7 @@ import FormMultiData from "../containers/FormMultiData";
 import TableStandarVerySmall from "../components/mywell/TableStandarVerySmall";
 import MyGraphics from "../components/graphics/MyGraphics";
 import Supp from "../components/home/Supp";
+import { showUmiPrototype } from "../utils/userFlags";
 
 const HomeResponsive = () => {
   const { state } = useContext(AppContext);
@@ -32,7 +33,8 @@ const HomeResponsive = () => {
       } else {
         return <MyWell />;
       }
-    } else if (state.user.username === "arrocerospti") {
+    } else if (showUmiPrototype(state.user)) {
+      // Flag API: user.show_umi_prototype (antes username==="arrocerospti")
       return <PrototypeUmi />;
     } else {
       return <Sma />;

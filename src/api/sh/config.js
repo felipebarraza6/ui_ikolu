@@ -2,7 +2,8 @@ import axios from "axios";
 
 import { notification } from "antd";
 import { CloudDownloadOutlined } from "@ant-design/icons";
-const BASE_URL = "https://api.smarthydro.app/api/";
+export const BASE_URL =
+  process.env.REACT_APP_API_URL || "https://api-ik-nereus.smarthydro.app/api/";
 //const BASE_URL = 'http://localhost:8000/api/'
 
 export const Axios = axios.create({
