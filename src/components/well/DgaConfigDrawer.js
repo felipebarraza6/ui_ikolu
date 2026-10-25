@@ -49,6 +49,7 @@ const DgaConfigDrawer = ({ visible, onClose }) => {
   }, [visible, profile.id]);
 
   const handleSaveDga = async (values) => {
+    if (!isAdmin) return; // configuración solo del equipo (staff)
     setLoading(true);
     try {
       // PATCH catchment_point/{id}/ — no interaction_detail_json (ese id es de lectura).
@@ -195,6 +196,7 @@ const DgaConfigDrawer = ({ visible, onClose }) => {
         >
           <DatePicker format="DD/MM/YYYY" style={{ ...inputStyle, width: "100%" }} disabled={!isAdmin} />
         </Form.Item>
+        {isAdmin && (
         <Form.Item>
           <Button
             type="primary"
@@ -206,6 +208,7 @@ const DgaConfigDrawer = ({ visible, onClose }) => {
             Guardar DGA
           </Button>
         </Form.Item>
+        )}
       </Form>
     </Drawer>
   );
