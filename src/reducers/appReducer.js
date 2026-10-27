@@ -22,32 +22,47 @@ export const appReducer = (state, action) => {
         isLoading: action.payload.isLoading,
       };
 
-    case "LOGIN":
-      console.log(action);
-      localStorage.setItem(
-        "token",
-        JSON.stringify(action.payload.access_token)
-      );
+    case "LOGIN": {
+      const points = action.payload.user?.catchment_points || [];
+      const branches = action.payload.branches || [];
+      const branchId = action.payload.branchId || null;
+      const selected = points[0] ? { ...points[0], key: points[0].id ?? points[0].key ?? 0 } : null;
+
+      localStorage.setItem("token", JSON.stringify(action.payload.access_token));
       localStorage.setItem("user", JSON.stringify(action.payload.user));
-      localStorage.setItem(
-        "profile_client",
-        JSON.stringify(action.payload.user.catchment_points)
-      );
-      localStorage.setItem(
-        "selected_profile",
-        JSON.stringify(action.payload.user.catchment_points[0])
-      );
+      localStorage.setItem("profile_client", JSON.stringify(points));
+      localStorage.setItem("branches", JSON.stringify(branches));
+      if (selected) {
+        localStorage.setItem("selected_profile", JSON.stringify(selected));
+      } else {
+        localStorage.removeItem("selected_profile");
+      }
+      if (branches.length > 1 && branchId) {
+        localStorage.setItem("branch_multi", "1");
+        localStorage.setItem("branch_id", String(branchId));
+      } else {
+        localStorage.removeItem("branch_multi");
+        localStorage.removeItem("branch_id");
+      }
 
       return {
         ...state,
         isAuth: true,
         token: action.payload.access_token,
         user: action.payload.user,
-        profile_client: action.payload.user.catchment_points,
-        selected_profile: {
-          ...action.payload.user.catchment_points[0],
-          key: 0,
-        },
+        profile_client: points,
+        selected_profile: selected,
+        branches,
+        branchId: branches.length > 1 ? branchId : null,
+      };
+    }
+
+    case "SET_BRANCH":
+      localStorage.setItem("branch_multi", "1");
+      localStorage.setItem("branch_id", String(action.payload.branchId));
+      return {
+        ...state,
+        branchId: String(action.payload.branchId),
       };
 
     case "UPDATE":
@@ -131,6 +146,9 @@ export const appReducer = (state, action) => {
         token: null,
         user: null,
         profile_client: null,
+        branches: [],
+        branchId: null,
+        selected_profile: null,
       };
 
     default:

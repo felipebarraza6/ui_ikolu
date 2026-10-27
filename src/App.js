@@ -23,6 +23,9 @@ function getInitialState() {
   const token = safeParseJSON("token", null);
   const profile_client = safeParseJSON("profile_client", []);
   const selected_profile = safeParseJSON("selected_profile", null);
+  const branches = safeParseJSON("branches", []);
+  const branchMulti = localStorage.getItem("branch_multi") === "1";
+  const branchId = branchMulti ? localStorage.getItem("branch_id") : null;
 
   // Validar y sincronizar selected_profile con profile_client
   let validSelectedProfile = null;
@@ -67,6 +70,8 @@ function getInitialState() {
       profile_ikolu: {},
     },
     isLoading: false, // Estado de carga global
+    branches: Array.isArray(branches) ? branches : [],
+    branchId: branchId || null,
   };
 }
 
