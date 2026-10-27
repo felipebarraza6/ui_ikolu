@@ -26,6 +26,15 @@ export const ik = {
   nearLimit: (id: string | number) => `ik/compliance/${id}/near_limit/`,
   systemEvents: "ik/control_center/system_events/",
   eventsSummary: "ik/system-events/summary/",
+  serviceStatus: "ik/service_status/",
+  serviceUptime: "ik/service_status/uptime/",
+  dgaQueueSummary: "ik/dga_queue/summary/",
+  dgaQueue: "ik/dga_queue/",
+  slaSummary: "ik/sla/summary/",
+  slaTickets: "ik/sla/tickets/",
+  pointHealth: (id: string | number) => `ik/point/${id}/health/`,
+  incidents: "ik/incidents/",
+  portalConfig: "ik/portal_config/",
 } as const;
 
 export const aiAgents = {

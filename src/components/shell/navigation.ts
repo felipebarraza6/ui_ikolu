@@ -1,4 +1,5 @@
 import {
+  Activity,
   Bell,
   Download,
   Droplets,
@@ -13,7 +14,7 @@ import {
   UserRound,
   type LucideIcon,
 } from "lucide-react";
-import { hideAnalysisNav } from "@/utils/userFlags";
+import { hideAnalysisNav, showDocuments } from "@/utils/userFlags";
 
 export type NavItem = {
   to: string;
@@ -21,6 +22,7 @@ export type NavItem = {
   icon: LucideIcon;
   staff?: boolean;
   analysis?: boolean;
+  documents?: boolean;
   needsDga?: boolean;
 };
 
@@ -32,7 +34,8 @@ export const NAV_ITEMS: NavItem[] = [
   { to: "/avisos", label: "Avisos", icon: Inbox },
   { to: "/analysis", label: "Smart Análisis", icon: LineChart, analysis: true },
   { to: "/download", label: "Reportes", icon: Download },
-  { to: "/documents", label: "Documentos", icon: FolderOpen },
+  { to: "/servicio", label: "Estado del servicio", icon: Activity },
+  { to: "/documents", label: "Documentos", icon: FolderOpen, documents: true },
   { to: "/alerts", label: "Alertas", icon: Bell },
   { to: "/support", label: "Soporte", icon: LifeBuoy },
   { to: "/profile", label: "Perfil", icon: UserRound },
@@ -46,6 +49,7 @@ export function visibleNav(user: NavUser, profile: NavProfile) {
   return NAV_ITEMS.filter((item) => {
     if (item.staff && !user?.is_staff) return false;
     if (item.analysis && hideAnalysisNav(user)) return false;
+    if (item.documents && !showDocuments()) return false;
     if (item.needsDga && !profile?.dga?.code_dga) return false;
     return true;
   });
