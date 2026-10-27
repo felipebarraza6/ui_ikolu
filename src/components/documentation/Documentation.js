@@ -246,9 +246,9 @@ const Documentation = () => {
           <ApiOutlined /> APIs y Endpoints
         </Title>
         <Paragraph>
-          La aplicación utiliza dos APIs principales según el entorno y cliente:{" "}
-          <Text strong>Novus API</Text> y{" "}
-          <Text strong>SmartHydro (SH) API</Text>.
+          La aplicación habla con la fachada Nereus{" "}
+          <Text strong>/api/ik/</Text> a través de un cliente único en{" "}
+          <Text strong>src/api/nereus/client.ts</Text>.
         </Paragraph>
 
         <Card type="inner" title="Configuración de APIs">
@@ -256,15 +256,15 @@ const Documentation = () => {
             itemLayout="horizontal"
             dataSource={[
               {
-                title: "Novus API",
+                title: "Cliente Nereus",
                 description:
-                  "Configuración en `src/api/novus/config.js`. Utilizada para clientes específicos con endpoints personalizados.",
-                location: "src/api/novus/",
+                  "Axios único con token y X-Branch-ID. Base VITE_API_URL, paths ik/* sin rewrite.",
+                location: "src/api/nereus/client.ts",
               },
               {
                 title: "SmartHydro (SH) API",
                 description:
-                  "Configuración en `src/api/sh/config.js`. API principal para la mayoría de operaciones.",
+                  "Las llamadas heredadas pasan por el mismo cliente (src/api/sh/config.js).",
                 location: "src/api/sh/",
               },
             ]}

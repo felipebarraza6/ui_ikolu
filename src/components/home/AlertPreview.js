@@ -1,4 +1,5 @@
-import React, { useContext, useState, useEffect, useCallback } from "react";
+import React, { useContext, useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Badge,
   Dropdown,
@@ -25,42 +26,24 @@ const AlertPreview = () => {
   const { state } = useContext(AppContext);
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const [alerts, setAlerts] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchAlerts = useCallback(async () => {
-    if (!state.selected_profile?.id) {
-      setAlerts([]);
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await sh.notifications.actives(
-        state.selected_profile.id,
-        1,
-        "ALERT"
-      );
-      const results = res.results || [];
-      // Combinar alertas con sus respuestas si vienen embebidas o cargarlas aparte
-      // Por ahora mostramos las alertas directamente
-      setAlerts(results.slice(0, 5));
-    } catch (e) {
-      setAlerts([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [state.selected_profile?.id]);
+  const profileId = state.selected_profile?.id;
+  const alertsQuery = useQuery({
+    queryKey: ["alert-preview", profileId],
+    enabled: Boolean(profileId),
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      const res = await sh.notifications.actives(profileId, 1, "ALERT");
+      return (res.results || []).slice(0, 5);
+    },
+  });
+  const alerts = alertsQuery.data || [];
+  const loading = alertsQuery.isFetching;
+  const refetchAlerts = alertsQuery.refetch;
 
   useEffect(() => {
-    fetchAlerts();
-    const interval = setInterval(fetchAlerts, 60000);
-    return () => clearInterval(interval);
-  }, [fetchAlerts]);
-
-  // Recargar cuando se abre el dropdown
-  useEffect(() => {
-    if (open) fetchAlerts();
-  }, [open]);
+    if (open) refetchAlerts();
+  }, [open, refetchAlerts]);
 
   const getIcon = (type) => {
     const t = (type || "").toUpperCase();

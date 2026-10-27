@@ -1,4 +1,5 @@
-import React, { useContext, useMemo, useState, useEffect } from "react";
+import React, { useContext, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { AppContext } from "../../App";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -97,25 +98,20 @@ const HeaderNav = ({ onMenuClick }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isMobile } = useResponsive();
-  const [alertCount, setAlertCount] = useState(0);
+  const alertCountQuery = useQuery({
+    queryKey: ["header-alerts", state.selected_profile?.id],
+    enabled: Boolean(state.selected_profile?.id),
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      const res = await sh.notifications.actives(state.selected_profile.id, 1, "ALERT");
+      return res.count || res.results?.length || 0;
+    },
+  });
+  const alertCount = alertCountQuery.data || 0;
   const [wellDrawerOpen, setWellDrawerOpen] = useState(false);
   const [dgaDrawerOpen, setDgaDrawerOpen] = useState(false);
 
-
-  useEffect(() => {
-    const fetchAlerts = async () => {
-      if (!state.selected_profile?.id) return;
-      try {
-        const res = await sh.notifications.actives(state.selected_profile.id, 1, "ALERT");
-        setAlertCount(res.count || res.results?.length || 0);
-      } catch (e) {
-        // silent
-      }
-    };
-    fetchAlerts();
-    const interval = setInterval(fetchAlerts, 60000);
-    return () => clearInterval(interval);
-  }, [state.selected_profile?.id]);
 
   const moduleName = useMemo(() => {
     const currentPath = location.pathname;

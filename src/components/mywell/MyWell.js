@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Row,
   Col,
@@ -870,7 +871,7 @@ const MyWell = () => {
   const [varCaudal, setVarCaudal] = useState(null);
   const [varNivel, setVarNivel] = useState(null);
   const [lastRegisters, setLastRegisters] = useState([]);
-  const intervalRef = useRef(null);
+  const telemetryRunner = useRef(null);
   const validators = useDataValidation();
 
   // Función auxiliar para obtener el registro más reciente
@@ -1027,33 +1028,27 @@ const MyWell = () => {
       }
     };
 
-    // Función para limpiar intervalos existentes
-    const clearExistingInterval = () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
+    telemetryRunner.current = fetchTelemetryData;
 
-    // Cargar datos completos al cambiar de perfil
     if (state.selected_profile?.id) {
       fetchProfileData();
-
-      // Configurar intervalo de actualización periódica (solo telemetría, más espaciado)
-      clearExistingInterval();
-      intervalRef.current = setInterval(() => {
-        if (state.selected_profile?.id) {
-          fetchTelemetryData(); // Solo telemetría, no perfil completo
-        }
-      }, 5 * 60 * 1000); // 5 minutos en lugar de 1 minuto
     }
 
-    // Limpiar intervalo al desmontar o cambiar de perfil
     return () => {
-      clearExistingInterval();
+      telemetryRunner.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.selected_profile?.id]); // Solo depende del ID del perfil para evitar loops infinitos
+  }, [state.selected_profile?.id]);
+
+  useQuery({
+    queryKey: ["mywell-telemetry", state.selected_profile?.id],
+    enabled: Boolean(state.selected_profile?.id),
+    staleTime: 30_000,
+    refetchInterval: 5 * 60 * 1000,
+    queryFn: async () => {
+      if (telemetryRunner.current) await telemetryRunner.current();
+      return Date.now();
+    },
+  });
 
   const formatDate = (date) => {
     if (!date) return { date: "N/A", time: "" };

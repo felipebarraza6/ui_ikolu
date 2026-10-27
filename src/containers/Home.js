@@ -1,4 +1,5 @@
 import React, { useContext, useMemo, useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Layout,
   Menu,
@@ -362,7 +363,17 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
   const { isMobile } = useResponsive();
   const { state, dispatch } = useContext(AppContext);
 
-  const [alertCount, setAlertCount] = useState(0);
+  const alertCountQuery = useQuery({
+    queryKey: ["sider-alerts", state.selected_profile?.id],
+    enabled: Boolean(state.selected_profile?.id),
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      const res = await sh.notifications.actives(state.selected_profile.id, 1, "ALERT");
+      return res.count || res.results?.length || 0;
+    },
+  });
+  const alertCount = alertCountQuery.data || 0;
   const [openKeys, setOpenKeys] = useState(["analisis", "gestion"]);
 
   // ── Admin: proyectos y clientes ──
@@ -412,21 +423,6 @@ const SideMenu = ({ inDrawer = false, onLinkClick }) => {
       setAdminLoading(false);
     }
   };
-
-  useEffect(() => {
-    const fetchAlerts = async () => {
-      if (!state.selected_profile?.id) return;
-      try {
-        const res = await sh.notifications.actives(state.selected_profile.id, 1, "ALERT");
-        setAlertCount(res.count || res.results?.length || 0);
-      } catch (e) {
-        // silent
-      }
-    };
-    fetchAlerts();
-    const interval = setInterval(fetchAlerts, 60000);
-    return () => clearInterval(interval);
-  }, [state.selected_profile?.id]);
 
   const filteredMenuItems = useMemo(() => {
     return filterMenuItems(MENU_ITEMS, state.selected_profile);

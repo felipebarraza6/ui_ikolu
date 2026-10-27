@@ -1,134 +1,96 @@
-import axios from "axios";
-
 import { notification } from "antd";
 import { CloudDownloadOutlined } from "@ant-design/icons";
-export const BASE_URL =
-  process.env.REACT_APP_API_URL || "https://api-ik-nereus.smarthydro.app/api/";
-//const BASE_URL = 'http://localhost:8000/api/'
+import { api, API_BASE_URL } from "../nereus/client";
 
-export const Axios = axios.create({
-  baseURL: BASE_URL,
-});
+export const BASE_URL = `${API_BASE_URL}/`;
+export const Axios = api;
+
+function readToken() {
+  const raw = localStorage.getItem("token");
+  if (!raw || raw === "undefined" || raw === "null") return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return raw;
+  }
+}
 
 export const POST_LOGIN = async (endpoint, data) => {
-  try {
-    const request = await Axios.post(endpoint, data);
-    // Solo validar errores si NO tiene los campos de éxito
-    // Una respuesta exitosa de login debe tener user y access_token
-    if (request.data) {
-      const hasError =
-        request.data.error && !request.data.user && !request.data.access_token;
-      // Si tiene error pero no tiene los campos de éxito, es un error real
-      if (hasError) {
-        const error = new Error(
-          request.data.error || request.data.message || "Error de autenticación"
-        );
-        error.response = { data: request.data };
-        throw error;
-      }
-    }
-    return request;
-  } catch (error) {
-    // Si es un error de axios (status != 200), propagarlo
-    if (error.response) {
+  const request = await api.post(endpoint, data, {
+    skipAuthHandler: true,
+    skipAuthHeader: true,
+  });
+  if (request.data) {
+    const hasError =
+      request.data.error && !request.data.user && !request.data.access_token;
+    if (hasError) {
+      const error = new Error(
+        request.data.error || request.data.message || "Error de autenticación"
+      );
+      error.response = { data: request.data };
       throw error;
     }
-    // Si es un error que lanzamos nosotros, propagarlo
-    throw error;
   }
+  return request;
 };
 
 export const GET = async (endpoint, token = null) => {
-  // Si se proporciona token, usarlo; si no, intentar obtenerlo de localStorage
-  let authToken = token;
-  if (!authToken) {
-    authToken = JSON.parse(localStorage.getItem("token") || "null");
-  }
-
+  const authToken = token || readToken();
   if (!authToken) {
     throw new Error(
       "No se encontró token de autenticación. Por favor, inicia sesión nuevamente."
     );
   }
-
-  const options = {
-    headers: {
-      Authorization: `Token ${authToken}`,
-    },
-  };
-  const request = await Axios.get(endpoint, options);
-  return request;
+  const headers = token ? { Authorization: `Token ${token}` } : undefined;
+  return api.get(endpoint, { headers });
 };
 
 export const POST = async (endpoint, data) => {
-  const token = JSON.parse(localStorage.getItem("token"));
-  const options = {
-    headers: {
-      Authorization: `Token ${token}`,
-    },
-  };
-  const request = await Axios.post(endpoint, data, options);
-  return request;
+  const token = readToken();
+  const headers = token ? { Authorization: `Token ${token}` } : undefined;
+  return api.post(endpoint, data, { headers });
 };
 
 export const DELETE = async (endpoint) => {
-  const token = JSON.parse(localStorage.getItem("token"));
-  const options = {
-    headers: {
-      Authorization: `Token ${token}`,
-    },
-  };
-  const request = await Axios.delete(endpoint, options);
-  return request;
+  const token = readToken();
+  const headers = token ? { Authorization: `Token ${token}` } : undefined;
+  return api.delete(endpoint, { headers });
 };
 
 export const PATCH = async (endpoint, data) => {
-  const token = JSON.parse(localStorage.getItem("token"));
-  const options = {
-    headers: {
-      Authorization: `Token ${token}`,
-    },
-  };
-  const request = await Axios.patch(endpoint, data, options);
-  return request;
+  const token = readToken();
+  const headers = token ? { Authorization: `Token ${token}` } : undefined;
+  return api.patch(endpoint, data, { headers });
 };
 
 export const DOWNLOAD = async (endpoint, name_file) => {
-  const token = JSON.parse(localStorage.getItem("token"));
-
-  // Configuración para la descarga con tipo blob
-  const download = {
+  const token = readToken();
+  const response = await api.get(endpoint, {
     responseType: "blob",
     headers: {
-      Authorization: `Token ${token}`,
-      Accept:
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ...(token ? { Authorization: `Token ${token}` } : {}),
+      Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     },
-  };
-
-  const request = await Axios.get(endpoint, download).then((response) => {
-    // Crear el blob con el tipo MIME correcto para archivos Excel
-    const blob = new Blob([response.data], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", name_file);
-    document.body.appendChild(link);
-    link.click();
-
-    // Limpiar después de la descarga
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(link);
   });
+
+  const blob = new Blob([response.data], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", name_file);
+  document.body.appendChild(link);
+  link.click();
+  window.URL.revokeObjectURL(url);
+  document.body.removeChild(link);
 
   notification.open({
     message: `${name_file}`,
-    description: `Archivo descargado exitosamente!`,
+    description: "Archivo descargado exitosamente!",
     placement: "topRight",
-    icon: <CloudDownloadOutlined style={{ color: "#69802A" }} />,
+    icon: <CloudDownloadOutlined style={{ color: "#CCCF07" }} />,
   });
 
-  return request;
+  return response;
 };
