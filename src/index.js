@@ -1,59 +1,55 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
-import { ConfigProvider, App, Button } from "antd";
+import { ConfigProvider, App as AntApp } from "antd";
 import AppStore from "./App";
-import wallpaper from "./assets/images/walldga.png";
 import reportWebVitals from "./reportWebVitals";
-import es_ES from "antd/lib/locale/es_ES";
+import es_ES from "antd/locale/es_ES";
 import { BrowserRouter } from "react-router-dom";
-import { hover } from "@testing-library/user-event/dist/hover";
+import { QueryClientProvider } from "@tanstack/react-query";
 import "./components/smart_data/i18n";
+import { queryClient } from "./api/nereus/queryClient";
+import { ThemeProvider } from "./theme/ThemeProvider";
+import { Toaster } from "./components/ui/sonner";
+import { TooltipProvider } from "./components/ui/tooltip";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 const theme = {
   token: {
-    colorPrimary: "rgb(31, 52, 97, 0.8)",
-    colorLink: "rgb(31, 52, 97)",
-    colorLinkHover: "rgb(31, 52, 97)",
-    colorLinkActive: "rgb(31, 52, 97)",
+    colorPrimary: "#203562",
+    colorLink: "#203562",
+    colorLinkHover: "#203562",
+    colorLinkActive: "#203562",
     colorSuccess: "#52c41a",
     colorWarning: "#faad14",
-    colorPrimaryBorder: "white",
     colorError: "#f5222d",
-    colorInfo: "#1890ff",
-    colorBgImage: `url(${wallpaper})`, // Added background image property
+    colorInfo: "#203562",
+    fontFamily: "Lato, Roboto, sans-serif",
   },
   components: {
-    Tabs: {
-      colorBgContainer: " rgb(31, 52, 97)",
-      itemSelectedColor: "white",
-      itemHoverColor: "rgb(31, 52, 97)",
-      itemColor: "rgb(31, 52, 97)",
-    },
-    Badge: {
-      colorInfo: "rgb(31, 52, 97)",
-    },
     Button: {
-      colorPrimary: "rgb(31, 52, 97)",
-      borderColor: "white",
+      colorPrimary: "#203562",
     },
   },
 };
 
 root.render(
   <React.StrictMode>
-    <App>
-      <ConfigProvider locale={es_ES} theme={theme}>
-        <BrowserRouter>
-          <AppStore />
-        </BrowserRouter>
-      </ConfigProvider>
-    </App>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider delayDuration={300}>
+          <AntApp>
+            <ConfigProvider locale={es_ES} theme={theme}>
+              <BrowserRouter>
+                <AppStore />
+              </BrowserRouter>
+            </ConfigProvider>
+          </AntApp>
+          <Toaster position="top-right" />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   </React.StrictMode>
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();

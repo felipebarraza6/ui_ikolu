@@ -3,6 +3,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
+import faviconUrl from "../../assets/images/favicon.ico";
 
 const markerPulseStyle = `
 @keyframes marker-pulse {
@@ -85,7 +86,7 @@ const markerPulseStyle = `
 `;
 
 const createIcon = (isTelemetry) => {
-  const faviconPath = require("../../assets/images/favicon.ico");
+  const faviconPath = faviconUrl;
   const pulseClass = isTelemetry ? "marker-pulse" : "marker-pulse-red";
   return new L.divIcon({
     html: `<div class="marker-favicon"><img src="${faviconPath}" alt="marker" /></div><div class="${pulseClass}"></div>`,

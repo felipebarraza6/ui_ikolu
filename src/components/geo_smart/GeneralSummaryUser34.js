@@ -12,7 +12,6 @@ import {
   List,
   Typography,
   Badge,
-  theme,
   Modal,
   Table,
   Tabs,
@@ -40,19 +39,6 @@ import { parseSafeDate, formatSafeDate } from "../../utils/dateFormatter";
 
 const { useBreakpoint } = Grid;
 const { Text } = Typography;
-
-let colorPrimary = "#1890ff";
-let token = { colorPrimary };
-try {
-  // Si existe theme.useToken (AntD 5+)
-  if (typeof require !== "undefined") {
-    const { theme } = require("antd");
-    if (theme && typeof theme.useToken === "function") {
-      token = theme.useToken();
-      colorPrimary = token.colorPrimary || colorPrimary;
-    }
-  }
-} catch (e) {}
 
 /**
  * GeneralSummaryUser34

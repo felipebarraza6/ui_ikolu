@@ -24,7 +24,6 @@ import {
   FaWater,
   FaChartBar,
   FaTint,
-  FaDroplet,
   FaHandHoldingWater,
   FaBroadcastTower,
   FaStream,
