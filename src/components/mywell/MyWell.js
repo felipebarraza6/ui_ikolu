@@ -47,7 +47,7 @@ import {
 import { AppContext } from "../../App";
 import QueueAnim from "rc-queue-anim";
 import MyLastRegisters from "./MyLastRegisters";
-import sh from "../../api/sh/endpoints";
+import sh from "../../api/nereus/portal";
 import Well from "./Well";
 import { formatInteger, formatFlow } from "../../utils/numberFormatter";
 import { parseSafeDate, formatSafeDate } from "../../utils/dateFormatter";

@@ -6,7 +6,7 @@ import {
   CloudServerOutlined,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
-import optimizedSh from "../../api/sh/optimizedEndpoints";
+import optimizedSh from "../../api/nereus/optimized";
 import dayjs from "dayjs";
 
 const { Title, Text } = Typography;

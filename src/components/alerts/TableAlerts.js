@@ -17,7 +17,7 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { AppContext } from "../../App";
-import sh from "../../api/sh/endpoints";
+import sh from "../../api/nereus/portal";
 import AlertDetailDrawer from "./AlertDetailDrawer";
 
 const TableAlerts = ({ data, update, setUpdate, onEdit }) => {

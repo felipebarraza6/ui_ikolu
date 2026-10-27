@@ -19,7 +19,7 @@ import {
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
 import { useNavigate } from "react-router-dom";
-import sh from "../../api/sh/endpoints";
+import sh from "../../api/nereus/portal";
 import dayjs from "dayjs";
 
 const AlertPreview = () => {

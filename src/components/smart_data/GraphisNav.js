@@ -28,7 +28,7 @@ import img_nivel from "../../assets/images/nivel.png";
 import img_total from "../../assets/images/acumulado.png";
 import { AppContext } from "../../App";
 import QueueAnim from "rc-queue-anim";
-import sh from "../../api/sh/endpoints";
+import sh from "../../api/nereus/portal";
 import ContainerDays from "./days/Container";
 import ContainerMonth from "./month/Container";
 import dayjs from "dayjs";

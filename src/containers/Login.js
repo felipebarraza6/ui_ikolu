@@ -18,7 +18,7 @@ import {
 import wallpaper from "../assets/images/walldga.png";
 import logo from "../assets/images/logozivo.png";
 import logo2 from "../assets/images/logogreen.png";
-import sh from "../api/sh/endpoints";
+import sh from "../api/nereus/portal";
 import logoSmart from "../assets/images/logo-blanco.png";
 import QueueAnim from "rc-queue-anim";
 import { AppContext } from "../App";

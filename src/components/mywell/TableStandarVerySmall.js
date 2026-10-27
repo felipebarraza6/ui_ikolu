@@ -24,7 +24,7 @@ import {
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
 import { QRCodeCanvas } from "qrcode.react";
-import api from "../../api/sh/endpoints";
+import api from "../../api/nereus/portal";
 import QueueAnim from "rc-queue-anim";
 import logo from "../../assets/images/favicon.ico";
 

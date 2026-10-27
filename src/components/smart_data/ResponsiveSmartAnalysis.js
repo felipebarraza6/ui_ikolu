@@ -14,7 +14,7 @@ import {
   BarChartOutlined,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
-import sh from "../../api/sh/endpoints";
+import sh from "../../api/nereus/portal";
 import ContainerDays from "./days/Container";
 import ContainerMonth from "./month/Container";
 import dayjs from "dayjs";

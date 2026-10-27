@@ -26,7 +26,7 @@ import {
   DatabaseOutlined,
   CheckCircleOutlined,
 } from "@ant-design/icons";
-import sh from "../../api/sh/endpoints";
+import sh from "../../api/nereus/portal";
 import QueueAnim from "rc-queue-anim";
 import {
   formatVolume,

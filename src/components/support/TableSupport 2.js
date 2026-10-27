@@ -7,7 +7,7 @@ import {
   CheckCircleOutlined,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
-import sh from "../../api/sh/endpoints";
+import sh from "../../api/nereus/portal";
 const TableSupport = ({ data }) => {
   const { state } = useContext(AppContext);
   const selected = state.selected_profile;

@@ -19,7 +19,7 @@ import {
 } from "@ant-design/icons";
 import FormAlert from "./FormAlert";
 import TableAlerts from "./TableAlerts";
-import sh from "../../api/sh/endpoints";
+import sh from "../../api/nereus/portal";
 import { AppContext } from "../../App";
 import { formatInteger } from "../../utils/numberFormatter";
 

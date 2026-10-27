@@ -21,7 +21,7 @@ import {
 import { Line } from "@ant-design/plots";
 import dayjs from "dayjs";
 import { AppContext } from "../../App";
-import sh from "../../api/sh/endpoints";
+import sh from "../../api/nereus/portal";
 import FormAlert from "./FormAlert";
 
 const TableAlerts = ({ data, update, setUpdate }) => {

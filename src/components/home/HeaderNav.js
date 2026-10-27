@@ -23,7 +23,7 @@ import AlertPreview from "./AlertPreview";
 import WellConfigDrawer from "../well/WellConfigDrawer";
 import DgaConfigDrawer from "../well/DgaConfigDrawer";
 import { useResponsive } from "../../hooks/useResponsive";
-import sh from "../../api/sh/endpoints";
+import sh from "../../api/nereus/portal";
 import logo from "../../assets/images/logozivo.png";
 
 const { Text } = Typography;

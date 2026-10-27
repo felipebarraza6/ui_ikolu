@@ -4,7 +4,7 @@ import FormSupport from "./FormSupport";
 import TableSupport from "./TableSupport";
 import { PlusCircleFilled, OrderedListOutlined } from "@ant-design/icons";
 import ActiveTickets from "./ActiveTickets";
-import sh from "../../api/sh/endpoints";
+import sh from "../../api/nereus/portal";
 import { AppContext } from "../../App";
 
 const { Header, Content, Footer } = Layout;

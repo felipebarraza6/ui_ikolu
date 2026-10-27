@@ -17,7 +17,7 @@ import {
   CloseOutlined,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
-import sh from "../../api/sh/endpoints";
+import sh from "../../api/nereus/portal";
 import { useResponsive } from "../../hooks/useResponsive";
 import dayjs from "dayjs";
 

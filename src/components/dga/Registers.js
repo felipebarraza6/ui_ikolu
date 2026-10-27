@@ -24,7 +24,7 @@ import {
   DownloadOutlined,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
-import sh from "../../api/sh/endpoints";
+import sh from "../../api/nereus/portal";
 import dayjs from "dayjs";
 import locale from "antd/locale/es_ES";
 import "dayjs/locale/es";

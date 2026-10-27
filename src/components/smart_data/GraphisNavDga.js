@@ -14,7 +14,7 @@ import { CalendarOutlined, ApartmentOutlined } from "@ant-design/icons";
 import img_caudal from "../../assets/images/caudal.png";
 import img_nivel from "../../assets/images/nivel.png";
 import { AppContext } from "../../App";
-import sh from "../../api/sh/endpoints";
+import sh from "../../api/nereus/portal";
 import ContainerDays from "./dga/days/Container";
 import ContainerMonth from "./dga/month/Container";
 import TableData from "./TableData";

@@ -66,7 +66,7 @@ import UserDocumentation from "../components/documentation/UserDocumentation";
 import UserProfile from "../components/profile/UserProfile";
 import AdminDashboard from "../components/admin/AdminDashboard";
 import ListWells from "../components/home/ListWells";
-import sh from "../api/sh/endpoints";
+import sh from "../api/nereus/portal";
 import { FcDoughnutChart } from "react-icons/fc";
 import { showFormMultiData } from "../utils/userFlags";
 

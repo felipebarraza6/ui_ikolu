@@ -49,7 +49,7 @@ import {
   SaveOutlined,
   CloseOutlined,
 } from "@ant-design/icons";
-import sh from "../api/sh/endpoints";
+import sh from "../api/nereus/portal";
 import { useResponsive } from "../hooks/useResponsive";
 import { formatDateSantiago } from "../utils/santiagoDate";
 

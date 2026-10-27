@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
 import { Form, Input, Button, Flex, Select } from "antd";
 import { RocketFilled, ClearOutlined, PlusOutlined } from "@ant-design/icons";
-import sh from "../../api/sh/endpoints";
+import sh from "../../api/nereus/portal";
 import { AppContext } from "../../App";
 
 const FormSupport = ({ update, setUpdate }) => {

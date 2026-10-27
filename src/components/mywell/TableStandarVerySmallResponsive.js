@@ -28,7 +28,7 @@ import {
 } from "@ant-design/icons";
 import { FaTint } from "react-icons/fa";
 import { AppContext } from "../../App";
-import api from "../../api/sh/endpoints";
+import api from "../../api/nereus/portal";
 import {
   formatFlow,
   formatLevel,

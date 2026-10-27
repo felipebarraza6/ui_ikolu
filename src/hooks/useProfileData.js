@@ -1,7 +1,7 @@
 import { useContext, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AppContext } from "../App";
-import sh from "../api/sh/endpoints";
+import sh from "../api/nereus/portal";
 
 /**
  * Perfil del punto seleccionado. El refresco periódico usa refetchInterval.

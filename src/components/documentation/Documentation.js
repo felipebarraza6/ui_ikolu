@@ -264,8 +264,8 @@ const Documentation = () => {
               {
                 title: "SmartHydro (SH) API",
                 description:
-                  "Las llamadas heredadas pasan por el mismo cliente (src/api/sh/config.js).",
-                location: "src/api/sh/",
+                  "Perfil, lecturas, notificaciones y gestión viven en src/api/nereus/portal.ts, también bajo ik/.",
+                location: "src/api/nereus/portal.ts",
               },
             ]}
             renderItem={(item) => (

@@ -21,7 +21,7 @@ import {
 import FormSupport from "./FormSupport";
 import TableSupport from "./TableSupport";
 import ActiveTickets from "./ActiveTickets";
-import sh from "../../api/sh/endpoints";
+import sh from "../../api/nereus/portal";
 import { AppContext } from "../../App";
 import { useResponsive } from "../../hooks/useResponsive";
 

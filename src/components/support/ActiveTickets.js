@@ -18,7 +18,7 @@ import {
   ClearOutlined,
 } from "@ant-design/icons";
 import { AppContext } from "../../App";
-import sh from "../../api/sh/endpoints";
+import sh from "../../api/nereus/portal";
 
 const ActiveTickets = ({ data }) => {
   const { state } = useContext(AppContext);

@@ -9,6 +9,7 @@
  * - hide_analysis_nav: oculta Smart Análisis / DGA análisis en sider (antes arrocerospti|lecheriavalleverde)
  *
  * También se respeta `is_staff` donde ya se usa (admin, drawers).
+ * Documentos (`file_catchment`) solo si VITE_ENABLE_DOCUMENTS=true.
  */
 
 export const showAggregatedControlCenter = (user) =>
@@ -19,3 +20,11 @@ export const showUmiPrototype = (user) => Boolean(user?.show_umi_prototype);
 export const showFormMultiData = (user) => Boolean(user?.show_form_multi_data);
 
 export const hideAnalysisNav = (user) => Boolean(user?.hide_analysis_nav);
+
+/**
+ * Documentos (`file_catchment`). Apagado salvo VITE_ENABLE_DOCUMENTS=true.
+ * Con el flag apagado no se muestra el módulo ni se llama al endpoint.
+ */
+export const DOCUMENTS_ENABLED = import.meta.env.VITE_ENABLE_DOCUMENTS === "true";
+
+export const showDocuments = () => DOCUMENTS_ENABLED;

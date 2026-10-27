@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { Table, Button, Flex } from "antd";
 import { CloudDownloadOutlined } from "@ant-design/icons";
 import DataSummary from "./DataSummary";
-import sh from "../../api/sh/endpoints";
+import sh from "../../api/nereus/portal";
 import { AppContext } from "../../App";
 import {
   formatFlow,
