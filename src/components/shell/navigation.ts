@@ -3,6 +3,7 @@ import {
   Download,
   Droplets,
   FolderOpen,
+  Inbox,
   LayoutDashboard,
   LifeBuoy,
   LineChart,
@@ -25,11 +26,12 @@ export type NavItem = {
 
 export const NAV_ITEMS: NavItem[] = [
   { to: "/", label: "Centro de control", icon: LayoutDashboard },
-  { to: "/geo", label: "GEO Smart", icon: Map },
+  { to: "/mapa", label: "Captaciones", icon: Map },
   { to: "/telemetry", label: "Telemetría", icon: Radio },
-  { to: "/dga", label: "DGA - MEE", icon: Droplets, needsDga: true },
+  { to: "/dga", label: "Cumplimiento DGA", icon: Droplets },
+  { to: "/avisos", label: "Avisos", icon: Inbox },
   { to: "/analysis", label: "Smart Análisis", icon: LineChart, analysis: true },
-  { to: "/download", label: "Descarga", icon: Download },
+  { to: "/download", label: "Reportes", icon: Download },
   { to: "/documents", label: "Documentos", icon: FolderOpen },
   { to: "/alerts", label: "Alertas", icon: Bell },
   { to: "/support", label: "Soporte", icon: LifeBuoy },

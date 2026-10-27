@@ -6,13 +6,15 @@ import { RouteFallback } from "./routes/RouteFallback";
 
 const LoginPage = lazy(() => import("./pages/login/LoginPage"));
 const DashboardPage = lazy(() => import("./pages/dashboard/DashboardPage"));
-const TelemetryRoute = lazy(() => import("./routes/TelemetryRoute"));
+const TelemetryPage = lazy(() => import("./components/telemetry/TelemetryPage"));
 const PreviewModalQR = lazy(() => import("./components/dga/PreviewModalQR"));
-const GeoSmart = lazy(() => import("./components/geo_smart/GeoSmart"));
+const CaptureMapPage = lazy(() => import("./components/map/CaptureMapPage"));
+const CompliancePage = lazy(() => import("./components/compliance/CompliancePage"));
+const AvisosPage = lazy(() => import("./components/avisos/AvisosPage"));
+const ReportsPage = lazy(() => import("./components/reports/ReportsPage"));
 const ResponsiveSmartAnalysis = lazy(() => import("./components/smart_data/ResponsiveSmartAnalysis"));
-const ResponsiveDga = lazy(() => import("./components/dga/ResponsiveDga"));
 const GraphisNavDga = lazy(() => import("./components/smart_data/GraphisNavDga"));
-const Reports = lazy(() => import("./components/reports/Reports"));
+
 const DocRes = lazy(() => import("./components/docres/DocRes"));
 const ResponsiveAlerts = lazy(() => import("./components/alerts/ResponsiveAlerts"));
 const Dash = lazy(() => import("./components/support/Dash"));
@@ -42,16 +44,17 @@ const AppRouter = () => (
       <Route element={<RequireAuth />}>
         <Route element={<AppShell />}>
         <Route path="/" element={<DashboardPage />} />
-        <Route path="/geo" element={<GeoSmart />} />
-        <Route path="/telemetry" element={<TelemetryRoute />} />
+        <Route path="/mapa" element={<CaptureMapPage />} />
+        <Route path="/telemetry" element={<TelemetryPage />} />
         <Route path="/analysis" element={<ResponsiveSmartAnalysis />} />
-        <Route path="/dga" element={<ResponsiveDga />} />
+        <Route path="/dga" element={<CompliancePage />} />
+        <Route path="/avisos" element={<AvisosPage />} />
         <Route path="/dga-analysis" element={<GraphisNavDga />} />
-        <Route path="/download" element={<Reports />} />
+        <Route path="/download" element={<ReportsPage />} />
         <Route path="/documents" element={<DocRes />} />
         <Route path="/alerts" element={<ResponsiveAlerts />} />
         <Route path="/support" element={<Dash />} />
-        <Route path="/extraction-data" element={<Reports />} />
+        <Route path="/extraction-data" element={<ReportsPage />} />
         <Route path="/registers-pti" element={<DataTable />} />
         <Route path="/well" element={<Well />} />
         <Route path="/sys-data" element={<GraphisNav />} />
@@ -61,7 +64,7 @@ const AppRouter = () => (
         <Route path="/sys-alerts" element={<ResponsiveAlerts />} />
         <Route path="/charts" element={<MyGraphics />} />
         <Route path="/form-multi-data" element={<FormMultiData />} />
-        <Route path="/reports" element={<Reports />} />
+        <Route path="/reports" element={<ReportsPage />} />
         <Route path="/supp" element={<Supp />} />
         <Route path="/documentation" element={<Documentation />} />
         <Route path="/user-documentation" element={<UserDocumentation />} />

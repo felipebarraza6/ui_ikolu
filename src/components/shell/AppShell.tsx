@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { AgentDock } from "@/components/agent/AgentDock";
 import { isNavActive, titleForPath, visibleNav } from "./navigation";
 
 type Branch = { id: string; name: string };
@@ -243,10 +244,11 @@ export function AppShell() {
             <UserMenu />
           </div>
         </header>
-        <main className="flex-1 px-3 py-4 md:px-6 md:py-6">
+        <main className="flex-1 px-3 py-4 pb-20 md:px-6 md:py-6">
           <Outlet />
         </main>
       </div>
+      <AgentDock />
     </div>
   );
 }

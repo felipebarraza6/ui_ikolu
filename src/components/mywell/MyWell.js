@@ -51,7 +51,7 @@ import sh from "../../api/sh/endpoints";
 import Well from "./Well";
 import { formatInteger, formatFlow } from "../../utils/numberFormatter";
 import { parseSafeDate, formatSafeDate } from "../../utils/dateFormatter";
-import { useDataValidation } from "../geo_smart/hooks/useDataValidation";
+
 import { useResponsive } from "../../hooks/useResponsive";
 import moment from "moment";
 import "moment/locale/es";
@@ -872,7 +872,6 @@ const MyWell = () => {
   const [varNivel, setVarNivel] = useState(null);
   const [lastRegisters, setLastRegisters] = useState([]);
   const telemetryRunner = useRef(null);
-  const validators = useDataValidation();
 
   // Función auxiliar para obtener el registro más reciente
   const getLatest = (profile) => {

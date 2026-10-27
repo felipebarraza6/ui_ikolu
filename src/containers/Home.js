@@ -65,16 +65,10 @@ import Documentation from "../components/documentation/Documentation";
 import UserDocumentation from "../components/documentation/UserDocumentation";
 import UserProfile from "../components/profile/UserProfile";
 import AdminDashboard from "../components/admin/AdminDashboard";
-import GeoSmart from "../components/geo_smart/GeoSmart";
-import GeneralSummary from "../components/geo_smart/GeneralSummary";
-import GeneralSummaryUser34 from "../components/geo_smart/GeneralSummaryUser34";
 import ListWells from "../components/home/ListWells";
 import sh from "../api/sh/endpoints";
 import { FcDoughnutChart } from "react-icons/fc";
-import {
-  showAggregatedControlCenter,
-  showFormMultiData,
-} from "../utils/userFlags";
+import { showFormMultiData } from "../utils/userFlags";
 
 const { Header, Sider, Content } = Layout;
 const { useToken } = theme;
@@ -87,7 +81,7 @@ const { Title } = Typography;
 // ── Items planos (globales o que no necesitan submenú) ──
 const GLOBAL_ITEMS = [
   { key: "0", icon: <GlobalOutlined />, label: "Centro de Control", to: "/" },
-  { key: "1", icon: <EnvironmentOutlined />, label: "GEO Smart", to: "/geo" },
+  { key: "1", icon: <EnvironmentOutlined />, label: "Captaciones", to: "/mapa" },
   { key: "2", icon: <WifiOutlined />, label: "Telemetría", to: "/telemetry" },
   { key: "4", icon: <FileTextOutlined />, label: "DGA - MEE", to: "/dga" },
 ];
@@ -239,18 +233,12 @@ const AppRoutes = React.memo(() => {
     }
   };
 
-  const renderCentroControl = () => {
-    // Flag API: user.show_aggregated_control_center (antes hardcode user.id===34)
-    if (showAggregatedControlCenter(state.user)) {
-      return <GeneralSummaryUser34 profiles={state.profile_client} />;
-    }
-    return <GeneralSummary profiles={state.profile_client} />;
-  };
+  const renderCentroControl = () => <ListWells />;
 
   return (
     <Routes>
       <Route path="/" element={renderCentroControl()} />
-      <Route path="/geo" element={<GeoSmart />} />
+      <Route path="/mapa" element={<ListWells />} />
       <Route path="/telemetry" element={renderMainRoute()} />
       <Route path="/analysis" element={<ResponsiveSmartAnalysis />} />
       <Route path="/dga" element={<ResponsiveDga />} />
