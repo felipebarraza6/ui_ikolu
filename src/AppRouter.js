@@ -7,27 +7,20 @@ import { RouteFallback } from "./routes/RouteFallback";
 const LoginPage = lazy(() => import("./pages/login/LoginPage"));
 const DashboardPage = lazy(() => import("./pages/dashboard/DashboardPage"));
 const TelemetryPage = lazy(() => import("./components/telemetry/TelemetryPage"));
-const PreviewModalQR = lazy(() => import("./components/dga/PreviewModalQR"));
+const PreviewCertificatePage = lazy(() => import("./pages/preview/PreviewCertificatePage"));
 const CaptureMapPage = lazy(() => import("./components/map/CaptureMapPage"));
 const CompliancePage = lazy(() => import("./components/compliance/CompliancePage"));
 const AvisosPage = lazy(() => import("./components/avisos/AvisosPage"));
 const ReportsPage = lazy(() => import("./components/reports/ReportsPage"));
-const ResponsiveSmartAnalysis = lazy(() => import("./components/smart_data/ResponsiveSmartAnalysis"));
-const GraphisNavDga = lazy(() => import("./components/smart_data/GraphisNavDga"));
-
-const DocRes = lazy(() => import("./components/docres/DocRes"));
-const ResponsiveAlerts = lazy(() => import("./components/alerts/ResponsiveAlerts"));
-const Dash = lazy(() => import("./components/support/Dash"));
-const DataTable = lazy(() => import("./components/prototype_umi/DataTable"));
-const Well = lazy(() => import("./components/mywell/Well"));
-const GraphisNav = lazy(() => import("./components/smart_data/GraphisNav"));
-const MyGraphics = lazy(() => import("./components/graphics/MyGraphics"));
-const FormMultiData = lazy(() => import("./containers/FormMultiData"));
-const Supp = lazy(() => import("./components/home/Supp"));
-const Documentation = lazy(() => import("./components/documentation/Documentation"));
-const UserDocumentation = lazy(() => import("./components/documentation/UserDocumentation"));
-const UserProfile = lazy(() => import("./components/profile/UserProfile"));
-const AdminDashboard = lazy(() => import("./components/admin/AdminDashboard"));
+const AnalysisPage = lazy(() => import("./pages/analysis/AnalysisPage"));
+const ServiceStatusPage = lazy(() => import("./pages/service/ServiceStatusPage"));
+const DocumentsPage = lazy(() => import("./pages/documents/DocumentsPage"));
+const AlertsPage = lazy(() => import("./pages/alerts/AlertsPage"));
+const SupportPage = lazy(() => import("./pages/support/SupportPage"));
+const RegistersPtiPage = lazy(() => import("./pages/registers/RegistersPtiPage"));
+const HelpPage = lazy(() => import("./pages/help/HelpPage"));
+const ProfilePage = lazy(() => import("./pages/profile/ProfilePage"));
+const AdminPage = lazy(() => import("./pages/admin/AdminPage"));
 
 function RequireAuth() {
   const { state } = useContext(AppContext);
@@ -40,37 +33,38 @@ const AppRouter = () => (
   <Suspense fallback={<RouteFallback />}>
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/preview-certificate" element={<PreviewModalQR />} />
+      <Route path="/preview-certificate" element={<PreviewCertificatePage />} />
       <Route element={<RequireAuth />}>
         <Route element={<AppShell />}>
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/mapa" element={<CaptureMapPage />} />
-        <Route path="/telemetry" element={<TelemetryPage />} />
-        <Route path="/analysis" element={<ResponsiveSmartAnalysis />} />
-        <Route path="/dga" element={<CompliancePage />} />
-        <Route path="/avisos" element={<AvisosPage />} />
-        <Route path="/dga-analysis" element={<GraphisNavDga />} />
-        <Route path="/download" element={<ReportsPage />} />
-        <Route path="/documents" element={<DocRes />} />
-        <Route path="/alerts" element={<ResponsiveAlerts />} />
-        <Route path="/support" element={<Dash />} />
-        <Route path="/extraction-data" element={<ReportsPage />} />
-        <Route path="/registers-pti" element={<DataTable />} />
-        <Route path="/well" element={<Well />} />
-        <Route path="/sys-data" element={<GraphisNav />} />
-        <Route path="/sys-data-dga" element={<GraphisNavDga />} />
-        <Route path="/sys-docs" element={<DocRes />} />
-        <Route path="/sys-support" element={<Dash />} />
-        <Route path="/sys-alerts" element={<ResponsiveAlerts />} />
-        <Route path="/charts" element={<MyGraphics />} />
-        <Route path="/form-multi-data" element={<FormMultiData />} />
-        <Route path="/reports" element={<ReportsPage />} />
-        <Route path="/supp" element={<Supp />} />
-        <Route path="/documentation" element={<Documentation />} />
-        <Route path="/user-documentation" element={<UserDocumentation />} />
-        <Route path="/profile" element={<UserProfile />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/mapa" element={<CaptureMapPage />} />
+          <Route path="/telemetry" element={<TelemetryPage />} />
+          <Route path="/well" element={<Navigate to="/telemetry" replace />} />
+          <Route path="/analysis" element={<AnalysisPage />} />
+          <Route path="/dga" element={<CompliancePage />} />
+          <Route path="/avisos" element={<AvisosPage />} />
+          <Route path="/dga-analysis" element={<AnalysisPage />} />
+          <Route path="/download" element={<ReportsPage />} />
+          <Route path="/servicio" element={<ServiceStatusPage />} />
+          <Route path="/documents" element={<DocumentsPage />} />
+          <Route path="/alerts" element={<AlertsPage />} />
+          <Route path="/support" element={<SupportPage />} />
+          <Route path="/extraction-data" element={<ReportsPage />} />
+          <Route path="/registers-pti" element={<RegistersPtiPage />} />
+          <Route path="/sys-data" element={<AnalysisPage />} />
+          <Route path="/sys-data-dga" element={<AnalysisPage />} />
+          <Route path="/sys-docs" element={<DocumentsPage />} />
+          <Route path="/sys-support" element={<SupportPage />} />
+          <Route path="/sys-alerts" element={<AlertsPage />} />
+          <Route path="/charts" element={<AnalysisPage />} />
+          <Route path="/form-multi-data" element={<AnalysisPage />} />
+          <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/supp" element={<SupportPage />} />
+          <Route path="/documentation" element={<HelpPage />} />
+          <Route path="/user-documentation" element={<HelpPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Route>
     </Routes>

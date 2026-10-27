@@ -97,3 +97,42 @@ Botón fijo y `Sheet` por usuario y sucursal. `GET ai-agents/agents/default/`, `
 - `yarn build` OK (Vite, `dist/`). El chunk `WellCanvas` queda aparte.
 
 No hay navegador en esta sesión: no se recorrió login ni las pantallas contra la API real.
+
+## Portal único y Estado del servicio
+
+Misma rama, sin push. El front ya no depende de `src/api/sh` ni del host histórico de core.
+
+### API
+
+- Un solo Axios (`src/api/nereus/client.ts`). El portal (`src/api/nereus/portal.ts`) y el cliente optimizado viven ahí. Se eliminó `src/api/sh`.
+- Todas las llamadas de perfil, lecturas, notificaciones, clientes, proyectos, puntos y gestión van con prefijo `ik/`, así que la URL final es `/api/ik/…`.
+- `users/{username}/` acepta GET y PATCH. El XLSX mensual y las descargas de lecturas piden la planilla con el header `Accept` de spreadsheet (xlsx).
+- Se quitó `history_data/`. No queda función ni path.
+- Documentos (`file_catchment`) solo si `VITE_ENABLE_DOCUMENTS=true`. Por defecto el flag está apagado: el menú oculta Documentos y esa ruta no llama a la API. Muestra "No disponible aún".
+- Un 404 de un dato que el backend todavía no publica se muestra como "No disponible aún".
+
+### Estado del servicio
+
+Ruta `/servicio`, en shadcn. `GET ik/portal_config/` decide qué bloques se piden:
+
+- `show_availability`: `ik/service_status/` y `ik/service_status/uptime/?days=30` (también 7 y 90).
+- `show_dga_queue`: `ik/dga_queue/summary/` y `ik/dga_queue/?point=&status=&from=&to=`.
+- `show_sla` y `show_internal_tickets`: `ik/sla/summary/` y `ik/sla/tickets/`.
+- `show_device_health`: `ik/point/<id>/health/`.
+- `show_events`: `ik/incidents/`.
+
+Si `portal_config` responde 404, la pantalla entera dice "No disponible aún" y no dispara el resto. En móvil las tablas pasan a tarjetas.
+
+### Pantallas
+
+El router ya no monta Ant Design. Perfil, alertas, soporte, administración, Smart Análisis, documentos, ayuda, registros PTI y la vista previa del certificado quedaron en shadcn. `/well` abre la telemetría. Salieron de `package.json` `antd`, `@ant-design/icons` y `@ant-design/plots`. `dayjs` quedó como dependencia directa.
+
+Los módulos viejos que el router ya no carga siguen en el árbol (pozo animado, gráficos ant, layouts móviles). No entran al bundle. Si se vuelven a importar, hay que reescribirlos: el paquete antd ya no está instalado.
+
+### Verificación
+
+- `yarn lint` OK
+- `yarn build` OK
+- `rg api.smarthydro.app` sin coincidencias
+
+No hay navegador en esta sesión: no se recorrió el login ni Estado del servicio contra la API real. Un 404 de esos endpoints se cubre en la UI con el texto "No disponible aún".
