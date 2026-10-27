@@ -71,6 +71,20 @@ code {
     monospace;
 }
 
+@keyframes hydro-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.hydro-pulse {
+  animation: hydro-pulse 1.6s ease-in-out infinite;
+}
+
 /* 🔧 SOLUCIÓN CRÍTICA PARA SIDEBAR EN MÓVIL */
 @media (max-width: 992px) {
   /* Ocultar completamente el sidebar en móvil */

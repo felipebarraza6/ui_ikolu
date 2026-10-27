@@ -16,6 +16,13 @@ module.exports = {
         foreground: "hsl(var(--foreground))",
         navy: "#203562",
         limebrand: "#CCCF07",
+        hydro: {
+          online: "#66E0C2",
+          warn: "#FFC46B",
+          incident: "#FF847A",
+          info: "#69B9FF",
+          cyan: "#00C8FF",
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
