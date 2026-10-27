@@ -43,8 +43,11 @@ export default function LoginPage() {
     try {
       const data = (await login(email.trim(), password)) as {
         access_token?: string;
-        user?: { username?: string; catchment_points?: unknown[] };
+        user?: { username?: string; email?: string; catchment_points?: unknown[] };
       };
+      if (data?.user && !data.user.username) {
+        data.user.username = data.user.email;
+      }
       if (!data?.access_token || !data.user?.username) {
         throw new Error("La respuesta de login no incluye usuario o token");
       }
