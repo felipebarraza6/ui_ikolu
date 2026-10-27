@@ -22,20 +22,30 @@ SheetOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
+    side?: "left" | "right";
+    tone?: "sidebar" | "panel";
+  }
+>(({ className, children, side = "left", tone = "sidebar", ...props }, ref) => (
   <SheetPortal>
     <SheetOverlay />
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-y-0 left-0 z-50 flex h-full w-[min(100%,18rem)] flex-col bg-sidebar text-sidebar-foreground shadow-xl",
+        "fixed inset-y-0 z-50 flex h-full flex-col shadow-xl",
+        side === "left" ? "left-0 w-[min(100%,18rem)]" : "right-0 w-[min(100%,28rem)]",
+        tone === "sidebar" ? "bg-sidebar text-sidebar-foreground" : "bg-card text-card-foreground",
         className
       )}
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="absolute right-3 top-3 rounded-md p-1 text-sidebar-foreground/80 hover:bg-white/10">
+      <DialogPrimitive.Close
+        className={cn(
+          "absolute right-3 top-3 rounded-md p-1",
+          tone === "sidebar" ? "text-sidebar-foreground/80 hover:bg-white/10" : "text-foreground/70 hover:bg-muted"
+        )}
+      >
         <X className="h-4 w-4" />
         <span className="sr-only">Cerrar</span>
       </DialogPrimitive.Close>
