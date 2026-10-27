@@ -50,3 +50,50 @@ yarn lint
 ```
 
 Variables: `.env.example`, `.env.staging`, `.env.production`.
+
+## Fase producto (misma rama)
+
+Identidad, telemetría, mapa, cumplimiento, avisos, reportes y el agente. Sigue sin push.
+
+### Identidad
+
+Cards KPI con cifra en Roboto, barra lima y icono navy. Badges de estado: en línea `#66E0C2`, atención `#FFC46B`, sin transmisión `#FF847A`, DGA en contorno navy. Gráficos de línea (Chart.js) en cian, navy y lima, con banda autorizada y 90 %. Skeletons, vacío y error con reintento en el tablero, la telemetría, el mapa, el cumplimiento, los avisos y los reportes.
+
+### GEO Smart
+
+Se eliminó `src/components/geo_smart` (ruta, menú del shell, `HeaderNav` y el contenedor `Home`). No queda ruta `/geo`. El mapa nuevo vive en `/mapa`.
+
+### Escala
+
+El padrón del tablero, el selector de punto, la lista DGA y la tabla de registros usan `@tanstack/react-virtual`. El mapa agrupa con Leaflet y `leaflet.markercluster` (`chunkedLoading`). La telemetría pide como máximo 2.000 lecturas y 31 días, y el gráfico baja a 360 puntos. El lote de telemetría del cliente sigue topado en 50 ids. La vista 3D entra en un chunk aparte y solo si el usuario la abre.
+
+### Telemetría
+
+`/telemetry` ya no monta `MyWell`. La pantalla está partida en `src/components/telemetry/`: selector, KPIs (caudal, totalizador, nivel, última transmisión, en línea), rango de fechas, gráficos y tabla virtualizada. `MyWell.js` queda solo para el contenedor `Home`, que el shell no monta.
+
+### Pozo 2D / 3D
+
+El corte SVG y la escena `react-three-fiber` + drei salen de `capture3d.html` y de la ficha del punto (`d1` profundidad, `d2` bomba, `d3` sensor, caudal, nivel y totalizador). Superficial si `type_dga` es `SUPERFICIAL`. El nivel llena el pozo con el rango del período. El toggle 2D/3D se guarda en `localStorage` (`ikolu.view.<usuario>`). Por defecto es 2D.
+
+### Mapa
+
+`/mapa`. Teselas CARTO Voyager, sin clave. Marcador por estado, popup con caudal, nivel, totalizador y última transmisión, y botón a la telemetría. Búsqueda y filtros de estado y tipo. Los puntos sin GPS se cuentan y no se dibujan.
+
+### Portado desde smarthydro_app
+
+- Cumplimiento DGA en `/dga`: estándar y cadencia, % de comprobantes por ranura, bandas dentro / 90 % / sobre el límite, historial `compliance/{id}/flow_history/` y `near_limit/`.
+- Panel en vivo en `/`: conteo de toda la sucursal y refresco cada minuto.
+- Historial: sheet de `point/{id}/calendar/` (30 días). Un día fija el rango de la telemetría.
+- Buzón en `/avisos`: `control_center/system_events/` (100) y `system-events/summary/`. Crítico o atención. Abre el punto si viene en el evento.
+- Reportes en `/download` y `/reports`: mismas lecturas, KPIs y descarga CSV o Excel.
+
+### Agente Nereus
+
+Botón fijo y `Sheet` por usuario y sucursal. `GET ai-agents/agents/default/`, `POST ai-agents/conversations/`, `POST ai-agents/conversations/{id}/chat/` con `{ message }`. El mensaje lleva el punto abierto (nombre, id, caudal, nivel, totalizador, última tx, estado). El `conversationId` y los últimos 40 mensajes quedan en `localStorage`.
+
+### Verificación
+
+- `yarn lint` OK
+- `yarn build` OK (Vite, `dist/`). El chunk `WellCanvas` queda aparte.
+
+No hay navegador en esta sesión: no se recorrió login ni las pantallas contra la API real.
