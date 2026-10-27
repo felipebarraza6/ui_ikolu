@@ -17,6 +17,21 @@ export const ik = {
   pointsSummary: "ik/points_summary/",
   dashboardStats: "ik/dashboard_stats/",
   batchTelemetry: "ik/batch/telemetry/",
+  pointRecords: (id: string | number) => `ik/point/${id}/records/`,
+  pointConfig: (id: string | number) => `ik/point/${id}/config/`,
+  pointCalendar: (id: string | number) => `ik/point/${id}/calendar/`,
+  pointSummary: (id: string | number) => `ik/point/${id}/summary/`,
+  compliance: "ik/compliance/",
+  flowHistory: (id: string | number) => `ik/compliance/${id}/flow_history/`,
+  nearLimit: (id: string | number) => `ik/compliance/${id}/near_limit/`,
+  systemEvents: "ik/control_center/system_events/",
+  eventsSummary: "ik/system-events/summary/",
+} as const;
+
+export const aiAgents = {
+  defaultAgent: "ai-agents/agents/default/",
+  conversations: "ai-agents/conversations/",
+  chat: (id: string | number) => `ai-agents/conversations/${id}/chat/`,
 } as const;
 
 function readStoredToken(): string | null {
