@@ -314,6 +314,8 @@ const TicketDetailDrawer = ({
       setReplyText("");
       setPendingReplyFiles([]);
       setNotificationsOpen(false);
+      setTicketNotifications([]);
+      setUnreadNotificationsCount(0);
       commentForm.resetFields();
       otForm.resetFields();
     }
@@ -321,13 +323,24 @@ const TicketDetailDrawer = ({
   }, [open]);
 
   useEffect(() => {
-    if (open && getTicketNotifications) {
-      getTicketNotifications({ unread_only: true }).then((res) => {
-        setTicketNotifications(res?.results || res || []);
-        setUnreadNotificationsCount(res?.unread_count || 0);
-      });
-    }
-  }, [open, getTicketNotifications]);
+    if (!open || !getTicketNotifications || !ticket?.id) return;
+    getTicketNotifications({ unread_only: true, ticket: ticket.id }).then((res) => {
+      const list = Array.isArray(res?.results)
+        ? res.results
+        : Array.isArray(res)
+          ? res
+          : [];
+      const filtered = list.filter(
+        (n) => String(n.ticket ?? n.ticket_id) === String(ticket.id)
+      );
+      setTicketNotifications(filtered);
+      setUnreadNotificationsCount(
+        typeof res?.unread_count === "number" && filtered.length === list.length
+          ? res.unread_count
+          : filtered.length
+      );
+    });
+  }, [open, getTicketNotifications, ticket?.id]);
 
   useEffect(() => {
     if (ticket && editingOt) {
